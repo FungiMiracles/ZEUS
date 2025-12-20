@@ -9,43 +9,14 @@
    Stylescope: .panstwo-form
 ============================================================ */
 
-
-/* ============================================================
-   NAGŁÓWEK: INFORMACJE SZCZEGÓŁOWE
-============================================================ */
-
-.opis-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.opis-title {
-    font-size: 1.15em;
-    font-weight: 700;
-}
-
-.opis-header .btn-zeus-edit {
-    padding: 6px 12px;
-    font-size: 0.8em;
-    white-space: nowrap;
-}
-
-
-/* ============================================================
-   SEKCJA GŁÓWNA
-============================================================ */
-
+/* MOBILE FIRST - podstawa dla wszystkich urządzeń */
 .panstwo-form {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-
 /* ============================================================
    NAGŁÓWKI
 ============================================================ */
-
 .panstwo-form .title-separator {
     border: none;
     height: 1px;
@@ -74,39 +45,32 @@
     color: #34495e;
 }
 
-
 /* ============================================================
-   LAYOUT DWUKOLUMNOWY
+   NAGŁÓWEK: INFORMACJE SZCZEGÓŁOWE
 ============================================================ */
-
-.panstwo-form .layout {
+.opis-header {
     display: flex;
-    gap: 30px;
-    margin: 20px 30px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
     flex-wrap: wrap;
+    gap: 10px;
 }
 
-.panstwo-form .col-left {
-    flex: 1 1 400px;
-    min-width: 350px;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.opis-title {
+    font-size: 1.15em;
+    font-weight: 700;
 }
 
-.panstwo-form .col-right {
-    flex: 1 1 500px;
-    min-width: 750px;
-    max-width: 100%;
-    overflow-wrap: break-word;
+.opis-header .btn-zeus-edit {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    white-space: nowrap;
 }
-
 
 /* ============================================================
    TABELA — GLOBALNA
 ============================================================ */
-
 .panstwo-table {
     max-width: 1500px;
     border-collapse: separate;
@@ -116,6 +80,7 @@
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     font-size: 1em;
+    width: 100%;
 }
 
 .panstwo-table thead th {
@@ -125,31 +90,7 @@
     font-weight: 700;
     font-size: 1.15em;
     border-bottom: 2px solid #4171d1;
-}
-
-.panstwo-form .col-right table {
-    width: 100%;
-    table-layout: fixed;
-}
-
-.panstwo-form .col-right td,
-.panstwo-form .col-right th {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-}
-
-
-/* ============================================================
-   WIERSZE / KOMÓRKI
-============================================================ */
-
-.panstwo-table tbody tr:nth-child(even) .cell {
-    background-color: #d5dfff;
-}
-
-.panstwo-table tbody tr:nth-child(odd) .cell {
-    background-color: #e2e8ff;
+    text-align: center;
 }
 
 .panstwo-table .label {
@@ -159,6 +100,7 @@
     padding: 12px 18px;
     width: 150px;
     vertical-align: middle;
+    text-align: left;
 }
 
 .panstwo-table .cell {
@@ -172,11 +114,20 @@
     height: 150px;
 }
 
+/* ============================================================
+   WIERSZE / KOMÓRKI
+============================================================ */
+.panstwo-table tbody tr:nth-child(even) .cell {
+    background-color: #d5dfff;
+}
+
+.panstwo-table tbody tr:nth-child(odd) .cell {
+    background-color: #e2e8ff;
+}
 
 /* ============================================================
    OBRAZY
 ============================================================ */
-
 .panstwo-image {
     max-height: 250px;
     max-width: 100%;
@@ -184,23 +135,21 @@
     border-radius: 8px;
     border: 1.5px solid #888;
     background-color: #fafafa;
+    width: 100%;
+    height: auto;
 }
-
 
 /* ============================================================
    MIASTA
 ============================================================ */
-
 .city-row {
     font-weight: 600;
     text-align: right;
 }
 
-
 /* ============================================================
    OPIS / MARKDOWN
 ============================================================ */
-
 .description-cell {
     padding: 18px;
     background-color: #fff;
@@ -222,16 +171,15 @@
     font-style: italic;
 }
 
-
 /* ============================================================
    PRZYCISKI EDYCJI
 ============================================================ */
-
 .opis-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 14px;
+    flex-wrap: wrap;
 }
 
 .btn-zeus {
@@ -273,11 +221,9 @@
     background-color: #dfe6e9;
 }
 
-
 /* ============================================================
    META OPISU
 ============================================================ */
-
 .opis-meta {
     margin-top: 4px;
     font-size: 0.75em;
@@ -286,14 +232,165 @@
     color: rgba(255, 255, 255, 0.85);
     text-align: right;
 }
+
+/* ============================================================
+   DESKTOP - dwukolumnowy layout (od 1024px)
+============================================================ */
+@media (min-width: 1024px) {
+    .panstwo-form .layout {
+        display: flex;
+        gap: 30px;
+        margin: 20px 30px;
+        flex-wrap: nowrap;
+    }
+
+    .panstwo-form .col-left {
+        flex: 1 1 400px;
+        min-width: 350px;
+        max-width: 450px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .panstwo-form .col-right {
+        flex: 1 1 500px;
+        min-width: 350px;
+        max-width: 50%;
+        overflow-wrap: break-word;
+    }
+
+    .panstwo-form .col-right table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .panstwo-form .col-right td,
+    .panstwo-form .col-right th {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+
+    .panstwo-form .country-name {
+        margin-left: 30px;
+    }
+
+    .panstwo-form .country-fullname {
+        margin-left: 30px;
+    }
+}
+
+/* ============================================================
+   TABLET - pionowy stack (768px - 1023px)
+============================================================ */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .panstwo-form .layout {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin: 20px 20px;
+    }
+
+    .panstwo-form .col-left,
+    .panstwo-form .col-right {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .panstwo-table .label {
+        width: 180px;
+    }
+
+    .panstwo-form .country-name {
+        margin-left: 20px;
+    }
+
+    .panstwo-form .country-fullname {
+        margin-left: 20px;
+    }
+}
+
+/* ============================================================
+   MOBILE - pionowy stack + optymalizacje (do 767px)
+============================================================ */
+@media (max-width: 767px) {
+    .panstwo-form {
+        padding: 0 10px;
+    }
+
+    .panstwo-form .layout {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin: 15px 0;
+    }
+
+    .panstwo-form .col-left,
+    .panstwo-form .col-right {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .panstwo-table {
+        font-size: 0.9em;
+        margin-bottom: 15px;
+    }
+
+    .panstwo-table thead th {
+        padding: 10px 12px;
+        font-size: 1em;
+    }
+
+    .panstwo-table .label,
+    .panstwo-table .cell {
+        padding: 10px 12px;
+    }
+
+    .panstwo-table .label {
+        width: 140px;
+        font-size: 0.9em;
+    }
+
+    .panstwo-image {
+        max-height: 180px;
+    }
+
+    .panstwo-form .country-name {
+        margin: 10px 0;
+        font-size: 22px;
+        text-align: center;
+    }
+
+    .panstwo-form .country-fullname {
+        margin: 0 0 15px 0;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .opis-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .opis-header .btn-zeus-edit {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    textarea[name="opis_md"] {
+        font-size: 16px; /* Zapobiega zoom na iOS */
+        resize: vertical;
+    }
+
+    .city-row {
+        text-align: center !important;
+    }
+}
 </style>
 
-<!-- ============================================================
-     HTML
-============================================================ -->
-
+<!-- HTML bez zmian -->
 <div class="panstwo-form">
-
     <hr class="title-separator">
     <p class="page-title">Formularz państwa</p>
     <hr class="title-separator">
@@ -305,13 +402,8 @@
     <hr class="title-separator">
 
     <div class="layout">
-
-        <!-- ====================================================
-             LEWA KOLUMNA
-        ==================================================== -->
-
+        <!-- LEWA KOLUMNA -->
         <div class="col-left">
-
             <!-- INFORMACJE O PAŃSTWIE -->
             <table class="panstwo-table">
                 <thead>
@@ -320,7 +412,6 @@
                     </tr>
                 </thead>
                 <tbody>
-
                     <!-- FLAGA -->
                     <tr>
                         <td class="label">Flaga:</td>
@@ -361,7 +452,6 @@
                         <td colspan="2" class="cell">{{ value }}</td>
                     </tr>
                     {% endfor %}
-
                 </tbody>
             </table>
 
@@ -389,13 +479,9 @@
                     {% endif %}
                 </tbody>
             </table>
-
         </div>
 
-        <!-- ====================================================
-             PRAWA KOLUMNA
-        ==================================================== -->
-
+        <!-- PRAWA KOLUMNA -->
         <div class="col-right">
             <table class="panstwo-table">
                 <thead>
@@ -403,29 +489,20 @@
                         <th>
                             <div class="opis-header">
                                 <span class="opis-title">Informacje szczegółowe</span>
-
                                 {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-
-                                <!-- MA UPRAWNIENIA -->
-                                <button type="button"
-                                        id="btn-opis-edit"
-                                        class="btn-zeus btn-zeus-edit">
-                                    Edytuj informacje szczegółowe
-                                </button>
-
-                            {% else %}
-
-                                <!-- BRAK UPRAWNIEŃ -->
-                                <button type="button"
-                                        class="btn-zeus btn-zeus-edit btn-zeus-disabled"
-                                        onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-                                    Edytuj informacje szczegółowe
-                                </button>
-
-                            {% endif %}
-
+                                    <button type="button"
+                                            id="btn-opis-edit"
+                                            class="btn-zeus btn-zeus-edit">
+                                        Edytuj informacje szczegółowe
+                                    </button>
+                                {% else %}
+                                    <button type="button"
+                                            class="btn-zeus btn-zeus-edit btn-zeus-disabled"
+                                            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                        Edytuj informacje szczegółowe
+                                    </button>
+                                {% endif %}
                             </div>
-
                             {% if ostatnia_edycja %}
                                 <div class="opis-meta">
                                     Ostatnio edytowany: {{ ostatnia_edycja.strftime("%d.%m.%Y, %H:%M") }}
@@ -437,7 +514,6 @@
                 <tbody>
                     <tr>
                         <td class="description-cell">
-
                             <!-- PODGLĄD -->
                             <div id="opis-view">
                                 {% if opis_html %}
@@ -453,7 +529,6 @@
                             <div id="opis-edit" style="display:none;">
                                 <form method="POST"
                                       action="{{ url_for('panstwo_opis_edit', panstwo_id=p.PANSTWO_ID) }}">
-
                                     <textarea name="opis_md"
                                               rows="18"
                                               style="
@@ -461,46 +536,36 @@
                                                 font-family: monospace;
                                                 font-size: 0.9em;
                                                 padding: 10px;
-                                              "
-                                    >{{ opis_md }}</textarea>
-
+                                              ">{{ opis_md }}</textarea>
                                     <div class="opis-actions">
                                         <button type="submit"
                                                 class="btn-zeus btn-zeus-save">
                                             Zapisz
                                         </button>
-
                                         <button type="button"
                                                 id="btn-opis-cancel"
                                                 class="btn-zeus btn-zeus-cancel">
                                             Anuluj
                                         </button>
                                     </div>
-
                                 </form>
                             </div>
-
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
     </div>
-
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     const btnEdit = document.getElementById("btn-opis-edit");
     const btnCancel = document.getElementById("btn-opis-cancel");
-
     const view = document.getElementById("opis-view");
     const edit = document.getElementById("opis-edit");
 
     if (btnEdit && btnCancel && view && edit) {
-
         btnEdit.addEventListener("click", function () {
             view.style.display = "none";
             edit.style.display = "block";
@@ -510,7 +575,6 @@ document.addEventListener("DOMContentLoaded", function () {
             edit.style.display = "none";
             view.style.display = "block";
         });
-
     } else {
         console.warn("ZEUS: Nie znaleziono elementów edycji opisu.");
     }
