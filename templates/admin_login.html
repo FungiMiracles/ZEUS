@@ -1,0 +1,110 @@
+{% extends 'base_layout.html' %}
+{% block title %}Logowanie administratora{% endblock %}
+
+{% block content %}
+
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 60px auto;
+        background: #ffffff;
+        padding: 30px 35px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .login-container h2 {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 1.6em;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .login-container label {
+        font-weight: 600;
+        color: #34495e;
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.95em;
+    }
+
+    .login-container input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #bdc3c7;
+        font-size: 1em;
+        margin-bottom: 18px;
+    }
+
+    .login-container button {
+        width: 100%;
+        padding: 10px;
+        background-color: #5d7dce;
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 1em;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .login-container button:hover {
+        background-color: #3d5bb8;
+    }
+
+    .login-container .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        text-decoration: none;
+        color: #34495e;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+
+    .login-container .back-link:hover {
+        color: #5d7dce;
+    }
+
+</style>
+
+
+<div class="login-container">
+
+    <h2>Panel administratora</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div style="
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            {% if category == 'error' %}
+                background-color: #f8d7da; color:#721c24;
+            {% elif category == 'success' %}
+                background-color: #d4edda; color:#155724;
+            {% endif %}
+        ">
+            {{ message }}
+        </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <label for="password">Hasło administratora:</label>
+        <input type="password" id="password" name="password" placeholder="Wpisz hasło..." required>
+
+        <button type="submit">Zaloguj</button>
+    </form>
+
+    <a href="{{ url_for('home_page') }}" class="back-link">Wróć na stronę główną</a>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base_layout.html' %}
+{% block title %}Region — {{ region.region_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+    .region-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 25px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .region-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .region-header h1 {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .info-table {
+        border-collapse: separate;
+        width: 100%;
+        border-spacing: 0;
+        background: #fefefe;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        margin-bottom: 40px;
+    }
+
+    .info-table thead tr {
+        background: linear-gradient(90deg, #5d7dce, #adc8ff);
+        color: white;
+        font-weight: 700;
+        font-size: 1.15em;
+    }
+
+    .info-table th {
+        padding: 14px 18px;
+        border-bottom: 2px solid #4171d1;
+    }
+
+    .info-table td {
+        padding: 14px 18px;
+        font-size: 1em;
+    }
+
+    .city-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fefefe;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        margin-top: 25px;
+    }
+
+    .city-table thead tr {
+        background: linear-gradient(90deg, #5d7dce, #adc8ff);
+        color: white;
+        font-weight: 700;
+        font-size: 1.15em;
+    }
+
+    .city-table th, .city-table td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    .city-table tbody tr:nth-child(even) {
+        background: #e8edff;
+    }
+
+    .city-table tbody tr:nth-child(odd) {
+        background: #f5f8ff;
+    }
+
+    .btn-return {
+        display:inline-block;
+        padding: 10px 20px;
+        background-color: #ecf0f1;
+        border: 1.5px solid #bdc3c7;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #34495e;
+        font-weight: 600;
+        transition: 0.3s;
+        margin: 30px auto 0;
+        text-align:center;
+    }
+
+    .btn-return:hover {
+        background-color: #3498db;
+        color: white;
+    }
+</style>
+
+<div class="region-container">
+
+    <!-- Nagłówek -->
+    <div class="region-header">
+        <h1>Region: {{ region.region_nazwa }} ({{region.region_id}})</h1>
+        <p style="color:#666; font-size:1.05em; margin-top:5px;">
+            Państwo: <strong>{{ panstwo.panstwo_nazwa }}</strong>
+        </p>
+    </div>
+
+    <!-- Tabela informacji o regionie -->
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th colspan="2">Informacje o regionie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight:700; width:200px;">Nazwa regionu:</td>
+                <td>{{ region.region_nazwa }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight:700;">Państwo:</td>
+                <td>{{ panstwo.panstwo_nazwa }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight:700;">Populacja regionu:</td>
+                <td>
+                    {% if region.region_populacja %}
+                    {{ "{:,}".format(region.region_populacja).replace(",", " ") }}
+                    {% else %}
+                    Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Miasta w regionie -->
+    <h2 style="font-size:1.4em; color:#2c3e50; margin-bottom:15px;">Miasta w tym regionie</h2>
+
+    {% if miasta %}
+    <table class="city-table">
+        <thead>
+            <tr>
+                <th>Nazwa miasta</th>
+                <th>Kod</th>
+                <th>Populacja</th>
+                <th>Typ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in miasta %}
+            <tr>
+                <td>{{ m.miasto_nazwa }}</td>
+                <td>{{ m.miasto_kod }}</td>
+                <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
+                <td>{{ m.miasto_typ }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p style="color:#7f8c8d; font-style:italic; margin-top:10px;">
+            Brak miast przypisanych do tego regionu.
+        </p>
+    {% endif %}
+
+    <h3 style="margin-top: 30px;">Statystyki regionu</h3>
+
+<table class="results-table" style="max-width: 400px; margin-top: 15px;">
+    <thead>
+        <tr>
+            <th>Parametr</th>
+            <th>Wartość</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Łączna populacja miast</td>
+            <td>
+                {% if laczna_populacja %}
+                    {{ "{:,}".format(laczna_populacja).replace(",", " ") }}
+                {% else %}
+                    Brak danych
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+    <div style="text-align:center;">
+        <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
+            Wróć do wyszukiwania regionów
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

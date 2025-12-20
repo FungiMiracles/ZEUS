@@ -1,0 +1,87 @@
+{% extends 'base_layout.html' %}
+{% block title %}
+Historia
+{% endblock %}
+{% block content %}
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+        Historia
+    </p>
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<!-- ===================== STYLING ===================== -->
+<style>
+.hist-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.hist-tile {
+    background: linear-gradient(135deg, #8b5a2b, #6e4420); /* brąz */
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #5a361a;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
+
+/* Ikony */
+.hist-tile .icon {
+    font-size: 45px;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+/* Hover */
+.hist-tile:hover {
+    background: linear-gradient(135deg, #6e4420, #523217);
+    box-shadow: 0 7px 20px rgba(0,0,0,0.28);
+    transform: translateY(-6px) scale(1.03);
+    color: white;
+}
+</style>
+
+
+<!-- ===================== KAFELKI ===================== -->
+<div class="hist-tiles">
+
+<a class="hist-tile" href="{{ url_for('historia_lista') }}">
+    <div class="icon">📜</div>
+    Przeglądaj wydarzenia historyczne
+</a>
+
+{% if session.rola in ["tworzyciel", "wszechmocny"] %}
+<a class="hist-tile" href="{{ url_for('historia_dodaj') }}">
+    <div class="icon">➕</div>
+    Dodaj nowe wydarzenie historyczne
+</a>
+{% else %}
+<a class="hist-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+    <div class="icon">➕</div>
+    Dodaj nowe wydarzenie historyczne
+</a>
+
+{% endif %}
+
+
+</div>
+
+{% endblock %}

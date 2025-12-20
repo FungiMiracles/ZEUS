@@ -1,0 +1,109 @@
+{% extends 'base_layout.html' %}
+{% block title %}Edytuj region{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:30px auto;">
+
+    <h2 style="text-align:center; font-weight:700; margin-bottom:20px;">
+        Edycja regionu: {{ region.region_nazwa }} (ID {{ region.region_id }})
+    </h2>
+
+    {% if error %}
+    <div style="
+        background:#f8d7da;
+        color:#721c24;
+        padding:12px;
+        border-radius:6px;
+        margin-bottom:20px;
+        text-align:center;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+            background:#fff;
+            box-shadow:0 4px 12px rgba(0,0,0,0.12);
+            border-radius:12px;
+            overflow:hidden;
+        ">
+            <thead>
+                <tr style="background:#5d7dce; color:white;">
+                    <th style="padding:12px;">Pole</th>
+                    <th style="padding:12px;">Wartość</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td style="padding:10px;">Nazwa regionu</td>
+                    <td style="padding:10px;">
+                        <input type="text" 
+                               name="region_nazwa" 
+                               value="{{ form_data.region_nazwa if form_data else region.region_nazwa }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">ID państwa</td>
+                    <td style="padding:10px;">
+                        <input type="number"
+                               name="panstwo_id"
+                               value="{{ form_data.panstwo_id if form_data else region.panstwo_id }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Populacja regionu</td>
+                    <td style="padding:10px;">
+                        <input type="number" 
+                               name="region_populacja" 
+                               value="{{ form_data.region_populacja if form_data else region.region_populacja }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+        <div style="text-align:center; margin-top:20px;">
+
+            <button type="submit"
+                style="
+                    padding:10px 20px;
+                    background:#27ae60;
+                    color:white;
+                    border:none;
+                    border-radius:6px;
+                    font-weight:600;
+                    cursor:pointer;
+                ">
+                Zatwierdź zmiany
+            </button>
+
+            <a href="{{ url_for('region_form', region_id=region.region_id) }}"
+               style="
+                    padding:10px 20px;
+                    background:#c0392b;
+                    color:white;
+                    border-radius:6px;
+                    text-decoration:none;
+                    font-weight:600;
+                    margin-left:10px;
+               ">
+               Anuluj
+            </a>
+
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

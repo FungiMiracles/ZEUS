@@ -1,0 +1,1 @@
+Zaraz po zakończeniu Wielkiej Wojny Kaońskiej w 2960, w roku 2961 upadło Imperium Południowe, z którego wyłoniły się trzy państwa: Arastania, Grafonia oraz Essowinia.

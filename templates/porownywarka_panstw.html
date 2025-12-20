@@ -1,0 +1,493 @@
+{% extends "base_layout.html" %}
+{% block title %}Porównywarka państw{% endblock %}
+
+{% block content %}
+
+<div style="max-width:1100px; margin:30px auto;">
+
+    <h2 style="text-align:center; font-weight:700; margin-bottom:10px; color:#34495e;">
+        Porównywarka potencjałów wojskowych
+    </h2>
+
+    <p style="text-align:center; color:#666; margin-bottom:25px; font-size:15px;">
+        Wybierz dwa państwa, aby zestawić ich dane demograficzne i wojskowe.
+    </p>
+
+    <div style="display:flex; gap:30px; justify-content:center; flex-wrap:wrap;">
+
+        <!-- LEWA KOLUMNA -->
+        <div class="compare-card">
+            
+            <h4 class="compare-header">Państwo A</h4>
+
+            <div class="search-wrapper">
+                <input id="inputA" type="text" class="search-input" placeholder="Wyszukaj państwo...">
+            </div>
+
+            <!-- FLAGA A -->
+            <div class="flag-wrapper">
+                <img id="flag_left" class="flag-img hidden"
+                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+            </div>
+
+            <!-- NAZWA A -->
+            <h3 id="name_left" class="state-name hidden"></h3>
+
+            <!-- WYNIK -->
+            <div id="wynikA" class="result-box"></div>
+
+        </div>
+
+        <!-- PRAWA KOLUMNA -->
+        <div class="compare-card">
+            
+            <h4 class="compare-header">Państwo B</h4>
+
+            <div class="search-wrapper">
+                <input id="inputB" type="text" class="search-input" placeholder="Wyszukaj państwo...">
+            </div>
+
+            <!-- FLAGA B -->
+            <div class="flag-wrapper">
+                <img id="flag_right" class="flag-img hidden"
+                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+            </div>
+
+            <!-- NAZWA B -->
+            <h3 id="name_right" class="state-name hidden"></h3>
+
+            <!-- WYNIK -->
+            <div id="wynikB" class="result-box"></div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.compare-card {
+    width:460px;
+    background:white;
+    box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    border-radius:12px;
+    padding:20px;
+    position:relative;
+    min-height:350px;
+}
+
+.compare-header {
+    text-align:center;
+    margin-bottom:10px;
+    color:#2c3e50;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width:100%;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    margin-bottom:15px;
+}
+
+.flag-wrapper {
+    text-align:center;
+    margin-bottom:8px;
+    min-height:28px;
+}
+
+.flag-img {
+    height:28px;
+    border-radius:3px;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.state-name {
+    text-align:center;
+    font-size:17px;
+    margin-bottom:15px;
+    color:#2c3e50;
+}
+
+.result-box {
+    min-height:180px;
+}
+
+.autobox {
+    background:white;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    position:absolute;
+    z-index:1000;
+    width:100%;
+    max-height:250px;
+    overflow-y:auto;
+    border-radius:6px;
+    animation: fadeIn .15s ease-out;
+}
+.autobox div {
+    padding:8px 10px;
+    cursor:pointer;
+    border-bottom:1px solid #eee;
+}
+.autobox div:hover {
+    background:#f3f6fa;
+}
+
+@keyframes fadeIn {
+    from { opacity:0; transform:translateY(-3px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+/* wynik porównania */
+.win-cell {
+    background: #d4edda !important;
+    color: #155724 !important;
+    font-weight: 700;
+}
+
+.lose-cell {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    opacity: 0.9;
+}
+
+.equal-cell {
+    background: #fefefe !important;
+    color: #444 !important;
+    font-weight: 600;
+}
+
+/* ogólny zwycięzca */
+.winner-box {
+    border: 2px solid #27ae60 !important;
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
+}
+
+/*** MINI WYKRESY ***/
+.bar-wrapper {
+    width: 100%;
+    height: 16px;
+    background: #e6e9ef;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+.bar-inner-left {
+    height: 100%;
+    background: #4a90e2;
+}
+.bar-inner-right {
+    height: 100%;
+    background: #e24a4a;
+}
+.percent-label {
+    font-size: 12px;
+    color: #555;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.cancel-btn {
+    padding: 10px 20px;
+    background: #c0392b;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;           /* Konwertuje na block element */
+    margin: 0 auto;           /* Centruje poziomo */
+    width: fit-content;       /* Dopasowuje szerokość do zawartości */
+    }
+
+.cancel-btn:hover {
+    background: #c0392b;
+    }
+</style>
+
+<script>
+function formatNumber(n) {
+    if (typeof n !== "number") n = parseInt(n) || 0;
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+let STATE_LEFT = null;
+let STATE_RIGHT = null;
+
+//
+// AUTOCOMPLETE – dropdown dopasowany do szerokości inputa
+//
+async function autocomplete(inputElem, callback) {
+    let box;
+    inputElem.addEventListener("input", async () => {
+        const q = inputElem.value.trim();
+        if (!q) {
+            if (box) box.remove();
+            return;
+        }
+
+        const res = await fetch(`/api/panstwa_autocomplete?query=${encodeURIComponent(q)}`);
+        const list = await res.json();
+
+        if (box) box.remove();
+        box = document.createElement("div");
+        box.className = "autobox";
+
+        list.forEach(p => {
+            const row = document.createElement("div");
+            row.textContent = `${p.nazwa} (${formatNumber(p.populacja)})`;
+            row.onclick = () => {
+                inputElem.value = p.nazwa;
+                callback(p.id);
+                box.remove();
+            };
+            box.appendChild(row);
+        });
+
+        // doczepiamy do wrappera, więc width:100% = szerokość pola
+        inputElem.parentElement.appendChild(box);
+    });
+}
+
+//
+// ŁADOWANIE PAŃSTWA
+//
+async function loadState(targetDiv, id, flagId, nameId, side) {
+    const res = await fetch(`/api/panstwo_full?id=${id}`);
+    const data = await res.json();
+
+    if (data.error) {
+        targetDiv.innerHTML = "<p style='color:red;'>Nie znaleziono danych.</p>";
+        return;
+    }
+
+    if (side === "left") STATE_LEFT = data;
+    if (side === "right") STATE_RIGHT = data;
+
+    const flagElem = document.getElementById(flagId);
+    flagElem.src = `/static/flags/${data.nazwa.replace(/ /g, "_")}.jpg`;
+    flagElem.classList.remove("hidden");
+
+    const nameElem = document.getElementById(nameId);
+    nameElem.textContent = data.nazwa;
+    nameElem.classList.remove("hidden");
+
+    const W = data.wojsko;
+
+    // Uwaga: wartości SUROWE trzymamy w data-value, tekst tylko do wyświetlania
+    targetDiv.innerHTML = `
+        <table class="compare-table" style="width:100%; border-collapse:collapse; font-size:15px;">
+            <tbody>
+                <tr>
+                    <td class="label">Kontynent</td>
+                    <td class="val" data-field="kontynent">${data.kontynent}</td>
+                </tr>
+                <tr>
+                    <td class="label">Populacja</td>
+                    <td class="val" data-field="populacja" data-value="${data.populacja}">
+                        ${formatNumber(data.populacja)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th colspan="2" style="padding:10px; background:#f0f3f7; text-align:center;">
+                        Siły zbrojne
+                    </th>
+                </tr>
+
+                <tr>
+                    <td class="label">Wojska lądowe</td>
+                    <td class="val" data-field="ladowe" data-value="${W.ladowe}">
+                        ${formatNumber(W.ladowe)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Wojska morskie</td>
+                    <td class="val" data-field="morskie" data-value="${W.morskie}">
+                        ${formatNumber(W.morskie)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Siły powietrzne</td>
+                    <td class="val" data-field="powietrzne" data-value="${W.powietrzne}">
+                        ${formatNumber(W.powietrzne)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label">Czołgi</td>
+                    <td class="val" data-field="czolgi" data-value="${W.czolgi}">
+                        ${formatNumber(W.czolgi)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Myśliwce</td>
+                    <td class="val" data-field="mysliwce" data-value="${W.mysliwce}">
+                        ${formatNumber(W.mysliwce)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Okręty wojenne</td>
+                    <td class="val" data-field="okrety" data-value="${W.okrety}">
+                        ${formatNumber(W.okrety)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Lotniskowce</td>
+                    <td class="val" data-field="lotniskowce" data-value="${W.lotniskowce}">
+                        ${formatNumber(W.lotniskowce)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label">Drony bojowe</td>
+                    <td class="val" data-field="drony" data-value="${W.drony}">
+                        ${formatNumber(W.drony)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label">Bazy lądowe</td>
+                    <td class="val" data-field="bazy_ladowe" data-value="${W.bazy_ladowe}">
+                        ${formatNumber(W.bazy_ladowe)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Bazy morskie</td>
+                    <td class="val" data-field="bazy_morskie" data-value="${W.bazy_morskie}">
+                        ${formatNumber(W.bazy_morskie)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Bazy powietrzne</td>
+                    <td class="val" data-field="bazy_powietrzne" data-value="${W.bazy_powietrzne}">
+                        ${formatNumber(W.bazy_powietrzne)}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label">Broń atomowa</td>
+                    <td class="val" data-field="atom" data-value="${W.atom}">
+                        ${formatNumber(W.atom)}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">% PKB na wojsko</td>
+                    <td class="val" data-field="pkb" data-value="${W.pkb}">
+                        ${W.pkb}%
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    compareIfReady();
+}
+
+//
+// PORÓWNYWANIE + WYKRESY + PROCENTY
+//
+function compareIfReady() {
+    if (!STATE_LEFT || !STATE_RIGHT) return;
+
+    const fields = [
+        "ladowe","morskie","powietrzne",
+        "czolgi","mysliwce","okrety","lotniskowce",
+        "drony","bazy_ladowe","bazy_morskie",
+        "bazy_powietrzne","atom"
+    ];
+
+    const leftBox = document.querySelector("#wynikA").parentElement;
+    const rightBox = document.querySelector("#wynikB").parentElement;
+
+    leftBox.classList.remove("winner-box");
+    rightBox.classList.remove("winner-box");
+
+    // czyścimy klasy przed porównaniem
+    document.querySelectorAll(".compare-table .val").forEach(cell => {
+        cell.classList.remove("win-cell","lose-cell","equal-cell");
+    });
+
+    let scoreLeft = 0;
+    let scoreRight = 0;
+
+    fields.forEach(field => {
+        const L = document.querySelector(`#wynikA [data-field="${field}"]`);
+        const R = document.querySelector(`#wynikB [data-field="${field}"]`);
+        if (!L || !R) return;
+
+        const LV = parseFloat(L.dataset.value || "0");
+        const RV = parseFloat(R.dataset.value || "0");
+
+        const maxV = Math.max(LV, RV, 1);
+        const diffPct = LV === RV ? 0 :
+            Math.round(100 * Math.abs(LV - RV) / maxV);
+
+        let leftLabel, rightLabel;
+        if (LV > RV) {
+            leftLabel = `+${diffPct}%`;
+            rightLabel = `-${diffPct}%`;
+        } else if (RV > LV) {
+            leftLabel = `-${diffPct}%`;
+            rightLabel = `+${diffPct}%`;
+        } else {
+            leftLabel = "0%";
+            rightLabel = "0%";
+        }
+
+        // przebudowa komórek z zachowaniem data-value
+        L.innerHTML = `
+            ${formatNumber(LV)}
+            <div class="bar-wrapper">
+                <div class="bar-inner-left" style="width:${(LV/maxV)*100}%"></div>
+            </div>
+            <span class="percent-label">${leftLabel}</span>
+        `;
+        R.innerHTML = `
+            ${formatNumber(RV)}
+            <div class="bar-wrapper">
+                <div class="bar-inner-right" style="width:${(RV/maxV)*100}%"></div>
+            </div>
+            <span class="percent-label">${rightLabel}</span>
+        `;
+
+        // klasy zwycięstwa/przegranej/remisu
+        if (LV > RV) {
+            L.classList.add("win-cell");
+            R.classList.add("lose-cell");
+            scoreLeft++;
+        } else if (RV > LV) {
+            R.classList.add("win-cell");
+            L.classList.add("lose-cell");
+            scoreRight++;
+        } else {
+            L.classList.add("equal-cell");
+            R.classList.add("equal-cell");
+        }
+    });
+
+    if (scoreLeft > scoreRight) leftBox.classList.add("winner-box");
+    else if (scoreRight > scoreLeft) rightBox.classList.add("winner-box");
+}
+
+autocomplete(
+    document.querySelector("#inputA"),
+    id => loadState(document.querySelector("#wynikA"), id, "flag_left", "name_left", "left")
+);
+
+autocomplete(
+    document.querySelector("#inputB"),
+    id => loadState(document.querySelector("#wynikB"), id, "flag_right", "name_right", "right")
+);
+</script>
+
+<div><a href="{{ url_for('sily_zbrojne') }}" class="cancel-btn" style="text-align: center;">Wróć</a></div>
+
+{% endblock %}

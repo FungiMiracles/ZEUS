@@ -1,0 +1,197 @@
+{% extends 'base_layout.html' %}
+{% block title %}Formularz państwa{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: Verdana, Geneva, sans-serif;
+    background: #e6f0ff;
+    color: #000;
+  }
+
+  hr {
+    border: none;
+    height: 2px;
+    background-color: #3366cc;
+    margin: 1px 0;
+  }
+
+  h2 {
+    margin: 10px 0 10px 30px;
+    color: #003366;
+    font-weight: bold;
+    text-shadow: 1px 1px #99ccff;
+  }
+
+  p.subtitle {
+    margin: -20px 0 20px 30px;
+    font-style: italic;
+    color: #004080;
+  }
+
+  .main-container {
+    display: flex;
+    gap: 30px;
+    margin: 20px 30px;
+    flex-wrap: wrap;
+  }
+
+  .column-left {
+    flex: 1;
+    min-width: 350px;
+  }
+
+  .column-right {
+    flex: 3;
+    min-width: 600px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+    background-color: #ffffff;
+    border: 3px double #3366cc;
+    box-shadow: 4px 4px 8px #aaa;
+  }
+
+  thead th {
+    background: linear-gradient(to right, #3399ff, #66ccff);
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+  }
+
+  tbody td {
+    padding: 10px;
+    vertical-align: middle;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #cce0ff;
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: #e6f0ff;
+  }
+
+  .flag-img, .map-img {
+    max-height: 120px;
+    max-width: 100%;
+    border: 2px solid #003366;
+    border-radius: 4px;
+  }
+
+  .description-box {
+    line-height: 1.6;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border: 2px solid #66a3ff;
+  }
+
+  .no-description {
+    text-align: center;
+    font-style: italic;
+    color: #336699;
+    padding: 30px;
+  }
+</style>
+
+<hr>
+<p style="text-align:center; margin:15px 0;">Formularz państwa</p>
+<hr>
+
+<h2>{{ p.panstwo_nazwa }}</h2>
+<p class="subtitle">{{ p.panstwo_pelna_nazwa }}</p>
+<hr>
+
+<div class="main-container">
+  <div class="column-left">
+    <!-- Tabela Informacje o państwie -->
+    <table>
+      <thead>
+        <tr><th colspan="3">Informacje o państwie</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:bold;">Flaga:</td>
+          <td colspan="2" style="text-align:center;">
+            {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+            <img src="{{ url_for('static', filename=flag_path) }}"
+                 onerror='this.src="{{ url_for("static", filename="flags/default.png") }}"'
+                 alt="Flaga {{ p.panstwo_nazwa }}"
+                 class="flag-img">
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:bold;">Mapa:</td>
+          <td colspan="2" style="text-align:center;">
+            {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+            <img src="{{ url_for('static', filename=mapa_path) }}"
+                 onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'"
+                 alt="Mapa {{ p.panstwo_nazwa }}"
+                 class="map-img">
+          </td>
+        </tr>
+        {% for label, value in [
+          ('Kontynent:', p.kontynent),
+          ('Ustrój polityczny:', p.panstwo_ustroj),
+          ('Stolica:', p.panstwo_stolica),
+          ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
+          ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
+          ('Waluta:', p.panstwo_waluta),
+          ('Język urzędowy:', p.panstwo_jezyk),
+          ('Religia dominująca:', p.panstwo_religia),
+          ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
+          ('PKB na mieszkańca:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI")
+        ] %}
+        <tr>
+          <td style="font-weight:bold;">{{ label }}</td>
+          <td colspan="2">{{ value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Tabela Największe miasta -->
+    <table>
+      <thead>
+        <tr><th colspan="3">Największe miasta</th></tr>
+      </thead>
+      <tbody>
+        {% if miasta %}
+          {% for m in miasta %}
+          <tr>
+            <td colspan="2" style="font-weight:bold;">{{ m.miasto_nazwa }}</td>
+            <td style="font-weight:bold; text-align:right;">{{ "{:,}".format(m.miasto_populacja).replace(',', ' ') }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="3" style="text-align:center;">Brak danych o miastach.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="column-right">
+    <table>
+      <thead>
+        <tr><th>Informacje szczegółowe</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {% if opis %}
+              <div class="description-box">{{ opis | safe }}</div>
+            {% else %}
+              <p class="no-description">Brak dostępnego opisu dla tego państwa.</p>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

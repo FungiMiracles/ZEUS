@@ -1,0 +1,205 @@
+{% extends "base_layout.html" %}
+{% block title %}{{ h.nazwa_wydarzenia }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — PODGLĄD WYDARZENIA HISTORYCZNEGO
+============================================================ */
+
+.historia-view-wrapper {
+    max-width: 900px;
+    margin: 30px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== NAGŁÓWEK ===== */
+
+.historia-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+/* ===== META ===== */
+
+.historia-meta {
+    background: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 0.9em;
+    color: #34495e;
+}
+
+.historia-meta-row {
+    margin-bottom: 4px;
+}
+
+.historia-meta-row strong {
+    font-weight: 700;
+    margin-right: 6px;
+}
+
+/* ===== OPIS ===== */
+
+.historia-description {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 24px 28px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    white-space: pre-wrap;
+    line-height: 1.55;
+    font-size: 0.95em;
+    color: #2c3e50;
+}
+
+/* ===== AKCJE ===== */
+
+.historia-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+}
+
+.historia-actions .right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== PRZYCISKI ZEUS ===== */
+
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* Wróć */
+.btn-back {
+    background-color: #565656;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-back:hover {
+    background-color: #363636;
+}
+
+/* Edytuj */
+.btn-edit {
+    background-color: #3498db;
+    color: white;
+}
+.btn-edit:hover {
+    background-color: #1d6da3;
+}
+
+/* Usuń */
+.btn-delete {
+    background-color: #c0392b;
+    color: white;
+}
+.btn-delete:hover {
+    background-color: #962d22;
+}
+</style>
+
+<div class="historia-view-wrapper">
+
+    <!-- ===== TYTUŁ ===== -->
+    <div class="historia-title">
+        {{ h.nazwa_wydarzenia }}
+    </div>
+
+    <!-- ===== META Z BAZY ===== -->
+    <div class="historia-meta">
+        <div class="historia-meta-row">
+            <strong>Epoka:</strong> {{ h.epoka_label }}
+        </div>
+
+        <div class="historia-meta-row">
+            <strong>Data:</strong>
+            {{ h.zakres_dat_label }}
+        </div>
+
+        {% if h.kontynent %}
+        <div class="historia-meta-row">
+            <strong>Kontynent:</strong> {{ h.kontynent }}
+        </div>
+        {% endif %}
+
+        {% if h.panstwo %}
+        <div class="historia-meta-row">
+            <strong>Państwo:</strong> {{ h.panstwo.nazwa }}
+        </div>
+        {% endif %}
+
+        {% if h.region %}
+        <div class="historia-meta-row">
+            <strong>Region:</strong> {{ h.region.nazwa }}
+        </div>
+        {% endif %}
+
+        {% if h.miasto %}
+        <div class="historia-meta-row">
+            <strong>Miasto:</strong> {{ h.miasto.nazwa }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== OPIS (MD) ===== -->
+    <div class="historia-description">
+        {{ opis_md }}
+    </div>
+
+    <!-- ===== AKCJE ===== -->
+    <div class="historia-actions">
+
+        <a href="{{ url_for('historia_lista') }}"
+           class="btn-zeus btn-back">
+            Wróć do listy wydarzeń
+        </a>
+
+        <div class="right">
+            {% if session.rola == "wszechmocny" %}
+                <a href="{{ url_for('historia_edytuj', historia_id=h.HISTORIA_ID) }}"
+                   class="btn-zeus btn-edit">
+                    Edytuj wydarzenie
+                </a>
+
+                <form method="POST"
+                      action="{{ url_for('historia_usun', historia_id=h.HISTORIA_ID) }}"
+                      onsubmit="return confirm('Czy na pewno chcesz usunąć to wydarzenie?');">
+                    <button type="submit"
+                            class="btn-zeus btn-delete">
+                        Usuń wydarzenie
+                    </button>
+                </form>
+            {% else %}
+                <button class="btn-zeus btn-edit"
+                        onclick="zeusToast('Twoja obecna rola nie pozwala tę akcję')">
+                    Edytuj wydarzenie
+                </button>
+
+                <button class="btn-zeus btn-delete"
+                        onclick="zeusToast('Twoja obecna rola nie pozwala tę akcję')">
+                    Usuń wydarzenie
+                </button>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,561 @@
+### W skrócie
+
+
+
+
+
+
+
+Hopia (_hop. Rouemie Parlamentaire del Hoepie_) - państwo położone w północnej części kontynentu Kao, sąsiadujące od zachodu z Tunganirią, od południa z Czymonami, od południowego wschodu z Ozilandią, a od wschodu z Cicirici i Nuveco. Stolicą Hopii jest położone w centralnej części kraju __Roseau__ (4,6 mln). 
+
+
+
+
+
+
+
+Gospodarka Hopii jest trzecią największą na świecie (Entenda) po Ozilandii (1) oraz Pendulamie (2) z łącznym nominalnym PKB wysokości około 9,5 bln ROI. Pod względem liczby ludności (61,4 mln) Hopia zajmuje trzecie miejsce na kontynencie Kao i dziesiąte na świecie.
+
+
+
+
+
+
+
+### Ustrój polityczny
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+##### 1. Ustrój polityczny przed 3027 rokiem
+
+
+
+
+
+
+
+Przed rokiem **3027** Hopia funkcjonowała jako monarchia parlamentarna o unikatowym modelu rządów, opartym na współistnieniu silnej korony oraz rozbudowanego parlamentu.
+
+
+
+
+
+
+
+__Struktura instytucjonalna__
+
+
+
+
+
+
+
+- **Monarchia** – urząd monarchy (króla lub królowej), pełniącego rolę głowy państwa i posiadającego szerokie prerogatywy:
+
+
+
+    - prawo jednostronnego wetowania ustaw,  
+
+
+
+    - prawo rozwiązania parlamentu,  
+
+
+
+    - inicjatywa ustawodawcza niewymagająca głosowania parlamentarnego.
+
+
+
+- **Mainax** – jednoizbowy parlament liczący **571 deputowanych**, wybieranych co 5 lat.
+
+
+
+- **Meieson Lupienvalle** – monarsze ciało doradcze złożone z **21 deputowanych**, wybieranych w wyborach powszechnych. Jako jedyna instytucja mogło procedować wniosek o odwołanie monarchy.
+
+
+
+
+
+
+
+__Mechanizmy odpowiedzialności monarchy__
+
+
+
+
+
+
+
+Monarcha mógł zostać odwołany jedynie:
+
+
+
+
+
+
+
+- po złożeniu **co najmniej miliona podpisów** obywateli lub  
+
+
+
+- po przegłosowaniu **3/4 parlamentu** za wnioskiem o głosowanie w Meieson Lupienvalle.
+
+
+
+
+
+
+
+Odwołanie monarchy wymagało poparcia **51% głosów** w Meieson.
+
+
+
+
+
+
+
+__Narastające napięcia społeczne__
+
+
+
+
+
+
+
+Największe protesty wybuchały w miastach:
+
+
+
+
+
+
+
+- **Roseau** (stolica),  
+
+
+
+- **Seaulengue** (środowiska akademickie),  
+
+
+
+- **Toseau** (robotnicy portowi),  
+
+
+
+- **Millemont** (organizacje rolnicze).
+
+
+
+
+
+
+
+Hopia była coraz bardziej spolaryzowana, co doprowadziło do wieloletniego kryzysu politycznego.
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+##### 2. Zmiany ustrojowe 3024–3027
+
+
+
+
+
+
+
+__Początek kryzysu__
+
+
+
+
+
+
+
+W **3024 roku** parlament rozpoczął procedowanie reform ograniczających prerogatywy monarchy — pakietu określanego jako *„Nowa Równowaga”*. Król **Boyleau III** zawetował całość, co wywołało falę protestów i polityczny impas.
+
+
+
+
+
+
+
+__Główne frakcje polityczne__
+
+
+
+
+
+
+
+- **Zjednoczony Front Monarchistyczny (ZFM)** – ugrupowanie premiera **Paula Coertu**, sprzeciwiające się ograniczeniu roli monarchy.  
+
+
+
+- **Koalicja Reform Demokratycznych (KRD)** – stronnictwo proreformatorskie kierowane przez **Edouarda Miafeau**.  
+
+
+
+- **Blok Obywatelskiej Inicjatywy (BOI)** – ruch społeczny **Sabine Fereaux** i **Jona Malderiego**.  
+
+
+
+- **Frakcja Dworska** – doradcy królewscy, usiłujący zachować dominującą pozycję korony.
+
+
+
+
+
+
+
+__Ingerencje zagraniczne__
+
+
+
+
+
+
+
+- **Tunganiria** (prezydent **Vilgard Tommend**) prowadziła działania destabilizujące Hopię:
+
+
+
+    - wspieranie skrajnych monarchistów,  
+
+
+
+    - kampanie dezinformacyjne,  
+
+
+
+    - próby radykalizacji protestów w Charlet-Migalle i Leyleau.
+
+
+
+- **Ozilandia** wspierała demokratyzację:
+
+
+
+    - doradcy prawni,  
+
+
+
+    - dyplomatyczne naciski na zachowanie pokoju,  
+
+
+
+    - wsparcie rządu miafeauistów.
+
+
+
+
+
+
+
+__Upadek rządu Paula Coertu (3026)__
+
+
+
+
+
+
+
+W czerwcu 3026 r. parlament przegłosował wotum nieufności dla rządu **Paula Coertu**, którego zdecydowane poparcie dla monarchii doprowadziło do eskalacji konfliktu.  
+
+
+
+Władzę objął **Edouard Miafeau**, co wywołało gwałtowne protesty środowisk królewskich.
+
+
+
+
+
+
+
+__Wypowiedzi z debat parlamentarnych__
+
+
+
+
+
+
+
+> **Miraate Lendeau (KRD):** „Król jest głową państwa, ale państwo to nie korona. Państwo to naród.”
+
+
+
+
+
+
+
+> **Henri Vellarmonde (ZFM):** „Historia was osądzi — to wy doprowadzacie kraj na skraj wojny domowej!”
+
+
+
+
+
+
+
+__Próba użycia armii przez monarchę__
+
+
+
+
+
+
+
+W grudniu 3026 r. król **Boyleau III**, chcąc zachować władzę, nakazał wojsku „zabezpieczyć porządek” i przygotować operację przeciwko „elementom destabilizującym państwo”.
+
+
+
+
+
+
+
+Trzech głównych generałów:
+
+
+
+
+
+
+
+- **Alain Lemouste**,  
+
+
+
+- **Tiryne Calvare**,  
+
+
+
+- **Serrell Domeux**,  
+
+
+
+
+
+
+
+jednogłośnie odmówiło wykonania polecenia.
+
+
+
+
+
+
+
+Według raportu parlamentu generał Lemouste powiedział królowi:
+
+
+
+
+
+
+
+> **„Wasza Wysokość, armia Hopii nie będzie instrumentem politycznym. Nie wymierzymy broni w obywateli.”**
+
+
+
+
+
+
+
+Decyzja generałów z Leyleau powstrzymała Hopię od wojny domowej i umożliwiła pokojowe reformy.
+
+
+
+
+
+
+
+__Konstytucja z 17 stycznia 3027 roku__
+
+
+
+
+
+
+
+Parlament przyjął **17 stycznia 3027 r.** nową konstytucję, znoszącą monarchię i ustanawiającą republikę parlamentarną.
+
+
+
+
+
+
+
+__Wybrane zapisy konstytucyjne__
+
+
+
+
+
+
+
+- **Art. 5 — Suwerenność obywateli:** Władza pochodzi wyłącznie od narodu.  
+
+
+
+- **Art. 12 — Depolityzacja wojska:** Siły Zbrojne nie mogą być użyte przeciw obywatelom ani instytucjom demokratycznym.  
+
+
+
+- **Art. 20 — Prezydent Republiki:** Urząd o charakterze reprezentacyjnym, bez prawa ingerencji w proces ustawodawczy.  
+
+
+
+- **Art. 34 — Ochrona debaty publicznej:** Państwa trzecie nie mogą ingerować w przestrzeń informacyjną Hopii; dezinformacja jest penalizowana.  
+
+
+
+- **Art. 46 — Zmiana ustroju:** Wymaga referendum ogólnokrajowego.
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+##### 3. Republika Hopii po 3027 roku
+
+
+
+
+
+
+
+Po reformie Hopia stała się republiką parlamentarną, opartą na:
+
+
+
+
+
+
+
+- jednoizbowym parlamencie liczącym **411 posłów** o 4-letniej kadencji,  
+
+
+
+- rządzie wyłanianym przez większość parlamentarną,  
+
+
+
+- prezydencie wybieranym w głosowaniu powszechnym, o ograniczonych kompetencjach.
+
+
+
+
+
+
+
+__Pierwsze wybory prezydenckie__
+
+
+
+
+
+
+
+Wybory z **11 kwietnia 3027 r.** wygrał **Marc Sinneaullet**, zostając pierwszym prezydentem Republiki Hopii.
+
+
+
+
+
+
+
+__Okres stabilizacji__
+
+
+
+
+
+
+
+W kolejnych latach państwo skupiło się na:
+
+
+
+
+
+
+
+- odbudowie zaufania społecznego,  
+
+
+
+- wzmocnieniu instytucji demokratycznych,  
+
+
+
+- reformie sektora bezpieczeństwa,  
+
+
+
+- przeciwdziałaniu zagranicznej dezinformacji,  
+
+
+
+- zacieśnianiu relacji z Ozilandią.
+
+
+
+
+
+
+
+### Gospodarka
+
+
+
+
+
+
+
+### Geografia
+
+
+
+
+
+
+
+### Siły zbrojne
+
+
+
+
+
+
+
+### Demografia

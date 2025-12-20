@@ -1,0 +1,97 @@
+{% extends 'base_layout.html' %}
+{% block title %}
+Informacje
+{% endblock %}
+{% block content %}
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+        Informacje
+    </p>
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<!-- ===================== BLOK TEKSTU Z .MD ===================== -->
+<div style="
+    max-width: 1200px;
+    margin: 40px auto 20px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-size: 18px;
+    line-height: 1.6;
+">
+    <pre style="
+        white-space: pre-wrap;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    ">{{ info_text }}</pre>
+</div>
+
+
+<!-- ===================== STYLING KAFELKÓW ===================== -->
+<style>
+.info-tiles {
+    max-width: 650px;
+    margin: 0 auto 60px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.info-tile {
+    background: linear-gradient(135deg, #ffffff, #f2f2f2);
+    border-radius: 12px;
+    padding: 22px 18px;
+    text-align: center;
+    color: #444;
+    font-weight: 700;
+    font-size: 1em;
+    min-height: 110px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #d5d5d5;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+    transition: 0.25s;
+}
+
+/* Ikony */
+.info-tile .icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+/* Hover */
+.info-tile:hover {
+    background: linear-gradient(135deg, #ededed, #dcdcdc);
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+    color: #333;
+}
+</style>
+
+
+<!-- ===================== KAFELKI POD TEKSTEM ===================== -->
+<div class="info-tiles">
+
+    <a class="info-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">📨</div>
+        Skontaktuj się z twórcą
+    </a>
+
+    <a class="info-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🐞</div>
+        Zgłoś błąd
+    </a>
+
+</div>
+
+
+{% endblock %}

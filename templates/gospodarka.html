@@ -1,0 +1,80 @@
+{% extends 'base_layout.html' %}
+{% block title %}Gospodarka{% endblock %}
+
+{% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Gospodarka
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<style>
+/* ============================================
+   ZEUS – Gospodarka (fioletowe kafelki)
+============================================ */
+
+.gosp-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.gosp-tile {
+    background: linear-gradient(135deg, #2c73d2, #215ca9); /* nowy kolor: fiolet */
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #2c73d2;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
+
+/* IKONA */
+.gosp-tile .icon {
+    font-size: 42px;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+/* HOVER */
+.gosp-tile:hover {
+    background: linear-gradient(135deg, #2c73d2, #11417f);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    color: white;
+}
+</style>
+
+
+<div class="gosp-tiles">
+
+    <a class="gosp-tile" href="{{ url_for('gospodarka_list') }}">
+        <div class="icon">📊</div>
+        Przeglądaj dane gospodarcze państw
+    </a>
+
+    <a class="gosp-tile" href="{{ url_for('gospodarka_porownaj') }}">
+        <div class="icon">📈</div>
+        Porównaj dane gospodarcze państw
+    </a>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends "base_layout.html" %}
+{% block title %}Dodaj wydarzenie historyczne{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — DODAWANIE WYDARZENIA HISTORYCZNEGO
+============================================================ */
+
+.historia-add-wrapper {
+    max-width: 900px;
+    margin: 30px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== TYTUŁ ===== */
+
+.historia-add-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 18px;
+}
+
+/* ===== SEKCJE ===== */
+
+.historia-section {
+    background: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+}
+
+.historia-section h3 {
+    font-size: 1.05em;
+    font-weight: 800;
+    color: #34495e;
+    margin-bottom: 14px;
+}
+
+/* ===== POLA ===== */
+
+.historia-field {
+    margin-bottom: 14px;
+}
+
+.historia-field label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85em;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.historia-field input,
+.historia-field select,
+.historia-field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.historia-field textarea {
+    resize: vertical;
+    
+}
+
+/* ===== AKCJE ===== */
+
+.historia-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 26px;
+}
+
+.historia-actions .right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== PRZYCISKI ZEUS ===== */
+
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* Anuluj */
+.btn-cancel {
+    background-color: #565656;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-cancel:hover {
+    background-color: rgb(64, 64, 64);
+}
+
+/* Zapisz */
+.btn-save {
+    background-color: #27ae60;
+    color: white;
+}
+.btn-save:hover {
+    background-color: #1e8749;
+}
+</style>
+
+<div class="historia-add-wrapper">
+
+    <!-- ===== TYTUŁ ===== -->
+    <div class="historia-add-title">
+        Dodaj wydarzenie historyczne
+    </div>
+
+    <form method="POST">
+
+        <!-- ===== PODSTAWOWE INFORMACJE ===== -->
+        <div class="historia-section">
+            <h3>Podstawowe informacje</h3>
+
+            <div class="historia-field">
+                <label>Nazwa wydarzenia *</label>
+                <input type="text"
+                       name="nazwa_wydarzenia"
+                       required>
+            </div>
+
+            <div class="historia-field">
+                <label>Epoka *</label>
+                <select name="epoka" required>
+                    <option value="">— wybierz —</option>
+                    <option value="starozytna">Starożytna</option>
+                    <option value="sredniowieczna">Średniowieczna</option>
+                    <option value="wspolczesna">Współczesna</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== CZAS ===== -->
+        <div class="historia-section">
+            <h3>Czas trwania</h3>
+
+            <div class="historia-field">
+                <label>Data od *</label>
+                <input type="text"
+                       name="data_od"
+                       required
+                       placeholder="np. 1939 lub 01-09-1939">
+            </div>
+
+            <div class="historia-field">
+                <label>Data do</label>
+                <input type="text"
+                       name="data_do"
+                       placeholder="np. 1945">
+            </div>
+        </div>
+
+        <!-- ===== LOKALIZACJA ===== -->
+        <div class="historia-section">
+            <h3>Lokalizacja</h3>
+
+            <div class="historia-field">
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— brak —</option>
+                    <option>Kao</option>
+                    <option>Beifa</option>
+                    <option>Anzinia</option>
+                    <option>Peryfa</option>
+                    <option>Wyspy Większe</option>
+                    <option>Wyspy Mniejsze</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== OPIS ===== -->
+        <div class="historia-section">
+            <h3>Opis wydarzenia (Markdown)</h3>
+
+            <div class="historia-field">
+                <textarea name="opis_md"
+                          rows="14"></textarea>
+            </div>
+        </div>
+
+        <!-- ===== AKCJE ===== -->
+        <div class="historia-actions">
+
+            <a href="{{ url_for('historia_lista') }}"
+               class="btn-zeus btn-cancel">
+                Anuluj
+            </a>
+
+            <div class="right">
+                <button type="submit"
+                        class="btn-zeus btn-save">
+                    Zapisz wydarzenie
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

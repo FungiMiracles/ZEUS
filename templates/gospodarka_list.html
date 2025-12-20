@@ -1,0 +1,306 @@
+{% extends "base_layout.html" %}
+{% block title %}Dane gospodarcze państw{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   FILTR – identyczny jak w sily_zbrojne_list, ale z kolorami gospodarki
+============================================================ */
+.gosp-filter-box {
+    max-width: 1150px;
+    margin: 20px auto 25px auto;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #d3d6da;
+    padding: 22px 25px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.gosp-filter-title {
+    font-size: 1.35em;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #2c73d2;
+}
+
+.gosp-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px 22px;
+}
+
+.gosp-filter-grid label {
+    font-size: 0.92em;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+    color: #2c3e50;
+}
+
+.gosp-filter-grid input,
+.gosp-filter-grid select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    background: #ffffff;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.gosp-filter-actions {
+    margin-top: 18px;
+    text-align: right;
+}
+
+.gosp-filter-btn {
+    background: #2c73d2;
+    padding: 10px 22px;
+    color: white;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.gosp-filter-btn:hover {
+    background: #1e5cac;
+}
+
+
+/* ============================================================
+   TABELA – zachowana Twoja kolorystyka gospodarki
+============================================================ */
+.gosp-list {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    padding-bottom: 40px;
+}
+
+.results-table {
+    width: 100%;
+    max-width: 1150px;
+    margin: 0 auto 40px auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.results-table thead tr {
+    background: linear-gradient(90deg, #2c73d2, #6aa8ff);
+    color: white;
+    font-weight: 700;
+}
+
+.results-table thead th {
+    padding: 12px 15px;
+    border-right: 1px solid rgba(255,255,255,0.25);
+}
+
+.results-table tbody td {
+    padding: 10px 15px;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.results-table tbody tr:nth-child(even) {
+    background-color: #eef3ff;
+}
+.results-table tbody tr:nth-child(odd) {
+    background-color: #f7faff;
+}
+
+.results-table tbody tr:hover {
+    background-color: #d8e4ff;
+}
+
+.action-buttons {
+    display: inline-flex;
+    gap: 6px;
+}
+
+.action-buttons a {
+    padding: 6px 10px;
+    font-size: 0.85em;
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.btn-view { background-color: #2c73d2; }
+.btn-view:hover { background-color: #1e5cac; }
+
+.btn-edit { background-color: #3498db; }
+.btn-edit:hover { background-color: #1d6da3; }
+
+.btn-add { background-color: #27ae60; }
+.btn-add:hover { background-color: #1e8749; }
+
+.no-results {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #c0392b;
+}
+</style>
+
+<div class="gosp-list">
+
+    <!-- ===================== FILTR ===================== -->
+    <div class="gosp-filter-box">
+
+        <div class="gosp-filter-title">Filtruj dane gospodarcze</div>
+
+        <form method="GET" action="/gospodarka_list">
+
+            <div class="gosp-filter-grid">
+
+                <!-- Kontynent -->
+                <div>
+                    <label>Kontynent:</label>
+                    <select name="kontynent">
+                        <option value="">— Wszystkie —</option>
+                        {% for k in kontynenty %}
+                            <option value="{{ k }}" {% if k == kontynent_selected %}selected{% endif %}>
+                                {{ k }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Nazwa państwa -->
+                <div>
+                    <label>Nazwa państwa:</label>
+                    <input type="text"
+                           name="panstwo"
+                           placeholder="np. Prewaria"
+                           value="{{ panstwo_q }}">
+                </div>
+
+                <!-- ID państwa -->
+                <div>
+                    <label>ID państwa:</label>
+                    <input type="number"
+                           name="panstwo_id"
+                           placeholder="np. 12"
+                           value="{{ panstwo_id }}">
+                </div>
+
+            </div>
+
+            <div class="gosp-filter-actions">
+                <button class="gosp-filter-btn">Filtruj</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- ===================== TABELA ===================== -->
+    {% if empty %}
+        <p class="no-results">Brak wyników spełniających kryteria filtrów.</p>
+
+    {% else %}
+
+    <table class="results-table">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Państwo</th>
+                <th>Kontynent</th>
+                <th>PKB wzrost (%)</th>
+                <th>Bezrobocie (%)</th>
+                <th>Surowce</th>
+                <th>Akcja</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in panstwa %}
+            <tr>
+
+                <td>{{ p.PANSTWO_ID }}</td>
+
+                <td>
+                    {{ p.panstwo_nazwa }}<br>
+                    <span style="font-size:0.8em; color:#666;">
+                        {{ p.panstwo_pelna_nazwa }}
+                    </span>
+                </td>
+
+                <td>{{ p.kontynent or "—" }}</td>
+
+                {% if p.gospodarka %}
+                    <td>{{ p.gospodarka.wzrost_pkb or "—" }}</td>
+                    <td>{{ p.gospodarka.bezrobocie or "—" }}</td>
+                    <td>
+                        {% set g = p.gospodarka %}
+                        {% if g.ropa_wydobycie or g.gaz_wydobycie or g.wegiel_wydobycie
+                              or g.uran_wydobycie or g.zloto_wydobycie %}
+                            ✓
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td class="action-buttons">
+                        <a class="btn-view"
+                           href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
+                            Podgląd
+                        </a>
+                        {% if session.rola == "wszechmocny" %}
+                        <a class="btn-edit"
+                           href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
+                            Edytuj
+                        </a>
+                        {% else %}
+                        <a class="btn-edit"
+                           href="#"
+                           onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                            Edytuj
+                        </a>
+                        {% endif %}
+
+                    </td>
+
+                {% else %}
+
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+
+                    <td class="action-buttons">
+                        {% if session.rola == "wszechmocny" %}
+                        <a class="btn-add"
+                           href="/gospodarka/{{ p.PANSTWO_ID }}/edit">
+                           Dodaj
+                        </a>
+                        {% else %}
+                        <a class="btn-add"
+                           href="#"
+                           onclick="zeusToast('Ta funkcja tymczasowo dostępna jest tylko dla roli Wszechmocny')">
+                           Dodaj
+                        </a>
+                        {% endif %}
+                    </td>
+
+                {% endif %}
+
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

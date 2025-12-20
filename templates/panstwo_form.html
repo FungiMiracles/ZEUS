@@ -1,0 +1,520 @@
+{% extends 'base_layout.html' %}
+{% block title %}Formularz państwa{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — FORMULARZ PAŃSTWA
+   Stylescope: .panstwo-form
+============================================================ */
+
+
+/* ============================================================
+   NAGŁÓWEK: INFORMACJE SZCZEGÓŁOWE
+============================================================ */
+
+.opis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.opis-title {
+    font-size: 1.15em;
+    font-weight: 700;
+}
+
+.opis-header .btn-zeus-edit {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   SEKCJA GŁÓWNA
+============================================================ */
+
+.panstwo-form {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+/* ============================================================
+   NAGŁÓWKI
+============================================================ */
+
+.panstwo-form .title-separator {
+    border: none;
+    height: 1px;
+    background-color: #b3b3b3;
+    margin: 1px 0;
+}
+
+.panstwo-form .page-title {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.panstwo-form .country-name {
+    margin: 10px 0 10px 30px;
+    font-weight: 700;
+    font-size: 26px;
+    color: #2c3e50;
+}
+
+.panstwo-form .country-fullname {
+    margin: -15px 0 20px 30px;
+    font-style: italic;
+    color: #34495e;
+}
+
+
+/* ============================================================
+   LAYOUT DWUKOLUMNOWY
+============================================================ */
+
+.panstwo-form .layout {
+    display: flex;
+    gap: 30px;
+    margin: 20px 30px;
+    flex-wrap: wrap;
+}
+
+.panstwo-form .col-left {
+    flex: 1 1 400px;
+    min-width: 350px;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.panstwo-form .col-right {
+    flex: 1 1 500px;
+    min-width: 750px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+
+/* ============================================================
+   TABELA — GLOBALNA
+============================================================ */
+
+.panstwo-table {
+    max-width: 1500px;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #fefefe;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    font-size: 1em;
+}
+
+.panstwo-table thead th {
+    background: linear-gradient(90deg, #5d7dce, #adc8ff);
+    color: white;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 1.15em;
+    border-bottom: 2px solid #4171d1;
+}
+
+.panstwo-form .col-right table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.panstwo-form .col-right td,
+.panstwo-form .col-right th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+
+/* ============================================================
+   WIERSZE / KOMÓRKI
+============================================================ */
+
+.panstwo-table tbody tr:nth-child(even) .cell {
+    background-color: #d5dfff;
+}
+
+.panstwo-table tbody tr:nth-child(odd) .cell {
+    background-color: #e2e8ff;
+}
+
+.panstwo-table .label {
+    background-color: #5d7dce;
+    color: white;
+    font-weight: 700;
+    padding: 12px 18px;
+    width: 150px;
+    vertical-align: middle;
+}
+
+.panstwo-table .cell {
+    padding: 12px 18px;
+    color: #333;
+}
+
+.panstwo-table .cell-big {
+    padding: 18px;
+    text-align: center;
+    height: 150px;
+}
+
+
+/* ============================================================
+   OBRAZY
+============================================================ */
+
+.panstwo-image {
+    max-height: 250px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1.5px solid #888;
+    background-color: #fafafa;
+}
+
+
+/* ============================================================
+   MIASTA
+============================================================ */
+
+.city-row {
+    font-weight: 600;
+    text-align: right;
+}
+
+
+/* ============================================================
+   OPIS / MARKDOWN
+============================================================ */
+
+.description-cell {
+    padding: 18px;
+    background-color: #fff;
+}
+
+.country-description {
+    line-height: 1.7;
+    font-size: 0.95em;
+    color: #2c3e50;
+    max-height: 2000px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.no-desc {
+    color: #7f8c8d;
+    text-align: center;
+    padding: 40px 10px;
+    font-style: italic;
+}
+
+
+/* ============================================================
+   PRZYCISKI EDYCJI
+============================================================ */
+
+.opis-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.btn-zeus {
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-zeus-edit {
+    background: linear-gradient(90deg, #4171d1);
+    color: white;
+}
+
+.btn-zeus-edit:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+.btn-zeus-save {
+    background-color: #4171d1;
+    color: white;
+}
+
+.btn-zeus-save:hover {
+    background-color: #2c5cbc;
+}
+
+.btn-zeus-cancel {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+}
+
+.btn-zeus-cancel:hover {
+    background-color: #dfe6e9;
+}
+
+
+/* ============================================================
+   META OPISU
+============================================================ */
+
+.opis-meta {
+    margin-top: 4px;
+    font-size: 0.75em;
+    font-weight: 400;
+    font-style: normal;
+    color: rgba(255, 255, 255, 0.85);
+    text-align: right;
+}
+</style>
+
+<!-- ============================================================
+     HTML
+============================================================ -->
+
+<div class="panstwo-form">
+
+    <hr class="title-separator">
+    <p class="page-title">Formularz państwa</p>
+    <hr class="title-separator">
+
+    <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+    <br>
+    <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+
+    <hr class="title-separator">
+
+    <div class="layout">
+
+        <!-- ====================================================
+             LEWA KOLUMNA
+        ==================================================== -->
+
+        <div class="col-left">
+
+            <!-- INFORMACJE O PAŃSTWIE -->
+            <table class="panstwo-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">Informacje o państwie</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- FLAGA -->
+                    <tr>
+                        <td class="label">Flaga:</td>
+                        <td colspan="2" class="cell-big cell">
+                            {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                            <img class="panstwo-image"
+                                 src="{{ url_for('static', filename=flag_path) }}"
+                                 onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+                        </td>
+                    </tr>
+
+                    <!-- MAPA -->
+                    <tr>
+                        <td class="label">Mapa:</td>
+                        <td colspan="2" class="cell-big cell">
+                            {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                            <img class="panstwo-image"
+                                 src="{{ url_for('static', filename=mapa_path) }}"
+                                 onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+                        </td>
+                    </tr>
+
+                    <!-- DANE -->
+                    {% for label, value in [
+                        ('Kontynent:', p.kontynent),
+                        ('Ustrój polityczny:', p.panstwo_ustroj),
+                        ('Stolica:', p.panstwo_stolica),
+                        ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
+                        ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
+                        ('Waluta:', p.panstwo_waluta),
+                        ('Język urzędowy:', p.panstwo_jezyk),
+                        ('Religia dominująca:', p.panstwo_religia),
+                        ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
+                        ('PKB per capita:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI"),
+                    ] %}
+                    <tr>
+                        <td class="label">{{ label }}</td>
+                        <td colspan="2" class="cell">{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+            <!-- NAJWIĘKSZE MIASTA -->
+            <table class="panstwo-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">Największe miasta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if miasta %}
+                        {% for m in miasta %}
+                        <tr>
+                            <td colspan="2" class="cell">{{ m.miasto_nazwa }}</td>
+                            <td class="cell city-row">
+                                {{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="cell">Brak danych o miastach.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- ====================================================
+             PRAWA KOLUMNA
+        ==================================================== -->
+
+        <div class="col-right">
+            <table class="panstwo-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="opis-header">
+                                <span class="opis-title">Informacje szczegółowe</span>
+
+                                {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+
+                                <!-- MA UPRAWNIENIA -->
+                                <button type="button"
+                                        id="btn-opis-edit"
+                                        class="btn-zeus btn-zeus-edit">
+                                    Edytuj informacje szczegółowe
+                                </button>
+
+                            {% else %}
+
+                                <!-- BRAK UPRAWNIEŃ -->
+                                <button type="button"
+                                        class="btn-zeus btn-zeus-edit btn-zeus-disabled"
+                                        onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                    Edytuj informacje szczegółowe
+                                </button>
+
+                            {% endif %}
+
+                            </div>
+
+                            {% if ostatnia_edycja %}
+                                <div class="opis-meta">
+                                    Ostatnio edytowany: {{ ostatnia_edycja.strftime("%d.%m.%Y, %H:%M") }}
+                                </div>
+                            {% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="description-cell">
+
+                            <!-- PODGLĄD -->
+                            <div id="opis-view">
+                                {% if opis_html %}
+                                    <div class="country-description">
+                                        {{ opis_html | safe }}
+                                    </div>
+                                {% else %}
+                                    <p class="no-desc">Brak informacji szczegółowych.</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- EDYCJA -->
+                            <div id="opis-edit" style="display:none;">
+                                <form method="POST"
+                                      action="{{ url_for('panstwo_opis_edit', panstwo_id=p.PANSTWO_ID) }}">
+
+                                    <textarea name="opis_md"
+                                              rows="18"
+                                              style="
+                                                width:100%;
+                                                font-family: monospace;
+                                                font-size: 0.9em;
+                                                padding: 10px;
+                                              "
+                                    >{{ opis_md }}</textarea>
+
+                                    <div class="opis-actions">
+                                        <button type="submit"
+                                                class="btn-zeus btn-zeus-save">
+                                            Zapisz
+                                        </button>
+
+                                        <button type="button"
+                                                id="btn-opis-cancel"
+                                                class="btn-zeus btn-zeus-cancel">
+                                            Anuluj
+                                        </button>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const btnEdit = document.getElementById("btn-opis-edit");
+    const btnCancel = document.getElementById("btn-opis-cancel");
+
+    const view = document.getElementById("opis-view");
+    const edit = document.getElementById("opis-edit");
+
+    if (btnEdit && btnCancel && view && edit) {
+
+        btnEdit.addEventListener("click", function () {
+            view.style.display = "none";
+            edit.style.display = "block";
+        });
+
+        btnCancel.addEventListener("click", function () {
+            edit.style.display = "none";
+            view.style.display = "block";
+        });
+
+    } else {
+        console.warn("ZEUS: Nie znaleziono elementów edycji opisu.");
+    }
+});
+</script>
+
+{% endblock %}

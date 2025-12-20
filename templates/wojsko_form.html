@@ -1,0 +1,254 @@
+{% extends 'base_layout.html' %}
+{% block title %}Siły zbrojne – {{ panstwo.panstwo_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+    .army-container {
+        max-width: 1100px;
+        margin: 30px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .army-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .army-header h1 {
+        font-size: 1.8em;
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    table.army-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fefefe;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    table.army-table thead tr {
+        background: #96281b;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1em;
+    }
+
+    table.army-table th, table.army-table td {
+        padding: 12px 16px;
+    }
+
+    table.army-table tbody tr:nth-child(even) {
+        background: #eef2ff;
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 20px;
+    }
+
+    .btn-back {
+        background: #bdc3c7;
+        color: #2c3e50;
+    }
+    .btn-back:hover {
+        background: #a4aaad;
+    }
+
+    .btn-edit {
+        background: #c0392b;
+        color: white;
+        margin-right: 10px;
+    }
+    .btn-edit:hover {
+        background: #992d22;
+    }
+
+    .btn-delete {
+        background: #c0392b;
+        color: white;
+    }
+    .btn-delete:hover {
+        background: #992d22;
+    }
+</style>
+
+<div class="army-container">
+
+    <div class="army-header">
+        <h1>Siły zbrojne państwa: {{ panstwo.panstwo_nazwa }}</h1>
+        <p style="color:#555; font-size:1.05em;">ID państwa: {{ panstwo.PANSTWO_ID }}</p>
+    </div>
+
+    {% if not wojsko %}
+        <p style="text-align:center; font-style:italic; color:#888;">
+            Brak danych wojskowych dla tego państwa.
+        </p>
+
+        <div style="text-align:center;">
+            <a class="btn btn-back" href="{{ url_for('sily_zbrojne_list') }}">Wróć</a>
+        </div>
+
+    {% else %}
+
+    <table class="army-table">
+        <thead>
+            <tr><th colspan="2">Informacje o siłach zbrojnych</th></tr>
+        </thead>
+        <tbody>
+
+            <tr>
+    <td style="font-weight:550;">Siły lądowe:</td>
+    <td>
+        {{ "{:,}".format((wojsko.wojska_ladowe_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Siły morskie:</td>
+    <td>
+        {{ "{:,}".format((wojsko.wojska_morskie_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Siły powietrzne:</td>
+    <td>
+        {{ "{:,}".format((wojsko.wojska_powietrzne_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Procent PKB przeznaczany na siły zbrojne:</td>
+    <td>
+        {{ (wojsko.procent_PKB or 0) }} %
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Czołgi:</td>
+    <td>
+        {{ "{:,}".format((wojsko.czolgi_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Myśliwce:</td>
+    <td>
+        {{ "{:,}".format((wojsko.mysliwce_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Wozy opancerzone:</td>
+    <td>
+        {{ "{:,}".format((wojsko.wozy_opancerzone_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Wyrzutnie rakiet:</td>
+    <td>
+        {{ "{:,}".format((wojsko.wyrzutnie_rakiet_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Okręty wojenne:</td>
+    <td>
+        {{ "{:,}".format((wojsko.okrety_wojenne_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Lotniskowce:</td>
+    <td>
+        {{ "{:,}".format((wojsko.lotniskowce_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Okręty podwodne:</td>
+    <td>
+        {{ "{:,}".format((wojsko.okrety_podwodne_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Drony bojowe:</td>
+    <td>
+        {{ "{:,}".format((wojsko.drony_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Broń atomowa:</td>
+    <td>
+        {{ "{:,}".format((wojsko.bron_atomowa_ilosc or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Liczba baz lądowych:</td>
+    <td>
+        {{ "{:,}".format((wojsko.liczba_baz_ladowych or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Liczba baz morskich:</td>
+    <td>
+        {{ "{:,}".format((wojsko.liczba_baz_morskich or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+<tr>
+    <td style="font-weight:550;">Liczba baz powietrznych:</td>
+    <td>
+        {{ "{:,}".format((wojsko.liczba_baz_powietrznych or 0)).replace(",", " ") }}
+    </td>
+</tr>
+
+
+        </tbody>
+    </table>
+
+    <div style="text-align:center;">
+        <a href="{{ url_for('sily_zbrojne_list') }}" class="btn btn-back">Wróć</a>
+
+        {% if session.rola == "wszechmocny" %}
+
+        <a href="{{ url_for('wojsko_form_edit', panstwo_id=panstwo.PANSTWO_ID) }}" class="btn btn-edit"
+           class="btn btn-edit">
+            Edytuj dane wojskowe
+        </a>
+
+        {% else %}
+
+        <a href="#" class="btn btn-edit"
+           class="btn btn-edit"
+           onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Edytuj dane wojskowe
+        </a>
+
+        {% endif %}
+
+
+    </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}

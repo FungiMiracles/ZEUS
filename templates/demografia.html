@@ -1,0 +1,86 @@
+{% extends 'base_layout.html' %}
+{% block title %}Demografia{% endblock %}
+
+{% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Demografia
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<style>
+/* ============================================
+   ZEUS – Demografia (granatowe kafelki)
+============================================ */
+
+.demo-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.demo-tile {
+    background: linear-gradient(135deg, #1e3a8a, #152c66); /* elegancki granat marines */
+    color: white;
+    padding: 32px 20px;
+    border-radius: 14px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
+
+/* Ikony – trochę „policyjny” styl, pasujący do granatu */
+.demo-tile .icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    opacity: 0.95;
+}
+
+/* Hover – głębszy granat, lekki lifting */
+.demo-tile:hover {
+    background: linear-gradient(135deg, #152c66, #0d1e47);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    color: white;
+    text-decoration: none;
+}
+</style>
+
+
+
+<div class="demo-tiles">
+
+    <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">👥</div>
+        Ludność i populacja [niedostępne]
+    </a>
+
+    <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">📊</div>
+        Struktura ludności [niedostępne]
+    </a>
+
+    <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🧭</div>
+        Migracje [niedostępne]
+    </a>
+
+</div>
+
+{% endblock %}

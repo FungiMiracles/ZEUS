@@ -1,0 +1,178 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj gospodarkę – {{ panstwo.panstwo_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* style zgodne z wcześniejszymi (kolorystyka gospodarka) */
+.gosp-edit { max-width:1150px; margin:0 auto; font-family: "Segoe UI", Tahoma, sans-serif; background:#f4f6f8; padding-bottom:40px; }
+.gosp-edit .header { text-align:center; margin:25px 0 30px 0; }
+.gosp-edit h1 { color:#2c73d2; font-size:2em; font-weight:700; }
+
+/* Sekcja box */
+.section-box { background:#fff; padding:22px; border-radius:12px; margin-bottom:20px; border:1px solid #d3d7dc; box-shadow:0 3px 8px rgba(0,0,0,0.08); }
+.section-box h2 { color:#2c73d2; margin-bottom:12px; font-size:1.25em; font-weight:700; }
+
+/* Grid pól */
+.section-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px 20px; }
+.section-grid label { font-weight:700; color:#2c3e50; margin-bottom:6px; display:block; }
+.section-grid input { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #b4b9be; font-weight:600; }
+
+/* BOX z listą błędów sekcji */
+.section-errors { background:#fff0f0; border:1px solid #e0a3a3; color:#9e2b2b; padding:10px; border-radius:8px; margin-bottom:12px; font-weight:700; }
+
+/* akcje */
+.action-row { text-align:center; margin-top:20px; }
+.btn-save { padding:10px 22px; background:#2c73d2; color:white; border-radius:8px; border:none; font-weight:700; }
+.btn-back { padding:10px 22px; background:#bdc3c7; color:#1f1f1f; border-radius:8px; border:none; font-weight:700; margin-left:8px; }
+</style>
+
+<div class="gosp-edit">
+    <div class="header">
+        <h1>Edytuj dane gospodarcze – {{ panstwo.panstwo_nazwa }}</h1>
+    </div>
+
+    <form method="POST">
+
+        {# pobieramy errors (może być pusty dict) #}
+        {% set errs = errors or {} %}
+        {% set fd = form_data or {} %}
+
+        <!-- ==================== MAKRO ==================== -->
+        <div class="section-box">
+            <h2>Wskaźniki makro</h2>
+
+            {# jeżeli są błędy parsowania globalne – pokaż je tutaj #}
+            {% if errs.pars %}
+                <div class="section-errors">
+                    {% for e in errs.pars %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-grid">
+                <div>
+                    <label>Wzrost PKB (%)</label>
+                    <input name="wzrost_pkb" value="{{ fd.wzrost_pkb or (g.wzrost_pkb if g.wzrost_pkb is not none else '') }}">
+                </div>
+                <div>
+                    <label>Bezrobocie (%)</label>
+                    <input name="bezrobocie" value="{{ fd.bezrobocie or (g.bezrobocie if g.bezrobocie is not none else '') }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== STRUKTURA ==================== -->
+        <div class="section-box">
+            <h2>Struktura gospodarki (%)</h2>
+
+            {% if errs.struktura %}
+                <div class="section-errors">
+                    {% for e in errs.struktura %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-grid">
+                <div><label>Usługi (%)</label><input name="sektor_uslugi_pct" value="{{ fd.sektor_uslugi_pct or (g.sektor_uslugi_pct if g.sektor_uslugi_pct is not none else '') }}"></div>
+                <div><label>Przemysł (%)</label><input name="sektor_przemysl_pct" value="{{ fd.sektor_przemysl_pct or (g.sektor_przemysl_pct if g.sektor_przemysl_pct is not none else '') }}"></div>
+                <div><label>Rolnictwo (%)</label><input name="sektor_rolnictwo_pct" value="{{ fd.sektor_rolnictwo_pct or (g.sektor_rolnictwo_pct if g.sektor_rolnictwo_pct is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <!-- ==================== HANDEL ==================== -->
+        <div class="section-box">
+            <h2>Handel zagraniczny</h2>
+
+            <div class="section-grid">
+                <div><label>Eksport – wartość</label><input name="eksport_wartosc" value="{{ fd.eksport_wartosc or (g.eksport_wartosc if g.eksport_wartosc is not none else '') }}"></div>
+                <div><label>Import – wartość</label><input name="import_wartosc" value="{{ fd.import_wartosc or (g.import_wartosc if g.import_wartosc is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <!-- ==================== SUROWCE ==================== -->
+        <div class="section-box">
+            <h2>Surowce naturalne – wydobycie</h2>
+
+            <div class="section-grid">
+                <div><label>Ropa (baryłki)</label><input name="ropa_wydobycie" value="{{ fd.ropa_wydobycie or (g.ropa_wydobycie if g.ropa_wydobycie is not none else '') }}"></div>
+                <div><label>Gaz (m³)</label><input name="gaz_wydobycie" value="{{ fd.gaz_wydobycie or (g.gaz_wydobycie if g.gaz_wydobycie is not none else '') }}"></div>
+                <div><label>Węgiel (t)</label><input name="wegiel_wydobycie" value="{{ fd.wegiel_wydobycie or (g.wegiel_wydobycie if g.wegiel_wydobycie is not none else '') }}"></div>
+                <div><label>Uran (t)</label><input name="uran_wydobycie" value="{{ fd.uran_wydobycie or (g.uran_wydobycie if g.uran_wydobycie is not none else '') }}"></div>
+                <div><label>Złoto (kg)</label><input name="zloto_wydobycie" value="{{ fd.zloto_wydobycie or (g.zloto_wydobycie if g.zloto_wydobycie is not none else '') }}"></div>
+                <div><label>Kerbit (t)</label><input name="kerbit_wydobycie" value="{{ fd.kerbit_wydobycie or (g.kerbit_wydobycie if g.kerbit_wydobycie is not none else '') }}"></div>
+                <div><label>Natsyt (t)</label><input name="natsyt_wydobycie" value="{{ fd.natsyt_wydobycie or (g.natsyt_wydobycie if g.natsyt_wydobycie is not none else '') }}"></div>
+                <div><label>Cemium (t)</label><input name="cemium_wydobycie" value="{{ fd.cemium_wydobycie or (g.cemium_wydobycie if g.cemium_wydobycie is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <!-- ==================== PRODUKCJA ==================== -->
+        <div class="section-box">
+            <h2>Produkcja – wartość roczna</h2>
+
+            {% if errs.produkcja %}
+                <div class="section-errors">
+                    {% for e in errs.produkcja %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-grid">
+                <div><label>Technologie</label><input name="technologie_wartosc_prod" value="{{ fd.technologie_wartosc_prod or (g.technologie_wartosc_prod if g.technologie_wartosc_prod is not none else '') }}"></div>
+                <div><label>Uzbrojenie</label><input name="uzbrojenie_wartosc_prod" value="{{ fd.uzbrojenie_wartosc_prod or (g.uzbrojenie_wartosc_prod if g.uzbrojenie_wartosc_prod is not none else '') }}"></div>
+                <div><label>Budownictwo</label><input name="budownictwo_wartosc_prod" value="{{ fd.budownictwo_wartosc_prod or (g.budownictwo_wartosc_prod if g.budownictwo_wartosc_prod is not none else '') }}"></div>
+
+                <div><label>Przemysł ciężki</label><input name="przemysl_ciezki_wartosc_prod" value="{{ fd.przemysl_ciezki_wartosc_prod or (g.przemysl_ciezki_wartosc_prod if g.przemysl_ciezki_wartosc_prod is not none else '') }}"></div>
+                <div><label>Przemysł lekki</label><input name="przemysl_lekki_wartosc_prod" value="{{ fd.przemysl_lekki_wartosc_prod or (g.przemysl_lekki_wartosc_prod if g.przemysl_lekki_wartosc_prod is not none else '') }}"></div>
+                <div><label>Produkcja żywności</label><input name="produkcja_zywnosci_wartosc_prod" value="{{ fd.produkcja_zywnosci_wartosc_prod or (g.produkcja_zywnosci_wartosc_prod if g.produkcja_zywnosci_wartosc_prod is not none else '') }}"></div>
+
+                <div><label>Usługi finansowe</label><input name="uslugi_finansowe_wartosc_prod" value="{{ fd.uslugi_finansowe_wartosc_prod or (g.uslugi_finansowe_wartosc_prod if g.uslugi_finansowe_wartosc_prod is not none else '') }}"></div>
+                <div><label>Przemysł farmaceutyczny</label><input name="przemysl_farmaceut_wartosc_prod" value="{{ fd.przemysl_farmaceut_wartosc_prod or (g.przemysl_farmaceut_wartosc_prod if g.przemysl_farmaceut_wartosc_prod is not none else '') }}"></div>
+                <div><label>Przemysł samochodowy</label><input name="przemysl_samochodowy_wartosc_prod" value="{{ fd.przemysl_samochodowy_wartosc_prod or (g.przemysl_samochodowy_wartosc_prod if g.przemysl_samochodowy_wartosc_prod is not none else '') }}"></div>
+
+                <div><label>Przemysł rozrywkowy</label><input name="przemysl_rozrywkowy_wartosc_prod" value="{{ fd.przemysl_rozrywkowy_wartosc_prod or (g.przemysl_rozrywkowy_wartosc_prod if g.przemysl_rozrywkowy_wartosc_prod is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <!-- ==================== BUDŻET I ENERGIA ==================== -->
+        <div class="section-box">
+            <h2>Budżet i energetyka</h2>
+
+            {% if errs.budzet %}
+                <div class="section-errors">
+                    {% for e in errs.budzet %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-grid">
+                <div><label>Dług (% PKB)</label><input name="dlug_pct_pkb" value="{{ fd.dlug_pct_pkb or (g.dlug_pct_pkb if g.dlug_pct_pkb is not none else '') }}"></div>
+                <div><label>Energia nieodnawialna (%)</label><input name="energia_nieodnawialne_pct" value="{{ fd.energia_nieodnawialne_pct or (g.energia_nieodnawialne_pct if g.energia_nieodnawialne_pct is not none else '') }}"></div>
+                <div><label>Energia odnawialna (%)</label><input name="energia_odnawialne_pct" value="{{ fd.energia_odnawialne_pct or (g.energia_odnawialne_pct if g.energia_odnawialne_pct is not none else '') }}"></div>
+                <div><label>Energia atomowa (%)</label><input name="energia_atomowa_pct" value="{{ fd.energia_atomowa_pct or (g.energia_atomowa_pct if g.energia_atomowa_pct is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <!-- ==================== INDEKSY ==================== -->
+        <div class="section-box">
+            <h2>Indeksy rozwojowe</h2>
+
+            {% if errs.indeksy %}
+                <div class="section-errors">
+                    {% for e in errs.indeksy %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-grid">
+                <div><label>Stabilność (%)</label><input name="indeks_stabilnosci_gosp" value="{{ fd.indeks_stabilnosci_gosp or (g.indeks_stabilnosci_gosp if g.indeks_stabilnosci_gosp is not none else '') }}"></div>
+                <div><label>Korupcja (%)</label><input name="indeks_korupcji_gosp" value="{{ fd.indeks_korupcji_gosp or (g.indeks_korupcji_gosp if g.indeks_korupcji_gosp is not none else '') }}"></div>
+                <div><label>Innowacyjność (%)</label><input name="indeks_innowacji_gosp" value="{{ fd.indeks_innowacji_gosp or (g.indeks_innowacji_gosp if g.indeks_innowacji_gosp is not none else '') }}"></div>
+                <div><label>Rozwój ludzki (%)</label><input name="indeks_rozwoju_ludzkiego" value="{{ fd.indeks_rozwoju_ludzkiego or (g.indeks_rozwoju_ludzkiego if g.indeks_rozwoju_ludzkiego is not none else '') }}"></div>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="btn-save" type="submit">Zapisz dane</button>
+            <a class="btn-back" href="{{ url_for('gospodarka_list') }}">Powrót</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

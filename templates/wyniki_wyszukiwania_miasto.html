@@ -1,0 +1,272 @@
+{% extends 'base_layout.html' %}
+{% block title %}Wyniki wyszukiwania miast{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — WYNIKI WYSZUKIWANIA MIAST (LISTA WIERSZOWA)
+============================================================ */
+
+.wyniki-miast {
+    max-width: 1200px;
+    margin: 25px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== HEADER ===== */
+
+.wyniki-miast h1 {
+    font-size: 1.5em;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* ===== LISTA ===== */
+
+.miasto-list {
+    border-top: 1px solid #d3d7dc;
+}
+
+.miasto-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 8px;
+    border-bottom: 1px solid #d3d7dc;
+    gap: 16px;
+}
+
+.miasto-row:hover {
+    background-color: #f6f8fa;
+}
+
+/* ===== LEWA STRONA ===== */
+
+.miasto-main {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.miasto-name {
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+.miasto-meta {
+    font-size: 0.85em;
+    color: #7f8c8d;
+    line-height: 1.4;
+}
+
+/* ===== PRAWA STRONA (AKCJE) ===== */
+
+.miasto-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* ===== PRZYCISKI ===== */
+
+.miasto-actions a,
+.miasto-actions button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Kolory akcji */
+.btn-view { background-color: #5d7dce; }
+.btn-edit { background-color: #7f8c8d; }
+.btn-delete { background-color: #c0392b; }
+.btn-region { background-color: #b59f3b; }
+
+/* Formularz przypisania regionu */
+.assign-region-form {
+    display: none;
+    margin-top: 6px;
+    gap: 6px;
+}
+
+.assign-region-form input {
+    padding: 6px 8px;
+    font-size: 0.8em;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    width: 140px;
+}
+
+/* ===== BRAK WYNIKÓW ===== */
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    font-weight: 700;
+    color: #7f8c8d;
+}
+
+/* ===== POWRÓT ===== */
+
+.footer-actions {
+    margin-top: 25px;
+}
+.btn-return {
+    padding: 9px 16px;
+    background-color: #ecf0f1;
+    border: 1.5px solid #bdc3c7;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    color: #34495e;
+}
+
+/* Inline forms */
+.inline-form {
+    display: inline;
+}
+</style>
+
+<div class="wyniki-miast">
+
+    <h1>Wyniki wyszukiwania miast</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="margin-bottom:15px;">
+                {% for category, message in messages %}
+                    <div style="padding:10px; border-radius:6px;
+                        {% if category == 'success' %}background:#d4edda; color:#155724;
+                        {% elif category == 'error' %}background:#f8d7da; color:#721c24;
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if empty %}
+
+        <div class="no-results">
+            Nie znaleziono miast spełniających podane kryteria.
+        </div>
+
+        <div class="footer-actions" style="text-align:center;">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% else %}
+
+        <div class="miasto-list">
+
+            {% for row in results %}
+                <div class="miasto-row">
+
+                    <!-- LEWA STRONA -->
+                    <div class="miasto-main">
+                        <div class="miasto-name">
+                            {{ row.miasto_nazwa }} ({{ row.miasto_kod }})
+                        </div>
+                        <div class="miasto-meta">
+                            ID: {{ row.miasto_id }}
+                            • {{ row.panstwo_nazwa }}
+                            • {{ row.miasto_typ }}
+                            • Populacja: {{ "{:,}".format(row.miasto_populacja).replace(',', ' ') }}
+                            {% if row.region_nazwa %}
+                                • Region: {{ row.region_nazwa }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- PRAWA STRONA -->
+                    <div class="miasto-actions">
+
+                        <a href="{{ url_for('miasto_form', miasto_id=row.miasto_id) }}"
+                           class="btn-view">
+                            Wyświetl
+                        </a>
+
+                        {% if session.rola == "wszechmocny" %}
+                            <a href="{{ url_for('miasto_form_edit', miasto_id=row.miasto_id) }}"
+                               class="btn-edit">
+                                Edytuj
+                            </a>
+                        {% else %}
+                            <button class="btn-edit"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Edytuj
+                            </button>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                            <form method="POST"
+                                  action="{{ url_for('usun_miasto', miasto_id=row.miasto_id) }}"
+                                  class="inline-form"
+                                  onsubmit="return confirm('Czy na pewno chcesz usunąć to miasto?');">
+                                <button type="submit"
+                                        class="btn-delete">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn-delete"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Usuń
+                            </button>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                            <button class="btn-region"
+                                    onclick="document.getElementById('assign-region-{{ row.miasto_id }}').style.display='flex'">
+                                Przypisz region
+                            </button>
+                        {% else %}
+                            <button class="btn-region"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Przypisz region
+                            </button>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                            <form id="assign-region-{{ row.miasto_id }}"
+                                  method="POST"
+                                  action="{{ url_for('przypisz_region', miasto_id=row.miasto_id) }}"
+                                  class="assign-region-form">
+                                <input type="text"
+                                       name="region_input"
+                                       placeholder="ID lub nazwa regionu">
+                                <button type="submit"
+                                        class="btn-region">
+                                    Zapisz
+                                </button>
+                            </form>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="footer-actions">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}

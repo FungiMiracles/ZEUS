@@ -1,0 +1,200 @@
+{% extends 'base_layout.html' %}
+{% block title %}Miasto — {{ miasto.miasto_nazwa }}{% endblock %}
+
+{% block content %}
+<style>
+    .city-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 25px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .city-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .city-header h1 {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .info-table {
+        border-collapse: separate;
+        width: 100%;
+        border-spacing: 0;
+        background: #fefefe;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        margin-bottom: 40px;
+    }
+
+    .info-table thead tr {
+        background: linear-gradient(90deg, #5d7dce, #adc8ff);
+        color: white;
+        font-weight: 700;
+        font-size: 1.15em;
+    }
+
+    .info-table th {
+        padding: 14px 18px;
+        border-bottom: 2px solid #4171d1;
+    }
+
+    .info-table td {
+        padding: 14px 18px;
+        font-size: 1em;
+    }
+
+    .btn-return {
+        display:inline-block;
+        padding: 10px 20px;
+        background-color: #ecf0f1;
+        border: 1.5px solid #bdc3c7;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #34495e;
+        font-weight: 600;
+        transition: 0.3s;
+        margin: 30px auto 0;
+        text-align:center;
+    }
+
+    .btn-return:hover {
+        background-color: #3498db;
+        color: white;
+    }
+</style>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, msg in messages %}
+      <div style="
+          margin: 10px auto;
+          max-width: 900px;
+          padding: 12px;
+          border-radius: 6px;
+          font-weight: 600;
+          text-align: center;
+          {% if category == 'success' %}
+              background:#d4edda; color:#155724; border:1px solid #c3e6cb;
+          {% elif category == 'error' %}
+              background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;
+          {% else %}
+              background:#ecf0f1; color:#2c3e50;
+          {% endif %}
+      ">
+          {{ msg }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="city-container">
+
+
+    <!-- Nagłówek -->
+    <div class="city-header">
+        <h1>
+            {{ miasto.miasto_nazwa }}
+            <span style="color:#666; font-size:0.75em;">
+                (ID: {{ miasto.miasto_id }})
+            </span>
+        </h1>
+    </div>
+
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th colspan="2">Informacje o mieście</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight:700; width:200px;">Nazwa miasta:</td>
+                <td>{{ miasto.miasto_nazwa }}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Kod miasta:</td>
+                <td>
+                    {% if miasto.miasto_kod %}
+                        {{ miasto.miasto_kod }}
+                    {% else %}
+                        Brak kodu
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Państwo:</td>
+                <td>{{ panstwo.panstwo_nazwa }}</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Region:</td>
+                <td>
+                    {% if region %}
+                        {{ region.region_nazwa }}
+                    {% else %}
+                        Brak przypisanego regionu
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Populacja:</td>
+                <td>
+                    {% if miasto.miasto_populacja %}
+                        {{ "{:,}".format(miasto.miasto_populacja).replace(",", " ") }}
+                    {% else %}
+                        Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Typ miasta:</td>
+                <td>
+                    {% if miasto.miasto_typ %}
+                        {{ miasto.miasto_typ }}
+                    {% else %}
+                        Nie określono
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="text-align:center;">
+        <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_miasto') }}">
+            Wróć do wyszukiwania miast
+        </a>
+    </div>
+    <div style="text-align:center; margin-top:25px;">
+        {% if session.rola == "wszechmocny" %}
+        <a href="{{ url_for('miasto_form_edit', miasto_id=miasto.miasto_id) }}"
+            class="btn-edit"
+            style="padding:10px 22px; background:#3498db; color:white; border-radius:6px; text-decoration:none; font-weight:600;">
+                Edytuj szczegóły miasta
+        </a>
+        {% else %}
+        <a href="#"
+            class="btn-edit"
+            style="padding:10px 22px; background:#3498db; color:white; border-radius:6px; text-decoration:none; font-weight:600;"
+            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Edytuj szczegóły miasta
+        </a>
+    </div>
+
+
+</div>
+
+{% endblock %}

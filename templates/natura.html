@@ -1,0 +1,101 @@
+{% extends 'base_layout.html' %}
+{% block title %}Natura{% endblock %}
+
+{% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Natura
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<style>
+/* ============================================
+   ZEUS – Natura (zielone kafelki)
+============================================ */
+
+.nature-tiles {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.nature-tile {
+    background: linear-gradient(135deg, #27ae60, #1f8f4d);
+    color: white;
+    padding: 32px 20px;
+    border-radius: 14px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: 0.25s;
+}
+
+/* Ikona */
+.nature-tile .icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    opacity: 0.95;
+}
+
+/* Hover efekt – mocniejszy zielony, lekki lifting */
+.nature-tile:hover {
+    background: linear-gradient(135deg, #1b8c4d, #156c3b);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    color: white;
+    text-decoration: none;
+}
+</style>
+
+
+
+<div class="nature-tiles">
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🪐</div>
+        Kosmos [niedostępne]
+    </a>
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">👤</div>
+        Człowiek [niedostępne] 
+    </a>
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🌿</div>
+        Flora [niedostępne]
+    </a>
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🐾</div>
+        Fauna [niedostępne]
+    </a>
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">⛰️</div>
+        Geologia [niedostępne]
+    </a>
+
+    <a href="#" class="nature-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">⛅</div>
+        Klimat i pogoda [niedostępne]
+    </a>
+
+</div>
+
+{% endblock %}

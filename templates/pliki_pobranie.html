@@ -1,0 +1,152 @@
+{% extends "base_layout.html" %}
+{% block title %}Pobieranie plików{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — POBIERANIE PLIKÓW
+============================================================ */
+
+.pliki-wrapper {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #f4f6f8;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    padding: 25px 30px 40px;
+    border-radius: 14px;
+}
+
+.pliki-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.pliki-header h1 {
+    font-size: 1.8em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* ===== LISTA PLIKÓW ===== */
+
+.pliki-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.plik-row {
+    background: white;
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.plik-nazwa {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.plik-meta {
+    font-size: 0.8em;
+    color: #7f8c8d;
+}
+
+.btn-download {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: #5d7dce;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-download:hover {
+    background-color: #315eb8;
+}
+
+.btn-secondary {
+    background-color: #c0392b;
+}
+
+.btn-secondary:hover {
+    background-color: #962d22;
+}
+
+.pliki-footer {
+    margin-top: 30px;
+    text-align: center;
+}
+</style>
+
+<div class="pliki-wrapper">
+
+    <div class="pliki-header">
+        <h1>Pobieranie plików</h1>
+        <p>Dostępne pliki do pobrania z systemu Zeus</p>
+    </div>
+
+    {% if not files %}
+        <p style="text-align:center; font-weight:700; color:#c0392b;">
+            Brak plików do pobrania.
+        </p>
+    {% else %}
+        <div class="pliki-lista">
+            {% for f in files %}
+                <div class="plik-row">
+                    <div>
+                        <div class="plik-nazwa">{{ f.name }}</div>
+                        <div class="plik-meta">
+                            {{ f.size }} KB
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <!-- POBIERANIE -->
+                        <a href="{{ url_for('pobierz_plik', filename=f.name) }}"
+                        class="btn-download"
+                        data-download>
+                        Pobierz
+                        </a>
+
+                        {% if session.rola == "wszechmocny" %}
+                            <form method="POST"
+                                  action="{{ url_for('plik_usun', filename=f.name) }}"
+                                  onsubmit="return confirm('Czy na pewno chcesz usunąć ten plik?');">
+                                <button type="submit"
+                                        class="btn-download btn-secondary">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST"
+                                  onclick="event.preventDefault(); zeusToast('Twoja obecna rola nie pozwala na tę akcję');">
+                                <button type="submit"
+                                        class="btn-download btn-secondary">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="pliki-footer">
+        <a href="{{ url_for('pliki') }}" class="btn-download btn-secondary">
+            Wróć
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

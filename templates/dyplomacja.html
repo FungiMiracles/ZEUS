@@ -1,0 +1,89 @@
+{% extends 'base_layout.html' %}
+{% block title %}
+Dyplomacja
+{% endblock %}
+{% block content %}
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+        Dyplomacja
+    </p>
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<!-- ===================== STYLING ===================== -->
+<style>
+.dyp-tiles {
+    max-width: 950px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.dyp-tile {
+    background: linear-gradient(135deg, #ffb366, #ff8c2b);
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 170px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #d97924;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: 0.25s;
+}
+
+/* Ikony */
+.dyp-tile .icon {
+    font-size: 45px;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+/* Hover */
+.dyp-tile:hover {
+    background: linear-gradient(135deg, #ff9f40, #e66f00);
+    box-shadow: 0 7px 20px rgba(0,0,0,0.25);
+    transform: translateY(-6px) scale(1.03);
+    color: white;
+    text-decoration: none;
+}
+</style>
+
+
+<!-- ===================== KAFELKI ===================== -->
+<div class="dyp-tiles">
+
+    <a class="dyp-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🌐</div>
+        Stosunki międzynarodowe [niedostępne]
+    </a>
+
+    <a class="dyp-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🤝</div>
+        Sojusze i bloki [niedostępne]
+    </a>
+
+    <a class="dyp-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">🏛️</div>
+        Organizacje międzynarodowe [niedostępne]
+    </a>
+
+    <a class="dyp-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">⚔️</div>
+        Wojny i konflikty [niedostępne]
+    </a>
+
+</div>
+
+{% endblock %}

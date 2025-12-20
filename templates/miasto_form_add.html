@@ -1,0 +1,159 @@
+{% extends 'base_layout.html' %}
+{% block title %}Dodaj miasto{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+<div style="max-width: 900px; margin: 30px auto;">
+  <h2 style="text-align:center; color:hsl(210, 29%, 24%); font-weight:700; margin-bottom:20px;">
+      Dodaj nowy formularz miasta
+  </h2>
+
+  <h2 style="text-align:center; color:#179048; font-weight:350; font-size: 25px; margin-bottom:20px;">
+      Ważne! Uzupełnij <strong>wszystkie</strong> pola
+  </h2>
+
+  {% if error %}
+  <div style="color: red; font-weight: bold; margin-bottom: 10px; text-align: center;">
+    {{ error }}
+
+    {% if duplicates %}
+    <div style="margin-top: 10px; padding: 10px; background: #ffe0e0; border: 1px solid #cc0000; border-radius: 6px;">
+        <p><strong>Istniejące miasta o tej nazwie:</strong></p>
+        <ul>
+        {% for d in duplicates %}
+            <li>{{ d }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <table style="
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fefefe;
+  ">
+    <thead>
+      <tr style="background: linear-gradient(90deg, #5d7dce, #adc8ff); color:white; font-weight:700;">
+        <th style="padding:12px;">Pole</th>
+        <th style="padding:12px;">Wartość</th>
+      </tr>
+    </thead>
+
+    <tbody style="color:#2c3e50;">
+
+      <!-- NAZWA MIASTA -->
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Nazwa miasta</td>
+        <td style="padding:10px;">
+          <input type="text" name="miasto_nazwa"
+                 value="{{ form_data.get('miasto_nazwa','') if form_data is defined else '' }}"
+                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+        </td>
+      </tr>
+
+      <!-- KOD MIASTA -->
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Kod miasta</td>
+        <td style="padding:10px;">
+          <input type="text" name="miasto_kod"
+                 value="{{ form_data.get('miasto_kod','') if form_data is defined else '' }}"
+                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+        </td>
+      </tr>
+
+      <!-- PAŃSTWO -->
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">ID Państwa</td>
+        <td style="padding:10px;">
+          <input type="number" name="panstwo_id"
+                 value="{{ form_data.get('panstwo_id','') if form_data is defined else '' }}"
+                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+        </td>
+      </tr>
+
+      <!-- POPULACJA -->
+      <tr style="background-color:#f5f8ff%;">
+        <td style="padding:10px; font-weight:600;">Populacja miasta</td>
+        <td style="padding:10px;">
+          <input type="number" name="miasto_populacja"
+                 value="{{ form_data.get('miasto_populacja','') if form_data is defined else '' }}"
+                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+        </td>
+      </tr>
+
+      <!-- TYP MIASTA -->
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Typ miasta</td>
+        <td style="padding:10px;">
+          <select name="miasto_typ"
+                  style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+
+              <option value="">-- Wybierz --</option>
+
+              <option value="stolica"
+                {% if form_data is defined and form_data.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+                stolica
+              </option>
+
+              <option value="stolica regionu"
+                {% if form_data is defined and form_data.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
+                stolica regionu
+              </option>
+
+              <option value="miasto"
+                {% if form_data is defined and form_data.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+                miasto
+              </option>
+
+          </select>
+        </td>
+      </tr>
+
+      <!-- REGION -->
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">ID regionu</td>
+        <td style="padding:10px;">
+          <input type="number" name="region_id"
+                 value="{{ form_data.get('region_id','') if form_data is defined else '' }}"
+                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid:#ccc;">
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- PRZYCISKI -->
+  <div style="margin-top:20px; text-align:center;">
+    <button style="
+      padding:10px 25px;
+      background-color:#5d7dce;
+      color:white;
+      font-weight:600;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      transition: background-color 0.3s;
+    " onmouseover="this.style.backgroundColor='#4171d1';"
+      onmouseout="this.style.backgroundColor='#5d7dce';">
+      Zatwierdź
+    </button>
+
+    <a href="{{ url_for('home_page') }}"
+       style="padding:10px 25px; background-color:#c0392b; color:white;
+              font-weight:600; border:none; border-radius:6px; cursor:pointer;
+              text-decoration:none; display:inline-block; transition: background-color 0.3s; margin-left:10px;"
+       onmouseover="this.style.backgroundColor='#96281b'"
+       onmouseout="this.style.backgroundColor='#c0392b'">
+       Anuluj
+    </a>
+  </div>
+
+</div>
+</form>
+{% endblock %}

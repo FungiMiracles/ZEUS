@@ -1,0 +1,365 @@
+{% extends "base_layout.html" %}
+{% block title %}Porównywarka gospodarcza{% endblock %}
+
+{% block content %}
+
+<style>
+.page-wrap {
+    max-width: 1100px;
+    margin: 30px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* KARTY (jak w porownaj_panstwa.html) */
+.compare-card {
+    width:460px;
+    background:white;
+    box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    border-radius:12px;
+    padding:20px;
+    position:relative;
+    min-height:350px;
+}
+
+.compare-header {
+    text-align:center;
+    margin-bottom:10px;
+    color:#2c3e50;
+}
+
+.search-wrapper { position: relative; width: 100%; }
+.search-input {
+    width:100%;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    margin-bottom:15px;
+}
+
+.flag-wrapper { text-align:center; margin-bottom:8px; min-height:28px; }
+.flag-img { height:28px; border-radius:3px; }
+.hidden { visibility: hidden; }
+
+.state-name { text-align:center; font-size:17px; margin-bottom:15px; color:#2c3e50; }
+
+.result-box { min-height:180px; }
+
+/* autocomplete box */
+.autobox {
+    background:white;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    position:absolute;
+    z-index:1000;
+    width:100%;
+    max-height:250px;
+    overflow-y:auto;
+    border-radius:6px;
+    animation: fadeIn .15s ease-out;
+}
+.autobox div {
+    padding:8px 10px;
+    cursor:pointer;
+    border-bottom:1px solid #eee;
+}
+.autobox div:hover { background:#f3f6fa; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(-3px);} to{ opacity:1; transform:translateY(0);} }
+
+/* wynik porównania - klasy jak w armii */
+.win-cell { background: #d4edda !important; color: #155724 !important; font-weight: 700; }
+.lose-cell { background: #f8d7da !important; color: #721c24 !important; opacity: 0.9; }
+.equal-cell { background: #fefefe !important; color: #444 !important; font-weight: 600; }
+.winner-box { border: 2px solid #27ae60 !important; box-shadow: 0 0 10px rgba(39,174,96,0.4); }
+
+/* mini wykresy */
+.bar-wrapper { width: 100%; height: 16px; background: #e6e9ef; border-radius: 8px; overflow: hidden; margin-top: 4px; margin-bottom: 4px; }
+.bar-inner-left { height:100%; background: #4a90e2; }
+.bar-inner-right { height:100%; background: #2c73d2; } /* gospodarczy akcent zamiast czerwieni */
+.percent-label { font-size:12px; color:#555; font-weight:600; margin-left:6px; }
+
+/* delikatna typografia w tabeli wyników wewnątrz karty */
+.compare-table-small { width:100%; border-collapse:collapse; font-size:15px; }
+.compare-table-small td, .compare-table-small th { padding:6px 4px; vertical-align:middle; }
+.label { color:#2c3e50; font-weight:700; width:55%; }
+.val { text-align:right; font-weight:700; color:#333; }
+</style>
+
+<div style="max-width:1100px; margin:0 auto;">
+
+    <h2 style="text-align:center; font-weight:700; margin-bottom:10px; color:#34495e;">
+        Porównywarka gospodarcza
+    </h2>
+
+    <p style="text-align:center; color:#666; margin-bottom:20px; font-size:15px;">
+        Wybierz dwa państwa, aby porównać ich dane gospodarcze.
+    </p>
+
+    <div style="display:flex; gap:30px; justify-content:center; flex-wrap:wrap;">
+
+        <!-- LEWA KOLUMNA -->
+        <div class="compare-card">
+
+            <h4 class="compare-header">Państwo A</h4>
+
+            <div class="search-wrapper">
+                <input id="inputA" type="text" class="search-input" placeholder="Wyszukaj państwo...">
+            </div>
+
+            <div class="flag-wrapper">
+                <img id="flag_left" class="flag-img hidden"
+                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+            </div>
+
+            <h3 id="name_left" class="state-name hidden"></h3>
+
+            <div id="wynikA" class="result-box"></div>
+        </div>
+
+        <!-- PRAWA KOLUMNA -->
+        <div class="compare-card">
+
+            <h4 class="compare-header">Państwo B</h4>
+
+            <div class="search-wrapper">
+                <input id="inputB" type="text" class="search-input" placeholder="Wyszukaj państwo...">
+            </div>
+
+            <div class="flag-wrapper">
+                <img id="flag_right" class="flag-img hidden"
+                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+            </div>
+
+            <h3 id="name_right" class="state-name hidden"></h3>
+
+            <div id="wynikB" class="result-box"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// formatowanie liczb: spacje co 3 cyfry
+function formatNumber(n) {
+    if (n === null || n === undefined) return "—";
+    if (typeof n !== "number") n = Number(n) || 0;
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+let STATE_LEFT = null;
+let STATE_RIGHT = null;
+
+// AUTOCOMPLETE (używa istniejącego endpointu z routes_armia: /api/panstwa_autocomplete)
+async function autocomplete(inputElem, callback) {
+    let box;
+    inputElem.addEventListener("input", async () => {
+        const q = inputElem.value.trim();
+        if (!q) { if (box) box.remove(); return; }
+
+        const res = await fetch(`/api/panstwa_autocomplete?query=${encodeURIComponent(q)}`);
+        const list = await res.json();
+
+        if (box) box.remove();
+        box = document.createElement("div");
+        box.className = "autobox";
+
+        list.forEach(p => {
+            const row = document.createElement("div");
+            row.textContent = `${p.nazwa} (${formatNumber(p.populacja)})`;
+            row.onclick = () => {
+                inputElem.value = p.nazwa;
+                callback(p.id);
+                box.remove();
+            };
+            box.appendChild(row);
+        });
+
+        inputElem.parentElement.appendChild(box);
+    });
+}
+
+// ŁADOWANIE DANYCH GOSPODARCZYCH (nowe API /api/panstwo_gospodarka)
+async function loadState(targetDiv, id, flagId, nameId, side) {
+    const res = await fetch(`/api/panstwo_gospodarka?id=${id}`);
+    const data = await res.json();
+
+    if (data.error) {
+        targetDiv.innerHTML = "<p style='color:red;'>Nie znaleziono danych.</p>";
+        return;
+    }
+
+    if (side === "left") STATE_LEFT = data;
+    if (side === "right") STATE_RIGHT = data;
+
+    const flagElem = document.getElementById(flagId);
+    flagElem.src = `/static/flags/${data.nazwa.replace(/ /g, "_")}.jpg`;
+    flagElem.classList.remove("hidden");
+
+    const nameElem = document.getElementById(nameId);
+    nameElem.textContent = data.nazwa;
+    nameElem.classList.remove("hidden");
+
+    const G = data.gospodarka || {};
+
+    // render tabeli (identyczny układ do armii, ale z polami gospodarczymi)
+    targetDiv.innerHTML = `
+        <table class="compare-table-small">
+            <tbody>
+                <tr><td class="label">Kontynent</td><td class="val">${data.kontynent || '—'}</td></tr>
+                <tr><td class="label">Populacja</td><td class="val" data-field="populacja" data-value="${data.populacja || 0}">${formatNumber(data.populacja || 0)}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Makro</th></tr>
+                <tr><td class="label">Wzrost PKB (%)</td><td class="val" data-field="wzrost_pkb" data-value="${G.wzrost_pkb || 0}">${G.wzrost_pkb != null ? G.wzrost_pkb+'%' : '—'}</td></tr>
+                <tr><td class="label">Bezrobocie (%)</td><td class="val" data-field="bezrobocie" data-value="${G.bezrobocie || 0}">${G.bezrobocie != null ? G.bezrobocie+'%' : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Struktura zatrudnienia (%)</th></tr>
+                <tr><td class="label">Usługi (%)</td><td class="val" data-field="sektor_uslugi_pct" data-value="${G.sektor_uslugi_pct || 0}">${G.sektor_uslugi_pct != null ? G.sektor_uslugi_pct+'%' : '—'}</td></tr>
+                <tr><td class="label">Przemysł (%)</td><td class="val" data-field="sektor_przemysl_pct" data-value="${G.sektor_przemysl_pct || 0}">${G.sektor_przemysl_pct != null ? G.sektor_przemysl_pct+'%' : '—'}</td></tr>
+                <tr><td class="label">Rolnictwo (%)</td><td class="val" data-field="sektor_rolnictwo_pct" data-value="${G.sektor_rolnictwo_pct || 0}">${G.sektor_rolnictwo_pct != null ? G.sektor_rolnictwo_pct+'%' : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Handel</th></tr>
+                <tr><td class="label">Eksport</td><td class="val" data-field="eksport_wartosc" data-value="${G.eksport_wartosc || 0}">${G.eksport_wartosc != null ? formatNumber(G.eksport_wartosc) : '—'}</td></tr>
+                <tr><td class="label">Import</td><td class="val" data-field="import_wartosc" data-value="${G.import_wartosc || 0}">${G.import_wartosc != null ? formatNumber(G.import_wartosc) : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Surowce (wydobycie)</th></tr>
+                <tr><td class="label">Ropa (baryłki)</td><td class="val" data-field="ropa_wydobycie" data-value="${G.ropa_wydobycie || 0}">${G.ropa_wydobycie != null ? formatNumber(G.ropa_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Gaz (m³)</td><td class="val" data-field="gaz_wydobycie" data-value="${G.gaz_wydobycie || 0}">${G.gaz_wydobycie != null ? formatNumber(G.gaz_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Węgiel (t)</td><td class="val" data-field="wegiel_wydobycie" data-value="${G.wegiel_wydobycie || 0}">${G.wegiel_wydobycie != null ? formatNumber(G.wegiel_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Uran (t)</td><td class="val" data-field="uran_wydobycie" data-value="${G.uran_wydobycie || 0}">${G.uran_wydobycie != null ? formatNumber(G.uran_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Złoto (kg)</td><td class="val" data-field="zloto_wydobycie" data-value="${G.zloto_wydobycie || 0}">${G.zloto_wydobycie != null ? formatNumber(G.zloto_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Kerbit (t)</td><td class="val" data-field="kerbit_wydobycie" data-value="${G.kerbit_wydobycie || 0}">${G.kerbit_wydobycie != null ? formatNumber(G.kerbit_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Natsyt (t)</td><td class="val" data-field="natsyt_wydobycie" data-value="${G.natsyt_wydobycie || 0}">${G.natsyt_wydobycie != null ? formatNumber(G.natsyt_wydobycie) : '—'}</td></tr>
+                <tr><td class="label">Cemium (t)</td><td class="val" data-field="cemium_wydobycie" data-value="${G.cemium_wydobycie || 0}">${G.cemium_wydobycie != null ? formatNumber(G.cemium_wydobycie) : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Produkcja (wartość roczna)</th></tr>
+                <tr><td class="label">Technologie</td><td class="val" data-field="technologie_wartosc_prod" data-value="${G.technologie_wartosc_prod || 0}">${G.technologie_wartosc_prod != null ? formatNumber(G.technologie_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Uzbrojenie</td><td class="val" data-field="uzbrojenie_wartosc_prod" data-value="${G.uzbrojenie_wartosc_prod || 0}">${G.uzbrojenie_wartosc_prod != null ? formatNumber(G.uzbrojenie_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Budownictwo</td><td class="val" data-field="budownictwo_wartosc_prod" data-value="${G.budownictwo_wartosc_prod || 0}">${G.budownictwo_wartosc_prod != null ? formatNumber(G.budownictwo_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Przemysł ciężki</td><td class="val" data-field="przemysl_ciezki_wartosc_prod" data-value="${G.przemysl_ciezki_wartosc_prod || 0}">${G.przemysl_ciezki_wartosc_prod != null ? formatNumber(G.przemysl_ciezki_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Przemysł lekki</td><td class="val" data-field="przemysl_lekki_wartosc_prod" data-value="${G.przemysl_lekki_wartosc_prod || 0}">${G.przemysl_lekki_wartosc_prod != null ? formatNumber(G.przemysl_lekki_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Produkcja żywności</td><td class="val" data-field="produkcja_zywnosci_wartosc_prod" data-value="${G.produkcja_zywnosci_wartosc_prod || 0}">${G.produkcja_zywnosci_wartosc_prod != null ? formatNumber(G.produkcja_zywnosci_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Usługi finansowe</td><td class="val" data-field="uslugi_finansowe_wartosc_prod" data-value="${G.uslugi_finansowe_wartosc_prod || 0}">${G.uslugi_finansowe_wartosc_prod != null ? formatNumber(G.uslugi_finansowe_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Przemysł farmaceutyczny</td><td class="val" data-field="przemysl_farmaceut_wartosc_prod" data-value="${G.przemysl_farmaceut_wartosc_prod || 0}">${G.przemysl_farmaceut_wartosc_prod != null ? formatNumber(G.przemysl_farmaceut_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Przemysł samochodowy</td><td class="val" data-field="przemysl_samochodowy_wartosc_prod" data-value="${G.przemysl_samochodowy_wartosc_prod || 0}">${G.przemysl_samochodowy_wartosc_prod != null ? formatNumber(G.przemysl_samochodowy_wartosc_prod) : '—'}</td></tr>
+                <tr><td class="label">Przemysł rozrywkowy</td><td class="val" data-field="przemysl_rozrywkowy_wartosc_prod" data-value="${G.przemysl_rozrywkowy_wartosc_prod || 0}">${G.przemysl_rozrywkowy_wartosc_prod != null ? formatNumber(G.przemysl_rozrywkowy_wartosc_prod) : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Budżet i energetyka</th></tr>
+                <tr><td class="label">Dług (% PKB)</td><td class="val" data-field="dlug_pct_pkb" data-value="${G.dlug_pct_pkb || 0}">${G.dlug_pct_pkb != null ? G.dlug_pct_pkb+'%' : '—'}</td></tr>
+                <tr><td class="label">Energia nieodnawialna (%)</td><td class="val" data-field="energia_nieodnawialne_pct" data-value="${G.energia_nieodnawialne_pct || 0}">${G.energia_nieodnawialne_pct != null ? G.energia_nieodnawialne_pct+'%' : '—'}</td></tr>
+                <tr><td class="label">Energia odnawialna (%)</td><td class="val" data-field="energia_odnawialne_pct" data-value="${G.energia_odnawialne_pct || 0}">${G.energia_odnawialne_pct != null ? G.energia_odnawialne_pct+'%' : '—'}</td></tr>
+                <tr><td class="label">Energia atomowa (%)</td><td class="val" data-field="energia_atomowa_pct" data-value="${G.energia_atomowa_pct || 0}">${G.energia_atomowa_pct != null ? G.energia_atomowa_pct+'%' : '—'}</td></tr>
+
+                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Indeksy rozwojowe</th></tr>
+                <tr><td class="label">Stabilność</td><td class="val" data-field="indeks_stabilnosci_gosp" data-value="${G.indeks_stabilnosci_gosp || 0}">${G.indeks_stabilnosci_gosp != null ? G.indeks_stabilnosci_gosp : '—'}</td></tr>
+                <tr><td class="label">Korupcja</td><td class="val" data-field="indeks_korupcji_gosp" data-value="${G.indeks_korupcji_gosp || 0}">${G.indeks_korupcji_gosp != null ? G.indeks_korupcji_gosp : '—'}</td></tr>
+                <tr><td class="label">Innowacyjność</td><td class="val" data-field="indeks_innowacji_gosp" data-value="${G.indeks_innowacji_gosp || 0}">${G.indeks_innowacji_gosp != null ? G.indeks_innowacji_gosp : '—'}</td></tr>
+                <tr><td class="label">Rozwój ludzki</td><td class="val" data-field="indeks_rozwoju_ludzkiego" data-value="${G.indeks_rozwoju_ludzkiego || 0}">${G.indeks_rozwoju_ludzkiego != null ? G.indeks_rozwoju_ludzkiego : '—'}</td></tr>
+            </tbody>
+        </table>
+    `;
+
+    compareIfReady();
+}
+
+// porównanie i mini-wykresy
+function compareIfReady() {
+    if (!STATE_LEFT || !STATE_RIGHT) return;
+
+    const reverse_fields = STATE_LEFT.reverse_fields || [];
+
+    const fields = [
+        "wzrost_pkb","bezrobocie",
+        "sektor_uslugi_pct","sektor_przemysl_pct","sektor_rolnictwo_pct",
+        "eksport_wartosc","import_wartosc",
+        "ropa_wydobycie","gaz_wydobycie","wegiel_wydobycie",
+        "uran_wydobycie","zloto_wydobycie","kerbit_wydobycie","natsyt_wydobycie","cemium_wydobycie",
+        "technologie_wartosc_prod","uzbrojenie_wartosc_prod","budownictwo_wartosc_prod",
+        "przemysl_ciezki_wartosc_prod","przemysl_lekki_wartosc_prod","produkcja_zywnosci_wartosc_prod",
+        "uslugi_finansowe_wartosc_prod","przemysl_farmaceut_wartosc_prod","przemysl_samochodowy_wartosc_prod",
+        "przemysl_rozrywkowy_wartosc_prod",
+        "dlug_pct_pkb","energia_nieodnawialne_pct","energia_odnawialne_pct","energia_atomowa_pct",
+        "indeks_stabilnosci_gosp","indeks_korupcji_gosp","indeks_innowacji_gosp","indeks_rozwoju_ludzkiego"
+    ];
+
+    const leftBox = document.querySelector("#wynikA").parentElement;
+    const rightBox = document.querySelector("#wynikB").parentElement;
+
+    leftBox.classList.remove("winner-box");
+    rightBox.classList.remove("winner-box");
+
+    document.querySelectorAll(".compare-card .val").forEach(cell => {
+        cell.classList.remove("win-cell","lose-cell","equal-cell");
+    });
+
+    let scoreLeft = 0;
+    let scoreRight = 0;
+
+    fields.forEach(field => {
+
+        const L = document.querySelector(`#wynikA [data-field="${field}"]`);
+        const R = document.querySelector(`#wynikB [data-field="${field}"]`);
+
+        if (!L || !R) return;
+
+        const LV = parseFloat(L.dataset.value || "0");
+        const RV = parseFloat(R.dataset.value || "0");
+
+        const percFields = [
+            "wzrost_pkb","bezrobocie","sektor_uslugi_pct","sektor_przemysl_pct","sektor_rolnictwo_pct",
+            "dlug_pct_pkb","energia_nieodnawialne_pct","energia_odnawialne_pct","energia_atomowa_pct",
+            "indeks_stabilnosci_gosp","indeks_korupcji_gosp","indeks_innowacji_gosp","indeks_rozwoju_ludzkiego"
+        ];
+
+        const maxV = percFields.includes(field) ? Math.max(100, LV, RV, 1) : Math.max(LV, RV, 1);
+
+        const diffPct = LV === RV ? 0 : Math.round(100 * Math.abs(LV - RV) / maxV);
+
+        let leftLabel, rightLabel;
+        if (LV > RV) { leftLabel = `+${diffPct}%`; rightLabel = `-${diffPct}%`; }
+        else if (RV > LV) { leftLabel = `-${diffPct}%`; rightLabel = `+${diffPct}%`; }
+        else { leftLabel = "0%"; rightLabel = "0%"; }
+
+        // mini-wykresy jak wcześniej:
+        L.innerHTML = `
+            ${formatNumber(LV)}
+            <div class="bar-wrapper">
+                <div class="bar-inner-left" style="width:${(LV/maxV)*100}%"></div>
+            </div>
+            <span class="percent-label">${leftLabel}</span>
+        `;
+        R.innerHTML = `
+            ${formatNumber(RV)}
+            <div class="bar-wrapper">
+                <div class="bar-inner-right" style="width:${(RV/maxV)*100}%"></div>
+            </div>
+            <span class="percent-label">${rightLabel}</span>
+        `;
+
+        // 🔥 >>> WŁAŚCIWA LOGIKA ZMIANY KOLORÓW <<< 🔥
+
+        const reversed = reverse_fields.includes(field);
+
+        if (!reversed) {
+            // normalne pola — WIĘKSZE = lepsze
+            if (LV > RV) { L.classList.add("win-cell"); R.classList.add("lose-cell"); scoreLeft++; }
+            else if (RV > LV) { R.classList.add("win-cell"); L.classList.add("lose-cell"); scoreRight++; }
+            else { L.classList.add("equal-cell"); R.classList.add("equal-cell"); }
+        } else {
+            // odwrócone pola — MNIEJSZE = lepsze
+            if (LV < RV) { L.classList.add("win-cell"); R.classList.add("lose-cell"); scoreLeft++; }
+            else if (RV < LV) { R.classList.add("win-cell"); L.classList.add("lose-cell"); scoreRight++; }
+            else { L.classList.add("equal-cell"); R.classList.add("equal-cell"); }
+        }
+
+    });
+
+    if (scoreLeft > scoreRight) leftBox.classList.add("winner-box");
+    else if (scoreRight > scoreLeft) rightBox.classList.add("winner-box");
+}
+
+
+// inicjuj autouzupełnianie (użyj istniejącego endpointu /api/panstwa_autocomplete z routes_armia)
+autocomplete(document.querySelector("#inputA"), id => loadState(document.querySelector("#wynikA"), id, "flag_left", "name_left", "left"));
+autocomplete(document.querySelector("#inputB"), id => loadState(document.querySelector("#wynikB"), id, "flag_right", "name_right", "right"));
+</script>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj siły zbrojne{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:30px auto;">
+
+    <h2 style="text-align:center; margin-bottom:20px; font-weight:700;">
+        Edycja sił zbrojnych – {{ panstwo.panstwo_nazwa }}
+    </h2>
+
+    {% if error %}
+    <div style="background:#f8d7da; color:#721c24; padding:12px; border-radius:6px; margin-bottom:20px; text-align:center;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        <table style="
+            width:100%;
+            background:white;
+            border-collapse:collapse;
+            box-shadow:0 4px 14px rgba(0,0,0,0.12);
+            border-radius:12px;
+            overflow:hidden;
+        ">
+            <thead>
+                <tr style="background:#c0392b; color:white;">
+                    <th style="padding:12px; width:50%;">Parametr</th>
+                    <th style="padding:12px;">Wartość</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <!-- % PKB -->
+                <tr>
+                    <td style="padding:10px;">% PKB na wojsko</td>
+                    <td style="padding:10px;">
+                        <input type="number" step="0.1" name="procent_PKB"
+                               value="{{ form_data.procent_PKB if form_data else wojsko.procent_PKB }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                {% set fields = {
+                    "wojska_ladowe_ilosc": "Wojska lądowe",
+                    "wojska_morskie_ilosc": "Wojska morskie",
+                    "wojska_powietrzne_ilosc": "Siły powietrzne",
+                    "czolgi_ilosc": "Czołgi",
+                    "mysliwce_ilosc": "Myśliwce",
+                    "okrety_wojenne_ilosc": "Okręty wojenne",
+                    "lotniskowce_ilosc": "Lotniskowce",
+                    "okrety_podwodne_ilosc": "Okręty podwodne",
+                    "wyrzutnie_rakiet_ilosc": "Wyrzutnie rakiet",
+                    "wozy_opancerzone_ilosc": "Wozy opancerzone",
+                    "drony_ilosc": "Drony bojowe",
+                    "liczba_baz_ladowych": "Bazy lądowe",
+                    "liczba_baz_morskich": "Bazy morskie",
+                    "liczba_baz_powietrznych": "Bazy powietrzne",
+                    "bron_atomowa_ilosc": "Broń atomowa"
+                } %}
+
+                {% for field, label in fields.items() %}
+                <tr>
+                    <td style="padding:10px;">{{ label }}</td>
+                    <td style="padding:10px;">
+                        <input type="number" min="0" name="{{ field }}"
+                            value="{{ form_data[field] if form_data else wojsko | attr(field) }}"
+                            style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+                {% endfor %}
+
+
+            </tbody>
+        </table>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button style="
+                background:#27ae60;
+                color:white;
+                padding:10px 20px;
+                border:none;
+                border-radius:6px;
+                cursor:pointer;
+                font-weight:600;
+            ">
+                Zapisz zmiany
+            </button>
+
+            <a href="{{ url_for('wojsko_form', panstwo_id=panstwo.PANSTWO_ID) }}"
+               style="
+                background:#c0392b;
+                padding:10px 20px;
+                color:white;
+                border-radius:6px;
+                margin-left:10px;
+                text-decoration:none;
+                font-weight:600;
+               ">
+                Anuluj
+            </a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

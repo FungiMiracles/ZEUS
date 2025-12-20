@@ -1,0 +1,203 @@
+{% extends 'base_layout.html' %}
+{% block title %}Wyniki wyszukiwania{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — WYNIKI WYSZUKIWANIA PAŃSTW (LISTA WIERSZOWA)
+============================================================ */
+
+.wyniki-panstw {
+    max-width: 1100px;
+    margin: 25px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== HEADER ===== */
+
+.wyniki-panstw h1 {
+    font-size: 1.5em;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* ===== LISTA ===== */
+
+.country-list {
+    border-top: 1px solid #d3d7dc;
+}
+
+.country-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 8px;
+    border-bottom: 1px solid #d3d7dc;
+}
+
+.country-row:hover {
+    background-color: #f6f8fa;
+}
+
+/* ===== LEWA STRONA ===== */
+
+.country-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.country-name {
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+.country-meta {
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+/* ===== PRAWA STRONA (AKCJE) ===== */
+
+.country-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.country-actions a,
+.country-actions button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Kolory akcji */
+.btn-view { background-color: #5d7dce; }
+.btn-edit { background-color: #7f8c8d; }
+.btn-delete { background-color: #c0392b; }
+
+/* ===== BRAK WYNIKÓW ===== */
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    font-weight: 700;
+    color: #7f8c8d;
+}
+
+/* ===== POWRÓT ===== */
+
+.footer-actions {
+    margin-top: 25px;
+}
+.btn-return {
+    padding: 9px 16px;
+    background-color: #ecf0f1;
+    border: 1.5px solid #bdc3c7;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    color: #34495e;
+}
+
+/* Inline delete form */
+.delete-form {
+    display: inline;
+}
+</style>
+
+<div class="wyniki-panstw">
+
+    <h1>Wyniki wyszukiwania państw</h1>
+
+    {% if empty %}
+
+        <div class="no-results">
+            Nie znaleziono państw spełniających podane kryteria.
+        </div>
+
+        <div class="footer-actions" style="text-align:center;">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% else %}
+
+        <div class="country-list">
+
+            {% for row in results %}
+                <div class="country-row">
+
+                    <!-- LEWA STRONA -->
+                    <div class="country-main">
+                        <div class="country-name">
+                            {{ row.panstwo_nazwa }} ({{ row.panstwo_kod }})
+                        </div>
+                        <div class="country-meta">
+                            ID: {{ row.PANSTWO_ID }} • {{ row.kontynent }}
+                        </div>
+                    </div>
+
+                    <!-- PRAWA STRONA -->
+                    <div class="country-actions">
+
+                        <a href="{{ url_for('panstwo_form', panstwo_id=row.PANSTWO_ID) }}"
+                           class="btn-view"
+                           target="_blank">
+                            Wyświetl
+                        </a>
+                        
+                        {% if session.rola == "wszechmocny" %}
+                        <a href="#"
+                           class="btn-edit">
+                            Edytuj
+                        </a>
+                        {% else %}
+                        <a href="#"
+                           class="btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                            Edytuj
+                        </a>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                            <form method="POST"
+                                  action="{{ url_for('usun_panstwo', panstwo_id=row.PANSTWO_ID) }}"
+                                  class="delete-form"
+                                  onsubmit="return confirm('Czy na pewno chcesz usunąć to państwo?');">
+                                <button type="submit"
+                                        class="btn-delete">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% else %}
+                            <button type="button"
+                                    class="btn-delete"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Usuń
+                            </button>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="footer-actions">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}

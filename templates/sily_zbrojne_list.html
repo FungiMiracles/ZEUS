@@ -1,0 +1,212 @@
+{% extends 'base_layout.html' %}
+{% block title %}Siły zbrojne państw{% endblock %}
+
+{% block content %}
+
+<style>
+    .filter-box {
+        width: 35%;
+        margin: 20px auto;
+        padding: 15px;
+        background: #f8faff;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', Tahoma;
+        display: flex;
+        gap: 20px;
+        align-items: flex-end;
+    }
+
+    .filter-box label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .filter-box select,
+    .filter-box input {
+        width: 220px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #bfc7d5;
+        font-size: 0.95em;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        background: #c0392b;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .filter-btn:hover {
+        background: #892116;
+    }
+
+    .cancel-btn {
+    padding: 10px 20px;
+    background: #c0392b;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;           /* Konwertuje na block element */
+    margin: 0 auto;           /* Centruje poziomo */
+    width: fit-content;       /* Dopasowuje szerokość do zawartości */
+    }
+
+    .cancel-btn:hover {
+         background: #c0392b;
+    }
+</style>
+
+<!-- FILTRY -->
+<form method="GET" action="{{ url_for('sily_zbrojne_list') }}">
+    <div class="filter-box">
+
+        <!-- FILTER KONTYNENT -->
+        <div>
+            <label>Kontynent:</label><br>
+            <select name="kontynent">
+                <option value="">Wszystkie</option>
+                {% for k in kontynenty %}
+                    <option value="{{ k }}" {% if request.args.get('kontynent') == k %}selected{% endif %}>
+                        {{ k }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- FILTER PAŃSTWO -->
+        <div>
+            <label>Państwo / ID:</label><br>
+            <input type="text"
+                   name="panstwo"
+                   placeholder="np. Hopia lub 12"
+                   value="{{ request.args.get('panstwo', '') }}">
+        </div>
+
+        <button class="filter-btn">Filtruj</button>
+    
+    </div>
+    
+</form>
+
+<style>
+    .results-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .results-header {
+        text-align:center;
+        margin-bottom:20px;
+    }
+
+    table.results-table {
+        width:100%;
+        border-collapse:collapse;
+        background:#fefefe;
+        border-radius:12px;
+        overflow:hidden;
+        box-shadow:0 3px 10px rgba(0,0,0,0.12);
+        margin-top:20px;
+    }
+
+    table.results-table thead tr {
+        background:#c0392b;
+        color:white;
+        font-size:1.1em;
+    }
+
+    table.results-table th, table.results-table td {
+        padding:12px 14px;
+        border-bottom:1px solid #d6d6d6;
+    }
+
+    table.results-table tbody tr:nth-child(even, odd) {
+        background:#eef2ff;
+    }
+
+    .btn-view {
+        background:#c0392b;
+        color:white;
+        padding:6px 12px;
+        border-radius:6px;
+        text-decoration:none;
+        font-weight:600;
+    }
+    .btn-view:hover  {
+        background:#892116;
+        color:white;
+        text-decoration:none;
+    }
+</style>
+
+<div class="results-container">
+
+    <div class="results-header">
+        <h2>Siły zbrojne państw</h2>
+    </div>
+
+    {% if empty %}
+        <p style="text-align:center; color:#7f8c8d; font-style:italic;">
+            Brak danych wojskowych.
+        </p>
+    {% else %}
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Państwo</th>
+                <th>Liczba żołnierzy</th>
+                <th>% PKB</th>
+                <th>Sprzęt kluczowy (skrót)</th>
+                <th>Szczegóły</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for row in results %}
+            <tr>
+                <td>{{ row.panstwo_nazwa }}</td>
+
+                <td>
+                {{ "{:,}".format(row.lacznie or 0).replace(",", " ") }}
+                </td>
+
+                <td>{{ row.procent_PKB or 0 }}%</td>
+
+                <td>
+                    Czołgi: {{ row.czolgi or 0 }} •
+                    Myśliwce: {{ row.mysliwce or 0 }} •
+                    Okręty: {{ row.okrety or 0 }}
+                </td>
+
+
+                <td>
+                    <a class="btn-view"
+                       href="{{ url_for('wojsko_form', panstwo_id=row.panstwo_id) }}">
+                        Podgląd
+                    </a>
+                </td>
+                
+            </tr>
+        {% endfor %}
+        
+            
+        </tbody>
+    </table>
+    {% endif %}
+    
+</div>
+<div><a href="{{ url_for('sily_zbrojne') }}" class="cancel-btn" style="text-align: center;">Wróć</a></div>
+
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base_layout.html' %}
+{% block title %}Dodaj państwo{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+<div style="max-width: 900px; margin: 30px auto;">
+  <h2 style="text-align:center; color:hsl(210, 29%, 24%); font-weight:700; margin-bottom:20px;">Dodaj nowy formularz państwa</h2>
+  <h2 style="text-align:center; color:#179048; font-weight:350; font-size: 25px; margin-bottom:20px;">Ważne! Uzupełnij <strong>wszystkie</strong> pola oraz dodaj <strong>flagę</strong> i <strong>mapę</strong> państwa</h2>
+  <table style="
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fefefe;
+  ">
+
+  {% if error %}
+  <div style="color: red; font-weight: bold; margin-bottom: 10px; text-align: center;">
+    {{ error }}
+  </div>
+{% endif %}
+    <thead>
+      
+      <tr style="background: linear-gradient(90deg, #5d7dce, #adc8ff); color:white; font-weight:700;">
+        <th style="padding:12px;">Pole</th>
+        <th style="padding:12px;">Wartość</th>
+      </tr>
+    </thead>
+    <tbody style="color:#2c3e50;">
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Flaga</td>
+        <td style="padding:10px;"><input type="file" name="flaga"></td>
+      </tr>
+
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Mapa</td>
+        <td style="padding:10px;"><input type="file" name="mapa"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Nazwa państwa</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_nazwa" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Pełna nazwa</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_pelna_nazwa" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Kod państwa (ECC)</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_kod" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Kontynent</td>
+        <td style="padding:10px;">
+          <select name="kontynent" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+            <option value="">-- Wybierz --</option>
+            <option value="Kao">Kao</option>
+            <option value="Beifa">Beifa</option>
+            <option value="Anzinia">Anzinia</option>
+            <option value="Peryfa">Peryfa</option>
+            <option value="Wyspy Większe">Wyspy Większe</option>
+            <option value="Wyspy Mniejsze">Wyspy Mniejsze</option>
+          </select>
+        </td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Ustrój polityczny</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_ustroj" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Stolica</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_stolica" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Populacja</td>
+        <td style="padding:10px;"><input type="number" name="panstwo_populacja" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Powierzchnia (km²)</td>
+        <td style="padding:10px;"><input type="number" name="panstwo_powierzchnia" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Waluta</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_waluta" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">Język urzędowy</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_jezyk" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">Religia dominująca</td>
+        <td style="padding:10px;"><input type="text" name="panstwo_religia" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#f5f8ff;">
+        <td style="padding:10px; font-weight:600;">PKB</td>
+        <td style="padding:10px;"><input type="number" name="PKB" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+      <tr style="background-color:#e8edff;">
+        <td style="padding:10px; font-weight:600;">PKB na mieszkańca</td>
+        <td style="padding:10px;"><input type="number" name="PKB_per_capita" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:20px; text-align:center;">
+    <button type="submit" style="
+      padding:10px 25px;
+      background-color:#5d7dce;
+      color:white;
+      font-weight:600;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      transition: background-color 0.3s;
+    " onmouseover="this.style.backgroundColor='#4171d1';" onmouseout="this.style.backgroundColor='#5d7dce';">
+      Zatwierdź
+    </button>
+    <a href="{{ url_for('home_page') }}" style="padding:10px 25px; background-color:#c0392b; color:white; font-weight:600; border:none; border-radius:6px; cursor:pointer; text-decoration:none; display:inline-block; transition: background-color 0.3s; margin-left:10px;"
+    onmouseover="this.style.backgroundColor='#96281b'"
+    onmouseout="this.style.backgroundColor='#c0392b'">
+    Anuluj
+    </a>
+    
+  </div>
+</div>
+</form>
+{% endblock %}
+

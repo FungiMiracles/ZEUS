@@ -1,0 +1,130 @@
+{% extends 'base_layout.html' %}
+{% block title %}ZEUS - Strona główna{% endblock %}
+
+{% block content %}
+  <hr style="border:none; height:1px; background-color:#b3b3b3; margin: 10px 0;">
+  <p style="text-align:center; font-size: 1.5em; font-weight: 600; color: #2c3e50; margin-bottom: 15px;">Strona główna</p>
+  <hr style="border:none; height:1px; background-color:#b3b3b3; margin: 10px 0 30px 0;">
+
+  <table style="margin: 0 auto; width: 900px; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <thead>
+      <tr>
+        <th style="padding: 10px 0;">
+          <img src="{{ url_for('static', filename='Wyszukiwarka.png') }}" alt="Wyszukaj" width="250" height="175" style="margin: 25px 50px;">
+        </th>
+        <th style="padding: 10px 0;">
+          <img src="{{ url_for('static', filename='Dodaj.png') }}" alt="Dodaj" width="325" height="220" style="margin: 25px 50px;">
+        </th>
+        <th style="padding: 10px 0;">
+          <img src="{{ url_for('static', filename='Zmiana.png') }}" alt="Edytuj" width="250" height="175" style="margin: 25px 50px;">
+        </th>
+      </tr>
+      <tr style="font-weight: 700; font-size: 1.1em; color: #34495e;">
+        <td>Wyszukaj państwo</td>
+        <td>Dodaj nowy formularz</td>
+        <td>Edytuj formularz</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="vertical-align: top;">
+        <td style="padding: 20px 10px 0 10px; text-align: left;">
+          <!-- FORMULARZ WYSZUKIWANIA PAŃSTWA -->
+          <form action="/wyniki_wyszukiwania" method="GET" style="font-size: 1em; color: #2c3e50;">
+            <label for="kontynent" style="display: block; margin-bottom: 6px; font-weight: 600;">Kontynent:</label>
+            <select name="kontynent" id="kontynent" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+              <option value="">-- Wybierz --</option>
+              <option value="Kao">Kao</option>
+              <option value="Beifa">Beifa</option>
+              <option value="Anzinia">Anzinia</option>
+              <option value="Peryfa">Peryfa</option>
+              <option value="Wyspy Większe">Wyspy Większe</option>
+              <option value="Wyspy Mniejsze">Wyspy Mniejsze</option>
+            </select>
+
+            <label for="panstwo_nazwa" style="display: block; margin-bottom: 6px; font-weight: 600;">Nazwa państwa:</label>
+            <input type="text" id="panstwo_nazwa" name="panstwo_nazwa" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+            <label for="panstwo_kod" style="display: block; margin-bottom: 6px; font-weight: 600;">Kod państwa <strong>(ECC)</strong>:</label>
+            <input type="text" id="panstwo_kod" name="panstwo_kod" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+            <button type="submit" style="
+              padding: 10px 20px;
+              background-color: #5d7dce;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              transition: background-color 0.3s;
+            " onmouseover="this.style.backgroundColor='#4171d1'" onmouseout="this.style.backgroundColor='#5d7dce'">Szukaj</button>
+          </form>
+        </td>
+
+        <td style="padding: 20px 10px 0 10px; text-align: center;">
+          <button style="
+            width: 180px;
+            padding: 12px 0;
+            margin-bottom: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background-color 0.3s;
+          " onmouseover="this.style.backgroundColor='#2980b9'" onmouseout="this.style.backgroundColor='#3498db'">Dodaj formularz państwa</button>
+          <br>
+          <button style="
+            width: 180px;
+            padding: 12px 0;
+            margin-bottom: 15px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background-color 0.3s;
+          " onmouseover="this.style.backgroundColor='#1c5980'" onmouseout="this.style.backgroundColor='#2980b9'">Dodaj formularz regionu</button>
+          <br>
+          <button style="
+            width: 180px;
+            padding: 12px 0;
+            background-color: #2471a3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background-color 0.3s;
+          " onmouseover="this.style.backgroundColor='#1a4c71'" onmouseout="this.style.backgroundColor='#2471a3'">Dodaj formularz miasta</button>
+        </td>
+
+        <td style="padding: 20px 10px 0 10px; text-align: left; font-size: 1em; color: #2c3e50;">
+          <label for="kod_panstwa" style="display: block; margin-bottom: 6px; font-weight: 600;">Kod państwa <strong>(ECC)</strong>:</label>
+          <input type="text" id="kod_panstwa" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+          <label for="kod_regionu" style="display: block; margin-bottom: 6px; font-weight: 600;">Kod regionu <strong>(ERC)</strong>:</label>
+          <input type="text" id="kod_regionu" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+          <label for="kod_miasta" style="display: block; margin-bottom: 6px; font-weight: 600;">Kod miasta <strong>(ECIC)</strong>:</label>
+          <input type="text" id="kod_miasta" style="width: 100%; padding: 6px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+          <button style="
+            padding: 10px 20px;
+            background-color: #5d7dce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+          " onmouseover="this.style.backgroundColor='#4171d1'" onmouseout="this.style.backgroundColor='#5d7dce';">Szukaj</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+{% endblock %}

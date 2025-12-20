@@ -1,0 +1,225 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj wydarzenie{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — EDYCJA WYDARZENIA HISTORYCZNEGO
+============================================================ */
+
+.historia-edit-wrapper {
+    max-width: 900px;
+    margin: 30px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== TYTUŁ ===== */
+
+.historia-edit-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 18px;
+}
+
+/* ===== SEKCJE ===== */
+
+.historia-section {
+    background: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+}
+
+.historia-section h3 {
+    font-size: 1.05em;
+    font-weight: 800;
+    color: #34495e;
+    margin-bottom: 14px;
+}
+
+/* ===== POLA ===== */
+
+.historia-field {
+    margin-bottom: 14px;
+}
+
+.historia-field label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85em;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.historia-field input,
+.historia-field select,
+.historia-field textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.historia-field textarea {
+    resize: vertical;
+    
+}
+
+/* ===== AKCJE ===== */
+
+.historia-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 26px;
+}
+
+.historia-actions .right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== PRZYCISKI ZEUS ===== */
+
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* Anuluj */
+.btn-cancel {
+    background-color: #565656;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-cancel:hover {
+    background-color: rgb(64, 64, 64);
+}
+
+/* Zapisz */
+.btn-save {
+    background-color: #3498db;
+    color: white;
+}
+.btn-save:hover {
+    background-color: #1d6da3;
+}
+</style>
+
+<div class="historia-edit-wrapper">
+
+    <!-- ===== TYTUŁ ===== -->
+    <div class="historia-edit-title">
+        Edytuj wydarzenie historyczne
+    </div>
+
+    <form method="POST">
+
+        <!-- ===== PODSTAWOWE INFORMACJE ===== -->
+        <div class="historia-section">
+            <h3>Podstawowe informacje</h3>
+
+            <div class="historia-field">
+                <label>Nazwa wydarzenia *</label>
+                <input type="text"
+                       name="nazwa_wydarzenia"
+                       required
+                       value="{{ h.nazwa_wydarzenia }}">
+            </div>
+
+            <div class="historia-field">
+                <label>Epoka *</label>
+                <select name="epoka" required>
+                    <option value="starozytna" {% if h.epoka=='starozytna' %}selected{% endif %}>
+                        Starożytna
+                    </option>
+                    <option value="sredniowieczna" {% if h.epoka=='sredniowieczna' %}selected{% endif %}>
+                        Średniowieczna
+                    </option>
+                    <option value="wspolczesna" {% if h.epoka=='wspolczesna' %}selected{% endif %}>
+                        Współczesna
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== CZAS ===== -->
+        <div class="historia-section">
+            <h3>Czas trwania</h3>
+
+            <div class="historia-field">
+                <label>Data od *</label>
+                <input type="text"
+                       name="data_od"
+                       required
+                       value="{{ h.data_od.strftime('%d-%m-%Y') }}">
+            </div>
+
+            <div class="historia-field">
+                <label>Data do</label>
+                <input type="text"
+                       name="data_do"
+                       value="{{ h.data_do.strftime('%d-%m-%Y') if h.data_do }}">
+            </div>
+        </div>
+
+        <!-- ===== LOKALIZACJA ===== -->
+        <div class="historia-section">
+            <h3>Lokalizacja</h3>
+
+            <div class="historia-field">
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— brak —</option>
+                    {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
+                        <option value="{{ k }}" {% if h.kontynent == k %}selected{% endif %}>
+                            {{ k }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== OPIS ===== -->
+        <div class="historia-section">
+            <h3>Opis wydarzenia (Markdown)</h3>
+
+            <div class="historia-field">
+                <textarea name="opis_md"
+                          rows="14">{{ opis_md }}</textarea>
+            </div>
+        </div>
+
+        <!-- ===== AKCJE ===== -->
+        <div class="historia-actions">
+
+            <a href="{{ url_for('historia_podglad', historia_id=h.HISTORIA_ID) }}"
+               class="btn-zeus btn-cancel">
+                Anuluj
+            </a>
+
+            <div class="right">
+                <button type="submit"
+                        class="btn-zeus btn-save">
+                    Zapisz zmiany
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

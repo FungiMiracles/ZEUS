@@ -1,0 +1,78 @@
+{% extends 'base_layout.html' %}
+{% block title %}
+Artykuły
+{% endblock %}
+{% block content %}
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Artykuły
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<!-- ===================== STYLING ===================== -->
+<style>
+.art-tiles {
+    max-width: 700px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 14px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.art-tile {
+    background: linear-gradient(135deg, #ffffff, #e6e6e6); /* jasna, ładna szarość */
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.1em;
+    min-height: 150px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #cfcfcf;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    transition: 0.25s;
+}
+
+/* Ikony */
+.art-tile .icon {
+    font-size: 42px;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
+
+/* Hover */
+.art-tile:hover {
+    background: linear-gradient(135deg, #f4f4f4, #dcdcdc);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    color: #333;
+}
+</style>
+
+
+<!-- ===================== KAFELKI ===================== -->
+<div class="art-tiles">
+
+    <a class="art-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">✏️</div>
+        Stwórz nowy artykuł [niedostępne]
+    </a>
+
+    <a class="art-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+        <div class="icon">📚</div>
+        Przeglądaj artykuły [niedostępne]
+    </a>
+
+</div>
+
+{% endblock %}

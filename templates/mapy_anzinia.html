@@ -1,0 +1,86 @@
+{% extends "base_layout.html" %}
+{% block title %}Mapa – Anzinia{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===============================================
+   ZEUS — STRONA MAPY KAO
+   (STYLESCOPE: .map-page)
+================================================== */
+
+.map-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 25px;
+    background: #f4f6f8;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* Nagłówek */
+.map-page h1 {
+    text-align: center;
+    font-size: 2em;
+    font-weight: 700;
+    color: #34495e;
+    margin-bottom: 25px;
+}
+
+/* Karta z mapą */
+.map-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    text-align: center;
+}
+
+/* Sama mapa */
+.map-box img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid #cfd3d8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Przyciski */
+.map-actions {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.map-btn {
+    background: #2d76c9;
+    color: white !important;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+    margin: 0 10px;
+}
+
+.map-btn:hover {
+    background: #154e91;
+}
+
+</style>
+
+
+<div class="map-page">
+
+    <h1>Mapa kontynentu Anzinia</h1>
+
+    <div class="map-box">
+        <img src="{{ url_for('static', filename='maps/mapa_anzinii.png') }}" alt="Mapa Anzinii">
+    </div>
+
+    <div class="map-actions">
+        <a href="/mapy" class="map-btn">⟵ Powrót do map</a>
+    </div>
+
+</div>
+
+{% endblock %}

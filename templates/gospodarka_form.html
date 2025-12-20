@@ -1,0 +1,245 @@
+{% extends "base_layout.html" %}
+{% block title %}Gospodarka – {{ panstwo.panstwo_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — PODGLĄD DANYCH GOSPODARCZYCH (spójny z gospodarka_list)
+============================================================ */
+
+.gosp-view {
+    max-width: 1150px;
+    margin: 0 auto;
+    background: #f4f6f8;
+    padding-bottom: 40px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Nagłówek */
+.gosp-view .header {
+    text-align: center;
+    margin: 25px 0 35px 0;
+}
+
+.gosp-view h1 {
+    font-size: 2em;
+    font-weight: 700;
+    color: #2c73d2;
+}
+
+/* Sekcje danych */
+.section-box {
+    background: white;
+    padding: 22px 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.section-box h2 {
+    font-size: 1.35em;
+    font-weight: 700;
+    color: #2c73d2;
+    margin-bottom: 18px;
+}
+
+/* Grid wartości */
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 20px;
+}
+
+.section-grid label {
+    font-weight: 700;
+    font-size: 0.92em;
+    color: #2c3e50;
+}
+
+.value-box {
+    background: #eef3ff;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #c9d3e7;
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* Powrót */
+.back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 22px;
+    background: #2c73d2;
+    border-radius: 6px;
+    color: white !important;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.back-btn:hover {
+    background: #1e5caf;
+}
+</style>
+
+
+
+<div class="gosp-view">
+
+    <!-- ----------------------------------------------------
+         Nagłówek
+    ----------------------------------------------------- -->
+    <div class="header">
+        <h1>Dane gospodarcze – {{ panstwo.panstwo_nazwa }}</h1>
+    </div>
+
+    {% set g = g or None %}
+
+    <!-- ===========================
+         MAKRO
+    ============================ -->
+    <div class="section-box">
+        <h2>Wskaźniki makro</h2>
+
+        <div class="section-grid">
+            <div>
+                <label>Wzrost PKB (%)</label>
+                <div class="value-box">{{ g.wzrost_pkb | spacenum if g and g.wzrost_pkb is not none else "—" }}</div>
+            </div>
+
+            <div>
+                <label>Bezrobocie (%)</label>
+                <div class="value-box">{{ g.bezrobocie | spacenum if g and g.bezrobocie is not none else "—" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         SEKTORY
+    ============================ -->
+    <div class="section-box">
+        <h2>Struktura gospodarki (%)</h2>
+
+        <div class="section-grid">
+            <div>
+                <label>Usługi</label>
+                <div class="value-box">{{ g.sektor_uslugi_pct | spacenum if g and g.sektor_uslugi_pct is not none else "—" }}</div>
+            </div>
+            <div>
+                <label>Przemysł</label>
+                <div class="value-box">{{ g.sektor_przemysl_pct | spacenum if g and g.sektor_przemysl_pct is not none else "—" }}</div>
+            </div>
+            <div>
+                <label>Rolnictwo</label>
+                <div class="value-box">{{ g.sektor_rolnictwo_pct | spacenum if g and g.sektor_rolnictwo_pct is not none else "—" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         HANDEL
+    ============================ -->
+    <div class="section-box">
+        <h2>Handel zagraniczny</h2>
+
+        <div class="section-grid">
+            <div>
+                <label>Eksport – wartość</label>
+                <div class="value-box">{{ g.eksport_wartosc | spacenum if g and g.eksport_wartosc is not none else "—" }}</div>
+            </div>
+
+            <div>
+                <label>Import – wartość</label>
+                <div class="value-box">{{ g.import_wartosc | spacenum if g and g.import_wartosc is not none else "—" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         SUROWCE
+    ============================ -->
+    <div class="section-box">
+        <h2>Surowce naturalne – wydobycie</h2>
+
+        <div class="section-grid">
+            <div><label>Ropa</label><div class="value-box">{{ g.ropa_wydobycie | spacenum if g and g.ropa_wydobycie is not none else "—" }}</div></div>
+            <div><label>Gaz</label><div class="value-box">{{ g.gaz_wydobycie | spacenum if g and g.gaz_wydobycie is not none else "—" }}</div></div>
+            <div><label>Węgiel</label><div class="value-box">{{ g.wegiel_wydobycie | spacenum if g and g.wegiel_wydobycie is not none else "—" }}</div></div>
+            <div><label>Uran</label><div class="value-box">{{ g.uran_wydobycie | spacenum if g and g.uran_wydobycie is not none else "—" }}</div></div>
+            <div><label>Złoto</label><div class="value-box">{{ g.zloto_wydobycie | spacenum if g and g.zloto_wydobycie is not none else "—" }}</div></div>
+            <div><label>Kerbit</label><div class="value-box">{{ g.kerbit_wydobycie | spacenum if g and g.kerbit_wydobycie is not none else "—" }}</div></div>
+            <div><label>Natsyt</label><div class="value-box">{{ g.natsyt_wydobycie | spacenum if g and g.natsyt_wydobycie is not none else "—" }}</div></div>
+            <div><label>Cemium</label><div class="value-box">{{ g.cemium_wydobycie | spacenum if g and g.cemium_wydobycie is not none else "—" }}</div></div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         PRODUKCJA
+    ============================ -->
+    <div class="section-box">
+        <h2>Produkcja – roczna wartość</h2>
+
+        <div class="section-grid">
+            <div><label>Technologie</label><div class="value-box">{{ g.technologie_wartosc_prod | spacenum if g and g.technologie_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Uzbrojenie</label><div class="value-box">{{ g.uzbrojenie_wartosc_prod | spacenum if g and g.uzbrojenie_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Budownictwo</label><div class="value-box">{{ g.budownictwo_wartosc_prod | spacenum if g and g.budownictwo_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Przemysł ciężki</label><div class="value-box">{{ g.przemysl_ciezki_wartosc_prod | spacenum if g and g.przemysl_ciezki_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Przemysł lekki</label><div class="value-box">{{ g.przemysl_lekki_wartosc_prod | spacenum if g and g.przemysl_lekki_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Produkcja żywności</label><div class="value-box">{{ g.produkcja_zywnosci_wartosc_prod | spacenum if g and g.produkcja_zywnosci_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Usługi finansowe</label><div class="value-box">{{ g.uslugi_finansowe_wartosc_prod | spacenum if g and g.uslugi_finansowe_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Przemysł farmaceutyczny</label><div class="value-box">{{ g.przemysl_farmaceut_wartosc_prod | spacenum if g and g.przemysl_farmaceut_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Przemysł samochodowy</label><div class="value-box">{{ g.przemysl_samochodowy_wartosc_prod | spacenum if g and g.przemysl_samochodowy_wartosc_prod is not none else "—" }}</div></div>
+            <div><label>Przemysł rozrywkowy</label><div class="value-box">{{ g.przemysl_rozrywkowy_wartosc_prod | spacenum if g and g.przemysl_rozrywkowy_wartosc_prod is not none else "—" }}</div></div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         BUDŻET I ENERGETYKA
+    ============================ -->
+    <div class="section-box">
+        <h2>Budżet i energetyka</h2>
+
+        <div class="section-grid">
+            <div><label>Dług (% PKB)</label>
+                <div class="value-box">{{ g.dlug_pct_pkb | spacenum if g and g.dlug_pct_pkb is not none else "—" }}</div>
+            </div>
+
+            <div><label>Energia nieodnawialna (%)</label>
+                <div class="value-box">{{ g.energia_nieodnawialne_pct | spacenum if g and g.energia_nieodnawialne_pct is not none else "—" }}</div>
+            </div>
+
+            <div><label>Energia odnawialna (%)</label>
+                <div class="value-box">{{ g.energia_odnawialne_pct | spacenum if g and g.energia_odnawialne_pct is not none else "—" }}</div>
+            </div>
+
+            <div><label>Energia atomowa (%)</label>
+                <div class="value-box">{{ g.energia_atomowa_pct | spacenum if g and g.energia_atomowa_pct is not none else "—" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===========================
+         INDEKSY
+    ============================ -->
+    <div class="section-box">
+        <h2>Indeksy rozwojowe</h2>
+
+        <div class="section-grid">
+            <div><label>Stabilność</label><div class="value-box">{{ g.indeks_stabilnosci_gosp | spacenum if g and g.indeks_stabilnosci_gosp is not none else "—" }}</div></div>
+            <div><label>Korupcja</label><div class="value-box">{{ g.indeks_korupcji_gosp | spacenum if g and g.indeks_korupcji_gosp is not none else "—" }}</div></div>
+            <div><label>Innowacyjność</label><div class="value-box">{{ g.indeks_innowacji_gosp | spacenum if g and g.indeks_innowacji_gosp is not none else "—" }}</div></div>
+            <div><label>Rozwój ludzki</label><div class="value-box">{{ g.indeks_rozwoju_ludzkiego | spacenum if g and g.indeks_rozwoju_ludzkiego is not none else "—" }}</div></div>
+        </div>
+    </div>
+
+    <!-- POWRÓT -->
+    <div style="text-align:center;">
+        <a href="{{ url_for('gospodarka_list') }}" class="back-btn">⟵ Powrót</a>
+    </div>
+
+</div>
+
+{% endblock %}

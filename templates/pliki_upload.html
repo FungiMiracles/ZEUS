@@ -1,0 +1,134 @@
+{% extends "base_layout.html" %}
+{% block title %}Przesyłanie plików{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — UPLOAD PLIKÓW
+============================================================ */
+
+.upload-wrapper {
+    max-width: 700px;
+    margin: 30px auto;
+    background: #f4f6f8;
+    padding: 30px 35px 40px;
+    border-radius: 14px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.upload-header h1 {
+    font-size: 1.8em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* ===== FORM ===== */
+
+.upload-box {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 28px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+label {
+    font-weight: 700;
+    font-size: 0.9em;
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 6px;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-weight: 600;
+    background: #ffffff;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.btn-zeus {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+/* Upload */
+.btn-upload {
+    background-color: #27ae60;
+    color: white;
+}
+.btn-upload:hover {
+    background-color: #1e8749;
+}
+
+/* Cancel */
+.btn-cancel {
+    background-color: #ecf0f1;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-cancel:hover {
+    background-color: #dce1e4;
+}
+
+.upload-info {
+    margin-top: 20px;
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+</style>
+
+<div class="upload-wrapper">
+
+    <div class="upload-header">
+        <h1>Przesyłanie plików</h1>
+        <p>Dodaj nowy plik do systemu Zeus</p>
+    </div>
+
+    <div class="upload-box">
+        <form method="POST" enctype="multipart/form-data">
+
+            <label>Wybierz plik *</label>
+            <input type="file" name="file" required>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-zeus btn-upload">
+                    Wyślij plik
+                </button>
+
+                <a href="{{ url_for('pliki') }}"
+                   class="btn-zeus btn-cancel">
+                    Anuluj
+                </a>
+            </div>
+        </form>
+
+        <div class="upload-info">
+            Dozwolone formaty: PDF, ZIP, MD, PNG, JPG, WEBP<br>
+            Maksymalny rozmiar pliku: 50 MB
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

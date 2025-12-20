@@ -1,0 +1,83 @@
+{% extends 'base_layout.html' %}
+{% block title %}
+Kultura
+{% endblock %}
+{% block content %}
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+        Kultura
+    </p>
+    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
+<!-- ===================== STYLING ===================== -->
+<style>
+.kult-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.kult-tile {
+    background: linear-gradient(135deg, #d4a017, #b58500); /* ciemniejsze złoto/żółty */
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none !important;
+    border: 1px solid #9d6e00;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: 0.25s;
+}
+
+/* Ikonki */
+.kult-tile .icon {
+    font-size: 45px;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+/* Hover */
+.kult-tile:hover {
+    background: linear-gradient(135deg, #b58500, #8a6500);
+    box-shadow: 0 7px 20px rgba(0,0,0,0.25);
+    transform: translateY(-6px) scale(1.03);
+    color: white;
+}
+</style>
+
+
+<!-- ===================== KAFELKI ===================== -->
+<div class="kult-tiles">
+
+    <a class="kult-tile" href="#">
+        <div class="icon">✨</div>
+        Religie i wierzenia [niedostępne]
+    </a>
+
+    <a class="kult-tile" href="#">
+        <div class="icon">🎨</div>
+        Literatura i sztuka [niedostępne]
+    </a>
+
+    <a class="kult-tile" href="#">
+        <div class="icon">🗣️</div>
+        Języki [niedostępne]
+    </a>
+
+</div>
+
+{% endblock %}

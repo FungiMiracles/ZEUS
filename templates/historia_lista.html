@@ -1,0 +1,316 @@
+{% extends "base_layout.html" %}
+{% block title %}Historia świata{% endblock %}
+
+{% block content %}
+
+{% set EPOKI = {
+    'starozytna': 'Starożytna',
+    'sredniowieczna': 'Średniowieczna',
+    'wspolczesna': 'Współczesna'
+} %}
+
+<style>
+/* ============================================================
+   ZEUS — HISTORIA ŚWIATA (LISTA)
+============================================================ */
+
+.historia-meta-admin {
+    font-size: 0.75em;
+    color: #95a5a6;
+    margin-top: 2px;
+}
+
+/* ===== LAYOUT ===== */
+
+.historia-wrapper {
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+/* ===== HEADER ===== */
+
+.historia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.historia-header h1 {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* ===== FILTRY ===== */
+
+.historia-filters a {
+    margin-left: 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #2c3e50;
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+}
+
+.historia-filters a.active {
+    background-color: #5d7dce;
+    color: white;
+    border-color: #4171d1;
+}
+
+/* ===== PANEL AKCJI ===== */
+
+.historia-top-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0 20px;
+}
+
+.historia-top-actions .left,
+.historia-top-actions .right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== LISTA ===== */
+
+.historia-list {
+    margin-top: 20px;
+}
+
+.historia-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.historia-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.historia-item > div:first-child {
+    max-width: 70%;
+}
+
+.historia-date {
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+}
+
+.historia-title {
+    font-size: 1.05em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* ===== AKCJE NA LIŚCIE ===== */
+
+.historia-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ===== PRZYCISKI ZEUS ===== */
+
+.btn-zeus {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Podgląd */
+.btn-view {
+    background-color: #5d7dce;
+}
+.btn-view:hover {
+    background-color: #315eb8;
+}
+
+/* Edycja */
+.btn-edit {
+    background-color: #3498db;
+}
+.btn-edit:hover {
+    background-color: #1d6da3;
+}
+
+/* Usuwanie */
+.btn-delete {
+    background-color: #c0392b;
+}
+.btn-delete:hover {
+    background-color: #962d22;
+}
+
+/* ===== PRZYCISKI PANELU ===== */
+
+.btn-zeus-action {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 800;
+    text-decoration: none;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Wróć */
+.btn-back {
+    background-color: #7f8c8d;
+}
+.btn-back:hover {
+    background-color: #636e72;
+}
+
+/* Dodaj */
+.btn-add {
+    background-color: #27ae60;
+}
+.btn-add:hover {
+    background-color: #1e8749;
+}
+</style>
+
+<div class="historia-wrapper">
+
+    <!-- ===== HEADER ===== -->
+    <div class="historia-header">
+        <h1>📜 Wydarzenia historyczne</h1>
+
+        <div class="historia-filters">
+            <a href="{{ url_for('historia_lista') }}"
+               class="{% if not epoka %}active{% endif %}">
+                Wszystkie
+            </a>
+
+            {% for k, v in EPOKI.items() %}
+                <a href="{{ url_for('historia_lista', epoka=k) }}"
+                   class="{% if epoka == k %}active{% endif %}">
+                    {{ v }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== PANEL AKCJI ===== -->
+    <div class="historia-top-actions">
+        <div class="left">
+            <a href="{{ url_for('historia') }}" class="btn-zeus-action btn-back">
+                ⬅ Wróć
+            </a>
+        </div>
+
+        <div class="right">
+            {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+                <a href="{{ url_for('historia_dodaj') }}"
+                   class="btn-zeus-action btn-add">
+                    Dodaj nowe wydarzenie historyczne
+                </a>
+            {% else %}
+                <button class="btn-zeus-action btn-add"
+                        onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                    Dodaj nowe wydarzenie historyczne
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===== LISTA ===== -->
+    <div class="historia-list">
+        {% if wydarzenia %}
+            {% for h in wydarzenia %}
+                <div class="historia-item">
+
+                    <div>
+                        <div class="historia-date">
+                            {{ h.zakres_dat_label }}
+                            • {{ h.epoka_label }}
+                            {% if h.kontynent %} • {{ h.kontynent }}{% endif %}
+                        </div>
+
+                        <div class="historia-meta-admin">
+                            Utworzono: {{ h.created_at.strftime('%d-%m-%Y %H:%M') }}
+                            {% if h.updated_at and h.updated_at != h.created_at %}
+                                • Zmieniono: {{ h.updated_at.strftime('%d-%m-%Y %H:%M') }}
+                            {% endif %}
+                        </div>
+
+                        <div class="historia-title">
+                            {{ h.nazwa_wydarzenia }}
+                        </div>
+                    </div>
+
+                    <div class="historia-actions">
+
+                        <a href="{{ url_for('historia_podglad', historia_id=h.HISTORIA_ID) }}"
+                           class="btn-zeus btn-view">
+                            Wyświetl
+                        </a>
+
+                        {% if session.rola == "wszechmocny" %}
+                            <a href="{{ url_for('historia_edytuj', historia_id=h.HISTORIA_ID) }}"
+                               class="btn-zeus btn-edit">
+                                Edytuj
+                            </a>
+
+                            <form method="POST"
+                                  action="{{ url_for('historia_usun', historia_id=h.HISTORIA_ID) }}"
+                                  onsubmit="return confirm('Czy na pewno chcesz usunąć to wydarzenie?');">
+                                <button type="submit" class="btn-zeus btn-delete">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn-zeus btn-edit"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Edytuj
+                            </button>
+                            <button type="submit" class="btn-zeus btn-delete" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Usuń
+                            </button>
+                            
+                        {% endif %}
+
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center; color:#7f8c8d; font-style:italic;">
+                Brak wydarzeń historycznych dla wybranych filtrów.
+            </p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

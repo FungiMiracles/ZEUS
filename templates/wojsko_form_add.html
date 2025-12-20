@@ -1,0 +1,278 @@
+
+{% extends "base_layout.html" %}
+{% block title %}Dodaj dane wojskowe{% endblock %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, msg in messages %}
+            <div style="background:#d4f8d4; padding:12px; margin-bottom:15px; 
+                        border-radius:8px; color:#145214; font-weight:600; 
+                        text-align:center;">
+                {{ msg }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<style>
+    .form-container {
+        max-width: 1100px;
+        margin: 35px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    .form-header {
+        text-align:center;
+        margin-bottom:25px;
+    }
+
+    .form-header h2 {
+        font-size: 1.9em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    /* TABELA */
+    .form-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fefefe;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .form-table thead tr {
+        background: linear-gradient(90deg, #96281b, #df695c);
+        color: white;
+        font-weight: 700;
+        font-size: 1.15em;
+    }
+
+    .form-table th, .form-table td {
+        padding: 14px 18px;
+        font-size: 1em;
+    }
+
+    .form-table tbody tr:nth-child(even) {
+        background: #eef2ff;
+    }
+
+    .form-table tbody tr:nth-child(odd) {
+        background: #f8faff;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 1em;
+        border: 1px solid #b9c4d6;
+        border-radius: 8px;
+        background: #ffffff;
+        transition: 0.2s;
+    }
+
+    input:focus {
+        border-color: #5d7dce;
+        box-shadow: 0 0 3px rgba(93,125,206,0.5);
+        outline: none;
+    }
+
+    /* AUTOCOMPLETE */
+    #panstwo-suggestions {
+        position: absolute;
+        width: 100%;
+        background: white;
+        border: 1px solid #cdd5e0;
+        border-radius: 8px;
+        display: none;
+        max-height: 220px;
+        overflow-y: auto;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        z-index: 1000;
+    }
+
+    #panstwo-suggestions div {
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    #panstwo-suggestions div:hover {
+        background: #dae4ff;
+    }
+
+    .info-note {
+        margin-top: 5px;
+        font-size: 0.95em;
+        color: #34495e;
+        font-weight: 600;
+    }
+
+    /* PRZYCISKI */
+    .submit-btn {
+        padding: 12px 28px;
+        background: #5d7dce;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    .submit-btn:hover {
+        background: #3f5fb5;
+    }
+
+    .cancel-btn {
+        padding: 12px 28px;
+        background: #c0392b;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-left: 10px;
+        transition: 0.25s;
+    }
+
+    .cancel-btn:hover {
+        background: #962d22;
+    }
+
+</style>
+
+
+
+<div class="form-container">
+
+    <div class="form-header">
+        <h2>Dodaj dane o zasobach wojskowych państw</h2>
+    </div>
+
+    {% if error %}
+        <div style="color: #c0392b; font-weight: 700; margin-bottom: 20px; text-align:center;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        <table class="form-table">
+            <thead>
+                <tr>
+                    <th>Pole</th>
+                    <th>Wartość</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <!-- PAŃSTWO -->
+                <tr>
+                    <td style="font-weight:700;">Państwo</td>
+                    <td style="position:relative;">
+                        <input type="text"
+                               id="panstwo_input"
+                               name="panstwo_input"
+                               autocomplete="off"
+                               placeholder="Wpisz nazwę lub ID państwa...">
+                        <input type="hidden" name="panstwo_id" id="panstwo_id">
+                        <div id="panstwo-suggestions"></div>
+                        <div id="panstwo-populacja-box" class="info-note"></div>
+                    </td>
+                </tr>
+
+                <!-- SIŁY ZBROJNE -->
+                <tr><td>Siły lądowe</td><td><input type="number" min="0" name="wojska_ladowe_ilosc" required value="0"></td></tr>
+                <tr><td>Siły morskie</td><td><input type="number" min="0" name="wojska_morskie_ilosc" required value="0"></td></tr>
+                <tr><td>Siły powietrzne</td><td><input type="number" min="0" name="wojska_powietrzne_ilosc" required value="0"></td></tr>
+
+                <!-- PKB -->
+                <tr><td>Procent PKB</td><td><input type="number" min="0" max="100" step="0.01" name="procent_PKB" required value="0"></td></tr>
+
+                <!-- BAZY -->
+                <tr><td>Bazy lądowe</td><td><input type="number" min="0" name="liczba_baz_ladowych" required value="0"></td></tr>
+                <tr><td>Bazy morskie</td><td><input type="number" min="0" name="liczba_baz_morskich" required value="0"></td></tr>
+                <tr><td>Bazy powietrzne</td><td><input type="number" min="0" name="liczba_baz_powietrznych" required value="0"></td></tr>
+
+                <!-- SPRZĘT -->
+                <tr><td>Czołgi</td><td><input type="number" min="0" name="czolgi_ilosc" required value="0"></td></tr>
+                <tr><td>Myśliwce</td><td><input type="number" min="0" name="mysliwce_ilosc" required value="0"></td></tr>
+                <tr><td>Wozy opancerzone</td><td><input type="number" min="0" name="wozy_opancerzone_ilosc" required value="0"></td></tr>
+                <tr><td>Wyrzutnie rakiet</td><td><input type="number" min="0" name="wyrzutnie_rakiet_ilosc" required value="0"></td></tr>
+                <tr><td>Okręty wojenne</td><td><input type="number" min="0" name="okrety_wojenne_ilosc" required value="0"></td></tr>
+                <tr><td>Lotniskowce</td><td><input type="number" min="0" name="lotniskowce_ilosc" required value="0"></td></tr>
+                <tr><td>Okręty podwodne</td><td><input type="number" min="0" name="okrety_podwodne_ilosc" required value="0"></td></tr>
+                <tr><td>Drony bojowe</td><td><input type="number" min="0" name="drony_ilosc" required value="0"></td></tr>
+                <tr><td>Broń atomowa</td><td><input type="number" min="0" name="bron_atomowa_ilosc" required value="0"></td></tr>
+
+            </tbody>
+        </table>
+
+        <div style="text-align:center; margin-top:25px;">
+            <button class="submit-btn">Zatwierdź</button>
+            <a href="{{ url_for('sily_zbrojne') }}" class="cancel-btn">Anuluj</a>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+// AUTOCOMPLETE — działa z routes_armia.py
+const input = document.getElementById("panstwo_input");
+const box = document.getElementById("panstwo-suggestions");
+const pop = document.getElementById("panstwo-populacja-box");
+
+input.addEventListener("input", async () => {
+    const q = input.value.trim();
+
+    if (q.length < 2) {
+        box.style.display = "none";
+        return;
+    }
+
+    const res = await fetch(`/api/panstwa_autocomplete?query=${encodeURIComponent(q)}`);
+    const data = await res.json();
+
+    box.innerHTML = "";
+    box.style.display = "block";
+
+    data.forEach(p => {
+        const row = document.createElement("div");
+        row.textContent = `${p.nazwa} (ID: ${p.id})`;
+
+        row.onclick = () => {
+            document.getElementById("panstwo_input").value =
+                `${p.nazwa} (ID: ${p.id})`;
+
+            document.getElementById("panstwo_id").value = p.id;  // <-- TO JEST KLUCZ
+
+            box.style.display = "none";
+
+            pop.innerHTML = `Ludność państwa: <strong>${p.populacja.toLocaleString("pl-PL")}</strong>`;
+        };
+
+        box.appendChild(row);
+    });
+});
+
+document.addEventListener("click", (e) => {
+    if (!box.contains(e.target) && e.target !== input) {
+        box.style.display = "none";
+    }
+});
+</script>
+
+{% endblock %}

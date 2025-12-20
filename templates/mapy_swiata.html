@@ -1,0 +1,428 @@
+{% extends 'base_layout.html' %}
+{% block title %}Mapa świata{% endblock %}
+
+{% block content %}
+
+<style>
+/* GŁÓWNE */
+.viewer-wrap {
+  height: calc(100vh - 120px);
+  display: flex;
+  gap: 18px;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.left-panel {
+  flex: 1 1 0;
+  background: linear-gradient(180deg, #fff, #f8f9fb);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid #e6e9ee;
+  align-items: center;
+  background: #ffffff;
+}
+
+.toolbar .btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #2d76c9;
+  color: white;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+}
+
+.toolbar .btn.secondary { background: #6c757d; }
+.toolbar .btn.small { padding: 6px 8px; font-size: 14px; }
+
+.controls { display:flex; gap:8px; align-items:center; }
+.controls input[type=range] { width:160px; }
+
+.search { margin-left: auto; display:flex; gap:6px; align-items:center; }
+.search input { padding:6px 8px; border-radius:8px; border:1px solid #d1d5da; }
+
+/* KONTAINER RASTROWY */
+.svg-area {
+  position: relative;
+  flex: 1 1 auto;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none; /* custom pan/zoom */
+}
+
+/* wewnętrzny wrapper dla obrazu — na niego nakładamy transform */
+.img-inner {
+  will-change: transform;
+  transform-origin: 0 0;
+  display: inline-block;
+}
+
+/* obraz samej mapy */
+#map_img {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  max-width: none; /* ważne żeby nie skalował się automatycznie */
+  max-height: none;
+}
+
+/* overlay */
+.overlay-ui {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  background: rgba(255,255,255,0.95);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  font-size: 13px;
+}
+
+.info-bar { padding: 12px; border-top:1px solid #e8ecef; font-size:13px; }
+
+.right-panel {
+  width: 360px;
+  max-width: 40%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.small-thumb { width:100%; height:160px; object-fit:contain; border-radius:8px; border:1px solid #e6e9ee; }
+
+.legend { font-size:14px; }
+.btn-row { display:flex; gap:8px; }
+
+/* responsywne */
+@media (max-width: 900px) {
+  .viewer-wrap { flex-direction: column; }
+  .right-panel { width:100%; max-width:100%; }
+}
+</style>
+
+<div style="padding:18px 20px 6px 20px;">
+  <h2 style="margin:6px 0 2px 0;">Mapa świata</h2>
+  <p style="margin:0; color:#57606a;">Wgraj plik <strong>static/maps/mapa_swiata.webp</strong>. Viewer obsługuje pan/zoom (scroll, pinch, double-click), dopasowanie i pobieranie obrazu.</p>
+</div>
+
+<div class="viewer-wrap">
+  <div class="left-panel">
+    <div class="toolbar">
+      <div class="controls">
+        <button class="btn" id="zoom_in">＋</button>
+        <button class="btn" id="zoom_out">－</button>
+        <button class="btn secondary small" id="fit">Dopasuj</button>
+        <button class="btn secondary small" id="reset">Reset</button>
+        <button class="btn secondary small" id="fullscreen">Pełny ekran</button>
+        <label style="margin-left:8px; font-weight:600;">Zoom</label>
+        <input id="zoom_slider" type="range" min="10" max="400" value="100">
+      </div>
+
+      <div class="search" style="margin-left:14px;">
+        <!-- dla rastrowego viewer'a wyszukiwarka po id/data-name nie ma sensu -> ukryta/nieaktywna -->
+        <input id="search_input" placeholder="(tylko SVG miało wyszukiwarkę)" disabled style="opacity:0.6" />
+        <button class="btn small" id="search_btn" disabled>---</button>
+      </div>
+    </div>
+
+    <div class="svg-area" id="svg_area">
+      <!-- wrapper obrazka -->
+      <div id="img_container" class="img-inner" aria-hidden="false">
+        <img id="map_img" src="{{ url_for('static', filename='maps/mapa_swiata.webp') }}" alt="Mapa świata">
+      </div>
+
+      <div class="overlay-ui" id="overlay">
+        <div><strong>Pozycja:</strong> <span id="coords">—</span></div>
+        <div style="margin-top:6px;"><strong>Zoom:</strong> <span id="zoom_val">100%</span></div>
+      </div>
+    </div>
+
+    <div class="info-bar" id="infobar">
+      <strong>Instrukcja:</strong> przeciągnij, aby przesuwać; scroll aby przybliżyć; dwa palce (pinch) na dotyku; double-click aby powiększyć.
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div>
+      <h3 style="margin:4px 0 8px 0;">Miniatura</h3>
+      <img id="thumb" class="small-thumb" src="{{ url_for('static', filename='maps/mapa_swiata.webp') }}" alt="miniatura mapy">
+    </div>
+
+    <div>
+      <h4 style="margin:4px 0">Wybrane elementy</h4>
+      <div id="selection_info">Brak warstw (raster)</div>
+    </div>
+
+    <div>
+      <h4 style="margin:4px 0">Narzędzia</h4>
+      <div class="btn-row">
+        <button class="btn" id="toggle_labels" title="Brak etykiet w rastrze">Pokaż/ukryj etykiety</button>
+        <a id="download_svg" class="btn secondary" href="{{ url_for('static', filename='maps/mapa_swiata.webp') }}" download> Pobierz obraz </a>
+      </div>
+    </div>
+
+    <div style="flex:1 1 0;">
+      <h4 style="margin:4px 0">Legenda / uwagi</h4>
+      <div class="legend">
+        • Raster nie ma wewnętrznych obiektów — brak selekcji.<br>
+        • Jeśli potrzebujesz ekstremalnej szczegółowości — rozważ tiles (kafelki).<br>
+        • WebP jest lżejsze niż PNG, dobrze do map wysokiej rozdzielczości.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Główne zmienne ---
+const imgContainer = document.getElementById('img_container');
+const mapImg = document.getElementById('map_img');
+const svgArea = document.getElementById('svg_area');
+
+let imgNatural = { width: 0, height: 0 };
+
+// transform state
+let state = {
+  scale: 1,
+  translateX: 0,
+  translateY: 0,
+  minScale: 0.05,
+  maxScale: 8
+};
+
+// wait for image to load to get natural size
+mapImg.addEventListener('load', () => {
+  imgNatural.width = mapImg.naturalWidth || mapImg.width;
+  imgNatural.height = mapImg.naturalHeight || mapImg.height;
+
+  // ensure container size measured after load
+  fitToContainer();
+});
+
+// helper: apply transform to imgContainer
+function applyTransform() {
+  const t = `translate(${state.translateX}px, ${state.translateY}px) scale(${state.scale})`;
+  imgContainer.style.transform = t;
+  document.getElementById('zoom_val').textContent = Math.round(state.scale * 100) + '%';
+}
+
+// fit image to svgArea (keeping aspect ratio)
+function fitToContainer() {
+  const areaRect = svgArea.getBoundingClientRect();
+
+  if (!imgNatural.width || !imgNatural.height) {
+    // fallback: use rendered size
+    imgNatural.width = mapImg.naturalWidth || mapImg.width;
+    imgNatural.height = mapImg.naturalHeight || mapImg.height;
+  }
+
+  const scaleX = areaRect.width / imgNatural.width;
+  const scaleY = areaRect.height / imgNatural.height;
+  const newScale = Math.min(scaleX, scaleY) * 0.95; // padding
+
+  state.scale = Math.max(state.minScale, Math.min(state.maxScale, newScale));
+  // center
+  state.translateX = (areaRect.width - imgNatural.width * state.scale) / 2;
+  state.translateY = (areaRect.height - imgNatural.height * state.scale) / 2;
+
+  applyTransform();
+  document.getElementById('zoom_slider').value = Math.round(state.scale * 100);
+}
+
+// Convert screen/client coords to image pixels (before scale/translate)
+function clientToImageCoords(clientX, clientY) {
+  const areaRect = svgArea.getBoundingClientRect();
+  // point relative to container (in CSS pixels)
+  const relX = clientX - areaRect.left - state.translateX;
+  const relY = clientY - areaRect.top - state.translateY;
+  const imgX = relX / state.scale;
+  const imgY = relY / state.scale;
+  return { x: Math.round(imgX), y: Math.round(imgY) };
+}
+
+// Zoom focused at client point
+function zoomAt(clientX, clientY, scaleFactor) {
+  const prevScale = state.scale;
+  let newScale = prevScale * scaleFactor;
+  newScale = Math.max(state.minScale, Math.min(state.maxScale, newScale));
+  // limit slider range reflection
+  const areaRect = svgArea.getBoundingClientRect();
+
+  // point in image coordinates relative to top-left of image (before transform)
+  const cx = (clientX - areaRect.left - state.translateX) / prevScale;
+  const cy = (clientY - areaRect.top - state.translateY) / prevScale;
+
+  // compute new translate so that (cx,cy) remains under cursor
+  state.translateX = clientX - areaRect.left - cx * newScale;
+  state.translateY = clientY - areaRect.top - cy * newScale;
+  state.scale = newScale;
+
+  applyTransform();
+  document.getElementById('zoom_slider').value = Math.round(state.scale * 100);
+}
+
+// --- Panning (pointer events) ---
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+
+svgArea.addEventListener('pointerdown', (e) => {
+  // only left button or touch
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  svgArea.setPointerCapture(e.pointerId);
+  isPanning = true;
+  panStart.x = e.clientX - state.translateX;
+  panStart.y = e.clientY - state.translateY;
+});
+
+window.addEventListener('pointerup', (e) => {
+  try { svgArea.releasePointerCapture(e.pointerId); } catch(e){}
+  isPanning = false;
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (!isPanning) return;
+  state.translateX = e.clientX - panStart.x;
+  state.translateY = e.clientY - panStart.y;
+  applyTransform();
+  updateCoords(e.clientX, e.clientY);
+});
+
+// --- Wheel zoom ---
+svgArea.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 1.12 : 0.9;
+  zoomAt(e.clientX, e.clientY, delta);
+});
+
+// --- Double click to zoom in ---
+svgArea.addEventListener('dblclick', (e) => {
+  zoomAt(e.clientX, e.clientY, 1.8);
+});
+
+// --- Touch gestures: pinch zoom detection ---
+let pinch = {
+  active: false,
+  startDist: 0,
+  lastCenter: null
+};
+
+svgArea.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    pinch.active = true;
+    pinch.startDist = getTouchDistance(e.touches[0], e.touches[1]);
+    pinch.lastCenter = getTouchCenter(e.touches[0], e.touches[1]);
+  } else if (e.touches.length === 1) {
+    // emulate pointerdown for single touch
+    const t = e.touches[0];
+    isPanning = true;
+    panStart.x = t.clientX - state.translateX;
+    panStart.y = t.clientY - state.translateY;
+  }
+});
+
+svgArea.addEventListener('touchmove', (e) => {
+  if (pinch.active && e.touches.length === 2) {
+    e.preventDefault();
+    const d = getTouchDistance(e.touches[0], e.touches[1]);
+    const c = getTouchCenter(e.touches[0], e.touches[1]);
+    const delta = d / pinch.startDist;
+    zoomAt(c.clientX, c.clientY, delta);
+    pinch.startDist = d;
+    pinch.lastCenter = c;
+  } else if (!pinch.active && e.touches.length === 1) {
+    const t = e.touches[0];
+    state.translateX = t.clientX - panStart.x;
+    state.translateY = t.clientY - panStart.y;
+    applyTransform();
+    updateCoords(t.clientX, t.clientY);
+  }
+}, { passive: false });
+
+svgArea.addEventListener('touchend', (e) => {
+  if (e.touches.length < 2) {
+    pinch.active = false;
+  }
+  if (e.touches.length === 0) {
+    isPanning = false;
+  }
+});
+
+function getTouchDistance(a, b) {
+  const dx = a.clientX - b.clientX;
+  const dy = a.clientY - b.clientY;
+  return Math.hypot(dx, dy);
+}
+function getTouchCenter(a, b) {
+  return { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 };
+}
+
+// --- Zoom slider & buttons ---
+document.getElementById('zoom_in').addEventListener('click', () => { zoomAt(window.innerWidth / 2, window.innerHeight / 2, 1.2); });
+document.getElementById('zoom_out').addEventListener('click', () => { zoomAt(window.innerWidth / 2, window.innerHeight / 2, 0.85); });
+document.getElementById('zoom_slider').addEventListener('input', (e) => {
+  const v = Number(e.target.value) / 100;
+  // zoom relative to center of visible area
+  const areaRect = svgArea.getBoundingClientRect();
+  const cx = areaRect.left + areaRect.width / 2;
+  const cy = areaRect.top + areaRect.height / 2;
+  zoomAt(cx, cy, v / state.scale);
+});
+
+// --- Reset, Fit, Fullscreen ---
+document.getElementById('reset').addEventListener('click', () => {
+  state.scale = 1; state.translateX = 0; state.translateY = 0; applyTransform();
+});
+document.getElementById('fit').addEventListener('click', fitToContainer);
+
+document.getElementById('fullscreen').addEventListener('click', () => {
+  const el = document.documentElement;
+  if (!document.fullscreenElement) el.requestFullscreen(); else document.exitFullscreen();
+});
+
+// --- Update coords display ---
+function updateCoords(clientX, clientY) {
+  const pt = clientToImageCoords(clientX, clientY);
+  // clamp to image bounds
+  const x = Math.max(0, Math.min(pt.x, imgNatural.width));
+  const y = Math.max(0, Math.min(pt.y, imgNatural.height));
+  document.getElementById('coords').textContent = x + ', ' + y;
+}
+
+svgArea.addEventListener('mousemove', (e) => { updateCoords(e.clientX, e.clientY); });
+
+// --- Toggle labels (not applicable for raster) ---
+document.getElementById('toggle_labels').addEventListener('click', () => {
+  alert('To działa tylko dla SVG. Raster nie posiada warstw/etykiet.');
+});
+
+// handle window resize: keep current view, but optionally ensure user doesn't lose sight
+window.addEventListener('resize', () => {
+  // optional: ensure translate keeps image visible; for simplicity, only adjust slider display
+  document.getElementById('zoom_slider').value = Math.round(state.scale * 100);
+});
+
+// initial apply in case image already cached and loaded
+if (mapImg.complete && mapImg.naturalWidth) {
+  imgNatural.width = mapImg.naturalWidth;
+  imgNatural.height = mapImg.naturalHeight;
+  fitToContainer();
+}
+</script>
+
+{% endblock %}

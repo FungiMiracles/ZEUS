@@ -1,0 +1,205 @@
+{% extends 'base_layout.html' %}
+{% block title %}Wyniki wyszukiwania regionów{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — WYNIKI WYSZUKIWANIA REGIONÓW (LISTA WIERSZOWA)
+============================================================ */
+
+.wyniki-regionow {
+    max-width: 1100px;
+    margin: 25px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== HEADER ===== */
+
+.wyniki-regionow h1 {
+    font-size: 1.5em;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* ===== LISTA ===== */
+
+.region-list {
+    border-top: 1px solid #d3d7dc;
+}
+
+.region-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 8px;
+    border-bottom: 1px solid #d3d7dc;
+}
+
+.region-row:hover {
+    background-color: #f6f8fa;
+}
+
+/* ===== LEWA STRONA ===== */
+
+.region-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.region-name {
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+.region-meta {
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+/* ===== PRAWA STRONA (AKCJE) ===== */
+
+.region-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.region-actions a,
+.region-actions button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Kolory akcji */
+.btn-view { background-color: #5d7dce; }
+.btn-edit { background-color: #7f8c8d; }
+.btn-delete { background-color: #c0392b; }
+
+/* ===== BRAK WYNIKÓW ===== */
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    font-weight: 700;
+    color: #7f8c8d;
+}
+
+/* ===== POWRÓT ===== */
+
+.footer-actions {
+    margin-top: 25px;
+}
+.btn-return {
+    padding: 9px 16px;
+    background-color: #ecf0f1;
+    border: 1.5px solid #bdc3c7;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    color: #34495e;
+}
+
+/* Inline delete form */
+.delete-form {
+    display: inline;
+}
+</style>
+
+<div class="wyniki-regionow">
+
+    <h1>Wyniki wyszukiwania regionów</h1>
+
+    {% if empty %}
+
+        <div class="no-results">
+            Nie znaleziono regionów spełniających podane kryteria.
+        </div>
+
+        <div class="footer-actions" style="text-align:center;">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% else %}
+
+        <div class="region-list">
+
+            {% for row in results %}
+                <div class="region-row">
+
+                    <!-- LEWA STRONA -->
+                    <div class="region-main">
+                        <div class="region-name">
+                            {{ row.region_nazwa }}
+                        </div>
+                        <div class="region-meta">
+                            ID: {{ row.region_id }}
+                            • {{ row.panstwo_nazwa }}
+                            • Populacja: {{ "{:,}".format(row.region_populacja).replace(',', ' ') }}
+                        </div>
+                    </div>
+
+                    <!-- PRAWA STRONA -->
+                    <div class="region-actions">
+
+                        <a href="{{ url_for('region_form', region_id=row.region_id) }}"
+                           class="btn-view">
+                            Wyświetl
+                        </a>
+
+                        {% if session.rola == "wszechmocny" %}
+                            <a href="{{ url_for('region_form_edit', region_id=row.region_id) }}"
+                               class="btn-edit">
+                                Edytuj
+                            </a>
+                        {% else %}
+                            <button type="button"
+                                    class="btn-edit"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Edytuj
+                            </button>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                            <form method="POST"
+                                  action="{{ url_for('usun_region', region_id=row.region_id) }}"
+                                  class="delete-form"
+                                  onsubmit="return confirm('Czy na pewno chcesz usunąć ten region?');">
+                                <button type="submit"
+                                        class="btn-delete">
+                                    Usuń
+                                </button>
+                            </form>
+                        {% else %}
+                            <button type="button"
+                                    class="btn-delete"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Usuń
+                            </button>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="footer-actions">
+            <a href="{{ url_for('home_page') }}" class="btn-return">
+                Wróć do wyszukiwania
+            </a>
+        </div>
+
+    {% endif %}
+</div>
+
+{% endblock %}

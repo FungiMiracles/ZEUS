@@ -1,0 +1,46 @@
+{% extends 'base_layout.html' %}
+
+{% block title %}Dodano państwo{% endblock %}
+
+{% block content %}
+<div style="max-width:700px; margin:40px auto; text-align:center;">
+
+    <h2 style="color:#4bce2b; font-size:28px; font-weight:700; margin-bottom:20px;">
+        Formularz miasta został pomyślnie dodany.
+    </h2>
+
+    <a href="{{ url_for('home_page') }}"
+       style="
+            display:inline-block;
+            padding:12px 25px;
+            background-color:#5d7dce;
+            color:white;
+            font-weight:600;
+            border-radius:6px;
+            text-decoration:none;
+            transition:0.3s;
+       "
+       onmouseover="this.style.backgroundColor='#4171d1';"
+       onmouseout="this.style.backgroundColor='#5d7dce';"
+    >
+        Wróć do strony głównej
+    </a>
+    <a href="{{ url_for('miasto_form_add') }}"
+       style="
+            display:inline-block;
+            padding:12px 25px;
+            background-color:#5d7dce;
+            color:white;
+            font-weight:600;
+            border-radius:6px;
+            text-decoration:none;
+            transition:0.3s;
+       "
+       onmouseover="this.style.backgroundColor='#4171d1';"
+       onmouseout="this.style.backgroundColor='#5d7dce';"
+    >
+        Dodaj kolejne miasto
+    </a>
+
+</div>
+{% endblock %}
