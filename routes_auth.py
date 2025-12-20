@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, session, flash
 
 HASLA_ROLE = {
-    "wszechmocny": "AsDfG!2#4",
-    "tworzyciel": "tworzyciel1234",
+    "wszechmocny": "AsDfG!2#4%6",
+    "tworzyciel": "tworzyciel!1234",
     "obserwator": "obserwator1234",
 }
 
