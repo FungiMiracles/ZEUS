@@ -53,21 +53,22 @@ def oblicz_kalendarz_entendy():
 # ─────────────────────────────────────────
 #  FABRYKA APLIKACJI
 # ─────────────────────────────────────────
+import os
+
 def create_app():
     app = Flask(__name__)
 
-    # ───── CONFIG ─────
-    app.config["SECRET_KEY"] = os.environ.get(
-        "SECRET_KEY", "DEV_SECRET_KEY"
-    )
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-        "DATABASE_URL"
-    )
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("Brak DATABASE_URL w zmiennych środowiskowych")
 
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
+
 
     # ───── FILTRY JINJA ─────
     def spacenum(n):
