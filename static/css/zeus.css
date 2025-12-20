@@ -318,3 +318,8 @@ textarea {
     word-wrap: break-word;  /* łamie długie słowa */
     overflow-wrap: break-word;
 }
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
