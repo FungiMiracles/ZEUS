@@ -1,7 +1,15 @@
+import os
 from datetime import datetime
 from sqlalchemy import func
 
-from flask import Flask, redirect, url_for, session, request, render_template
+from flask import (
+    Flask,
+    redirect,
+    url_for,
+    session,
+    request,
+    render_template,
+)
 
 from extensions import db
 from permissions import wymaga_roli
@@ -49,10 +57,14 @@ def create_app():
     app = Flask(__name__)
 
     # ───── CONFIG ─────
-    app.config["SECRET_KEY"] = "twoj_tajny_klucz"
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "mysql+pymysql://root:AsDfG!2%234@127.0.0.1/entenda_db"
+    app.config["SECRET_KEY"] = os.environ.get(
+        "SECRET_KEY", "DEV_SECRET_KEY"
     )
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+        "DATABASE_URL"
+    )
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
@@ -90,21 +102,17 @@ def create_app():
     # ─────────────────────────────────────────
     @app.before_request
     def wymus_wejscie():
-        # endpointy dostępne bez wyboru roli
         publiczne_endpointy = {
             "wejscie",
             "static",
         }
 
-        # jeśli Flask nie rozpoznał endpointu
         if request.endpoint is None:
             return
 
-        # pozwól na publiczne endpointy
         if request.endpoint in publiczne_endpointy:
             return
 
-        # brak roli = cofamy do wejścia
         if "rola" not in session:
             return redirect(url_for("wejscie"))
 
