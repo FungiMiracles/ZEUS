@@ -187,12 +187,12 @@
         max-width: 50%;
     }
 }
+
 /* ============================================================
-   MOBILE — FORMULARZ PAŃSTWA (UKŁAD ONLY, BEZ ZMIANY STYLU)
+   MOBILE — TYLKO UKŁAD (BEZ ZMIANY STYLU)
 ============================================================ */
 @media (max-width: 767px) {
 
-    /* ===== GLOBAL ===== */
     .panstwo-form {
         padding: 0 10px;
     }
@@ -219,59 +219,50 @@
     }
 
     /* ========================================================
-       TABELA — UKŁAD MOBILNY (ETYKIETA NAD WARTOŚCIĄ)
-       BEZ ZMIANY KOLORÓW
+       TABELA — MOBILE STACK (POPRAWNIE)
     ======================================================== */
 
     .panstwo-table {
-        table-layout: fixed;
-        width: 100%;
+        table-layout: auto;
     }
 
+    /* NIE RUSZAMY <tr> !!! */
     .panstwo-table td,
     .panstwo-table th {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
         white-space: normal;
         word-break: break-word;
     }
 
-    /* KAŻDY WIERSZ JAKO BLOK */
-    .panstwo-table tbody tr {
-        display: block;
-    }
-
-    /* ETYKIETA NAD WARTOŚCIĄ */
+    /* etykieta nad wartością */
     .panstwo-table .label {
-        display: block;
         width: 100%;
-        text-align: left;
     }
 
     .panstwo-table .cell,
     .panstwo-table .cell-big {
-        display: block;
         width: 100%;
     }
 
-    /* OBRAZY */
+    /* ========================================================
+       OBRAZY
+    ======================================================== */
     .panstwo-image {
         max-width: 100%;
         height: auto;
     }
 
     /* ========================================================
-       NAJWIĘKSZE MIASTA — BEZ WYJEŻDŻANIA
+       NAJWIĘKSZE MIASTA
     ======================================================== */
-    .panstwo-table td {
-        overflow-wrap: anywhere;
-    }
-
     .city-row {
-        text-align: right;
         white-space: nowrap;
     }
 
     /* ========================================================
-       INFORMACJE SZCZEGÓŁOWE — MUSZĄ BYĆ WIDOCZNE
+       INFORMACJE SZCZEGÓŁOWE
     ======================================================== */
     .opis-header {
         flex-direction: column;
@@ -284,7 +275,7 @@
     }
 
     /* ========================================================
-       MARKDOWN — FIX WYJEŻDŻANIA
+       MARKDOWN — TWARDY FIX
     ======================================================== */
     .country-description {
         max-width: 100%;
@@ -295,21 +286,13 @@
         line-height: 1.6;
     }
 
-    .country-description img {
-        max-width: 100%;
-        height: auto;
-    }
-
+    .country-description img,
     .country-description table {
-        width: 100%;
-        table-layout: fixed;
-        overflow-x: auto;
-        display: block;
+        max-width: 100%;
     }
 
-    /* iOS input zoom */
     textarea[name="opis_md"] {
-        font-size: 16px;
+        font-size: 16px; /* iOS anti-zoom */
     }
 
     .opis-actions {
@@ -321,8 +304,8 @@
         width: 100%;
     }
 }
-
 </style>
+
 
 
 <!-- HTML bez zmian -->
