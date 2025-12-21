@@ -163,9 +163,20 @@
   }
 
   .miasto-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
     font-size: 0.85em;
     line-height: 1.4;
-    white-space: nowrap;
+  }
+   
+     .miasto-meta {
+    max-width: 100%;
+     }
+
+     .miasto-meta::after {
+    content: "";
+    flex-basis: 100%;
   }
 
   /* ===== AKCJE (DÓŁ) ===== */
