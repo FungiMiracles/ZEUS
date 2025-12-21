@@ -19,149 +19,91 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/zeus.css') }}">
 
   <!-- KALENDARZ ENTENDY + GLOBALNE TŁO ZEUSA -->
-  <style>
-    /* ================= ZEUS TOAST ================= */
-    /* ================= GLOBALNE TŁO MAPY ENTENDY ================= */
+<style>
+/* ============================
+   RESPONSYWNOŚĆ – ZEUS MOBILE
+   ============================ */
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2c3e50;
-    overflow-x: hidden;
+/* --- TELEFONY --- */
+@media (max-width: 767.98px) {
+
+  /* Logo ZEUSA */
+  .navbar-brand img {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  /* Zegar Entendy – nie absolutny */
+  .entenda-clock {
+    position: static;
+    margin: 10px auto 5px auto;
+    font-size: 18px;
+    display: inline-block;
+  }
+
+  /* Górny navbar – kolumnowy */
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Rola użytkownika */
+  .navbar > div {
+    width: 100%;
+    margin-top: 5px;
+    font-size: 0.8em;
+  }
+
+  /* Dolna nawigacja – lista pionowa */
+  #navbarNavLower .navbar-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #navbarNavLower .nav-link {
+    padding: 10px 0;
+    font-size: 1.05em;
+  }
+
+  /* Statystyki świata – mniejsze linie */
+  .entenda-stats-bar {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Główna treść – pełna szerokość */
+  main.container {
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
-/* MAPA ŚWIATA */
-.zeus-background {
-    position: fixed;
-    inset: 0;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(30, 40, 70, 0.82),
-            rgba(70, 95, 160, 0.82)
-        ),
-        url("{{ url_for('static', filename='maps/mapa_swiata.jpeg') }}");
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
+/* --- TABLETY --- */
+@media (min-width: 768px) and (max-width: 1024px) {
+
+  .navbar-brand img {
+    width: 90px;
+    height: 90px;
+  }
+
+  .entenda-clock {
+    font-size: 22px;
+    top: 20px;
+    right: 15px;
+  }
+
+  #navbarNavLower .nav-link {
+    padding: 6px 8px;
+    font-size: 0.95em;
+  }
+
+  main.container {
+    max-width: 95%;
+  }
 }
-
-/* MGŁA / BLUR */
-.zeus-fog {
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(4px);          /* 🔥 SUBTELNY BLUR */
-    -webkit-backdrop-filter: blur(4px);
-    box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
-    z-index: 1;
-}
-
-/* CAŁA TREŚĆ ZEUSA */
-.zeus-content {
-    position: relative;
-    z-index: 2;
-}
-
-#zeus-toast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: #2f3e63;
-    color: white;
-    padding: 14px 20px;
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    font-size: 0.9em;
-    font-weight: 600;
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-}
-
-    /* ===== GLOBALNE TŁO (subtelny wzorek) ===== */
-    /*body {
-      background-color: #fafafa !important;
-      background-image:
-        radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
-        radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
-      background-position:
-        0 0,
-        25px 25px;
-      background-size: 50px 50px;
-    }
-
-    /* LOADER (ukryty na początku) */
-    #loader {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.85);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #cccccc;
-      border-top-color: #0057ff;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ====== KALENDARZ ENTENDY ====== */
-    .entenda-clock {
-      position: absolute;
-      right: 20px;
-      top: 35px;
-      font-weight: 800;
-      font-size: 26px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.6);
-      box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
-    }
-    .ent-month {
-      color: #0057ff;
-      text-shadow: 0 0 6px #4d8cff;
-    }
-    .ent-dot {
-      color: #000;
-      font-weight: 900;
-    }
-    .ent-year {
-      color: #e60000;
-      text-shadow: 0 0 8px #ff4d4d;
-    }
-    .ent-ce {
-      color: #000;
-      margin-left: 3px;
-      font-weight: 700;
-    }
-
-    /* ====== PANEL STATYSTYK ====== */
-    .entenda-stats-bar {
-      text-align: center;
-      font-size: 13px;
-      padding: 4px 10px;
-      background: #f5f7fb;
-      color: #444;
-      border-top: 1px solid #e2e6f0;
-      border-bottom: 1px solid #e2e6f0;
-    }
-    .entenda-stats-bar strong {
-      font-weight: 700;
-      color: #2c3e70;
-    }
-
-  </style>
+</style>
 </head>
 
 
