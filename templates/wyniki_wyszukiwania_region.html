@@ -112,55 +112,68 @@
 }
 
 /* ============================================================
-   MOBILE — LISTA REGIONÓW
+   MOBILE — LISTA REGIONÓW (FINAL, STABILNA)
 ============================================================ */
 
 @media (max-width: 768px) {
 
-  /* CAŁY WIERSZ → KOLUMNA */
+  /* ===== WIERSZ ===== */
   .region-row {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: stretch;
+    gap: 12px;
   }
 
-  /* ===== DANE REGIONU (GÓRA) ===== */
+  /* ===== DANE REGIONU ===== */
   .region-main {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    font-size: 0.95em;        /* 👈 WIĘKSZA TREŚĆ */
+    font-size: 0.95em;
   }
 
   .region-name {
     font-size: 1.05em;
     font-weight: 800;
+    margin-bottom: 2px;
   }
 
   .region-meta {
     font-size: 0.85em;
     color: #7f8c8d;
-    white-space: nowrap;
+    line-height: 1.4;
   }
 
-  /* ===== AKCJE (DÓŁ) – BEZ ZMIAN ROZMIARU ===== */
+  /* wymuszenie logicznego łamania */
+  .region-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* ===== AKCJE — GRID ===== */
   .region-actions {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+  }
+
+  /* ===== PRZYCISKI — JEDEN STANDARD ===== */
+  .region-actions a,
+  .region-actions button,
+  .region-actions form {
+    width: 100%;
   }
 
   .region-actions a,
   .region-actions button {
-    flex: 1;
+    display: block;
     text-align: center;
-    /* brak zmian font-size / padding */
+    font-size: 0.8em;
+    padding: 8px 0;
+    border-radius: 6px;
   }
 
-.region-actions .delete-form {
-    flex: 1;
+  .region-actions form {
+    margin: 0;
   }
 }
    
