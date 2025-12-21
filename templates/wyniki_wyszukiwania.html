@@ -110,6 +110,63 @@
 .delete-form {
     display: inline;
 }
+
+/* ============================================================
+   MOBILE — LISTA PAŃSTW
+============================================================ */
+
+@media (max-width: 768px) {
+
+  /* CAŁY WIERSZ → KOLUMNA */
+  .country-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* ===== DANE PAŃSTWA (GÓRA) ===== */
+  .country-main {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 0.8em;
+  }
+
+  .country-name {
+    font-size: 0.9em;
+    font-weight: 700;
+  }
+
+  /* META → W JEDNEJ LINII */
+  .country-meta {
+    font-size: 0.75em;
+    color: #7f8c8d;
+    white-space: nowrap;
+  }
+
+  /* ===== AKCJE (DÓŁ) ===== */
+  .country-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .country-actions a,
+  .country-actions button {
+    flex: 1;
+    text-align: center;
+    font-size: 0.8em;
+    padding: 8px 0;
+  }
+
+  /* USUŃ INLINE FORM ROZJEŻDŻANIE */
+  .delete-form {
+    flex: 1;
+  }
+}
+   
 </style>
 
 <div class="wyniki-panstw">
