@@ -161,6 +161,86 @@ body {
       color: #2c3e70;
     }
 
+    /* ===================================================== */
+/* ================== MOBILE & TABLET ================== */
+/* ===================================================== */
+
+@media (max-width: 768px) {
+
+  /* ====== GÓRNY PASEK ====== */
+  .zeus-topbar {
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 10px 6px;
+  }
+
+  /* LOGO ZEUSA – ŚRODEK, GÓRA */
+  .zeus-logo {
+    margin: 0 auto 6px;
+  }
+
+  .zeus-logo img {
+    width: 90px;
+    height: auto;
+  }
+
+  /* ROLA POD LOGO */
+  .zeus-role {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 6px;
+  }
+
+  /* ZEGAR ENTENDY – MNIEJSZY, ALE TEN SAM STYL */
+  .zeus-clock {
+    position: static;
+    margin: 6px auto 4px;
+    font-size: 18px;
+    padding: 4px 10px;
+    box-shadow: 0 0 8px rgba(0,120,255,0.5);
+  }
+
+  /* STATYSTYKI – MNIEJSZA CZCIONKA */
+  .zeus-stats {
+    font-size: 11.5px;
+    padding: 6px 8px;
+    line-height: 1.4;
+  }
+
+  /* ====== DOLNA NAWIGACJA ====== */
+  .zeus-bottom-nav {
+    height: auto;
+    padding: 4px 0;
+  }
+
+  .zeus-bottom-nav .navbar-toggler {
+    margin: 0 auto;
+  }
+
+  /* LINKI W ROZWIJANEJ LIŚCIE */
+  #navbarNavLower {
+    text-align: center;
+  }
+
+  #navbarNavLower .nav-link {
+    padding: 6px 0;
+    font-size: 0.95rem;
+  }
+
+  /* ====== BEZ WYJEŻDŻANIA ====== */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+
   </style>
 </head>
 
@@ -175,23 +255,24 @@ body {
   </div>
 
   <!-- Górny pasek nawigacji -->
-  <nav class="navbar navbar-expand-md navbar-light bg-white" style="position:relative;">
-    <a class="navbar-brand" href="{{ url_for('home_page') }}">
+  <nav class="navbar navbar-expand-md navbar-light bg-white zeus-topbar">
+    <a class="navbar-brand zeus-logo" href="{{ url_for('home_page') }}">
       <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}"
            alt="ZEUS LOGO" width="110" height="110" />
     </a>
 
-      {% if session.rola %}
-        <div style="font-size:0.85em; opacity:0.85;">
-            Rola: <strong>{{ session.rola|capitalize }}</strong>
-            |
-            <a href="{{ url_for('wejscie') }}" style="color:#4f3a3a;">Zmień</a>
-        </div>
-      {% endif %}
+        {% if session.rola %}
+          <div class="zeus-role">
+              Rola: <strong>{{ session.rola|capitalize }}</strong>
+              |
+              <a href="{{ url_for('wejscie') }}">Zmień</a>
+          </div>
+        {% endif %}
+
 
 
     <!-- KALENDARZ ENTENDY -->
-    <div class="entenda-clock">
+    <div class="entenda-clock zeus-clock">
       <span class="ent-month">{{ ENTENDA_MONTH }}</span>
       <span class="ent-dot">.</span>
       <span class="ent-year">{{ ENTENDA_YEAR }}</span>
@@ -218,7 +299,7 @@ body {
   <hr class="my-1" />
 
   <!-- WSKAŹNIK ŚWIATA ENTENDY -->
-  <div class="entenda-stats-bar">
+  <div class="entenda-stats-bar zeus-stats">
     Entenda to
     <strong>{{ E_WORLD_POP }}</strong> ludzi,
     na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach,
@@ -228,7 +309,8 @@ body {
   </div>
 
   <!-- Dolny pasek nawigacji -->
-  <nav class="navbar navbar-expand-md navbar-light bg-white" style="height: 40px">
+  <nav class="navbar navbar-expand-md navbar-light bg-white zeus-bottom-nav">
+    
     <button
       class="navbar-toggler"
       type="button"
