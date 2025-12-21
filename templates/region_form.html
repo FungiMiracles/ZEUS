@@ -103,6 +103,138 @@
         background-color: #3498db;
         color: white;
     }
+
+    /* ============================================================
+   MOBILE — FORMULARZ REGIONU
+   Układ only, desktop nietknięty
+============================================================ */
+@media (max-width: 768px) {
+
+    /* ===== KONTAINER ===== */
+    .region-container {
+        padding: 15px 10px;
+        margin: 15px 8px;
+    }
+
+    /* ===== HEADER ===== */
+    .region-header h1 {
+        font-size: 1.4em;
+    }
+
+    .region-header p {
+        font-size: 0.95em;
+    }
+
+    /* ========================================================
+       INFORMACJE O REGIONIE — LABEL NAD WARTOŚCIĄ
+    ======================================================== */
+    .info-table {
+        table-layout: fixed;
+    }
+
+    .info-table thead {
+        display: table;
+        width: 100%;
+    }
+
+    .info-table tbody,
+    .info-table tr,
+    .info-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .info-table tr {
+        margin-bottom: 10px;
+    }
+
+    .info-table td:first-child {
+        font-weight: 700;
+        padding-bottom: 4px;
+    }
+
+    .info-table td:last-child {
+        padding-top: 0;
+    }
+
+    /* ========================================================
+       TABELA MIAST — KARTY
+    ======================================================== */
+    .city-table {
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .city-table thead {
+        display: none;
+    }
+
+    .city-table tbody,
+    .city-table tr,
+    .city-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .city-table tr {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    .city-table td {
+        padding: 4px 0;
+        font-size: 0.9em;
+    }
+
+    .city-table td:first-child {
+        font-size: 1.05em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 6px;
+    }
+
+    /* ========================================================
+       STATYSTYKI REGIONU
+    ======================================================== */
+    .results-table {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .results-table thead {
+        display: none;
+    }
+
+    .results-table tbody,
+    .results-table tr,
+    .results-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .results-table tr {
+        background: #fefefe;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    .results-table td:first-child {
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    /* ===== PRZYCISK POWROTU ===== */
+    .btn-return {
+        width: 100%;
+        padding: 12px 0;
+        font-size: 0.95em;
+    }
+}
+
 </style>
 
 <div class="region-container">
