@@ -126,23 +126,18 @@
 
   /* ===== DANE PAŃSTWA (GÓRA) ===== */
   .country-main {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px 10px;
-    font-size: 0.8em;
+    font-size: 0.95em;     /* było ~0.8 */
+    gap: 8px 12px;
   }
 
   .country-name {
-    font-size: 0.9em;
-    font-weight: 700;
+    font-size: 1.05em;
+    font-weight: 800;
   }
 
   /* META → W JEDNEJ LINII */
   .country-meta {
-    font-size: 0.75em;
-    color: #7f8c8d;
-    white-space: nowrap;
+    font-size: 0.85em;
   }
 
   /* ===== AKCJE (DÓŁ) ===== */
@@ -155,11 +150,11 @@
 
   .country-actions a,
   .country-actions button {
-    flex: 1;
-    text-align: center;
-    font-size: 0.8em;
-    padding: 8px 0;
+    font-size: 0.75em;     /* mniejsze literki */
+    padding: 6px 0;       /* niższe przyciski */
+    border-radius: 6px;
   }
+}
 
   /* USUŃ INLINE FORM ROZJEŻDŻANIE */
   .delete-form {
