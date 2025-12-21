@@ -187,40 +187,24 @@
         max-width: 50%;
     }
 }
-
 /* ============================================================
-   TABLET (768–1023px) — BEZ ZMIAN
-============================================================ */
-@media (min-width: 768px) and (max-width: 1023px) {
-    .panstwo-form .layout {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        margin: 20px;
-    }
-}
-
-/* ============================================================
-   MOBILE (<=767px) — NOWY UKŁAD
+   MOBILE — FORMULARZ PAŃSTWA (UKŁAD ONLY, BEZ ZMIANY STYLU)
 ============================================================ */
 @media (max-width: 767px) {
 
+    /* ===== GLOBAL ===== */
     .panstwo-form {
         padding: 0 10px;
     }
 
-    .panstwo-form .country-name {
-        margin: 8px 0 2px;
-        font-size: 22px;
-        text-align: center;
-    }
-
+    /* ===== NAGŁÓWKI ===== */
+    .panstwo-form .country-name,
     .panstwo-form .country-fullname {
-        margin: 0 0 15px;
-        font-size: 15px;
+        margin-left: 0;
         text-align: center;
     }
 
+    /* ===== LAYOUT ===== */
     .panstwo-form .layout {
         display: flex;
         flex-direction: column;
@@ -228,65 +212,107 @@
         margin: 10px 0;
     }
 
-    /* ===== TABELA STACK ===== */
-    .panstwo-table thead {
-        display: none;
+    .panstwo-form .col-left,
+    .panstwo-form .col-right {
+        max-width: 100%;
+        min-width: 100%;
     }
 
+    /* ========================================================
+       TABELA — UKŁAD MOBILNY (ETYKIETA NAD WARTOŚCIĄ)
+       BEZ ZMIANY KOLORÓW
+    ======================================================== */
+
+    .panstwo-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .panstwo-table td,
+    .panstwo-table th {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    /* KAŻDY WIERSZ JAKO BLOK */
     .panstwo-table tbody tr {
         display: block;
-        margin-bottom: 14px;
-        border-bottom: 1px solid #d3d7dc;
     }
 
+    /* ETYKIETA NAD WARTOŚCIĄ */
     .panstwo-table .label {
         display: block;
         width: 100%;
-        background: none;
-        color: #2c3e50;
-        padding: 6px 10px;
-        font-size: 0.8em;
+        text-align: left;
     }
 
     .panstwo-table .cell,
     .panstwo-table .cell-big {
         display: block;
         width: 100%;
-        padding: 6px 10px 12px;
-        background: transparent;
     }
 
+    /* OBRAZY */
     .panstwo-image {
-        max-height: 180px;
+        max-width: 100%;
+        height: auto;
     }
 
-    /* ===== NAJWIĘKSZE MIASTA ===== */
+    /* ========================================================
+       NAJWIĘKSZE MIASTA — BEZ WYJEŻDŻANIA
+    ======================================================== */
+    .panstwo-table td {
+        overflow-wrap: anywhere;
+    }
+
     .city-row {
+        text-align: right;
         white-space: nowrap;
     }
 
-    /* ===== OPIS ===== */
+    /* ========================================================
+       INFORMACJE SZCZEGÓŁOWE — MUSZĄ BYĆ WIDOCZNE
+    ======================================================== */
     .opis-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 6px;
+        gap: 8px;
     }
 
     .opis-header .btn-zeus-edit {
         width: 100%;
     }
 
+    /* ========================================================
+       MARKDOWN — FIX WYJEŻDŻANIA
+    ======================================================== */
     .country-description {
-        font-size: 0.88em;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        hyphens: auto;
+        font-size: 0.9em;
         line-height: 1.6;
     }
 
+    .country-description img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .country-description table {
+        width: 100%;
+        table-layout: fixed;
+        overflow-x: auto;
+        display: block;
+    }
+
+    /* iOS input zoom */
     textarea[name="opis_md"] {
-        font-size: 16px; /* iOS anti-zoom */
+        font-size: 16px;
     }
 
     .opis-actions {
-        display: flex;
         flex-direction: column;
         gap: 8px;
     }
@@ -295,6 +321,7 @@
         width: 100%;
     }
 }
+
 </style>
 
 
