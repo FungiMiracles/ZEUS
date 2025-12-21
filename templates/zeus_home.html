@@ -123,6 +123,48 @@
 .btn-disabled {
     background-color: #95a5a6;
 }
+
+/* ============================================================
+   MOBILE / TABLET — ZEUS HOME
+============================================================ */
+
+@media (max-width: 768px) {
+
+  /* ====== GRID → KOLUMNA ====== */
+  .zeus-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* ====== KARTY FULL WIDTH ====== */
+  .zeus-card {
+    width: 100%;
+  }
+
+  /* ====== IKONY MNIEJSZE ====== */
+  .zeus-card .icon img {
+    width: 48px;
+  }
+
+  /* ====== INPUTY BEZ WYJEŻDŻANIA ====== */
+  .zeus-card input,
+  .zeus-card select {
+    font-size: 0.85em;
+  }
+
+  /* ====== SEKCJA DODAWANIA ====== */
+  .zeus-add-mobile {
+    text-align: center;
+  }
+
+  .zeus-add-mobile .action-btn,
+  .zeus-add-mobile button {
+    margin-top: 8px;
+    width: 100%;
+    font-size: 0.85em;
+  }
+}
+
 </style>
 
 <div class="zeus-home">
@@ -213,39 +255,51 @@
 
     <!-- ================= DODAWANIE ================= -->
 
-    <div class="zeus-section">
-        <h3>Dodawanie</h3>
+<div class="zeus-section">
+    <h3>Dodawanie</h3>
 
-        <div class="zeus-grid">
+    <div class="zeus-card zeus-add-mobile">
 
-            {% for label, endpoint in [
-                ('Państwo', 'panstwo_add_form'),
-                ('Region', 'region_add_form'),
-                ('Miasto', 'miasto_form_add')
-            ] %}
-
-            <div class="zeus-card">
-                <div class="icon">
-                    <img src="{{ url_for('static', filename='Dodaj.png') }}">
-                </div>
-                <h4>{{ label }}</h4>
-
-                {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-                    <a href="{{ url_for(endpoint) }}" class="action-btn btn-add">
-                        Dodaj
-                    </a>
-                {% else %}
-                    <button class="btn-disabled"
-                            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-                        Dodaj
-                    </button>
-                {% endif %}
-            </div>
-
-            {% endfor %}
+        <div class="icon">
+            <img src="{{ url_for('static', filename='Dodaj.png') }}">
         </div>
-    </div>
 
+        <h4>Dodaj element</h4>
+
+        {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+
+            <a href="{{ url_for('panstwo_add_form') }}" class="action-btn btn-add">
+                Dodaj państwo
+            </a>
+
+            <a href="{{ url_for('region_add_form') }}" class="action-btn btn-add">
+                Dodaj region
+            </a>
+
+            <a href="{{ url_for('miasto_form_add') }}" class="action-btn btn-add">
+                Dodaj miasto
+            </a>
+
+        {% else %}
+
+            <button class="btn-disabled"
+                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Dodaj państwo
+            </button>
+
+            <button class="btn-disabled"
+                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Dodaj region
+            </button>
+
+            <button class="btn-disabled"
+                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Dodaj miasto
+            </button>
+
+        {% endif %}
+
+    </div>
 </div>
 
 <footer style="text-align:center; font-size:0.75em; color:#7f8c8d; margin:12px 0;">
