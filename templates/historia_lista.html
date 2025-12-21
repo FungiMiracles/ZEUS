@@ -199,6 +199,121 @@
 .btn-add:hover {
     background-color: #1e8749;
 }
+
+/* ============================================================
+   MOBILE — HISTORIA (LISTA WYDARZEŃ)
+   Układ only, bez zmiany stylu
+============================================================ */
+@media (max-width: 768px) {
+
+    /* ===== WRAPPER ===== */
+    .historia-wrapper {
+        margin: 15px 10px;
+    }
+
+    /* ===== HEADER ===== */
+    .historia-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .historia-header h1 {
+        font-size: 1.4em;
+        text-align: center;
+    }
+
+    /* ===== FILTRY — JEDNA LINIA ===== */
+    .historia-filters {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .historia-filters a {
+        flex: 1;
+        margin-left: 0;
+        padding: 6px 0;
+        font-size: 0.7em;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    /* ===== TOP ACTIONS ===== */
+    .historia-top-actions {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .historia-top-actions .left,
+    .historia-top-actions .right {
+        width: 100%;
+    }
+
+    .historia-top-actions .btn-zeus-action {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.8em;
+        padding: 8px 6px;
+    }
+
+    /* ===== LISTA ===== */
+    .historia-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .historia-item > div:first-child {
+        max-width: 100%;
+    }
+
+    /* ===== DATY / META ===== */
+    .historia-date {
+        font-size: 0.8em;
+        margin-bottom: 2px;
+    }
+
+    .historia-meta-admin {
+        font-size: 0.7em;
+        margin-bottom: 6px;
+    }
+
+    /* ===== TYTUŁ ===== */
+    .historia-title {
+        font-size: 1em;
+        margin-bottom: 6px;
+    }
+
+    /* ===== AKCJE — GRID ===== */
+    .historia-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        width: 100%;
+    }
+
+    .historia-actions a,
+    .historia-actions button,
+    .historia-actions form {
+        width: 100%;
+    }
+
+    .historia-actions .btn-zeus {
+        justify-content: center;
+        width: 100%;
+        font-size: 0.75em;
+        padding: 7px 0;
+    }
+
+    .historia-actions form {
+        margin: 0;
+    }
+}
+
 </style>
 
 <div class="historia-wrapper">
