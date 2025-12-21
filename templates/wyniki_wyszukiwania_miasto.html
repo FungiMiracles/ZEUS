@@ -135,91 +135,86 @@
 }
 
 /* ============================================================
-   MOBILE — LISTA MIAST
+   MOBILE — LISTA MIAST (FINAL, STABILNA)
 ============================================================ */
 
 @media (max-width: 768px) {
 
-  /* CAŁY WIERSZ → KOLUMNA */
+  /* ===== WIERSZ ===== */
   .miasto-row {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: stretch;
+    gap: 14px;
   }
 
-  /* ===== DANE MIASTA (GÓRA) ===== */
+  /* ===== DANE MIASTA ===== */
   .miasto-main {
-    width: 100%;
-    max-width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    font-size: 0.95em;        /* 👈 WIĘKSZA TREŚĆ */
+    font-size: 0.95em;
   }
 
   .miasto-name {
     font-size: 1.05em;
     font-weight: 800;
+    margin-bottom: 2px;
   }
 
   .miasto-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 10px;
     font-size: 0.85em;
+    color: #7f8c8d;
     line-height: 1.4;
-  }
-   
-     .miasto-meta {
-    max-width: 100%;
-     }
-
-     .miasto-meta::after {
-    content: "";
-    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  /* ===== AKCJE (DÓŁ) ===== */
+  /* ===== AKCJE — GRID ===== */
   .miasto-actions {
     width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+  }
+
+  /* wszystkie przyciski równe */
+  .miasto-actions a,
+  .miasto-actions button,
+  .miasto-actions form {
+    width: 100%;
   }
 
   .miasto-actions a,
   .miasto-actions button {
-    flex: 1;
+    display: block;
     text-align: center;
-    /* brak zmian rozmiaru */
+    font-size: 0.8em;
+    padding: 8px 0;
+    border-radius: 6px;
   }
 
-  /* PRZYPISYWANIE REGIONU — CAŁA LINIA */
+  .miasto-actions form {
+    margin: 0;
+  }
+
+  /* ===== PRZYPISZ REGION — CAŁA SZEROKOŚĆ ===== */
+  .miasto-actions .btn-region {
+    grid-column: span 3;
+  }
+
   .assign-region-form {
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
     gap: 8px;
   }
 
   .assign-region-form input {
-    flex: 2;
-    width: auto;
+    width: 100%;
     font-size: 0.85em;
   }
 
   .assign-region-form button {
-    flex: 1;
+    width: 100%;
   }
-
-  .inline-form {
-    flex: 1;
-  }
-
-   .miasto-actions .inline-form {
-    flex: 1;
-  }
-
 }
 
 </style>
