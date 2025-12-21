@@ -110,6 +110,60 @@
 .delete-form {
     display: inline;
 }
+
+/* ============================================================
+   MOBILE — LISTA REGIONÓW
+============================================================ */
+
+@media (max-width: 768px) {
+
+  /* CAŁY WIERSZ → KOLUMNA */
+  .region-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* ===== DANE REGIONU (GÓRA) ===== */
+  .region-main {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 0.95em;        /* 👈 WIĘKSZA TREŚĆ */
+  }
+
+  .region-name {
+    font-size: 1.05em;
+    font-weight: 800;
+  }
+
+  .region-meta {
+    font-size: 0.85em;
+    color: #7f8c8d;
+    white-space: nowrap;
+  }
+
+  /* ===== AKCJE (DÓŁ) – BEZ ZMIAN ROZMIARU ===== */
+  .region-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .region-actions a,
+  .region-actions button {
+    flex: 1;
+    text-align: center;
+    /* brak zmian font-size / padding */
+  }
+
+  .delete-form {
+    flex: 1;
+  }
+}
+   
 </style>
 
 <div class="wyniki-regionow">
