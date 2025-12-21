@@ -18,177 +18,216 @@
   <!-- LINK DO ZEWNĘTRZNEGO CSS ZE STYLAMI -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/zeus.css') }}">
 
-  <!-- KALENDARZ ENTENDY + GLOBALNE TŁO ZEUSA -->
+  <!-- KALENDARZ ENTENDY + GLOBALNE TŁO ZEUSA + MOBILE OPTIMIZATIONS -->
   <style>
     /* ================= ZEUS TOAST ================= */
     /* ================= GLOBALNE TŁO MAPY ENTENDY ================= */
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2c3e50;
-    overflow-x: hidden;
-}
-
-/* MAPA ŚWIATA */
-.zeus-background {
-    position: fixed;
-    inset: 0;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(30, 40, 70, 0.82),
-            rgba(70, 95, 160, 0.82)
-        ),
-        url("{{ url_for('static', filename='maps/mapa_swiata.jpeg') }}");
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-}
-
-/* MGŁA / BLUR */
-.zeus-fog {
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(4px);          /* 🔥 SUBTELNY BLUR */
-    -webkit-backdrop-filter: blur(4px);
-    box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
-    z-index: 1;
-}
-
-/* CAŁA TREŚĆ ZEUSA */
-.zeus-content {
-    position: relative;
-    z-index: 2;
-}
-
-#zeus-toast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: #2f3e63;
-    color: white;
-    padding: 14px 20px;
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    font-size: 0.9em;
-    font-weight: 600;
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-}
-
-    /* ===== GLOBALNE TŁO (subtelny wzorek) ===== */
-    /*body {
-      background-color: #fafafa !important;
-      background-image:
-        radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
-        radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
-      background-position:
-        0 0,
-        25px 25px;
-      background-size: 50px 50px;
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #2c3e50;
+        overflow-x: hidden;
     }
 
-    /* LOADER (ukryty na początku) */
+    /* MAPA ŚWIATA */
+    .zeus-background {
+        position: fixed;
+        inset: 0;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(30, 40, 70, 0.82),
+                rgba(70, 95, 160, 0.82)
+            ),
+            url("{{ url_for('static', filename='maps/mapa_swiata.jpeg') }}");
+        background-size: cover;
+        background-position: center;
+        z-index: 0;
+    }
+
+    /* MGŁA / BLUR */
+    .zeus-fog {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
+        z-index: 1;
+    }
+
+    /* CAŁA TREŚĆ ZEUSA */
+    .zeus-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ================= MOBILE OPTIMIZATIONS ================= */
+    
+    /* Górny navbar - mobile */
+    @media (max-width: 991px) {
+        .navbar-brand img {
+            width: 80px !important;
+            height: 80px !important;
+        }
+        
+        .entenda-clock {
+            position: static !important;
+            font-size: 20px !important;
+            margin: 10px auto;
+            text-align: center;
+            display: block;
+        }
+        
+        .navbar-role-info {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 0.8em;
+        }
+    }
+
+    /* Dolny navbar - mobile */
+    @media (max-width: 991px) {
+        .navbar-nav {
+            text-align: center;
+        }
+        
+        .nav-link {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        /* Scrollable menu na bardzo małych ekranach */
+        @media (max-width: 576px) {
+            .navbar-collapse {
+                max-height: 60vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    }
+
+    /* ================= TOAST - MOBILE ================= */
+    @media (max-width: 480px) {
+        #zeus-toast {
+            bottom: 20px !important;
+            right: 20px !important;
+            left: 20px !important;
+            max-width: calc(100vw - 40px);
+        }
+    }
+
+    /* ================= KALENDARZ - RESPONSIVE ================= */
+    @media (max-width: 768px) {
+        .entenda-clock {
+            right: 15px !important;
+            top: 25px !important;
+            font-size: 22px;
+            padding: 4px 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .entenda-clock {
+            font-size: 18px;
+            right: 10px !important;
+            top: 20px !important;
+            padding: 3px 6px;
+        }
+    }
+
+    /* ================= STATS BAR ================= */
+    .entenda-stats-bar {
+        text-align: center;
+        font-size: 13px;
+        padding: 4px 10px;
+        background: #f5f7fb;
+        color: #444;
+        border-top: 1px solid #e2e6f0;
+        border-bottom: 1px solid #e2e6f0;
+        font-size: clamp(11px, 2.5vw, 13px);
+    }
+
+    /* ================= MAIN CONTENT ================= */
+    main.container {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+        /* Mobile: mniejsze paddingi boczne */
+        @media (max-width: 576px) {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+    }
+
+    /* ================= LOADER ================= */
     #loader {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.85);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(255,255,255,0.95);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
     }
 
     .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #cccccc;
-      border-top-color: #0057ff;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+        width: 60px;
+        height: 60px;
+        border: 6px solid #cccccc;
+        border-top-color: #0057ff;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+        to { transform: rotate(360deg); }
     }
 
-    /* ====== KALENDARZ ENTENDY ====== */
-    .entenda-clock {
-      position: absolute;
-      right: 20px;
-      top: 35px;
-      font-weight: 800;
-      font-size: 26px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.6);
-      box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
-    }
-    .ent-month {
-      color: #0057ff;
-      text-shadow: 0 0 6px #4d8cff;
-    }
-    .ent-dot {
-      color: #000;
-      font-weight: 900;
-    }
-    .ent-year {
-      color: #e60000;
-      text-shadow: 0 0 8px #ff4d4d;
-    }
-    .ent-ce {
-      color: #000;
-      margin-left: 3px;
-      font-weight: 700;
+    /* ================= ROLA USER - MOBILE ================= */
+    .navbar-role-info {
+        font-size: clamp(0.75rem, 3vw, 0.85em);
+        opacity: 0.85;
+        @media (min-width: 992px) {
+            font-size: 0.85em;
+        }
     }
 
-    /* ====== PANEL STATYSTYK ====== */
-    .entenda-stats-bar {
-      text-align: center;
-      font-size: 13px;
-      padding: 4px 10px;
-      background: #f5f7fb;
-      color: #444;
-      border-top: 1px solid #e2e6f0;
-      border-bottom: 1px solid #e2e6f0;
-    }
-    .entenda-stats-bar strong {
-      font-weight: 700;
-      color: #2c3e70;
+    /* ================= POPRAWKI BOOTSTRAP MOBILE ================= */
+    .navbar-toggler {
+        border: none;
+        padding: 0.5rem;
     }
 
+    /* Smooth scrolling na mobile */
+    @media (prefers-reduced-motion: no-preference) {
+        html {
+            scroll-behavior: smooth;
+        }
+    }
   </style>
 </head>
 
-
 <body>
-
-
-  
   <!-- Loader -->
   <div id="loader">
     <div class="spinner"></div>
   </div>
 
   <!-- Górny pasek nawigacji -->
-  <nav class="navbar navbar-expand-md navbar-light bg-white" style="position:relative;">
+  <nav class="navbar navbar-expand-lg navbar-light bg-white" style="position:relative;">
     <a class="navbar-brand" href="{{ url_for('home_page') }}">
       <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}"
-           alt="ZEUS LOGO" width="110" height="110" />
+           alt="ZEUS LOGO" width="110" height="110" style="max-width: 110px; height: auto;" />
     </a>
 
-      {% if session.rola %}
-        <div style="font-size:0.85em; opacity:0.85;">
-            Rola: <strong>{{ session.rola|capitalize }}</strong>
-            |
-            <a href="{{ url_for('wejscie') }}" style="color:#4f3a3a;">Zmień</a>
-        </div>
-      {% endif %}
-
+    {% if session.rola %}
+      <div class="navbar-role-info">
+        Rola: <strong>{{ session.rola|capitalize }}</strong>
+        | <a href="{{ url_for('wejscie') }}">Zmień</a>
+      </div>
+    {% endif %}
 
     <!-- KALENDARZ ENTENDY -->
     <div class="entenda-clock">
@@ -198,15 +237,8 @@ body {
       <span class="ent-ce"> CE</span>
     </div>
 
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarNav"
-      aria-controls="navbarNav"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
@@ -219,30 +251,22 @@ body {
 
   <!-- WSKAŹNIK ŚWIATA ENTENDY -->
   <div class="entenda-stats-bar">
-    Entenda to
-    <strong>{{ E_WORLD_POP }}</strong> ludzi,
-    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach,
-    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach,
-    w <strong>{{ E_WORLD_REGIONS }}</strong> regionach
+    Entenda to <strong>{{ E_WORLD_POP }}</strong> ludzi, 
+    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach, 
+    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach, 
+    w <strong>{{ E_WORLD_REGIONS }}</strong> regionach 
     i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
   </div>
 
   <!-- Dolny pasek nawigacji -->
-  <nav class="navbar navbar-expand-md navbar-light bg-white" style="height: 40px">
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarNavLower"
-      aria-controls="navbarNavLower"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
+  <nav class="navbar navbar-expand-lg navbar-light bg-white" style="height: auto; min-height: 40px;">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavLower" 
+            aria-controls="navbarNavLower" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse justify-content-center" id="navbarNavLower">
-      <ul class="navbar-nav">
+      <ul class="navbar-nav flex-fill justify-content-center">
         {% set nav_links = [
         ('home_page', 'Strona główna'),
         ('mapy', 'Mapy'),
@@ -259,7 +283,7 @@ body {
         ] %}
 
         {% for endpoint, label in nav_links %}
-        <li class="nav-item">
+        <li class="nav-item mx-1">
           <a class="nav-link" href="{{ url_for(endpoint) }}">{{ label }}</a>
         </li>
         {% endfor %}
@@ -269,10 +293,9 @@ body {
 
   <hr class="my-1" />
 
-  <main class="container">
+  <main class="container-fluid px-3 px-md-4 py-3">
     {% block content %}{% endblock %}
   </main>
-
 
   <!-- Optional JavaScript -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
@@ -283,47 +306,42 @@ body {
           integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
           crossorigin="anonymous"></script>
 
-
   <!-- ============================
        LOADER FIX (BFCache + normal)
        ============================ -->
-      <script>
+  <script>
     window.addEventListener("beforeunload", function (e) {
-        // 🔒 jeśli kliknięto link do pobierania – NIE pokazuj loadera
-        if (document.activeElement &&
-            document.activeElement.hasAttribute("data-download")) {
+        if (document.activeElement && document.activeElement.hasAttribute("data-download")) {
             return;
         }
-
         document.getElementById("loader").style.display = "flex";
     });
-    </script>
+  </script>
+
+  <!-- ZEUS TOAST -->
   <div id="zeus-toast" style="display:none;">
-      <span id="zeus-toast-text"></span>
+    <span id="zeus-toast-text"></span>
   </div>
   <script>
-function zeusToast(message, duration = 5000) {
-    const toast = document.getElementById("zeus-toast");
-    const text = document.getElementById("zeus-toast-text");
+    function zeusToast(message, duration = 5000) {
+        const toast = document.getElementById("zeus-toast");
+        const text = document.getElementById("zeus-toast-text");
 
-    if (!toast || !text) return;
+        if (!toast || !text) return;
 
-    text.textContent = message;
-    toast.style.display = "block";
+        text.textContent = message;
+        toast.style.display = "block";
+        requestAnimationFrame(() => {
+            toast.style.opacity = "1";
+        });
 
-    requestAnimationFrame(() => {
-        toast.style.opacity = "1";
-    });
-
-    setTimeout(() => {
-        toast.style.opacity = "0";
         setTimeout(() => {
-            toast.style.display = "none";
-        }, 300);
-    }, duration);
-}
-</script>
-
-
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 300);
+        }, duration);
+    }
+  </script>
 </body>
 </html>
