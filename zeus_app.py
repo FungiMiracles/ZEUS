@@ -69,9 +69,60 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
-    Migrate(app, db)   # ← TYLKO TO, NIC WIĘCEJ
+    Migrate(app, db)
 
-    return app
+    # ───── FILTRY JINJA ─────
+    def spacenum(n):
+        try:
+            return f"{int(n):,}".replace(",", " ")
+        except (ValueError, TypeError):
+            return n
+
+    app.jinja_env.filters["spacenum"] = spacenum
+
+    @app.template_filter("attr")
+    def attr_filter(obj, attr_name):
+        try:
+            return getattr(obj, attr_name)
+        except Exception:
+            return None
+
+    # ───── ROUTES ─────
+    init_auth_routes(app)
+    init_main_routes(app)
+    init_panstwa_routes(app)
+    init_regiony_routes(app)
+    init_miasta_routes(app)
+    init_armia_routes(app)
+    init_gospodarka_routes(app)
+    init_mapy_routes(app)
+    init_historia_routes(app)
+    init_pliki_routes(app)
+
+    # ───── BEFORE REQUEST ─────
+    @app.before_request
+    def wymus_wejscie():
+        publiczne_endpointy = {"wejscie", "static"}
+        if request.endpoint is None:
+            return
+        if request.endpoint in publiczne_endpointy:
+            return
+        if "rola" not in session:
+            return redirect(url_for("wejscie"))
+
+    # ───── CONTEXT PROCESSOR ─────
+    @app.context_processor
+    def inject_global_entenda_data():
+        ...
+        return {...}
+
+    # ───── ERROR HANDLER ─────
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("403.html"), 403
+
+    return app   # ← JEDYNY return
+
 
 
     # ───── FILTRY JINJA ─────
