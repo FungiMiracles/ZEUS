@@ -69,12 +69,8 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
-    migrate = Migrate(app, db)
-    
-    with app.app_context():
-        from flask_migrate import upgrade
-        upgrade()
-    
+    Migrate(app, db)   # ← TYLKO TO, NIC WIĘCEJ
+
     return app
 
 
