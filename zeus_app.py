@@ -176,29 +176,26 @@ def create_app():
     #  GLOBALNY CONTEXT PROCESSOR
     # ─────────────────────────────────────────
     @app.context_processor
-    def inject_global_entenda_data():
+def inject_global_entenda_data():
+    try:
         from models import Panstwo, Region, Miasto
 
         m, y = oblicz_kalendarz_entendy()
 
-        try:
-            total_population = (
-                db.session.query(func.sum(Panstwo.panstwo_populacja))
-                .scalar() or 0
-            )
+        total_population = (
+            db.session.query(func.sum(Panstwo.panstwo_populacja))
+            .scalar()
+        ) or 0
 
-            continents = (
-                db.session.query(func.count(func.distinct(Panstwo.kontynent)))
-                .scalar() or 0
-            )
+        continents = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .count()
+        )
 
-            countries = db.session.query(func.count(Panstwo.PANSTWO_ID)).scalar() or 0
-            regions = Region.query.count()
-            cities = Miasto.query.count()
-
-        except Exception as e:
-            print("Błąd w statystykach Entendy:", e)
-            total_population = continents = countries = regions = cities = 0
+        countries = db.session.query(Panstwo.PANSTWO_ID).count()
+        regions = Region.query.count()
+        cities = Miasto.query.count()
 
         def format_int(n):
             try:
@@ -215,6 +212,11 @@ def create_app():
             "E_WORLD_REGIONS": regions,
             "E_WORLD_CITIES": cities,
         }
+
+    except Exception as e:
+        print("Context processor error:", e)
+        return {}
+
 
     # ─────────────────────────────────────────
     #  OBSŁUGA 403
