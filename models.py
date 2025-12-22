@@ -34,7 +34,7 @@ class Region(db.Model):
     panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"))
     region_nazwa = db.Column(db.String(255))
     region_populacja = db.Column(BigInteger)
-    region_ludnosc_pozamiejska = db.Column(BigInteger, nullable=FALSE, default=0)
+    region_ludnosc_pozamiejska = db.Column(BigInteger, nullable=False, default=0)
 
     # Relacja do miast
     miasta = db.relationship("Miasto", backref="region", lazy=True)
