@@ -1,7 +1,5 @@
 import os
 from datetime import datetime
-from sqlalchemy import func
-from flask_migrate import Migrate
 
 from flask import (
     Flask,
@@ -11,6 +9,8 @@ from flask import (
     request,
     render_template,
 )
+from flask_migrate import Migrate
+from sqlalchemy import func
 
 from extensions import db
 from permissions import wymaga_roli
@@ -54,8 +54,6 @@ def oblicz_kalendarz_entendy():
 # ─────────────────────────────────────────
 #  FABRYKA APLIKACJI
 # ─────────────────────────────────────────
-import os
-
 def create_app():
     app = Flask(__name__)
 
@@ -103,124 +101,60 @@ def create_app():
     @app.before_request
     def wymus_wejscie():
         publiczne_endpointy = {"wejscie", "static"}
+
         if request.endpoint is None:
             return
+
         if request.endpoint in publiczne_endpointy:
             return
+
         if "rola" not in session:
             return redirect(url_for("wejscie"))
 
     # ───── CONTEXT PROCESSOR ─────
     @app.context_processor
     def inject_global_entenda_data():
-        ...
-        return {...}
+        try:
+            from models import Panstwo, Region, Miasto
+
+            m, y = oblicz_kalendarz_entendy()
+
+            total_population = (
+                db.session.query(func.sum(Panstwo.panstwo_populacja))
+                .scalar()
+            ) or 0
+
+            continents = (
+                db.session.query(Panstwo.kontynent)
+                .distinct()
+                .count()
+            )
+
+            countries = db.session.query(Panstwo.PANSTWO_ID).count()
+            regions = Region.query.count()
+            cities = Miasto.query.count()
+
+            def format_int(n):
+                try:
+                    return f"{int(n):,}".replace(",", " ")
+                except Exception:
+                    return "0"
+
+            return {
+                "ENTENDA_MONTH": f"{m:02d}",
+                "ENTENDA_YEAR": y,
+                "E_WORLD_POP": format_int(total_population),
+                "E_WORLD_CONTINENTS": continents,
+                "E_WORLD_COUNTRIES": countries,
+                "E_WORLD_REGIONS": regions,
+                "E_WORLD_CITIES": cities,
+            }
+
+        except Exception as e:
+            print("Context processor error:", e)
+            return {}
 
     # ───── ERROR HANDLER ─────
-    @app.errorhandler(403)
-    def forbidden(e):
-        return render_template("403.html"), 403
-
-    return app   # ← JEDYNY return
-
-
-
-    # ───── FILTRY JINJA ─────
-    def spacenum(n):
-        try:
-            return f"{int(n):,}".replace(",", " ")
-        except (ValueError, TypeError):
-            return n
-
-    app.jinja_env.filters["spacenum"] = spacenum
-
-    @app.template_filter("attr")
-    def attr_filter(obj, attr_name):
-        try:
-            return getattr(obj, attr_name)
-        except Exception:
-            return None
-
-    # ───── ROUTES ─────
-    init_auth_routes(app)
-    init_main_routes(app)
-    init_panstwa_routes(app)
-    init_regiony_routes(app)
-    init_miasta_routes(app)
-    init_armia_routes(app)
-    init_gospodarka_routes(app)
-    init_mapy_routes(app)
-    init_historia_routes(app)
-    init_pliki_routes(app)
-
-    # ─────────────────────────────────────────
-    #  WYMUSZENIE EKRANU WEJŚCIA
-    # ─────────────────────────────────────────
-    @app.before_request
-    def wymus_wejscie():
-        publiczne_endpointy = {
-            "wejscie",
-            "static",
-        }
-
-        if request.endpoint is None:
-            return
-
-        if request.endpoint in publiczne_endpointy:
-            return
-
-        if "rola" not in session:
-            return redirect(url_for("wejscie"))
-
-    # ─────────────────────────────────────────
-    #  GLOBALNY CONTEXT PROCESSOR
-    # ─────────────────────────────────────────
-    @app.context_processor
-def inject_global_entenda_data():
-    try:
-        from models import Panstwo, Region, Miasto
-
-        m, y = oblicz_kalendarz_entendy()
-
-        total_population = (
-            db.session.query(func.sum(Panstwo.panstwo_populacja))
-            .scalar()
-        ) or 0
-
-        continents = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .count()
-        )
-
-        countries = db.session.query(Panstwo.PANSTWO_ID).count()
-        regions = Region.query.count()
-        cities = Miasto.query.count()
-
-        def format_int(n):
-            try:
-                return f"{int(n):,}".replace(",", " ")
-            except Exception:
-                return "0"
-
-        return {
-            "ENTENDA_MONTH": f"{m:02d}",
-            "ENTENDA_YEAR": y,
-            "E_WORLD_POP": format_int(total_population),
-            "E_WORLD_CONTINENTS": continents,
-            "E_WORLD_COUNTRIES": countries,
-            "E_WORLD_REGIONS": regions,
-            "E_WORLD_CITIES": cities,
-        }
-
-    except Exception as e:
-        print("Context processor error:", e)
-        return {}
-
-
-    # ─────────────────────────────────────────
-    #  OBSŁUGA 403
-    # ─────────────────────────────────────────
     @app.errorhandler(403)
     def forbidden(e):
         return render_template("403.html"), 403
