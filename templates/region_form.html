@@ -272,6 +272,16 @@
                     Brak danych
                     {% endif %}
                 </td>
+                <tr>
+                    <td style="font-weight:700;">Ludność pozamiejska:</td>
+                    <td>
+                        {% if region.region_ludnosc_pozamiejska is not none %}
+                            {{ "{:,}".format(region.region_ludnosc_pozamiejska).replace(",", " ") }}
+                        {% else %}
+                            Brak danych
+                        {% endif %}
+                    </td>
+                </tr>
             </tr>
         </tbody>
     </table>
