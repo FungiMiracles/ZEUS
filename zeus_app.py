@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from sqlalchemy import func
+from flask_migrate import Migrate
 
 from flask import (
     Flask,
@@ -68,6 +69,7 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
+    migrate = Migrate(app, db)
 
 
     # ───── FILTRY JINJA ─────
