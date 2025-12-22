@@ -178,7 +178,7 @@ def init_regiony_routes(app):
             panstwo_id = request.form.get("panstwo_id")
             ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
 
-        # ───── WALIDACJA ─────
+            # ───── WALIDACJA ─────
             errors = []
 
             if not nazwa:
@@ -198,12 +198,12 @@ def init_regiony_routes(app):
                     form_data=request.form
                 )
 
-        # ───── KONWERSJE ─────
+            # ───── KONWERSJE ─────
             panstwo_id = int(panstwo_id)
             ludnosc_pozamiejska = int(ludnosc_pozamiejska)
 
-        # ───── WALIDACJA LOGIKI ŚWIATA ─────
-            if ludnosc_pozamiejska > populacja:
+            # ───── WALIDACJA LOGIKI ŚWIATA ─────
+            if ludnosc_pozamiejska > region.region_populacja:
                 return render_template(
                     "region_form_edit.html",
                     error="Ludność pozamiejska nie może być większa niż populacja regionu.",
@@ -211,7 +211,7 @@ def init_regiony_routes(app):
                     form_data=request.form
                 )
 
-        # ───── AKTUALIZACJA ─────
+            # ───── AKTUALIZACJA ─────
             region.region_nazwa = nazwa
             region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
             region.panstwo_id = panstwo_id
@@ -224,9 +224,5 @@ def init_regiony_routes(app):
             )
             return redirect(url_for("region_form", region_id=region.region_id))
 
-    # ───── GET ─────
+        # ───── GET ─────
         return render_template("region_form_edit.html", region=region)
-
-
-
-
