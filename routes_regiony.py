@@ -203,13 +203,13 @@ def init_regiony_routes(app):
             ludnosc_pozamiejska = int(ludnosc_pozamiejska)
 
             # ───── WALIDACJA LOGIKI ŚWIATA ─────
-            if ludnosc_pozamiejska > region.region_populacja:
-                return render_template(
-                    "region_form_edit.html",
-                    error="Ludność pozamiejska nie może być większa niż populacja regionu.",
-                    region=region,
-                    form_data=request.form
-                )
+            #if ludnosc_pozamiejska > region.region_populacja:
+                #return render_template(
+                    #"region_form_edit.html",
+                    #error="Ludność pozamiejska nie może być większa niż populacja regionu.",
+                    #region=region,
+                    #form_data=request.form
+                #)
 
             # ───── AKTUALIZACJA ─────
             region.region_nazwa = nazwa
