@@ -61,11 +61,14 @@
                 </tr>
 
                 <tr>
-                    <td style="padding:10px;">Populacja regionu</td>
+                    <td style="padding:10px;">Ludność pozamiejska</td>
                     <td style="padding:10px;">
-                        <input type="number" 
-                               name="region_populacja" 
-                               value="{{ form_data.region_populacja if form_data else region.region_populacja }}"
+                        <input type="number"
+                               name="region_ludnosc_pozamiejska"
+                               min="0"
+                               value="{{ form_data.region_ludnosc_pozamiejska
+                                        if form_data
+                                        else region.region_ludnosc_pozamiejska }}"
                                style="width:100%; padding:6px;">
                     </td>
                 </tr>
