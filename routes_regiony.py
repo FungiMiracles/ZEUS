@@ -167,71 +167,71 @@ def init_regiony_routes(app):
 # --------------------------------
 # EDYCJA REGIONU
 # --------------------------------
-@app.route("/region/<int:region_id>/edit", methods=["GET", "POST"])
-@wymaga_roli("wszechmocny")
-def region_form_edit(region_id):
-    region = Region.query.get_or_404(region_id)
-
-    if request.method == "POST":
-
-        nazwa = request.form.get("region_nazwa")
-        panstwo_id = request.form.get("panstwo_id")
-        populacja = request.form.get("region_populacja")
-        ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
-
-        # ───── WALIDACJA ─────
-        errors = []
-
-        if not nazwa:
-            errors.append("Nazwa regionu jest wymagana.")
-
-        if not panstwo_id or not panstwo_id.isdigit():
-            errors.append("ID państwa musi być liczbą.")
-
-        if not populacja or not populacja.isdigit():
-            errors.append("Populacja regionu musi być liczbą.")
-
-        if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
-            errors.append("Ludność pozamiejska musi być liczbą.")
-
-        if errors:
-            return render_template(
-                "region_form_edit.html",
-                error=" ".join(errors),
-                region=region,
-                form_data=request.form
-            )
-
-        # ───── KONWERSJE ─────
-        panstwo_id = int(panstwo_id)
-        populacja = int(populacja)
-        ludnosc_pozamiejska = int(ludnosc_pozamiejska)
-
-        # ───── WALIDACJA LOGIKI ŚWIATA ─────
-        if ludnosc_pozamiejska > populacja:
-            return render_template(
-                "region_form_edit.html",
-                error="Ludność pozamiejska nie może być większa niż populacja regionu.",
-                region=region,
-                form_data=request.form
-            )
-
-        # ───── AKTUALIZACJA ─────
-        region.region_nazwa = nazwa
-        region.region_populacja = populacja
-        region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
-        region.panstwo_id = panstwo_id
-
-        db.session.commit()
-
-        flash(
-            f"Pomyślnie zaktualizowano region o ID {region.region_id}.",
-            "success"
-        )
-        return redirect(url_for("region_form", region_id=region.region_id))
-
-    # ───── GET ─────
-    return render_template("region_form_edit.html", region=region)
+            @app.route("/region/<int:region_id>/edit", methods=["GET", "POST"])
+            @wymaga_roli("wszechmocny")
+            def region_form_edit(region_id):
+                region = Region.query.get_or_404(region_id)
+            
+                if request.method == "POST":
+            
+                    nazwa = request.form.get("region_nazwa")
+                    panstwo_id = request.form.get("panstwo_id")
+                    populacja = request.form.get("region_populacja")
+                    ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
+            
+                    # ───── WALIDACJA ─────
+                    errors = []
+            
+                    if not nazwa:
+                        errors.append("Nazwa regionu jest wymagana.")
+            
+                    if not panstwo_id or not panstwo_id.isdigit():
+                        errors.append("ID państwa musi być liczbą.")
+            
+                    if not populacja or not populacja.isdigit():
+                        errors.append("Populacja regionu musi być liczbą.")
+            
+                    if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
+                        errors.append("Ludność pozamiejska musi być liczbą.")
+            
+                    if errors:
+                        return render_template(
+                            "region_form_edit.html",
+                            error=" ".join(errors),
+                            region=region,
+                            form_data=request.form
+                        )
+            
+                    # ───── KONWERSJE ─────
+                    panstwo_id = int(panstwo_id)
+                    populacja = int(populacja)
+                    ludnosc_pozamiejska = int(ludnosc_pozamiejska)
+            
+                    # ───── WALIDACJA LOGIKI ŚWIATA ─────
+                    if ludnosc_pozamiejska > populacja:
+                        return render_template(
+                            "region_form_edit.html",
+                            error="Ludność pozamiejska nie może być większa niż populacja regionu.",
+                            region=region,
+                            form_data=request.form
+                        )
+            
+                    # ───── AKTUALIZACJA ─────
+                    region.region_nazwa = nazwa
+                    region.region_populacja = populacja
+                    region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
+                    region.panstwo_id = panstwo_id
+            
+                    db.session.commit()
+            
+                    flash(
+                        f"Pomyślnie zaktualizowano region o ID {region.region_id}.",
+                        "success"
+                    )
+                    return redirect(url_for("region_form", region_id=region.region_id))
+            
+                # ───── GET ─────
+                return render_template("region_form_edit.html", region=region)
 
 
 
