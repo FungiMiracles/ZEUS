@@ -176,7 +176,6 @@ def init_regiony_routes(app):
 
             nazwa = request.form.get("region_nazwa")
             panstwo_id = request.form.get("panstwo_id")
-            populacja = request.form.get("region_populacja")
             ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
 
         # ───── WALIDACJA ─────
@@ -187,9 +186,6 @@ def init_regiony_routes(app):
 
             if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("ID państwa musi być liczbą.")
-
-            if not populacja or not populacja.isdigit():
-                errors.append("Populacja regionu musi być liczbą.")
 
             if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
                 errors.append("Ludność pozamiejska musi być liczbą.")
@@ -204,7 +200,6 @@ def init_regiony_routes(app):
 
         # ───── KONWERSJE ─────
             panstwo_id = int(panstwo_id)
-            populacja = int(populacja)
             ludnosc_pozamiejska = int(ludnosc_pozamiejska)
 
         # ───── WALIDACJA LOGIKI ŚWIATA ─────
@@ -218,7 +213,6 @@ def init_regiony_routes(app):
 
         # ───── AKTUALIZACJA ─────
             region.region_nazwa = nazwa
-            region.region_populacja = populacja
             region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
             region.panstwo_id = panstwo_id
 
