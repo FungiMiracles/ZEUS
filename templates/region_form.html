@@ -241,11 +241,26 @@
 
     <!-- Nagłówek -->
     <div class="region-header">
-        <h1>Region: {{ region.region_nazwa }} ({{region.region_id}})</h1>
+        <h1>Region: {{ region.region_nazwa }} ({{ region.region_id }})</h1>
         <p style="color:#666; font-size:1.05em; margin-top:5px;">
             Państwo: <strong>{{ panstwo.panstwo_nazwa }}</strong>
         </p>
     </div>
+
+    {# ============================================================
+       WYLICZENIA TYMCZASOWE (TYLKO WIDOK)
+    ============================================================ #}
+
+    {% set suma_miast = 0 %}
+    {% for miasto in region.miasta %}
+        {% if miasto.miasto_populacja %}
+            {% set suma_miast = suma_miast + miasto.miasto_populacja %}
+        {% endif %}
+    {% endfor %}
+
+    {% set populacja_wyliczona =
+        (region.region_ludnosc_pozamiejska or 0) + suma_miast
+    %}
 
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
@@ -255,39 +270,60 @@
             </tr>
         </thead>
         <tbody>
+
             <tr>
                 <td style="font-weight:700; width:200px;">Nazwa regionu:</td>
                 <td>{{ region.region_nazwa }}</td>
             </tr>
+
             <tr>
                 <td style="font-weight:700;">Państwo:</td>
                 <td>{{ panstwo.panstwo_nazwa }}</td>
             </tr>
+
             <tr>
                 <td style="font-weight:700;">Populacja regionu:</td>
                 <td>
-                    {% if region.region_populacja %}
-                    {{ "{:,}".format(region.region_populacja).replace(",", " ") }}
+                    {% if populacja_wyliczona > 0 %}
+                        {{ "{:,}".format(populacja_wyliczona).replace(",", " ") }}
+                        <span style="color:#888; font-size:0.9em;">
+                            (wyliczana)
+                        </span>
                     {% else %}
-                    Brak danych
+                        Brak danych
                     {% endif %}
                 </td>
-                <tr>
-                    <td style="font-weight:700;">Ludność pozamiejska:</td>
-                    <td>
-                        {% if region.region_ludnosc_pozamiejska is not none %}
-                            {{ "{:,}".format(region.region_ludnosc_pozamiejska).replace(",", " ") }}
-                        {% else %}
-                            Brak danych
-                        {% endif %}
-                    </td>
-                </tr>
             </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ludność pozamiejska:</td>
+                <td>
+                    {% if region.region_ludnosc_pozamiejska is not none %}
+                        {{ "{:,}".format(region.region_ludnosc_pozamiejska).replace(",", " ") }}
+                    {% else %}
+                        Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ludność miejska:</td>
+                <td>
+                    {% if suma_miast > 0 %}
+                        {{ "{:,}".format(suma_miast).replace(",", " ") }}
+                    {% else %}
+                        Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+
         </tbody>
     </table>
 
     <!-- Miasta w regionie -->
-    <h2 style="font-size:1.4em; color:#2c3e50; margin-bottom:15px;">Miasta w tym regionie</h2>
+    <h2 style="font-size:1.4em; color:#2c3e50; margin-bottom:15px;">
+        Miasta w tym regionie
+    </h2>
 
     {% if miasta %}
     <table class="city-table">
@@ -316,28 +352,29 @@
         </p>
     {% endif %}
 
+    <!-- Statystyki regionu -->
     <h3 style="margin-top: 30px;">Statystyki regionu</h3>
 
-<table class="results-table" style="max-width: 400px; margin-top: 15px;">
-    <thead>
-        <tr>
-            <th>Parametr</th>
-            <th>Wartość</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Łączna populacja miast</td>
-            <td>
-                {% if laczna_populacja %}
-                    {{ "{:,}".format(laczna_populacja).replace(",", " ") }}
-                {% else %}
-                    Brak danych
-                {% endif %}
-            </td>
-        </tr>
-    </tbody>
-</table>
+    <table class="results-table" style="max-width: 400px; margin-top: 15px;">
+        <thead>
+            <tr>
+                <th>Parametr</th>
+                <th>Wartość</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Łączna populacja miast</td>
+                <td>
+                    {% if suma_miast > 0 %}
+                        {{ "{:,}".format(suma_miast).replace(",", " ") }}
+                    {% else %}
+                        Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <div style="text-align:center;">
         <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
