@@ -269,16 +269,17 @@ on{% extends 'base_layout.html' %}
        WYLICZENIA TYMCZASOWE (TYLKO WIDOK)
     ============================================================ #}
 
-    {% set suma_miast = 0 %}
+    {% set ns = namespace(suma_miast=0) %}
     {% for miasto in region.miasta %}
         {% if miasto.miasto_populacja %}
-            {% set suma_miast = suma_miast + miasto.miasto_populacja %}
+            {% set ns.suma_miast = ns.suma_miast + miasto.miasto_populacja %}
         {% endif %}
     {% endfor %}
-
+    
     {% set populacja_wyliczona =
-        (region.region_ludnosc_pozamiejska or 0) + suma_miast
+        (region.region_ludnosc_pozamiejska or 0) + ns.suma_miast
     %}
+
 
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
