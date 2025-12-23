@@ -13,6 +13,7 @@ def init_regiony_routes(app):
     def wyniki_wyszukiwania_region():
         panstwo_nazwa = request.args.get("panstwo_nazwa")
         region_nazwa = request.args.get("region_nazwa")
+        ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
 
         query = db.session.query(Region, Panstwo).join(
             Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID
