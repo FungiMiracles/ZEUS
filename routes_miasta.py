@@ -39,6 +39,7 @@ def init_miasta_routes(app):
             populacja = request.form.get("miasto_populacja")
             typ = request.form.get("miasto_typ")
             region_id = request.form.get("region_id")
+            czy_na_mapie = request.form.get("czy_na_mapie")
 
             # Walidacja
             errors = []
@@ -52,6 +53,8 @@ def init_miasta_routes(app):
                 errors.append("Populacja musi być liczbą.")
             if not region_id or not region_id.isdigit():
                 errors.append("ID regionu musi być liczbą.")
+            if czy_na_mapie not in ("TAK", "NIE"):
+                errors.append("Nieprawidłowa wartość pola „Na mapie”.")
 
             if errors:
                 return render_template(
@@ -91,6 +94,7 @@ def init_miasta_routes(app):
             miasto.miasto_typ = typ
             miasto.panstwo_id = panstwo_id
             miasto.region_id = region_id
+            miasto.czy_na_mapie = czy_na_mapie
 
             db.session.commit()
 
@@ -165,6 +169,7 @@ def init_miasta_routes(app):
             populacja = request.form.get("miasto_populacja")
             typ = request.form.get("miasto_typ")
             region_id = request.form.get("region_id")
+            czy_na_mapie = request.form.get("czy_na_mapie")
 
             required_fields = [nazwa, kod, panstwo_id, populacja, typ, region_id]
             if any(not field for field in required_fields):
@@ -182,6 +187,8 @@ def init_miasta_routes(app):
                 errors.append("Pole 'ID regionu' musi być liczbą.")
             if not populacja.isdigit():
                 errors.append("Pole 'Populacja miasta' musi być liczbą.")
+            if czy_na_mapie not in ("TAK", "NIE"):
+                errors.append("Nieprawidłowa wartość pola „Na mapie”.")
 
             if errors:
                 return render_template(
