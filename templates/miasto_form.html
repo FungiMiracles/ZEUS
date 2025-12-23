@@ -71,6 +71,28 @@
         background-color: #3498db;
         color: white;
     }
+    
+    .city-info-title {
+    text-align: left;
+    white-space: nowrap;   /* desktop */
+    }
+
+    @media (max-width: 768px) {
+    .city-info-title {
+        white-space: normal;   /* pozwól zawijać */
+    }
+
+    .info-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .info-table th,
+    .info-table td {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
 </style>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -113,7 +135,7 @@
         <table class="info-table">
             <thead>
                 <tr>
-                    <th style="text-align:left; white-space: nowrap;">
+                    <th class="city-info-title">
                         Informacje o mieście
                     </th>
                     <th style="text-align:right; font-weight:400; color:#ffffff; font-size:0.95em;">
