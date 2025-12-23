@@ -110,19 +110,20 @@
         </h1>
     </div>
 
-    <table class="info-table">
         <thead>
             <tr>
-                <th colspan="2">Informacje o mieście</th>
+                <th style="text-align:left;">
+                    Informacje o mieście
+                </th>
+                <th style="text-align:right; font-weight:400; color:#777; font-size:0.95em;">
+                    Na mapie:
+                    {% if miasto.czy_na_mapie == "TAK" %}
+                        <span style="color:#2ecc71; font-weight:700;">TAK</span>
+                    {% else %}
+                        <span style="color:#e74c3c; font-weight:700;">NIE</span>
+                    {% endif %}
+                </th>
             </tr>
-            <td>
-                Na mapie:
-                {% if miasto.czy_na_mapie == "TAK" %}
-                                   <span style="color:green; font-weight:600;">TAK</span>
-                               {% else %}
-                                   <span style="color:#999;">NIE</span>
-                               {% endif %}
-            </td>
         </thead>
         <tbody>
             <tr>
