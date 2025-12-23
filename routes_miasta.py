@@ -162,6 +162,10 @@ def init_miasta_routes(app):
     @app.route("/miasto_form_add", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def miasto_form_add():
+
+        # „Puste miasto” do template (żeby Jinja nie krzyczała)
+        empty_miasto = Miasto()
+
         if request.method == "POST":
             nazwa = request.form.get("miasto_nazwa")
             kod = request.form.get("miasto_kod")
@@ -171,64 +175,86 @@ def init_miasta_routes(app):
             region_id = request.form.get("region_id")
             czy_na_mapie = request.form.get("czy_na_mapie")
 
-            required_fields = [nazwa, kod, panstwo_id, populacja, typ, region_id, czy_na_mapie]
+            # ───── WALIDACJA PODSTAWOWA ─────
+            required_fields = [
+                nazwa,
+                kod,
+                panstwo_id,
+                populacja,
+                typ,
+                region_id,
+                czy_na_mapie,
+            ]
+
             if any(not field for field in required_fields):
-                error_message = "Wszystkie pola formularza są obowiązkowe."
                 return render_template(
                     "miasto_form_add.html",
-                    error=error_message,
+                    miasto=empty_miasto,
+                    error="Wszystkie pola formularza są obowiązkowe.",
                     form_data=request.form,
                 )
 
             errors = []
+
             if not panstwo_id.isdigit():
-                errors.append("Pole 'ID państwa' musi być liczbą.")
+                errors.append("Pole „ID państwa” musi być liczbą.")
+
             if not region_id.isdigit():
-                errors.append("Pole 'ID regionu' musi być liczbą.")
+                errors.append("Pole „ID regionu” musi być liczbą.")
+
             if not populacja.isdigit():
-                errors.append("Pole 'Populacja miasta' musi być liczbą.")
+                errors.append("Pole „Populacja miasta” musi być liczbą.")
+
             if czy_na_mapie not in ("TAK", "NIE"):
                 errors.append("Nieprawidłowa wartość pola „Na mapie”.")
 
             if errors:
                 return render_template(
                     "miasto_form_add.html",
+                    miasto=empty_miasto,
                     error=" ".join(errors),
                     form_data=request.form,
                 )
 
+            # ───── KONWERSJE ─────
             panstwo_id = int(panstwo_id)
             region_id = int(region_id)
             populacja = int(populacja)
 
+            # ───── SPRAWDZENIE PAŃSTWA ─────
             panstwo_obj = Panstwo.query.get(panstwo_id)
             if not panstwo_obj:
                 return render_template(
                     "miasto_form_add.html",
+                    miasto=empty_miasto,
                     error=f"Państwo o ID {panstwo_id} nie istnieje.",
                     form_data=request.form,
                 )
 
+            # ───── SPRAWDZENIE REGIONU ─────
             region_obj = Region.query.get(region_id)
             if not region_obj:
                 return render_template(
                     "miasto_form_add.html",
+                    miasto=empty_miasto,
                     error=f"Region o ID {region_id} nie istnieje.",
                     form_data=request.form,
                 )
 
-            # ───── WALIDACJA KLUCZOWA ─────
+            # ───── WALIDACJA KLUCZOWA REGION ↔ PAŃSTWO ─────
             if region_obj.panstwo_id != panstwo_obj.PANSTWO_ID:
                 return render_template(
                     "miasto_form_add.html",
+                    miasto=empty_miasto,
                     error=(
-                        f"Region '{region_obj.region_nazwa}' należy do państwa "
-                        f"'{region_obj.panstwo.panstwo_nazwa}', a nie do '{panstwo_obj.panstwo_nazwa}'."
+                        f"Region „{region_obj.region_nazwa}” należy do państwa "
+                        f"„{region_obj.panstwo.panstwo_nazwa}”, a nie do "
+                        f"„{panstwo_obj.panstwo_nazwa}”."
                     ),
                     form_data=request.form,
                 )
 
-            # Duplikaty
+            # ───── DUPLIKATY ─────
             duplicate_cities = (
                 db.session.query(Miasto, Panstwo, Region)
                 .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
@@ -243,13 +269,16 @@ def init_miasta_routes(app):
                     f"Region: {r.region_nazwa if r else 'Brak'}"
                     for m, p, r in duplicate_cities
                 ]
+
                 return render_template(
                     "miasto_form_add.html",
+                    miasto=empty_miasto,
                     error="Miasto o takiej nazwie już istnieje.",
                     duplicates=duplicates_info,
                     form_data=request.form,
                 )
 
+            # ───── ZAPIS DO BAZY ─────
             miasto = Miasto(
                 miasto_nazwa=nazwa,
                 miasto_kod=kod,
@@ -259,13 +288,19 @@ def init_miasta_routes(app):
                 region_id=region_id,
                 czy_na_mapie=czy_na_mapie,
             )
+
             db.session.add(miasto)
             db.session.commit()
 
             return redirect(url_for("miasto_dodano"))
 
-        # GET — formularz pusty
-        return render_template("miasto_form_add.html", form_data={})
+        # ───── GET — pusty formularz ─────
+        return render_template(
+            "miasto_form_add.html",
+            miasto=empty_miasto,
+            form_data={}
+        )
+
 
     # --------------------------------
     # Przypisanie regionu do miasta – ORM
