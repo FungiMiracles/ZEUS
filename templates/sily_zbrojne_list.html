@@ -171,6 +171,64 @@
         color:white;
         text-decoration:none;
     }
+
+    /* ============================================================
+   MOBILE — TABELA SIŁ ZBROJNYCH JAKO KARTY
+============================================================ */
+@media (max-width: 768px) {
+
+    table.results-table {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    table.results-table thead {
+        display: none;
+    }
+
+    table.results-table tbody,
+    table.results-table tr,
+    table.results-table td {
+        display: block;
+        width: 100%;
+    }
+
+    table.results-table tr {
+        background: #ffffff;
+        margin-bottom: 14px;
+        border-radius: 10px;
+        padding: 12px 14px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    table.results-table td {
+        padding: 6px 0;
+        border: none;
+        font-size: 0.95em;
+    }
+
+    /* Etykieta kolumny */
+    table.results-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 0.85em;
+        margin-bottom: 2px;
+    }
+
+    table.results-table td:last-child {
+        margin-top: 8px;
+    }
+
+    .btn-view {
+        display: block;
+        text-align: center;
+        width: 100%;
+        padding: 10px 0;
+    }
+}
 </style>
 
 <div class="results-container">
@@ -198,27 +256,29 @@
         <tbody>
         {% for row in results %}
             <tr>
-                <td>{{ row.panstwo_nazwa }}</td>
+                <td data-label="Państwo">{{ row.panstwo_nazwa }}</td>
 
-                <td>
-                {{ "{:,}".format(row.lacznie or 0).replace(",", " ") }}
-                </td>
+                    <td data-label="Liczba żołnierzy">
+                        {{ "{:,}".format(row.lacznie or 0).replace(",", " ") }}
+                    </td>
+                    
+                    <td data-label="% PKB">
+                        {{ row.procent_PKB or 0 }}%
+                    </td>
+                    
+                    <td data-label="Sprzęt kluczowy">
+                        Czołgi: {{ row.czolgi or 0 }} •
+                        Myśliwce: {{ row.mysliwce or 0 }} •
+                        Okręty: {{ row.okrety or 0 }}
+                    </td>
+                    
+                    <td data-label="Szczegóły">
+                        <a class="btn-view"
+                           href="{{ url_for('wojsko_form', panstwo_id=row.panstwo_id) }}">
+                            Podgląd
+                        </a>
+                    </td>
 
-                <td>{{ row.procent_PKB or 0 }}%</td>
-
-                <td>
-                    Czołgi: {{ row.czolgi or 0 }} •
-                    Myśliwce: {{ row.mysliwce or 0 }} •
-                    Okręty: {{ row.okrety or 0 }}
-                </td>
-
-
-                <td>
-                    <a class="btn-view"
-                       href="{{ url_for('wojsko_form', panstwo_id=row.panstwo_id) }}">
-                        Podgląd
-                    </a>
-                </td>
                 
             </tr>
         {% endfor %}
