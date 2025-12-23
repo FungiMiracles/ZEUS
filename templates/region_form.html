@@ -398,9 +398,15 @@
         <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
             Wróć do wyszukiwania regionów
         </a>
+        {% if session.rola == "wszechmocny" %}
         <a href="{{ url_for('region_form_edit', region_id=region.region_id) }}" class="btn-edit">
             Edytuj
         </a>
+        {% else %}
+        <a href="#" class="btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Edytuj
+        </a>
+        {% endif %}
     </div>
 
 </div>
