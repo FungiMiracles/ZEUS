@@ -211,6 +211,7 @@
                             ID: {{ row.region_id }}
                             • {{ row.panstwo_nazwa }}
                             • Populacja: {{ "{:,}".format(row.region_populacja).replace(',', ' ') }}
+                            • Ludność pozamiejska: {{ "{:,}".format(region.region_ludnosc_pozamiejska).replace(',', ' ') }}
                         </div>
                     </div>
 
