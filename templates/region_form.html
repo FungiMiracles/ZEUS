@@ -103,6 +103,24 @@
         background-color: #3498db;
         color: white;
     }
+        .btn-edit {
+        display:inline-block;
+        padding: 10px 20px;
+        background-color: #ecf0f1;
+        border: 1.5px solid #bdc3c7;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #235b86;
+        font-weight: 600;
+        transition: 0.3s;
+        margin: 30px auto 0;
+        text-align:center;
+    }
+
+    .btn-edit:hover {
+        background-color: #17466a;
+        color: white;
+    }
 
     /* ============================================================
    MOBILE — FORMULARZ REGIONU
@@ -379,6 +397,9 @@
     <div style="text-align:center;">
         <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
             Wróć do wyszukiwania regionów
+        </a>
+        <a href="{{ url_for('region_form_edit', region_id=row.region_id) }}" class="btn-edit">
+            Edytuj
         </a>
     </div>
 
