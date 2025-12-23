@@ -25,6 +25,7 @@ from routes_gospodarka import init_gospodarka_routes
 from routes_mapy import init_mapy_routes
 from routes_historia import init_historia_routes
 from routes_pliki import init_pliki_routes
+from routes_demografia import init_demografia_routes
 
 
 # ─────────────────────────────────────────
@@ -96,6 +97,7 @@ def create_app():
     init_mapy_routes(app)
     init_historia_routes(app)
     init_pliki_routes(app)
+    init_demografia_routes(app)
 
     # ───── BEFORE REQUEST ─────
     @app.before_request
