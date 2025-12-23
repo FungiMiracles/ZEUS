@@ -171,7 +171,7 @@ def init_miasta_routes(app):
             region_id = request.form.get("region_id")
             czy_na_mapie = request.form.get("czy_na_mapie")
 
-            required_fields = [nazwa, kod, panstwo_id, populacja, typ, region_id]
+            required_fields = [nazwa, kod, panstwo_id, populacja, typ, region_id, czy_na_mapie]
             if any(not field for field in required_fields):
                 error_message = "Wszystkie pola formularza są obowiązkowe."
                 return render_template(
@@ -257,6 +257,7 @@ def init_miasta_routes(app):
                 miasto_populacja=populacja,
                 miasto_typ=typ,
                 region_id=region_id,
+                czy_na_mapie=czy_na_mapie,
             )
             db.session.add(miasto)
             db.session.commit()
