@@ -140,6 +140,7 @@ def init_miasta_routes(app):
                     "miasto_kod": m.miasto_kod,
                     "miasto_populacja": m.miasto_populacja,
                     "miasto_typ": m.miasto_typ,
+                    "czy_na_mapie": m.czy_na_mapie,
                     "panstwo_nazwa": p.panstwo_nazwa,
                     "region_nazwa": r.region_nazwa if r else "Brak przypisania regionalnego",
                 }
