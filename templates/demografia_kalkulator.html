@@ -158,16 +158,22 @@
             <div><strong>{{ r.region_nazwa }}</strong></div>
             <div>{{ r.ludnosc_miejska | spacenum }}</div>
             <div>
-                <input type="number" min="0" placeholder="0">
+                <input
+                   type="number"
+                   min="0"
+                   value="0"
+                   class="rural-input"
+                   data-urban="{{ r.ludnosc_miejska }}"
+               >
             </div>
-            <div>—</div>
+            <div class="region-sum">—</div>
         </div>
         {% endfor %}
     </div>
 
     <div class="summary-box">
         <h2>Suma populacji państwa</h2>
-        <p style="font-size:1.4em; font-weight:700;">—</p>
+        <p id="country-sum" style="font-size:1.4em; font-weight:700;">—</p>
 
         <button class="btn-main">Przelicz populację państwa</button>
         <br><br>
@@ -176,5 +182,38 @@
     {% endif %}
 
 </div>
+
+<script>
+function formatNumber(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function recalcDemography() {
+    let totalCountry = 0;
+
+    document.querySelectorAll(".rural-input").forEach(input => {
+        const urban = parseInt(input.dataset.urban || 0);
+        const rural = parseInt(input.value || 0);
+
+        const regionTotal = urban + rural;
+        totalCountry += regionTotal;
+
+        const sumBox = input.closest(".region-grid").querySelector(".region-sum");
+        sumBox.textContent = formatNumber(regionTotal);
+    });
+
+    document.getElementById("country-sum").textContent =
+        totalCountry > 0 ? formatNumber(totalCountry) : "—";
+}
+
+// Live update
+document.querySelectorAll(".rural-input").forEach(input => {
+    input.addEventListener("input", recalcDemography);
+});
+
+// First run (safety)
+recalcDemography();
+</script>
+
 
 {% endblock %}
