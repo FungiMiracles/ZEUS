@@ -13,7 +13,7 @@ def init_regiony_routes(app):
     def wyniki_wyszukiwania_region():
         panstwo_nazwa = request.args.get("panstwo_nazwa")
         region_nazwa = request.args.get("region_nazwa")
-        ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
+        region_ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
 
         query = db.session.query(Region, Panstwo).join(
             Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID
@@ -25,6 +25,9 @@ def init_regiony_routes(app):
         if region_nazwa:
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
 
+        if region_nazwa:
+            query = query.filter(Region.region_nazwa.like(f"%{region_ludnosc_pozamiejska}%"))
+
         rows = query.all()
 
         results = [
@@ -33,6 +36,7 @@ def init_regiony_routes(app):
                 "region_nazwa": r.region_nazwa,
                 "region_populacja": r.region_populacja or 0,
                 "panstwo_nazwa": p.panstwo_nazwa,
+                "region_ludnosc_pozamiejska": r.region_ludnosc_pozamiejska or 0,
             }
             for r, p in rows
         ]
