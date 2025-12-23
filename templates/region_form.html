@@ -1,4 +1,4 @@
-{% extends 'base_layout.html' %}
+on{% extends 'base_layout.html' %}
 {% block title %}Region — {{ region.region_nazwa }}{% endblock %}
 
 {% block content %}
@@ -398,7 +398,7 @@
         <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
             Wróć do wyszukiwania regionów
         </a>
-        <a href="{{ url_for('region_form_edit', region_id=row.region_id) }}" class="btn-edit">
+        <a href="{{ url_for('region_form_edit', region_id=region.region_id) }}" class="btn-edit">
             Edytuj
         </a>
     </div>
