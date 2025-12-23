@@ -1,0 +1,180 @@
+{% extends "base_layout.html" %}
+{% block title %}Kalkulator demograficzny{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — KALKULATOR DEMOGRAFICZNY
+============================================================ */
+
+.demo-calc {
+    max-width: 1100px;
+    margin: 0 auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.demo-header {
+    text-align: center;
+    margin: 25px 0 35px 0;
+}
+
+.demo-header h1 {
+    font-size: 1.9em;
+    font-weight: 700;
+}
+
+.selector-box,
+.region-box,
+.summary-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: end;
+}
+
+.selector-grid label {
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+.selector-grid select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+}
+
+.btn-main {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    background-color: #5d7dce;
+    color: white;
+}
+
+.btn-main:hover {
+    background-color: #315eb8;
+}
+
+.region-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.region-grid input {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+}
+
+.region-header {
+    font-weight: 700;
+    background: #eef1f7;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.summary-box {
+    text-align: center;
+}
+
+.summary-box h2 {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+}
+</style>
+
+<div class="demo-calc">
+
+    <div class="demo-header">
+        <h1>Kalkulator demograficzny</h1>
+    </div>
+
+    <!-- ==================== WYBÓR ==================== -->
+    {% if not panstwo %}
+    <form method="POST" class="selector-box">
+        <div class="selector-grid">
+
+            <div>
+                <label>Kontynent</label>
+                <select name="kontynent" onchange="this.form.submit()">
+                    <option value="">— wybierz —</option>
+                    {% for k in kontynenty %}
+                        <option value="{{ k }}" {% if k == selected_kontynent %}selected{% endif %}>
+                            {{ k }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Państwo</label>
+                <select name="panstwo_id" {% if not panstwa %}disabled{% endif %}>
+                    <option value="">— wybierz —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}">{{ p.panstwo_nazwa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <button class="btn-main" type="submit">Przejdź do przeliczenia</button>
+            </div>
+
+        </div>
+    </form>
+    {% endif %}
+
+    <!-- ==================== REGIONY ==================== -->
+    {% if panstwo %}
+    <div class="region-box">
+        <h2>{{ panstwo.panstwo_nazwa }} — regiony</h2>
+
+        <div class="region-grid region-header">
+            <div>Region</div>
+            <div>Ludność miejska</div>
+            <div>Ludność pozamiejska</div>
+            <div>Suma regionu</div>
+        </div>
+
+        {% for r in regiony %}
+        <div class="region-grid" style="margin-top:8px;">
+            <div><strong>{{ r.region_nazwa }}</strong></div>
+            <div>{{ r.ludnosc_miejska | spacenum }}</div>
+            <div>
+                <input type="number" min="0" placeholder="0">
+            </div>
+            <div>—</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="summary-box">
+        <h2>Suma populacji państwa</h2>
+        <p style="font-size:1.4em; font-weight:700;">—</p>
+
+        <button class="btn-main">Przelicz populację państwa</button>
+        <br><br>
+        <button class="btn-main" style="background:#27ae60;">Zapisz dane w bazie</button>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
