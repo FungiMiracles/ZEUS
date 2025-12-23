@@ -268,8 +268,9 @@
                             • {{ row.miasto_typ }}
                             • Populacja: {{ "{:,}".format(row.miasto_populacja).replace(',', ' ') }}
                             {% if row.region_nazwa %}
-                                • Region: {{ row.region_nazwa }}
+                            • Region: {{ row.region_nazwa }}
                             {% endif %}
+                            • Na mapie :
                            <td>
                                {% if row.czy_na_mapie == "TAK" %}
                                    <span style="color:green; font-weight:600;">TAK</span>
