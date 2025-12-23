@@ -61,6 +61,28 @@
     .cancel-btn:hover {
          background: #c0392b;
     }
+
+        /* Widok mobilny: telefony do ok. 767px szerokości */
+    @media (max-width: 767px) {
+        .filter-box {
+            width: 90%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .filter-box select,
+        .filter-box input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .filter-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
 </style>
 
 <!-- FILTRY -->
