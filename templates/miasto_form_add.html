@@ -114,6 +114,26 @@
           </select>
         </td>
       </tr>
+      <tr>
+        <td style="padding:10px;">Na mapie</td>
+        <td style="padding:10px;">
+            <select name="czy_na_mapie" style="width:100%; padding:6px;">
+                <option value="TAK"
+                    {% if (form_data and form_data.czy_na_mapie == "TAK") 
+                          or (not form_data and miasto.czy_na_mapie == "TAK") %}
+                        selected
+                    {% endif %}
+                >TAK</option>
+    
+                <option value="NIE"
+                    {% if (form_data and form_data.czy_na_mapie == "NIE") 
+                          or (not form_data and miasto.czy_na_mapie == "NIE") %}
+                        selected
+                    {% endif %}
+                >NIE</option>
+            </select>
+        </td>
+    </tr>
 
       <!-- REGION -->
       <tr style="background-color:#f5f8ff;">
