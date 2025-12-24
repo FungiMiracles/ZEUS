@@ -7,6 +7,10 @@ from flask import jsonify
 
 def init_demografia_routes(app):
 
+    @app.route("/demografia")
+    def demografia():
+        return render_template("demografia.html")
+
     # --------------------------------
     # KALKULATOR DEMOGRAFICZNY
     # --------------------------------
