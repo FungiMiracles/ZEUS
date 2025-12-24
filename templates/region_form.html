@@ -367,10 +367,10 @@
         </thead>
         <tbody>
             <tr>
-                <td>Łączna populacja miast</td>
+                <td>Łączna ludność miejska</td>
                 <td>
-                    {% if suma_miast > 0 %}
-                        {{ "{:,}".format(suma_miast).replace(",", " ") }}
+                    {% if miasta and miasta|length > 0 %}
+                        {{ "{:,}".format(miasta | sum(attribute='miasto_populacja')).replace(",", " ") }}
                     {% else %}
                         Brak danych
                     {% endif %}
