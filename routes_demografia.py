@@ -86,6 +86,7 @@ def init_demografia_routes(app):
                 if not region:
                     raise ValueError(f"Region ID {r['region_id']} nie istnieje")
 
+                region.region_ludnosc_pozamiejska = r["region_ludnosc_pozamiejska"]
                 region.region_populacja = r["region_populacja"]
                 total_population += r["region_populacja"]
 
