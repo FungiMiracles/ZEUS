@@ -108,12 +108,12 @@
 
     <!-- ==================== WYBÓR ==================== -->
     {% if not panstwo %}
-    <form method="POST" class="selector-box">
+    <form method="GET" action="{{ url_for('demografia_kalkulator_start') }}" class="selector-box">
           <div class="selector-grid">
       
               <div>
                   <label>Kontynent</label>
-                  <select name="kontynent" onchange="this.form.submit()">
+                  <select name="kontynent">
                       <option value="">— wybierz —</option>
                       {% for k in kontynenty %}
                           <option value="{{ k }}"
