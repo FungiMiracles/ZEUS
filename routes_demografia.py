@@ -68,7 +68,6 @@ def init_demografia_routes(app):
     # ZAPIS DANYCH DEMOGRAFICZNYCH
     # --------------------------------
     @app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
-    @wymaga_roli("wszechmocny")
     def demografia_kalkulator_zapisz(panstwo_id):
 
         data = request.get_json()
