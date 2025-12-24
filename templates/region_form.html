@@ -265,21 +265,6 @@
         </p>
     </div>
 
-    {# ============================================================
-       WYLICZENIA TYMCZASOWE (TYLKO WIDOK)
-    ============================================================ #}
-
-{% set suma_miast = region.miasta
-    | map(attribute='miasto_populacja')
-    | select('ne', none)
-    | sum
-%}
-
-{% set populacja_wyliczona =
-    (region.region_ludnosc_pozamiejska or 0) + suma_miast
-%}
-
-
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
         <thead>
@@ -302,10 +287,10 @@
             <tr>
                 <td style="font-weight:700;">Populacja regionu:</td>
                 <td>
-                    {% if populacja_wyliczona > 0 %}
-                        {{ "{:,}".format(populacja_wyliczona).replace(",", " ") }}
+                    {% if region.region_populacja and region.region_populacja > 0 %}
+                        {{ "{:,}".format(region.region_populacja).replace(",", " ") }}
                         <span style="color:#888; font-size:0.9em;">
-                            (wyliczana)
+                            (zapisana)
                         </span>
                     {% else %}
                         Brak danych
