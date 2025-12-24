@@ -235,9 +235,10 @@ function commitDemography() {
         const rural = parseInt(input.value || 0);
 
         regions.push({
-            region_id: parseInt(regionId),
-            region_populacja: urban + rural
-        });
+          region_id: parseInt(regionId),
+          region_populacja: urban + rural,
+          region_ludnosc_pozamiejska: rural
+      });
     });
 
     fetch(window.location.pathname + "/zapisz", {
