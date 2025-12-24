@@ -311,13 +311,13 @@
 
             <tr>
                 <td style="font-weight:700;">Ludność miejska:</td>
-                <td>
-                    {% if suma_miast > 0 %}
-                        {{ "{:,}".format(suma_miast).replace(",", " ") }}
-                    {% else %}
-                        Brak danych
-                    {% endif %}
-                </td>
+                    <td>
+                        {% if region.region_populacja and region.region_populacja > 0 %}
+                            {{ "{:,}".format(region.region_populacja).replace(",", " ") }}
+                        {% else %}
+                            Brak danych
+                        {% endif %}
+                    </td>        
             </tr>
 
         </tbody>
