@@ -25,9 +25,6 @@ def init_regiony_routes(app):
         if region_nazwa:
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
 
-        if region_nazwa:
-            query = query.filter(Region.region_nazwa.like(f"%{region_ludnosc_pozamiejska}%"))
-
         rows = query.all()
 
         results = [
@@ -158,14 +155,11 @@ def init_regiony_routes(app):
         panstwo = region.panstwo
         miasta = region.miasta  # lista obiektów Miasto
 
-        laczna_populacja = sum((m.miasto_populacja or 0) for m in miasta)
-
         return render_template(
             "region_form.html",
             region=region,
             panstwo=panstwo,
             miasta=miasta,
-            laczna_populacja=laczna_populacja
         )
 
 
