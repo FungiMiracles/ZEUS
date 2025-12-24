@@ -212,7 +212,7 @@
       
               <div>
                   <label>Kontynent</label>
-                  <select name="kontynent">
+                  <select name="kontynent" onchange="this.form.submit()">
                       <option value="">— wybierz —</option>
                       {% for k in kontynenty %}
                           <option value="{{ k }}"
