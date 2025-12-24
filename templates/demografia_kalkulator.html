@@ -154,7 +154,7 @@
         </div>
 
         {% for r in regiony %}
-        <div class="region-grid" style="margin-top:8px;">
+        <div class="region-grid" data-region-id="{{ r.region_id }}" style="margin-top:8px;">
             <div><strong>{{ r.region_nazwa }}</strong></div>
             <div>{{ r.ludnosc_miejska | spacenum }}</div>
             <div>
@@ -180,7 +180,13 @@
       </p>
        
         <br><br>
-        <button class="btn-main" style="background:#27ae60;">Zrzuć dane do bazy</button>
+        <button
+             class="btn-main"
+             style="background:#27ae60;"
+             onclick="commitDemography()"
+         >
+             Zrzuć do bazy danych
+         </button>
     </div>
     {% endif %}
 
@@ -217,6 +223,44 @@ document.querySelectorAll(".rural-input").forEach(input => {
 // First run (safety)
 recalcDemography();
 </script>
+<script>
+function commitDemography() {
+    const regions = [];
 
+    document.querySelectorAll(".rural-input").forEach(input => {
+        const regionGrid = input.closest(".region-grid");
+
+        const regionId = regionGrid.dataset.regionId;
+        const urban = parseInt(input.dataset.urban || 0);
+        const rural = parseInt(input.value || 0);
+
+        regions.push({
+            region_id: parseInt(regionId),
+            region_populacja: urban + rural
+        });
+    });
+
+    fetch(window.location.pathname + "/zapisz", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ regions })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Dane demograficzne zapisane w bazie danych.");
+            location.reload();
+        } else {
+            alert("Błąd zapisu: " + data.error);
+        }
+    })
+    .catch(err => {
+        alert("Błąd komunikacji z serwerem.");
+        console.error(err);
+    });
+}
+</script>
 
 {% endblock %}
