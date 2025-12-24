@@ -98,6 +98,105 @@
     font-size: 1.4em;
     margin-bottom: 15px;
 }
+
+/* ============================================================
+   MOBILE — KALKULATOR DEMOGRAFICZNY
+   TYLKO UKŁAD, DESKTOP NIETKNIĘTY
+============================================================ */
+@media (max-width: 768px) {
+
+    /* ===== KONTAINER ===== */
+    .demo-calc {
+        padding: 0 10px;
+    }
+
+    /* ===== HEADER ===== */
+    .demo-header h1 {
+        font-size: 1.4em;
+    }
+
+    /* ===== SELECTORY ===== */
+    .selector-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .btn-main {
+        width: 100%;
+    }
+
+    /* ===== REGIONY — KARTY ===== */
+    .region-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid #e0e4ea;
+        border-radius: 10px;
+        margin-top: 12px;
+        background: #fafbfc;
+    }
+
+    /* Ukryj nagłówek tabeli */
+    .region-grid.region-header {
+        display: none;
+    }
+
+    /* Etykiety pseudo */
+    .region-grid > div:nth-child(1)::before {
+        content: "Region";
+        display: block;
+        font-weight: 700;
+        color: #7f8c8d;
+        font-size: 0.75em;
+        margin-bottom: 2px;
+    }
+
+    .region-grid > div:nth-child(2)::before {
+        content: "Ludność miejska";
+        display: block;
+        font-weight: 700;
+        color: #7f8c8d;
+        font-size: 0.75em;
+        margin-bottom: 2px;
+    }
+
+    .region-grid > div:nth-child(3)::before {
+        content: "Ludność pozamiejska";
+        display: block;
+        font-weight: 700;
+        color: #7f8c8d;
+        font-size: 0.75em;
+        margin-bottom: 2px;
+    }
+
+    .region-grid > div:nth-child(4)::before {
+        content: "Suma regionu";
+        display: block;
+        font-weight: 700;
+        color: #7f8c8d;
+        font-size: 0.75em;
+        margin-bottom: 2px;
+    }
+
+    /* ===== INPUT ===== */
+    .region-grid input {
+        padding: 8px;
+        font-size: 1em;
+    }
+
+    /* ===== PODSUMOWANIE ===== */
+    .summary-box {
+        padding: 18px 15px;
+    }
+
+    .summary-box h2 {
+        font-size: 1.2em;
+    }
+
+    #country-sum {
+        font-size: 1.6em;
+    }
+}
 </style>
 
 <div class="demo-calc">
