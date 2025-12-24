@@ -50,6 +50,19 @@ def init_demografia_routes(app):
 
         panstwo = Panstwo.query.get_or_404(panstwo_id)
 
+        # ===== DANE DO WYSZUKIWARKI (MUSZĄ BYĆ) =====
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .all()
+        )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
+
+        panstwa = Panstwo.query.filter_by(
+            kontynent=panstwo.kontynent
+        ).order_by(Panstwo.panstwo_nazwa).all()
+
+        # ===== REGIONY DO KALKULATORA =====
         regiony = (
             db.session.query(
                 Region.region_id,
@@ -65,6 +78,12 @@ def init_demografia_routes(app):
 
         return render_template(
             "demografia_kalkulator.html",
+            # wyszukiwarka
+            kontynenty=kontynenty,
+            panstwa=panstwa,
+            selected_kontynent=panstwo.kontynent,
+
+            # kalkulator
             panstwo=panstwo,
             regiony=regiony
         )
