@@ -10,83 +10,55 @@ def init_demografia_routes(app):
     # --------------------------------
     # KALKULATOR DEMOGRAFICZNY – START
     # --------------------------------
-    @app.route("/demografia/kalkulator", methods=["GET", "POST"])
+    @app.route("/demografia/kalkulator", methods=["GET"])
     def demografia_kalkulator_start():
 
-        kontynent = request.form.get("kontynent")
-        panstwo_id = request.form.get("panstwo_id")
+    kontynent = request.args.get("kontynent")
+    panstwo_id = request.args.get("panstwo_id")
 
-        kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .all()
-        )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
+    kontynenty = (
+        db.session.query(Panstwo.kontynent)
+        .distinct()
+        .all()
+    )
+    kontynenty = [k[0] for k in kontynenty if k[0]]
 
-        panstwa = []
-        if kontynent:
-            panstwa = Panstwo.query.filter_by(kontynent=kontynent).order_by(
-                Panstwo.panstwo_nazwa
-            ).all()
+    panstwa = []
+    panstwo = None
+    regiony = None
 
-        if request.method == "POST" and panstwo_id:
-            return redirect(url_for(
-                "demografia_kalkulator_panstwo",
-                panstwo_id=panstwo_id
-            ))
-
-        return render_template(
-            "demografia_kalkulator.html",
-            kontynenty=kontynenty,
-            panstwa=panstwa,
-            selected_kontynent=kontynent
-        )
-
-    # --------------------------------
-    # KALKULATOR – WIDOK PAŃSTWA
-    # --------------------------------
-    @app.route("/demografia/kalkulator/<int:panstwo_id>")
-    def demografia_kalkulator_panstwo(panstwo_id):
-
-        panstwo = Panstwo.query.get_or_404(panstwo_id)
-
-        # ===== DANE DO WYSZUKIWARKI (MUSZĄ BYĆ) =====
-        kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .all()
-        )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
-
+    if kontynent:
         panstwa = Panstwo.query.filter_by(
-            kontynent=panstwo.kontynent
+            kontynent=kontynent
         ).order_by(Panstwo.panstwo_nazwa).all()
 
-        # ===== REGIONY DO KALKULATORA =====
-        regiony = (
-            db.session.query(
-                Region.region_id,
-                Region.region_nazwa,
-                func.coalesce(func.sum(Miasto.miasto_populacja), 0).label("ludnosc_miejska")
+    if panstwo_id and panstwo_id.isdigit():
+        panstwo = Panstwo.query.get(int(panstwo_id))
+
+        if panstwo:
+            regiony = (
+                db.session.query(
+                    Region.region_id,
+                    Region.region_nazwa,
+                    func.coalesce(func.sum(Miasto.miasto_populacja), 0).label("ludnosc_miejska")
+                )
+                .outerjoin(Miasto, Miasto.region_id == Region.region_id)
+                .filter(Region.panstwo_id == panstwo.PANSTWO_ID)
+                .group_by(Region.region_id)
+                .order_by(Region.region_nazwa)
+                .all()
             )
-            .outerjoin(Miasto, Miasto.region_id == Region.region_id)
-            .filter(Region.panstwo_id == panstwo_id)
-            .group_by(Region.region_id)
-            .order_by(Region.region_nazwa)
-            .all()
-        )
 
-        return render_template(
-            "demografia_kalkulator.html",
-            # wyszukiwarka
-            kontynenty=kontynenty,
-            panstwa=panstwa,
-            selected_kontynent=panstwo.kontynent,
+    return render_template(
+        "demografia_kalkulator.html",
+        kontynenty=kontynenty,
+        panstwa=panstwa,
+        selected_kontynent=kontynent,
+        panstwo=panstwo,
+        regiony=regiony
+    )
 
-            # kalkulator
-            panstwo=panstwo,
-            regiony=regiony
-        )
+   
 
     @ app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
     def demografia_kalkulator_zapisz(panstwo_id):
