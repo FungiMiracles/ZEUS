@@ -336,6 +336,9 @@
 </div>
 
 <script>
+    const PANSTWO_ID = {{ panstwo.PANSTWO_ID }};
+</script>
+<script>
 function formatNumber(n) {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
@@ -384,7 +387,7 @@ function commitDemography() {
       });
     });
 
-    fetch(window.location.pathname + "/zapisz", {
+    fetch(`/demografia/kalkulator/${PANSTWO_ID}/zapisz`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
