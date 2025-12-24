@@ -322,7 +322,6 @@
       </p>
        
         <br><br>
-       {% if session.rola == "wszechmocny" %}
         <button
              class="btn-main"
              style="background:#27ae60;"
@@ -330,15 +329,6 @@
          >
              Zrzuć do bazy danych
          </button>
-          {% else %}
-       <button
-             class="btn-main"
-             style="background:#27ae60;"
-             onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')"
-         >
-             Zrzuć do bazy danych
-         </button>
-          {% endif %}
          <br><br>
          <a
              class="btn-main"
