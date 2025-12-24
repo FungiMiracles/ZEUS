@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request
 from extensions import db
 from models import Panstwo, Region, Miasto
 from sqlalchemy import func
@@ -8,71 +8,75 @@ from flask import jsonify
 def init_demografia_routes(app):
 
     # --------------------------------
-    # KALKULATOR DEMOGRAFICZNY – START
+    # KALKULATOR DEMOGRAFICZNY
     # --------------------------------
     @app.route("/demografia/kalkulator", methods=["GET"])
-    def demografia_kalkulator_start():
+    def demografia_kalkulator():
 
-    kontynent = request.args.get("kontynent")
-    panstwo_id = request.args.get("panstwo_id")
+        kontynent = request.args.get("kontynent")
+        panstwo_id = request.args.get("panstwo_id")
 
-    kontynenty = (
-        db.session.query(Panstwo.kontynent)
-        .distinct()
-        .all()
-    )
-    kontynenty = [k[0] for k in kontynenty if k[0]]
+        # ===== LISTA KONTYNENTÓW =====
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .all()
+        )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
 
-    panstwa = []
-    panstwo = None
-    regiony = None
+        panstwa = []
+        panstwo = None
+        regiony = None
 
-    if kontynent:
-        panstwa = Panstwo.query.filter_by(
-            kontynent=kontynent
-        ).order_by(Panstwo.panstwo_nazwa).all()
+        # ===== LISTA PAŃSTW =====
+        if kontynent:
+            panstwa = Panstwo.query.filter_by(
+                kontynent=kontynent
+            ).order_by(Panstwo.panstwo_nazwa).all()
 
-    if panstwo_id and panstwo_id.isdigit():
-        panstwo = Panstwo.query.get(int(panstwo_id))
+        # ===== REGIONY DO KALKULATORA =====
+        if panstwo_id and panstwo_id.isdigit():
+            panstwo = Panstwo.query.get(int(panstwo_id))
 
-        if panstwo:
-            regiony = (
-                db.session.query(
-                    Region.region_id,
-                    Region.region_nazwa,
-                    func.coalesce(func.sum(Miasto.miasto_populacja), 0).label("ludnosc_miejska")
+            if panstwo:
+                regiony = (
+                    db.session.query(
+                        Region.region_id,
+                        Region.region_nazwa,
+                        func.coalesce(
+                            func.sum(Miasto.miasto_populacja), 0
+                        ).label("ludnosc_miejska")
+                    )
+                    .outerjoin(Miasto, Miasto.region_id == Region.region_id)
+                    .filter(Region.panstwo_id == panstwo.PANSTWO_ID)
+                    .group_by(Region.region_id)
+                    .order_by(Region.region_nazwa)
+                    .all()
                 )
-                .outerjoin(Miasto, Miasto.region_id == Region.region_id)
-                .filter(Region.panstwo_id == panstwo.PANSTWO_ID)
-                .group_by(Region.region_id)
-                .order_by(Region.region_nazwa)
-                .all()
-            )
 
-    return render_template(
-        "demografia_kalkulator.html",
-        kontynenty=kontynenty,
-        panstwa=panstwa,
-        selected_kontynent=kontynent,
-        panstwo=panstwo,
-        regiony=regiony
-    )
+        return render_template(
+            "demografia_kalkulator.html",
+            kontynenty=kontynenty,
+            panstwa=panstwa,
+            selected_kontynent=kontynent,
+            panstwo=panstwo,
+            regiony=regiony
+        )
 
-   
-
-    @ app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
+    # --------------------------------
+    # ZAPIS DANYCH DEMOGRAFICZNYCH
+    # --------------------------------
+    @app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
     def demografia_kalkulator_zapisz(panstwo_id):
 
         data = request.get_json()
         if not data or "regions" not in data:
             return jsonify(success=False, error="Brak danych regionów")
 
-        regions_data = data["regions"]
-
         try:
             total_population = 0
 
-            for r in regions_data:
+            for r in data["regions"]:
                 region = Region.query.get(r["region_id"])
                 if not region:
                     raise ValueError(f"Region ID {r['region_id']} nie istnieje")
@@ -86,15 +90,8 @@ def init_demografia_routes(app):
 
             db.session.commit()
 
-            return jsonify(
-                success=True,
-                panstwo_populacja=total_population
-            )
+            return jsonify(success=True, panstwo_populacja=total_population)
 
         except Exception as e:
             db.session.rollback()
-            return jsonify(
-                success=False,
-                error=str(e)
-            )
-
+            return jsonify(success=False, error=str(e))
