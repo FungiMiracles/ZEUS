@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for
 from extensions import db
 from models import Panstwo, Region, Miasto
 from sqlalchemy import func
+from flask import jsonify
 
 
 def init_demografia_routes(app):
@@ -67,3 +68,41 @@ def init_demografia_routes(app):
             panstwo=panstwo,
             regiony=regiony
         )
+
+    @ app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
+    def demografia_kalkulator_zapisz(panstwo_id):
+
+        data = request.get_json()
+        if not data or "regions" not in data:
+            return jsonify(success=False, error="Brak danych regionów")
+
+        regions_data = data["regions"]
+
+        try:
+            total_population = 0
+
+            for r in regions_data:
+                region = Region.query.get(r["region_id"])
+                if not region:
+                    raise ValueError(f"Region ID {r['region_id']} nie istnieje")
+
+                region.region_populacja = r["region_populacja"]
+                total_population += r["region_populacja"]
+
+            panstwo = Panstwo.query.get_or_404(panstwo_id)
+            panstwo.panstwo_populacja = total_population
+
+            db.session.commit()
+
+            return jsonify(
+                success=True,
+                panstwo_populacja=total_population
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify(
+                success=False,
+                error=str(e)
+            )
+
