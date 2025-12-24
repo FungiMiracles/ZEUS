@@ -109,36 +109,42 @@
     <!-- ==================== WYBÓR ==================== -->
     {% if not panstwo %}
     <form method="POST" class="selector-box">
-        <div class="selector-grid">
-
-            <div>
-                <label>Kontynent</label>
-                <select name="kontynent" onchange="this.form.submit()">
-                    <option value="">— wybierz —</option>
-                    {% for k in kontynenty %}
-                        <option value="{{ k }}" {% if k == selected_kontynent %}selected{% endif %}>
-                            {{ k }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div>
-                <label>Państwo</label>
-                <select name="panstwo_id" {% if not panstwa %}disabled{% endif %}>
-                    <option value="">— wybierz —</option>
-                    {% for p in panstwa %}
-                        <option value="{{ p.PANSTWO_ID }}">{{ p.panstwo_nazwa }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div>
-                <button class="btn-main" type="submit">Przejdź do przeliczenia</button>
-            </div>
-
-        </div>
-    </form>
+          <div class="selector-grid">
+      
+              <div>
+                  <label>Kontynent</label>
+                  <select name="kontynent" onchange="this.form.submit()">
+                      <option value="">— wybierz —</option>
+                      {% for k in kontynenty %}
+                          <option value="{{ k }}"
+                              {% if k == selected_kontynent %}selected{% endif %}>
+                              {{ k }}
+                          </option>
+                      {% endfor %}
+                  </select>
+              </div>
+      
+              <div>
+                  <label>Państwo</label>
+                  <select name="panstwo_id">
+                      <option value="">— wybierz —</option>
+                      {% for p in panstwa %}
+                          <option value="{{ p.PANSTWO_ID }}"
+                              {% if panstwo and p.PANSTWO_ID == panstwo.PANSTWO_ID %}selected{% endif %}>
+                              {{ p.panstwo_nazwa }}
+                          </option>
+                      {% endfor %}
+                  </select>
+              </div>
+      
+              <div>
+                  <button class="btn-main" type="submit">
+                      Przejdź do przeliczenia
+                  </button>
+              </div>
+      
+          </div>
+      </form>
     {% endif %}
 
     <!-- ==================== REGIONY ==================== -->
