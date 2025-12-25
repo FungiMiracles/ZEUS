@@ -22,7 +22,13 @@ class Panstwo(db.Model):
     kontynent = db.Column(db.String(255))
     panstwo_powierzchnia = db.Column(BigInteger)
 
-    # Relacje
+    # 🆕 STATUS SUWERENNOŚCI
+    czy_suwerenny = db.Column(
+        db.Enum("TAK", "NIE", name="czy_suwerenny_enum"),
+        nullable=False,
+        default="TAK"
+    )
+
     miasta = db.relationship("Miasto", backref="panstwo", lazy=True)
     regiony = db.relationship("Region", backref="panstwo", lazy=True)
 
