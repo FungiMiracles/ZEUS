@@ -15,6 +15,7 @@ def format_populacja(n):
 
 def licz_dane_kontynentu(kontynent):
 
+    # ===== PAŃSTWA NA KONTYNENCIE =====
     panstwa = Panstwo.query.filter_by(kontynent=kontynent).all()
     if not panstwa:
         return None
@@ -27,6 +28,11 @@ def licz_dane_kontynentu(kontynent):
     # ===== POWIERZCHNIA =====
     powierzchnia = sum(p.panstwo_powierzchnia or 0 for p in panstwa)
     gestosc = round(populacja / powierzchnia, 2) if powierzchnia else None
+
+    # ===== PAŃSTWA SUWERENNE =====
+    panstwa_suwerenne = sum(
+        1 for p in panstwa if p.czy_suwerenny == "TAK"
+    )
 
     # ===== REGIONY =====
     regiony_count = (
@@ -57,7 +63,7 @@ def licz_dane_kontynentu(kontynent):
     )
 
     # ===== ŚREDNIE =====
-    srednia_panstwo = round(populacja / len(panstwa), 0) if panstwa else None
+    srednia_panstwo = round(populacja / len(panstwa), 0)
     srednia_region = (
         round(populacja / regiony_count, 0)
         if regiony_count else None
@@ -76,17 +82,19 @@ def licz_dane_kontynentu(kontynent):
     top_miasta = [
         {
             "miasto_nazwa": m.miasto_nazwa,
-            "miasto_populacja": format_populacja(m.miasto_populacja)
+            "miasto_populacja": format_populacja(m.miasto_populacja),
         }
         for m in top_miasta_raw
     ]
 
+    # ===== ZWROT =====
     return {
         "typ": "kontynent",
         "nazwa": kontynent,
         "populacja": populacja,
         "powierzchnia": powierzchnia,
         "gestosc": gestosc,
+        "panstwa_suwerenne": panstwa_suwerenne,
         "regiony": regiony_count,
         "miasta": miasta_count,
         "urbanizacja_pct": urbanizacja,
