@@ -256,63 +256,59 @@ def init_miasta_routes(app):
                 )
 
             # ───── DUPLIKATY ─────
-            duplicate_cities = (
-                db.session.query(Miasto, Panstwo, Region)
-                .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
-                .outerjoin(Region, Miasto.region_id == Region.region_id)
-                .filter(Miasto.miasto_nazwa == nazwa)
-                .all()
+            # ───── DUPLIKATY ─────
+        duplicate_cities = (
+            db.session.query(Miasto, Panstwo, Region)
+            .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
+            .outerjoin(Region, Miasto.region_id == Region.region_id)
+            .filter(Miasto.miasto_nazwa == nazwa)
+            .all()
+        )
+
+        if duplicate_cities:
+            duplicates_info = [
+                f"{m.miasto_nazwa} — Państwo: {p.panstwo_nazwa}, "
+                f"Region: {r.region_nazwa if r else 'Brak'}"
+                for m, p, r in duplicate_cities
+            ]
+
+            return render_template(
+                "miasto_form_add.html",
+                miasto=empty_miasto,
+                error="Miasto o takiej nazwie już istnieje.",
+                duplicates=duplicates_info,
+                form_data=request.form,
             )
 
-            if duplicate_cities:
-                duplicates_info = [
-                    f"{m.miasto_nazwa} — Państwo: {p.panstwo_nazwa}, "
-                    f"Region: {r.region_nazwa if r else 'Brak'}"
-                    for m, p, r in duplicate_cities
-                ]
-
-                return render_template(
-                    "miasto_form_add.html",
-                    miasto=empty_miasto,
-                    error="Miasto o takiej nazwie już istnieje.",
-                    duplicates=duplicates_info,
-                    form_data=request.form,
-                )
-
-            # ───── ZAPIS DO BAZY ─────
-                miasto = Miasto(
-                    miasto_nazwa=nazwa,
-                    miasto_kod=kod,
-                    panstwo_id=panstwo_id,
-                    miasto_populacja=populacja,
-                    miasto_typ=typ,
-                    region_id=region_id,
-                )
-                
-                db.session.add(miasto)
-                
-                try:
-                    # 🔥 TU JEST KLUCZOWY MOMENT
-                    przelicz_region_demografia(region_obj)
-                
-                except ValueError as e:
-                    db.session.rollback()
-                    return render_template(
-                        "miasto_form_add.html",
-                        error=str(e),
-                        form_data=request.form
-                    )
-                
-                db.session.commit()
-
-            return redirect(url_for("miasto_dodano"))
-
-        # ───── GET — pusty formularz ─────
-        return render_template(
-            "miasto_form_add.html",
-            miasto=empty_miasto,
-            form_data={}
+        # ───── ZAPIS DO BAZY (JUŻ POZA IF-em) ─────
+        miasto = Miasto(
+            miasto_nazwa=nazwa,
+            miasto_kod=kod,
+            panstwo_id=panstwo_id,
+            miasto_populacja=populacja,
+            miasto_typ=typ,
+            region_id=region_id,
+            czy_na_mapie=czy_na_mapie,
         )
+
+        db.session.add(miasto)
+
+        try:
+            # 🔥 KLUCZOWY MOMENT – PRZELICZENIE DEMOGRAFII
+            przelicz_region_demografia(region_obj)
+
+        except ValueError as e:
+            db.session.rollback()
+            return render_template(
+                "miasto_form_add.html",
+                miasto=empty_miasto,
+                error=str(e),
+                form_data=request.form,
+            )
+
+        db.session.commit()
+
+        return redirect(url_for("miasto_dodano"))
 
 
     # --------------------------------
