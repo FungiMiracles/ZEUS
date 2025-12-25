@@ -148,4 +148,3 @@ def init_demografia_routes(app):
             dane=dane,
             tryb=tryb
         )
-
