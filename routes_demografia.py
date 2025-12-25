@@ -44,13 +44,20 @@ def init_demografia_routes(app):
                     db.session.query(
                         Region.region_id,
                         Region.region_nazwa,
+                        Region.region_populacja,
+                        Region.region_ludnosc_pozamiejska,
                         func.coalesce(
                             func.sum(Miasto.miasto_populacja), 0
                         ).label("ludnosc_miejska")
                     )
                     .outerjoin(Miasto, Miasto.region_id == Region.region_id)
                     .filter(Region.panstwo_id == panstwo.PANSTWO_ID)
-                    .group_by(Region.region_id)
+                    .group_by(
+                        Region.region_id,
+                        Region.region_nazwa,
+                        Region.region_populacja,
+                        Region.region_ludnosc_pozamiejska
+                    )
                     .order_by(Region.region_nazwa)
                     .all()
                 )
