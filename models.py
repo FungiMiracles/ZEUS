@@ -24,7 +24,7 @@ class Panstwo(db.Model):
 
     # 🆕 STATUS SUWERENNOŚCI
     czy_suwerenny = db.Column(
-        db.Enum("TAK", "NIE", name="czy_suwerenny_enum"),
+        db.String(3),
         nullable=False,
         default="TAK"
     )
