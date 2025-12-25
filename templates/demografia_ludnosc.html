@@ -1,0 +1,295 @@
+{% extends "base_layout.html" %}
+{% block title %}Ludność i populacja{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — DEMOGRAFIA: LUDNOŚĆ I POPULACJA
+============================================================ */
+
+.demografia-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.demografia-header {
+    text-align: center;
+    margin: 25px 0 35px 0;
+}
+
+.demografia-header h1 {
+    font-size: 1.9em;
+    font-weight: 700;
+}
+
+/* ===== FILTRY ===== */
+
+.filter-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
+    align-items: end;
+}
+
+.filter-grid label {
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+.filter-grid select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+}
+
+.btn-main {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    background-color: #5d7dce;
+    color: white;
+}
+
+.btn-main:hover {
+    background-color: #315eb8;
+}
+
+/* ===== KAFELKI DANYCH ===== */
+
+.data-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 25px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.data-box h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 22px;
+}
+
+.data-item {
+    background: #f7f9fb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid #d6dbe0;
+}
+
+.data-item span.label {
+    display: block;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+}
+
+.data-item span.value {
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+/* ===== LISTY ===== */
+
+.list-box {
+    margin-top: 10px;
+}
+
+.list-box h3 {
+    font-size: 1.25em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.list-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-box li {
+    padding: 6px 0;
+    border-bottom: 1px solid #e1e5ea;
+    font-weight: 600;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 768px) {
+
+    .demografia-wrapper {
+        padding: 0 10px;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .btn-main {
+        width: 100%;
+    }
+
+    .data-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+</style>
+
+<div class="demografia-wrapper">
+
+    <div class="demografia-header">
+        <h1>Ludność i populacja</h1>
+    </div>
+
+    <!-- ==================== FILTRY ==================== -->
+    <form method="GET" action="{{ url_for('demografia_ludnosc') }}" class="filter-box">
+        <div class="filter-grid">
+
+            <div>
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— wybierz —</option>
+                    {% for k in kontynenty %}
+                        <option value="{{ k }}"
+                            {% if k == selected_kontynent %}selected{% endif %}>
+                            {{ k }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Państwo (opcjonalnie)</label>
+                <select name="panstwo_id">
+                    <option value="">— wszystkie —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}"
+                            {% if p.PANSTWO_ID|string == selected_panstwo_id|string %}selected{% endif %}>
+                            {{ p.panstwo_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <button class="btn-main" type="submit">
+                    Wyszukaj
+                </button>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- ==================== WYNIKI ==================== -->
+    {% if tryb == "kontynent" and dane %}
+
+    <div class="data-box">
+        <h2>{{ dane.nazwa }}</h2>
+
+        <div class="data-grid">
+
+            <div class="data-item">
+                <span class="label">Populacja</span>
+                <span class="value">{{ dane.populacja | spacenum }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Powierzchnia (km²)</span>
+                <span class="value">{{ dane.powierzchnia | spacenum }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Gęstość zaludnienia</span>
+                <span class="value">
+                    {{ dane.gestosc }} os./km²
+                </span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Państwa suwerenne</span>
+                <span class="value">{{ dane.panstwa_suwerenne }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Regiony</span>
+                <span class="value">{{ dane.regiony }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Miasta</span>
+                <span class="value">{{ dane.miasta }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Urbanizacja</span>
+                <span class="value">{{ dane.urbanizacja_pct }} %</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Śr. populacja państwa</span>
+                <span class="value">{{ dane.srednia_panstwo | spacenum }}</span>
+            </div>
+
+            <div class="data-item">
+                <span class="label">Śr. populacja regionu</span>
+                <span class="value">{{ dane.srednia_region | spacenum }}</span>
+            </div>
+
+        </div>
+
+        <div class="list-box">
+            <h3>Największe miasta</h3>
+            <ul>
+                {% for m in dane.top_miasta %}
+                    <li>
+                        {{ m.miasto_nazwa }} — {{ m.miasto_populacja }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+
+    {% elif tryb == "panstwo" %}
+
+    <div class="data-box">
+        <h2>{{ dane.nazwa }}</h2>
+        <p>Widok państwa – do uzupełnienia w kolejnym kroku.</p>
+    </div>
+
+    {% else %}
+
+    <div class="data-box">
+        <p>Wybierz kontynent (i opcjonalnie państwo), aby wyświetlić dane demograficzne.</p>
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
