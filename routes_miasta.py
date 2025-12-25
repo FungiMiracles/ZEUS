@@ -41,6 +41,8 @@ def init_miasta_routes(app):
             typ = request.form.get("miasto_typ")
             region_id = request.form.get("region_id")
             czy_na_mapie = request.form.get("czy_na_mapie")
+            stara_populacja = miasto.miasto_populacja or 0
+            stary_region = miasto.region
 
             # Walidacja
             errors = []
@@ -97,6 +99,18 @@ def init_miasta_routes(app):
             miasto.region_id = region_id
             miasto.czy_na_mapie = czy_na_mapie
 
+            # ───── PRZELICZENIE DEMOGRAFII REGIONU ─────
+            try:
+                przelicz_region_demografia(stary_region)
+            except ValueError as e:
+                db.session.rollback()
+                return render_template(
+                    "miasto_form_edit.html",
+                    error=str(e),
+                    miasto=miasto,
+                    form_data=request.form
+                )
+            
             db.session.commit()
 
             flash(f"Zmiany zostały wprowadzone dla miasta o ID {miasto_id}.", "success")
