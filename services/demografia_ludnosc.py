@@ -2,6 +2,14 @@ from sqlalchemy import func
 from models import Panstwo, Region, Miasto
 from extensions import db
 
+def format_populacja(n):
+    if n is None:
+        return "—"
+    if n >= 1_000_000:
+        return f"{round(n / 1_000_000, 2)} mln"
+    if n >= 1_000:
+        return f"{round(n / 1_000, 1)} tys."
+    return str(n)
 
 def licz_dane_kontynentu(kontynent):
 
