@@ -71,7 +71,7 @@
 
 .region-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
     gap: 12px;
     align-items: center;
 }
@@ -169,14 +169,14 @@
         margin-bottom: 2px;
     }
 
-    .region-grid > div:nth-child(4)::before {
-        content: "Suma regionu";
-        display: block;
-        font-weight: 700;
-        color: #7f8c8d;
-        font-size: 0.75em;
-        margin-bottom: 2px;
-    }
+    .region-grid > div:nth-child(5)::before {
+    content: "Urbanizacja";
+    display: block;
+    font-weight: 700;
+    color: #7f8c8d;
+    font-size: 0.75em;
+    margin-bottom: 2px;
+   }
 
     /* ===== INPUT ===== */
     .region-grid input {
@@ -293,23 +293,25 @@
             <div>Ludność miejska</div>
             <div>Ludność pozamiejska</div>
             <div>Suma regionu</div>
+            <div>Urbanizacja</div>
         </div>
 
         {% for r in regiony %}
-        <div class="region-grid" data-region-id="{{ r.region_id }}" style="margin-top:8px;">
-            <div><strong>{{ r.region_nazwa }}</strong></div>
-            <div>{{ r.ludnosc_miejska | spacenum }}</div>
-            <div>
-                <input
-                   type="number"
-                   min="0"
-                   value="{{ r.region_ludnosc_pozamiejska or 0 }}"
-                   class="rural-input"
-                   data-urban="{{ r.ludnosc_miejska }}"
-               >
+            <div class="region-grid" data-region-id="{{ r.region_id }}" style="margin-top:8px;">
+                <div><strong>{{ r.region_nazwa }}</strong></div>
+                <div>{{ r.ludnosc_miejska | spacenum }}</div>
+                <div>
+                    <input
+                        type="number"
+                        min="0"
+                        value="{{ r.region_ludnosc_pozamiejska or 0 }}"
+                        class="rural-input"
+                        data-urban="{{ r.ludnosc_miejska }}"
+                    >
+                </div>
+                <div class="region-sum">—</div>
+                <div class="region-urban-pct">—</div>
             </div>
-            <div class="region-sum">—</div>
-        </div>
         {% endfor %}
     </div>
 
@@ -317,6 +319,12 @@
         <h2>Suma populacji państwa</h2>
         <p id="country-sum" style="font-size:1.4em; font-weight:700;">—</p>
 
+        <p id="country-urban-pct"
+         style="font-size:1.1em; font-weight:700; margin-top:6px;">
+          —
+        </p>
+
+       
        <p style="color:#27ae60; font-weight:600; margin-top:8px;">
           ✓ Populacja liczona na bieżąco
       </p>
@@ -346,79 +354,90 @@
 
 </div>
 
+{% if panstwo %}
 <script>
     const PANSTWO_ID = {{ panstwo.PANSTWO_ID }};
 </script>
+{% endif %}
+
 <script>
 function formatNumber(n) {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-function recalcDemography() {
-    let totalCountry = 0;
-
-    document.querySelectorAll(".rural-input").forEach(input => {
-        const urban = parseInt(input.dataset.urban || 0);
-        const rural = parseInt(input.value || 0);
-
-        const regionTotal = urban + rural;
-        totalCountry += regionTotal;
-
-        const sumBox = input.closest(".region-grid").querySelector(".region-sum");
-        sumBox.textContent = formatNumber(regionTotal);
-    });
-
-    document.getElementById("country-sum").textContent =
-        totalCountry > 0 ? formatNumber(totalCountry) : "—";
+function getUrbanizationColor(pct) {
+    if (pct < 50) {
+        return "#e67e22"; // pomarańczowy
+    } else if (pct < 80) {
+        return "#27ae60"; // zielony
+    } else if (pct < 90) {
+        return "#e67e22"; // pomarańczowy
+    } else {
+        return "#c0392b"; // czerwony
+    }
 }
 
-// Live update
-document.querySelectorAll(".rural-input").forEach(input => {
-    input.addEventListener("input", recalcDemography);
-});
-
-// First run (safety)
-recalcDemography();
-</script>
-<script>
-function commitDemography() {
-    const regions = [];
+function recalcDemography() {
+    let totalCountry = 0;
+    let totalUrban = 0;
 
     document.querySelectorAll(".rural-input").forEach(input => {
         const regionGrid = input.closest(".region-grid");
 
-        const regionId = regionGrid.dataset.regionId;
         const urban = parseInt(input.dataset.urban || 0);
         const rural = parseInt(input.value || 0);
 
-        regions.push({
-          region_id: parseInt(regionId),
-          region_populacja: urban + rural,
-          region_ludnosc_pozamiejska: rural
-      });
+        const regionTotal = urban + rural;
+
+        totalCountry += regionTotal;
+        totalUrban += urban;
+
+        // ===== Suma regionu =====
+        const sumBox = regionGrid.querySelector(".region-sum");
+        sumBox.textContent = regionTotal > 0
+            ? formatNumber(regionTotal)
+            : "—";
+
+        // ===== % urbanizacji regionu =====
+        const pctBox = regionGrid.querySelector(".region-urban-pct");
+
+        if (regionTotal > 0) {
+            const pct = (urban / regionTotal) * 100;
+            pctBox.textContent = pct.toFixed(1) + " %";
+            pctBox.style.fontWeight = "700";
+            pctBox.style.color = getUrbanizationColor(pct);
+        } else {
+            pctBox.textContent = "—";
+            pctBox.style.color = "#7f8c8d";
+        }
     });
 
-    fetch(`/demografia/kalkulator/${PANSTWO_ID}/zapisz`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ regions })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert("Dane demograficzne zapisane w bazie danych.");
-            location.reload();
-        } else {
-            alert("Błąd zapisu: " + data.error);
-        }
-    })
-    .catch(err => {
-        alert("Błąd komunikacji z serwerem.");
-        console.error(err);
-    });
+    // ===== Suma populacji państwa =====
+    const countrySumBox = document.getElementById("country-sum");
+    countrySumBox.textContent =
+        totalCountry > 0 ? formatNumber(totalCountry) : "—";
+
+    // ===== Urbanizacja państwa (WAGOWA) =====
+    const countryPctBox = document.getElementById("country-urban-pct");
+
+    if (totalCountry > 0) {
+        const pctCountry = (totalUrban / totalCountry) * 100;
+        countryPctBox.textContent =
+            "Urbanizacja państwa: " + pctCountry.toFixed(1) + " %";
+        countryPctBox.style.color = getUrbanizationColor(pctCountry);
+    } else {
+        countryPctBox.textContent = "Urbanizacja państwa: —";
+        countryPctBox.style.color = "#7f8c8d";
+    }
 }
+
+// ===== Live update =====
+document.querySelectorAll(".rural-input").forEach(input => {
+    input.addEventListener("input", recalcDemography);
+});
+
+// ===== Pierwsze przeliczenie =====
+recalcDemography();
 </script>
 
 {% endblock %}
