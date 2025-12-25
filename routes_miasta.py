@@ -304,12 +304,20 @@ def init_miasta_routes(app):
     @wymaga_roli("wszechmocny")
     def usun_miasto(miasto_id):
         miasto = Miasto.query.get_or_404(miasto_id)
+        region = miasto.region
+    
         try:
             db.session.delete(miasto)
+    
+            # 🔥 zwrot ludności przez PRZELICZENIE
+            if region:
+                przelicz_region_demografia(region)
+    
             db.session.commit()
-            flash(f"Miasto {miasto.miasto_nazwa} zostało usunięte.", "success")
+            flash(f"Miasto {miasto.miasto_nazwa} zostało usunięte, a populacja regionu ponownie przeliczona.", "success")
+    
         except Exception as e:
             db.session.rollback()
             flash(f"Błąd podczas usuwania miasta: {e}", "error")
-
+    
         return redirect(request.referrer or url_for("wyniki_wyszukiwania_miasto"))
