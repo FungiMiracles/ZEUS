@@ -66,7 +66,7 @@
 
 <div class="demo-tiles">
 
-    <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+    <a href="{{ url_for('demografia_ludnosc') }}" class="demo-tile" onclick="event.preventDefault();">
         <div class="icon">👥</div>
         Ludność i populacja [niedostępne]
     </a>
@@ -80,7 +80,7 @@
         <div class="icon">🧭</div>
         Migracje [niedostępne]
     </a>
-
+demografia_ludnosc
     <a href="{{ url_for('demografia_kalkulator') }}" class="demo-tile">
         <div class="icon">🧮</div>
         Kalkulator demograficzny
