@@ -24,7 +24,7 @@ def licz_dane_kontynentu(kontynent):
     populacja = sum(p.panstwo_populacja or 0 for p in panstwa)
 
     # ===== POWIERZCHNIA =====
-    powierzchnia = sum(p.panstwo_powierzchnia_km2 or 0 for p in panstwa)
+    powierzchnia = sum(p.panstwo_powierzchnia or 0 for p in panstwa)
 
     gestosc = round(populacja / powierzchnia, 2) if powierzchnia else None
 
