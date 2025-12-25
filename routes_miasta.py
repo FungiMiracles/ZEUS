@@ -280,18 +280,30 @@ def init_miasta_routes(app):
                 )
 
             # ───── ZAPIS DO BAZY ─────
-            miasto = Miasto(
-                miasto_nazwa=nazwa,
-                miasto_kod=kod,
-                panstwo_id=panstwo_id,
-                miasto_populacja=populacja,
-                miasto_typ=typ,
-                region_id=region_id,
-                czy_na_mapie=czy_na_mapie,
-            )
-
-            db.session.add(miasto)
-            db.session.commit()
+                miasto = Miasto(
+                    miasto_nazwa=nazwa,
+                    miasto_kod=kod,
+                    panstwo_id=panstwo_id,
+                    miasto_populacja=populacja,
+                    miasto_typ=typ,
+                    region_id=region_id,
+                )
+                
+                db.session.add(miasto)
+                
+                try:
+                    # 🔥 TU JEST KLUCZOWY MOMENT
+                    przelicz_region_demografia(region_obj)
+                
+                except ValueError as e:
+                    db.session.rollback()
+                    return render_template(
+                        "miasto_form_add.html",
+                        error=str(e),
+                        form_data=request.form
+                    )
+                
+                db.session.commit()
 
             return redirect(url_for("miasto_dodano"))
 
