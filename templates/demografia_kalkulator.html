@@ -359,6 +359,52 @@
     const PANSTWO_ID = {{ panstwo.PANSTWO_ID }};
 </script>
 {% endif %}
+<script>
+function commitDemography() {
+
+    if (typeof PANSTWO_ID === "undefined" || !PANSTWO_ID) {
+        alert("Brak wybranego państwa.");
+        return;
+    }
+
+    const regions = [];
+
+    document.querySelectorAll(".rural-input").forEach(input => {
+        const regionGrid = input.closest(".region-grid");
+
+        const regionId = regionGrid.dataset.regionId;
+        const urban = parseInt(input.dataset.urban || 0);
+        const rural = parseInt(input.value || 0);
+
+        regions.push({
+            region_id: parseInt(regionId),
+            region_populacja: urban + rural,
+            region_ludnosc_pozamiejska: rural
+        });
+    });
+
+    fetch(`/demografia/kalkulator/${PANSTWO_ID}/zapisz`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ regions })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Dane demograficzne zapisane w bazie danych.");
+            location.reload();
+        } else {
+            alert("Błąd zapisu: " + data.error);
+        }
+    })
+    .catch(err => {
+        alert("Błąd komunikacji z serwerem.");
+        console.error(err);
+    });
+}
+</script>
 
 <script>
 function formatNumber(n) {
