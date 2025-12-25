@@ -4,7 +4,7 @@ from models import Panstwo, Region, Miasto
 from sqlalchemy import func
 from flask import jsonify
 from permissions import wymaga_roli
-
+from services.demografia_ludnosc import licz_dane_kontynentu
 
 def init_demografia_routes(app):
 
