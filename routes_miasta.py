@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, url_for, flash
 from extensions import db
 from models import Miasto, Panstwo, Region
 from permissions import wymaga_roli
+from demografia_utils import przelicz_region_demografia
 
 
 def init_miasta_routes(app):
