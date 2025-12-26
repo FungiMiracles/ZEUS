@@ -263,8 +263,8 @@ def init_demografia_routes(app):
                             panstwo_id=region.panstwo_id,
                             region_id=region.region_id,
                             miasto_typ="miasto",
-                            czy_na_mapie=False,
-                            czy_generowane=True
+                            czy_na_mapie="NIE",
+                            czy_generowane="TAK"
                         )
     
                         db.session.add(miasto)
