@@ -240,3 +240,54 @@ def init_demografia_routes(app):
             {"region_id": r.region_id, "region_nazwa": r.region_nazwa}
             for r in regiony
         ])
+    
+        # ============================================================
+    # PODSUMOWANIE LUDNOŚCI (KONTYNENT / PAŃSTWO)
+    # ============================================================
+
+    @app.route("/demografia/ludnosc", methods=["GET"])
+    def demografia_ludnosc():
+
+        kontynent = request.args.get("kontynent")
+        panstwo_id = request.args.get("panstwo_id")
+
+        # lista kontynentów
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
+
+        # lista państw (jeśli wybrano kontynent)
+        panstwa = []
+        if kontynent:
+            panstwa = (
+                Panstwo.query
+                .filter_by(kontynent=kontynent)
+                .order_by(Panstwo.panstwo_nazwa)
+                .all()
+            )
+
+        dane = None
+        tryb = None
+
+        if kontynent and not panstwo_id:
+            dane = licz_dane_kontynentu(kontynent)
+            tryb = "kontynent"
+
+        elif kontynent and panstwo_id and panstwo_id.isdigit():
+            dane = licz_dane_panstwa(int(panstwo_id))
+            tryb = "panstwo"
+
+        return render_template(
+            "demografia_ludnosc.html",
+            kontynenty=kontynenty,
+            panstwa=panstwa,
+            selected_kontynent=kontynent,
+            selected_panstwo_id=panstwo_id,
+            dane=dane,
+            tryb=tryb
+        )
+
