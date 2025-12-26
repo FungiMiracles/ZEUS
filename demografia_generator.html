@@ -1,0 +1,68 @@
+{% extends "base_layout.html" %}
+{% block title %}Generator miast technicznych{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px;margin:30px auto;">
+
+    <h1 style="text-align:center;">Generator miast technicznych</h1>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if warning %}
+        <div class="alert alert-warning">
+            {{ warning }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% if confirm_required %}
+            <input type="hidden" name="confirm" value="yes">
+            {% for k, v in form_data.items() %}
+                <input type="hidden" name="{{ k }}" value="{{ v }}">
+            {% endfor %}
+        {% endif %}
+
+        <label>Kontynent</label>
+        <select name="kontynent" required>
+            <option value="">-- wybierz --</option>
+            {% for k in kontynenty %}
+                <option value="{{ k }}">{{ k }}</option>
+            {% endfor %}
+        </select>
+
+        <label>ID państwa</label>
+        <input type="number" name="panstwo_id" required>
+
+        <label>ID regionu</label>
+        <input type="number" name="region_id" required>
+
+        <hr>
+
+        <label>Ilość miast</label>
+        <input type="number" name="ilosc" min="1" required>
+
+        <label>Ludność od</label>
+        <input type="number" name="min_pop" required>
+
+        <label>Ludność do</label>
+        <input type="number" name="max_pop" required>
+
+        <br><br>
+
+        <button class="btn btn-success" type="submit">
+            Zrzuć do bazy
+        </button>
+
+        <a href="{{ url_for('home_page') }}" class="btn btn-secondary">
+            Anuluj
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}
