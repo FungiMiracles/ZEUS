@@ -506,7 +506,10 @@ Wyniki wyszukiwania miast
             {% endfor %}
         </div>
 
-        {% if pagination.pages > 1 %}
+        {% set args = request.args.to_dict(flat=True) %}
+            {% if args.get('page') %}
+                {% do args.pop('page') %}
+            {% endif %}
             <div class="zeus-pagination">
                 {% if pagination.has_prev %}
                     <a href="{{ url_for('wyniki_wyszukiwania_miasto',
