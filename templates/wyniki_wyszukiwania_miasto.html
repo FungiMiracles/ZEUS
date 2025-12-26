@@ -223,6 +223,12 @@
 
     <h1>Wyniki wyszukiwania miast</h1>
 
+   {% if not empty %}
+    <div style="margin-bottom:14px; font-weight:600; color:#7f8c8d;">
+        Ilość znalezionych miast: {{ results | length }}
+    </div>
+   {% endif %}
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div style="margin-bottom:15px;">
