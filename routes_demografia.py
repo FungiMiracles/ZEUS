@@ -13,6 +13,7 @@ from extensions import db
 from models import Panstwo, Region, Miasto
 from permissions import wymaga_roli
 from sqlalchemy import func
+from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
 import random
 
 
