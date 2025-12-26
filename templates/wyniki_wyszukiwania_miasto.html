@@ -174,10 +174,16 @@ Wyniki wyszukiwania miast
     border-radius: 12px;
     padding: 16px 18px;
     margin: 15px 0 18px 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 14px;
+    align-items: flex-end;
     box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+.filter-group {
+    min-width: 160px;
+    flex: 0 0 auto;
 }
 
 .filter-group label {
