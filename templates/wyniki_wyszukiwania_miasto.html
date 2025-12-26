@@ -256,7 +256,57 @@
         </button>
     </div>
 
+      <div>
+    <label style="font-size:0.8em; font-weight:700;">Typ miasta</label><br>
+    <select name="miasto_typ"
+            style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
+        <option value="">— wszystkie —</option>
+        <option value="stolica"
+            {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+            Stolica państwa
+        </option>
+        <option value="stolica_regionu"
+            {% if request.args.get('miasto_typ') == 'stolica_regionu' %}selected{% endif %}>
+            Stolica regionu
+        </option>
+        <option value="miasto"
+            {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+            Miasto
+        </option>
+    </select>
+      </div>
+      <div>
+    <label style="font-size:0.8em; font-weight:700;">Sortuj populację</label><br>
+    <select name="sort_populacja"
+            style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
+        <option value="">— brak —</option>
+        <option value="asc"
+            {% if request.args.get('sort_populacja') == 'asc' %}selected{% endif %}>
+            Rosnąco
+        </option>
+        <option value="desc"
+            {% if request.args.get('sort_populacja') == 'desc' %}selected{% endif %}>
+            Malejąco
+        </option>
+    </select>
+</div>
+      <div>
+    <label style="font-size:0.8em; font-weight:700;">Populacja od</label><br>
+    <input type="number" name="populacja_od"
+           value="{{ request.args.get('populacja_od','') }}"
+           style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7; width:110px;">
+</div>
+
+<div>
+    <label style="font-size:0.8em; font-weight:700;">Populacja do</label><br>
+    <input type="number" name="populacja_do"
+           value="{{ request.args.get('populacja_do','') }}"
+           style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7; width:110px;">
+</div>
+
+
 </form>
+   
 
 
    {% if not empty %}
