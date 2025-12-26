@@ -129,6 +129,7 @@ def init_miasta_routes(app):
         miasto_kod = request.args.get("miasto_kod")
         panstwo_nazwa = request.args.get("panstwo_nazwa")
         region_nazwa = request.args.get("region_nazwa")
+        czy_na_mapie = request.args.get("czy_na_mapie")
 
         query = (
             db.session.query(Miasto, Panstwo, Region)
@@ -147,6 +148,9 @@ def init_miasta_routes(app):
 
         if region_nazwa:
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
+
+        if czy_na_mapie in ("TAK", "NIE"):
+            query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
 
         rows = query.all()
 
