@@ -101,14 +101,44 @@ h1 {
 
 .miasto-actions a,
 .miasto-actions button {
-    padding: 6px 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
     font-size: 0.8em;
     font-weight: 700;
-    border-radius: 6px;
     border: none;
     cursor: pointer;
-    color: #fff;
-    text-decoration: none;
+    color: #ffffff;
+    transition: background-color 0.15s ease;
+}
+
+/* Kolory jak wcześniej */
+.btn-view {
+    background-color: #5d7dce;
+}
+.btn-view:hover {
+    background-color: #315eb8;
+}
+
+.btn-edit {
+    background-color: #7f8c8d;
+}
+.btn-edit:hover {
+    background-color: #636e72;
+}
+
+.btn-delete {
+    background-color: #c0392b;
+}
+.btn-delete:hover {
+    background-color: #992d22;
+}
+
+.btn-region {
+    background-color: #b59f3b;
+}
+.btn-region:hover {
+    background-color: #9c862f;
 }
 
 .btn-view { background: #5d7dce; }
@@ -153,6 +183,35 @@ h1 {
     background: #5d7dce;
     color: white;
 }
+
+@media (max-width: 768px) {
+
+  .miasto-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .miasto-actions a,
+  .miasto-actions button,
+  .miasto-actions form {
+    width: 100%;
+  }
+
+  .miasto-actions a,
+  .miasto-actions button {
+    display: block;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .miasto-actions .btn-region {
+    grid-column: span 3;
+  }
+}
+
+    
 </style>
 
 <div class="wyniki-miast">
