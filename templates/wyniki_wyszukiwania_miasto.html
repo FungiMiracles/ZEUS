@@ -7,6 +7,39 @@
 /* ============================================================
    ZEUS — WYNIKI WYSZUKIWANIA MIAST (LISTA WIERSZOWA)
 ============================================================ */
+/* ============================================================
+   ZEUS — PAGINACJA
+============================================================ */
+
+.zeus-pagination {
+    margin: 25px 0 10px 0;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.zeus-pagination a,
+.zeus-pagination span {
+    padding: 6px 11px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid #bdc3c7;
+    color: #34495e;
+    background: #ecf0f1;
+}
+
+.zeus-pagination a:hover {
+    background: #dfe6e9;
+}
+
+.zeus-pagination .active {
+    background: #5d7dce;
+    color: #ffffff;
+    border-color: #4171d1;
+}
 
 .wyniki-miast {
     max-width: 1200px;
@@ -505,6 +538,40 @@
             {% endfor %}
 
         </div>
+      
+      {% if pagination.pages > 1 %}
+      <div class="zeus-pagination">
+      
+          {% if pagination.has_prev %}
+              <a href="{{ url_for('wyniki_wyszukiwania_miasto',
+                                  page=pagination.prev_num,
+                                  **request.args.to_dict(flat=True)) }}">
+                  ← Poprzednia
+              </a>
+          {% endif %}
+      
+          {% for p in range(1, pagination.pages + 1) %}
+              {% if p == pagination.page %}
+                  <span class="active">{{ p }}</span>
+              {% else %}
+                  <a href="{{ url_for('wyniki_wyszukiwania_miasto',
+                                      page=p,
+                                      **request.args.to_dict(flat=True)) }}">
+                      {{ p }}
+                  </a>
+              {% endif %}
+          {% endfor %}
+      
+          {% if pagination.has_next %}
+              <a href="{{ url_for('wyniki_wyszukiwania_miasto',
+                                  page=pagination.next_num,
+                                  **request.args.to_dict(flat=True)) }}">
+                  Następna →
+              </a>
+          {% endif %}
+      
+      </div>
+      {% endif %}
 
         <div class="footer-actions">
             <a href="{{ url_for('home_page') }}" class="btn-return">
@@ -513,6 +580,7 @@
         </div>
 
     {% endif %}
+      
 </div>
 
 {% endblock %}
