@@ -1,5 +1,5 @@
 # routes_regiony.py
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template, request, redirect, url_for, flash, abort, jsonify
 from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
@@ -226,18 +226,18 @@ def init_regiony_routes(app):
         # ───── GET ─────
         return render_template("region_form_edit.html", region=region)
 
-@app.route("/api/panstwa_by_kontynent")
-def api_panstwa_by_kontynent():
-    kontynent = request.args.get("kontynent")
-    if not kontynent:
-        return jsonify([])
+    @app.route("/api/panstwa_by_kontynent")
+    def api_panstwa_by_kontynent():
+        kontynent = request.args.get("kontynent")
+        if not kontynent:
+            return jsonify([])
 
-    panstwa = Panstwo.query.filter_by(kontynent=kontynent).order_by(Panstwo.panstwo_nazwa).all()
+        panstwa = Panstwo.query.filter_by(kontynent=kontynent).order_by(Panstwo.panstwo_nazwa).all()
 
-    return jsonify([
-        {
-            "PANSTWO_ID": p.PANSTWO_ID,
-            "panstwo_nazwa": p.panstwo_nazwa
-        }
-        for p in panstwa
-    ])
+        return jsonify([
+            {
+                "PANSTWO_ID": p.PANSTWO_ID,
+                "panstwo_nazwa": p.panstwo_nazwa
+            }
+            for p in panstwa
+        ])
