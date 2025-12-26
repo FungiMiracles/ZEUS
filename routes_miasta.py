@@ -130,6 +130,10 @@ def init_miasta_routes(app):
         panstwo_nazwa = request.args.get("panstwo_nazwa")
         region_nazwa = request.args.get("region_nazwa")
         czy_na_mapie = request.args.get("czy_na_mapie")
+        miasto_typ = request.args.get("miasto_typ")
+        sort_populacja = request.args.get("sort_populacja")
+        populacja_od = request.args.get("populacja_od")
+        populacja_do = request.args.get("populacja_do")
 
         query = (
             db.session.query(Miasto, Panstwo, Region)
@@ -151,6 +155,20 @@ def init_miasta_routes(app):
 
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
+
+        if miasto_typ:
+            query = query.filter(Miasto.miasto_typ == miasto_typ)
+
+        if populacja_od and populacja_od.isdigit():
+            query = query.filter(Miasto.miasto_populacja >= int(populacja_od))
+
+        if populacja_do and populacja_do.isdigit():
+            query = query.filter(Miasto.miasto_populacja <= int(populacja_do))
+
+        if sort_populacja == "asc":
+            query = query.order_by(Miasto.miasto_populacja.asc())
+        elif sort_populacja == "desc":
+            query = query.order_by(Miasto.miasto_populacja.desc())
 
         rows = query.all()
 
