@@ -351,3 +351,143 @@ def init_miasta_routes(app):
             flash(f"Błąd podczas usuwania miasta: {e}", "error")
     
         return redirect(request.referrer or url_for("wyniki_wyszukiwania_miasto"))
+        @app.route("/demografia/generator_miast", methods=["GET", "POST"])
+        def demografia_generator_miast():
+    
+            # --------------------------
+            # DANE DO SELECTÓW (GET)
+            # --------------------------
+            kontynenty = (
+                db.session.query(Panstwo.kontynent)
+                .distinct()
+                .order_by(Panstwo.kontynent)
+                .all()
+            )
+            kontynenty = [k[0] for k in kontynenty if k[0]]
+    
+            panstwa = []
+            regiony = []
+    
+            # --------------------------
+            # POST – GENEROWANIE
+            # --------------------------
+            if request.method == "POST":
+    
+                kontynent = request.form.get("kontynent")
+                panstwo_id = request.form.get("panstwo_id")
+                region_id = request.form.get("region_id")
+                ilosc = request.form.get("ilosc")
+                min_pop = request.form.get("min_pop")
+                max_pop = request.form.get("max_pop")
+                confirm = request.form.get("confirm")
+    
+                # --- WALIDACJA PODSTAWOWA ---
+                errors = []
+    
+                if not (kontynent and panstwo_id and region_id):
+                    errors.append("Musisz wybrać kontynent, państwo i region.")
+    
+                if not (ilosc and ilosc.isdigit() and int(ilosc) > 0):
+                    errors.append("Ilość miast musi być dodatnią liczbą.")
+    
+                if not (min_pop and max_pop and min_pop.isdigit() and max_pop.isdigit()):
+                    errors.append("Zakres ludności musi być liczbowy.")
+    
+                if errors:
+                    return render_template(
+                        "demografia_generator.html",
+                        error=" ".join(errors),
+                        kontynenty=kontynenty
+                    )
+    
+                ilosc = int(ilosc)
+                min_pop = int(min_pop)
+                max_pop = int(max_pop)
+    
+                if min_pop > max_pop:
+                    return render_template(
+                        "demografia_generator.html",
+                        error="Minimalna ludność nie może być większa niż maksymalna.",
+                        kontynenty=kontynenty
+                    )
+    
+                region = Region.query.get(int(region_id))
+                if not region:
+                    return render_template(
+                        "demografia_generator.html",
+                        error="Wybrany region nie istnieje.",
+                        kontynenty=kontynenty
+                    )
+    
+                # --------------------------
+                # SYMULACJA POPULACJI
+                # --------------------------
+                populacje = [
+                    random.randint(min_pop, max_pop)
+                    for _ in range(ilosc)
+                ]
+    
+                suma_pop = sum(populacje)
+                pula = region.region_ludnosc_pozamiejska or 0
+    
+                # OSTRZEŻENIE 50%
+                if suma_pop > pula * 0.5 and confirm != "yes":
+                    return render_template(
+                        "demografia_generator.html",
+                        warning=(
+                            f"Wygenerowanie tych miast odbierze regionowi "
+                            f"{region.region_nazwa} ponad 50% jego ludności pozamiejskiej. "
+                            f"Czy chcesz kontynuować?"
+                        ),
+                        confirm_required=True,
+                        form_data=request.form,
+                        kontynenty=kontynenty
+                    )
+    
+                # --------------------------
+                # ZAPIS DO BAZY
+                # --------------------------
+                try:
+                    for pop in populacje:
+    
+                        # unikalna nazwa
+                        while True:
+                            suffix = random.randint(0, 999_999_999)
+                            nazwa = f"Miasto Techniczne {suffix:09d}"
+                            exists = Miasto.query.filter_by(miasto_nazwa=nazwa).first()
+                            if not exists:
+                                break
+    
+                        miasto = Miasto(
+                            miasto_nazwa=nazwa,
+                            miasto_populacja=pop,
+                            panstwo_id=region.panstwo_id,
+                            region_id=region.region_id,
+                            miasto_typ="miasto",
+                            czy_na_mapie=False,
+                            czy_generowane=True
+                        )
+    
+                        db.session.add(miasto)
+    
+                    region.region_ludnosc_pozamiejska -= suma_pop
+    
+                    db.session.commit()
+                    flash(f"Wygenerowano {ilosc} miast technicznych.", "success")
+                    return redirect(url_for("demografia_generator_miast"))
+    
+                except Exception as e:
+                    db.session.rollback()
+                    return render_template(
+                        "demografia_generator.html",
+                        error=f"Błąd zapisu do bazy: {e}",
+                        kontynenty=kontynenty
+                    )
+    
+            # --------------------------
+            # GET
+            # --------------------------
+            return render_template(
+                "demografia_generator.html",
+                kontynenty=kontynenty
+            )
