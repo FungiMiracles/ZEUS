@@ -1,12 +1,9 @@
 {% extends 'base_layout.html' %}
 {% block title %}Wyniki wyszukiwania miast{% endblock %}
-
 {% block content %}
 
 <style>
-/* ============================================================
-   ZEUS — WYNIKI WYSZUKIWANIA MIAST
-============================================================ */
+/* ================= ZEUS — WYNIKI MIAST ================= */
 
 .wyniki-miast {
     max-width: 1200px;
@@ -15,42 +12,36 @@
     color: #2c3e50;
 }
 
-.wyniki-miast h1 {
+h1 {
     font-size: 1.5em;
     font-weight: 800;
     margin-bottom: 10px;
 }
 
-/* ============================================================
-   ZEUS — FILTRY
-============================================================ */
+/* ================= FILTRY ================= */
 
 .zeus-filter-box {
-    background: #ffffff;
+    background: #fff;
     border: 1px solid #d3d7dc;
     border-radius: 12px;
-    padding: 16px 18px;
-    margin: 15px 0 18px 0;
+    padding: 16px;
+    margin-bottom: 15px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
 }
 
 .filter-group label {
     font-size: 0.75em;
     font-weight: 800;
-    margin-bottom: 4px;
-    display: block;
 }
 
 .filter-group select,
 .filter-group input {
     width: 100%;
-    padding: 7px 9px;
+    padding: 7px;
     border-radius: 6px;
     border: 1px solid #bdc3c7;
-    font-size: 0.85em;
 }
 
 .filter-actions {
@@ -60,17 +51,15 @@
 
 .filter-actions button {
     width: 100%;
-    padding: 9px 0;
+    padding: 9px;
     font-weight: 800;
     background: #5d7dce;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 6px;
 }
 
-/* ============================================================
-   LISTA MIAST
-============================================================ */
+/* ================= LISTA ================= */
 
 .miasto-list {
     border-top: 1px solid #d3d7dc;
@@ -79,9 +68,9 @@
 .miasto-row {
     display: flex;
     justify-content: space-between;
+    gap: 16px;
     padding: 14px 8px;
     border-bottom: 1px solid #d3d7dc;
-    gap: 16px;
 }
 
 .miasto-row:hover {
@@ -101,17 +90,47 @@
     color: #7f8c8d;
 }
 
+/* ================= AKCJE ================= */
+
 .miasto-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    justify-content: flex-end;
 }
 
-/* ============================================================
-   PAGINACJA
-============================================================ */
+.miasto-actions a,
+.miasto-actions button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-view { background: #5d7dce; }
+.btn-edit { background: #7f8c8d; }
+.btn-delete { background: #c0392b; }
+.btn-region { background: #b59f3b; }
+
+.assign-region-form {
+    display: none;
+    gap: 6px;
+}
+
+.assign-region-form input {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+}
+
+/* ================= PAGINACJA ================= */
 
 .zeus-pagination {
-    margin: 25px 0 10px 0;
+    margin: 25px 0 10px;
     display: flex;
     justify-content: center;
     gap: 6px;
@@ -126,116 +145,150 @@
     font-weight: 700;
     border: 1px solid #bdc3c7;
     background: #ecf0f1;
-    text-decoration: none;
     color: #34495e;
+    text-decoration: none;
 }
 
 .zeus-pagination .active {
     background: #5d7dce;
     color: white;
-    border-color: #4171d1;
 }
 </style>
 
 <div class="wyniki-miast">
 
-    <h1>Wyniki wyszukiwania miast</h1>
+<h1>Wyniki wyszukiwania miast</h1>
 
-    <!-- ===== FILTRY ===== -->
-    <form method="GET" action="{{ url_for('wyniki_wyszukiwania_miasto') }}"
-          class="zeus-filter-box">
+<!-- ================= FILTRY ================= -->
+<form method="GET" action="{{ url_for('wyniki_wyszukiwania_miasto') }}" class="zeus-filter-box">
 
-        <div class="filter-group">
-            <label>Na mapie</label>
-            <select name="czy_na_mapie">
-                <option value="">— wszystkie —</option>
-                <option value="TAK" {% if request.args.get('czy_na_mapie') == 'TAK' %}selected{% endif %}>TAK</option>
-                <option value="NIE" {% if request.args.get('czy_na_mapie') == 'NIE' %}selected{% endif %}>NIE</option>
-            </select>
+    <div class="filter-group">
+        <label>Na mapie</label>
+        <select name="czy_na_mapie">
+            <option value="">— wszystkie —</option>
+            <option value="TAK" {% if request.args.get('czy_na_mapie') == 'TAK' %}selected{% endif %}>TAK</option>
+            <option value="NIE" {% if request.args.get('czy_na_mapie') == 'NIE' %}selected{% endif %}>NIE</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Typ miasta</label>
+        <select name="miasto_typ">
+            <option value="">— wszystkie —</option>
+            <option value="stolica" {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>Stolica</option>
+            <option value="stolica_regionu" {% if request.args.get('miasto_typ') == 'stolica_regionu' %}selected{% endif %}>Stolica regionu</option>
+            <option value="miasto" {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>Miasto</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Populacja od</label>
+        <input type="number" name="populacja_od" value="{{ request.args.get('populacja_od','') }}">
+    </div>
+
+    <div class="filter-group">
+        <label>Populacja do</label>
+        <input type="number" name="populacja_do" value="{{ request.args.get('populacja_do','') }}">
+    </div>
+
+    <div class="filter-group">
+        <label>Sortuj populację</label>
+        <select name="sort_populacja">
+            <option value="">— brak —</option>
+            <option value="asc" {% if request.args.get('sort_populacja') == 'asc' %}selected{% endif %}>Rosnąco</option>
+            <option value="desc" {% if request.args.get('sort_populacja') == 'desc' %}selected{% endif %}>Malejąco</option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit">Filtruj</button>
+    </div>
+</form>
+
+{% if not empty %}
+<div style="margin-bottom:10px;font-weight:700;color:#7f8c8d;">
+    Ilość znalezionych miast: {{ pagination.total }}
+</div>
+{% endif %}
+
+{% if empty %}
+<div style="padding:40px;text-align:center;font-weight:700;color:#7f8c8d;">
+    Nie znaleziono miast.
+</div>
+{% else %}
+
+<div class="miasto-list">
+{% for row in results %}
+<div class="miasto-row">
+
+    <div class="miasto-main">
+        <div class="miasto-name">{{ row.miasto_nazwa }} ({{ row.miasto_kod }})</div>
+        <div class="miasto-meta">
+            ID {{ row.miasto_id }} • {{ row.panstwo_nazwa }} • {{ row.miasto_typ }}
+            • Populacja {{ "{:,}".format(row.miasto_populacja).replace(',', ' ') }}
         </div>
+    </div>
 
-        <div class="filter-group">
-            <label>Typ miasta</label>
-            <select name="miasto_typ">
-                <option value="">— wszystkie —</option>
-                <option value="stolica" {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>Stolica</option>
-                <option value="stolica_regionu" {% if request.args.get('miasto_typ') == 'stolica_regionu' %}selected{% endif %}>Stolica regionu</option>
-                <option value="miasto" {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>Miasto</option>
-            </select>
-        </div>
+    <div class="miasto-actions">
 
-        <div class="filter-group">
-            <label>Populacja od</label>
-            <input type="number" name="populacja_od" value="{{ request.args.get('populacja_od','') }}">
-        </div>
+        <a href="{{ url_for('miasto_form', miasto_id=row.miasto_id) }}" class="btn-view">Wyświetl</a>
 
-        <div class="filter-group">
-            <label>Populacja do</label>
-            <input type="number" name="populacja_do" value="{{ request.args.get('populacja_do','') }}">
-        </div>
-
-        <div class="filter-group">
-            <label>Sortuj populację</label>
-            <select name="sort_populacja">
-                <option value="">— brak —</option>
-                <option value="asc" {% if request.args.get('sort_populacja') == 'asc' %}selected{% endif %}>Rosnąco</option>
-                <option value="desc" {% if request.args.get('sort_populacja') == 'desc' %}selected{% endif %}>Malejąco</option>
-            </select>
-        </div>
-
-        <div class="filter-actions">
-            <button type="submit">Filtruj</button>
-        </div>
-    </form>
-
-    <!-- ===== LICZNIK WSZYSTKICH WYNIKÓW ===== -->
-    {% if not empty %}
-        <div style="margin:10px 0; font-weight:700; color:#7f8c8d;">
-            Ilość znalezionych miast: {{ pagination.total }}
-        </div>
-    {% endif %}
-
-    {% if empty %}
-        <div style="padding:40px; text-align:center; font-weight:700; color:#7f8c8d;">
-            Nie znaleziono miast.
-        </div>
-    {% else %}
-
-        <div class="miasto-list">
-            {% for row in results %}
-                <div class="miasto-row">
-                    <div class="miasto-main">
-                        <div class="miasto-name">{{ row.miasto_nazwa }} ({{ row.miasto_kod }})</div>
-                        <div class="miasto-meta">
-                            ID {{ row.miasto_id }} • {{ row.panstwo_nazwa }} • {{ row.miasto_typ }}
-                            • Populacja {{ "{:,}".format(row.miasto_populacja).replace(',', ' ') }}
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if pagination.pages > 1 %}
-        <div class="zeus-pagination">
-            {% for p in range(1, pagination.pages + 1) %}
-                {% if p == pagination.page %}
-                    <span class="active">{{ p }}</span>
-                {% else %}
-                    <a href="{{ url_for('wyniki_wyszukiwania_miasto',
-                        page=p,
-                        czy_na_mapie=request.args.get('czy_na_mapie'),
-                        miasto_typ=request.args.get('miasto_typ'),
-                        sort_populacja=request.args.get('sort_populacja'),
-                        populacja_od=request.args.get('populacja_od'),
-                        populacja_do=request.args.get('populacja_do')
-                    ) }}">{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-        </div>
+        {% if session.rola == "wszechmocny" %}
+            <a href="{{ url_for('miasto_form_edit', miasto_id=row.miasto_id) }}" class="btn-edit">Edytuj</a>
+        {% else %}
+            <button class="btn-edit" onclick="zeusToast('Brak uprawnień')">Edytuj</button>
         {% endif %}
 
-    {% endif %}
+        {% if session.rola == "wszechmocny" %}
+        <form method="POST" action="{{ url_for('usun_miasto', miasto_id=row.miasto_id) }}"
+              onsubmit="return confirm('Usunąć miasto?');">
+            <button type="submit" class="btn-delete">Usuń</button>
+        </form>
+        {% else %}
+            <button class="btn-delete" onclick="zeusToast('Brak uprawnień')">Usuń</button>
+        {% endif %}
 
+        {% if session.rola == "wszechmocny" %}
+        <button class="btn-region"
+            onclick="document.getElementById('assign-{{ row.miasto_id }}').style.display='flex'">
+            Przypisz region
+        </button>
+
+        <form id="assign-{{ row.miasto_id }}"
+              method="POST"
+              action="{{ url_for('przypisz_region', miasto_id=row.miasto_id) }}"
+              class="assign-region-form">
+            <input type="text" name="region_input" placeholder="ID lub nazwa">
+            <button type="submit" class="btn-region">Zapisz</button>
+        </form>
+        {% endif %}
+    </div>
+
+</div>
+{% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+<div class="zeus-pagination">
+{% for p in range(1, pagination.pages + 1) %}
+    {% if p == pagination.page %}
+        <span class="active">{{ p }}</span>
+    {% else %}
+        <a href="{{ url_for('wyniki_wyszukiwania_miasto',
+            page=p,
+            per_page=per_page,
+            czy_na_mapie=request.args.get('czy_na_mapie'),
+            miasto_typ=request.args.get('miasto_typ'),
+            sort_populacja=request.args.get('sort_populacja'),
+            populacja_od=request.args.get('populacja_od'),
+            populacja_do=request.args.get('populacja_do')
+        ) }}">{{ p }}</a>
+    {% endif %}
+{% endfor %}
+</div>
+{% endif %}
+
+{% endif %}
 </div>
 
 {% endblock %}
