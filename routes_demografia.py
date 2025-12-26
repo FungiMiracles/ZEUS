@@ -1,230 +1,209 @@
-# routes_regiony.py
-from flask import render_template, request, redirect, url_for, flash, abort, jsonify
+# routes_demografia.py
+
+from flask import (
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify
+)
+
 from extensions import db
-from models import Region, Panstwo, Miasto
+from models import Panstwo, Region, Miasto
 from permissions import wymaga_roli
+from sqlalchemy import func
+import random
 
 
-def init_regiony_routes(app):
+def init_demografia_routes(app):
 
-            ### WYSZUKIWANIE REGIONU ###
+    # ============================================================
+    # KALKULATOR DEMOGRAFICZNY
+    # ============================================================
 
-    @app.route("/wyniki_wyszukiwania_region", methods=["GET"])
-    def wyniki_wyszukiwania_region():
-        panstwo_nazwa = request.args.get("panstwo_nazwa")
-        region_nazwa = request.args.get("region_nazwa")
-        region_ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
+    @app.route("/demografia/kalkulator", methods=["GET"])
+    def demografia_kalkulator():
 
-        query = db.session.query(Region, Panstwo).join(
-            Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID
+        kontynent = request.args.get("kontynent")
+        panstwo_id = request.args.get("panstwo_id")
+
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
         )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
 
-        if panstwo_nazwa:
-            query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%"))
+        panstwa = []
+        panstwo = None
+        regiony = None
 
-        if region_nazwa:
-            query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
-
-        rows = query.all()
-
-        results = [
-            {
-                "region_id": r.region_id,
-                "region_nazwa": r.region_nazwa,
-                "region_populacja": r.region_populacja or 0,
-                "panstwo_nazwa": p.panstwo_nazwa,
-                "region_ludnosc_pozamiejska": r.region_ludnosc_pozamiejska or 0,
-            }
-            for r, p in rows
-        ]
-
-        empty = len(results) == 0
-
-        return render_template(
-            "wyniki_wyszukiwania_region.html", results=results, empty=empty
-        )
-
-        ### DODAWANIE REGIONU ###
-
-    @app.route("/region_form_add", methods=["GET", "POST"])
-    @wymaga_roli("tworzyciel", "wszechmocny")
-    def region_add_form():
-        if request.method == "POST":
-            errors = []
-
-            nazwa = request.form.get("region_nazwa")
-            populacja = request.form.get("region_populacja")
-            panstwo_id = request.form.get("panstwo_id")
-
-            if not nazwa:
-                errors.append("Pole 'Nazwa regionu' jest wymagane.")
-
-            if not populacja:
-                errors.append("Pole 'Populacja regionu' jest wymagane.")
-            elif not populacja.isdigit():
-                errors.append("Pole 'Populacja regionu' musi być liczbą.")
-
-            if not panstwo_id:
-                errors.append("Pole 'ID państwa' jest wymagane.")
-            elif not panstwo_id.isdigit():
-                errors.append("Pole 'ID państwa' musi być liczbą.")
-
-            if errors:
-                return render_template(
-                    "region_form_add.html",
-                    error=" ".join(errors),
-                    form_data=request.form,
-                )
-
-            populacja = int(populacja)
-            panstwo_id = int(panstwo_id)
-
-            panstwo = Panstwo.query.get(panstwo_id)
-            if not panstwo:
-                return render_template(
-                    "region_form_add.html",
-                    error=f"Państwo o ID {panstwo_id} nie istnieje.",
-                    form_data=request.form,
-                )
-
-            duplicates = (
-                db.session.query(Region, Panstwo)
-                .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
-                .filter(Region.region_nazwa == nazwa)
+        if kontynent:
+            panstwa = (
+                Panstwo.query
+                .filter_by(kontynent=kontynent)
+                .order_by(Panstwo.panstwo_nazwa)
                 .all()
             )
 
-            if duplicates:
-                duplicates_info = [
-                    f"{reg.region_nazwa} — państwo: {pan.panstwo_nazwa}, populacja regionu: {reg.region_populacja}"
-                    for reg, pan in duplicates
-                ]
-
-                return render_template(
-                    "region_form_add.html",
-                    error="Region o takiej nazwie już istnieje.",
-                    duplicates=duplicates_info,
-                    form_data=request.form,
+        if panstwo_id and panstwo_id.isdigit():
+            panstwo = Panstwo.query.get(int(panstwo_id))
+            if panstwo:
+                regiony = (
+                    db.session.query(
+                        Region.region_id,
+                        Region.region_nazwa,
+                        Region.region_populacja,
+                        Region.region_ludnosc_pozamiejska,
+                        func.coalesce(
+                            func.sum(Miasto.miasto_populacja), 0
+                        ).label("ludnosc_miejska")
+                    )
+                    .outerjoin(Miasto, Miasto.region_id == Region.region_id)
+                    .filter(Region.panstwo_id == panstwo.PANSTWO_ID)
+                    .group_by(
+                        Region.region_id,
+                        Region.region_nazwa,
+                        Region.region_populacja,
+                        Region.region_ludnosc_pozamiejska
+                    )
+                    .order_by(Region.region_nazwa)
+                    .all()
                 )
-
-            try:
-                new_region = Region(
-                    region_nazwa=nazwa,
-                    region_populacja=populacja,
-                    panstwo_id=panstwo_id,
-                )
-                db.session.add(new_region)
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                return render_template(
-                    "region_form_add.html",
-                    error=f"Błąd podczas zapisu regionu: {e}",
-                    form_data=request.form,
-                )
-
-            return redirect(url_for("region_dodano"))
-
-        return render_template("region_form_add.html")
-
-    # --------------------------------
-    # Usuwanie regionu
-    # --------------------------------
-    @app.route("/usun_region/<int:region_id>", methods=["POST"])
-    @wymaga_roli("wszechmocny")
-    def usun_region(region_id):
-        region = Region.query.get_or_404(region_id)
-        try:
-            db.session.delete(region)
-            db.session.commit()
-            flash(f"Region {region.region_nazwa} został usunięty.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Wystąpił błąd podczas usuwania regionu: {e}", "error")
-
-        return redirect(url_for("wyniki_wyszukiwania_region"))
-
-    # --------------------------------
-    # PODGLĄD REGIONU
-    # --------------------------------
-
-    @app.route("/region/<int:region_id>")
-    def region_form(region_id):
-        region = Region.query.get_or_404(region_id)
-
-        panstwo = region.panstwo
-        miasta = region.miasta  # lista obiektów Miasto
 
         return render_template(
-            "region_form.html",
-            region=region,
+            "demografia_kalkulator.html",
+            kontynenty=kontynenty,
+            panstwa=panstwa,
+            selected_kontynent=kontynent,
             panstwo=panstwo,
-            miasta=miasta,
+            regiony=regiony
         )
 
+    # ============================================================
+    # GENERATOR MIAST TECHNICZNYCH
+    # ============================================================
 
-    # --------------------------------
-    # EDYCJA REGIONU
-    # --------------------------------
-    @app.route("/region/<int:region_id>/edit", methods=["GET", "POST"])
-    @wymaga_roli("wszechmocny")
-    def region_form_edit(region_id):
-        region = Region.query.get_or_404(region_id)
+    @app.route("/demografia/generator_miast", methods=["GET", "POST"])
+    @wymaga_roli("tworzyciel", "wszechmocny")
+    def demografia_generator_miast():
+
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         if request.method == "POST":
 
-            nazwa = request.form.get("region_nazwa")
+            kontynent = request.form.get("kontynent")
             panstwo_id = request.form.get("panstwo_id")
-            ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
+            region_id = request.form.get("region_id")
+            ilosc = request.form.get("ilosc")
+            min_pop = request.form.get("min_pop")
+            max_pop = request.form.get("max_pop")
+            confirm = request.form.get("confirm")
 
-            # ───── WALIDACJA ─────
             errors = []
 
-            if not nazwa:
-                errors.append("Nazwa regionu jest wymagana.")
+            if not kontynent or not panstwo_id or not region_id:
+                errors.append("Musisz wybrać kontynent, państwo i region.")
 
-            if not panstwo_id or not panstwo_id.isdigit():
-                errors.append("ID państwa musi być liczbą.")
+            if not ilosc or not ilosc.isdigit() or int(ilosc) <= 0:
+                errors.append("Ilość miast musi być dodatnią liczbą.")
 
-            if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
-                errors.append("Ludność pozamiejska musi być liczbą.")
+            if not min_pop or not max_pop or not min_pop.isdigit() or not max_pop.isdigit():
+                errors.append("Zakres ludności musi być liczbowy.")
 
             if errors:
                 return render_template(
-                    "region_form_edit.html",
+                    "demografia_generator.html",
                     error=" ".join(errors),
-                    region=region,
-                    form_data=request.form
+                    kontynenty=kontynenty
                 )
 
-            # ───── KONWERSJE ─────
-            panstwo_id = int(panstwo_id)
-            ludnosc_pozamiejska = int(ludnosc_pozamiejska)
+            ilosc = int(ilosc)
+            min_pop = int(min_pop)
+            max_pop = int(max_pop)
 
-            # ───── WALIDACJA LOGIKI ŚWIATA ─────
-            #if ludnosc_pozamiejska > region.region_populacja:
-                #return render_template(
-                    #"region_form_edit.html",
-                    #error="Ludność pozamiejska nie może być większa niż populacja regionu.",
-                    #region=region,
-                    #form_data=request.form
-                #)
+            if min_pop > max_pop:
+                return render_template(
+                    "demografia_generator.html",
+                    error="Minimalna populacja nie może być większa niż maksymalna.",
+                    kontynenty=kontynenty
+                )
 
-            # ───── AKTUALIZACJA ─────
-            region.region_nazwa = nazwa
-            region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
-            region.panstwo_id = panstwo_id
+            region = Region.query.get(int(region_id))
+            if not region:
+                return render_template(
+                    "demografia_generator.html",
+                    error="Wybrany region nie istnieje.",
+                    kontynenty=kontynenty
+                )
 
-            db.session.commit()
+            populacje = [random.randint(min_pop, max_pop) for _ in range(ilosc)]
+            suma_pop = sum(populacje)
+            pula = region.region_ludnosc_pozamiejska or 0
 
-            flash(
-                f"Pomyślnie zaktualizowano region o ID {region.region_id}.",
-                "success"
-            )
-            return redirect(url_for("region_form", region_id=region.region_id))
+            if suma_pop > pula * 0.5 and confirm != "yes":
+                return render_template(
+                    "demografia_generator.html",
+                    warning=(
+                        f"Wygenerowanie tych miast odbierze regionowi "
+                        f"{region.region_nazwa} ponad 50% jego ludności pozamiejskiej. "
+                        f"Czy chcesz kontynuować?"
+                    ),
+                    confirm_required=True,
+                    form_data=request.form,
+                    kontynenty=kontynenty
+                )
 
-        # ───── GET ─────
-        return render_template("region_form_edit.html", region=region)
+            try:
+                for pop in populacje:
+                    while True:
+                        suffix = random.randint(0, 999_999_999)
+                        nazwa = f"Miasto Techniczne {suffix:09d}"
+                        if not Miasto.query.filter_by(miasto_nazwa=nazwa).first():
+                            break
+
+                    miasto = Miasto(
+                        miasto_nazwa=nazwa,
+                        miasto_populacja=pop,
+                        panstwo_id=region.panstwo_id,
+                        region_id=region.region_id,
+                        miasto_typ="miasto",
+                        czy_na_mapie="NIE",
+                        czy_generowane="TAK"
+                    )
+
+                    db.session.add(miasto)
+
+                region.region_ludnosc_pozamiejska -= suma_pop
+                db.session.commit()
+
+                flash(f"Wygenerowano {ilosc} miast technicznych.", "success")
+                return redirect(url_for("demografia_generator_miast"))
+
+            except Exception as e:
+                db.session.rollback()
+                return render_template(
+                    "demografia_generator.html",
+                    error=f"Błąd zapisu do bazy: {e}",
+                    kontynenty=kontynenty
+                )
+
+        return render_template(
+            "demografia_generator.html",
+            kontynenty=kontynenty
+        )
+
+    # ============================================================
+    # API – DYNAMICZNE SELECTY (GENERATOR)
+    # ============================================================
 
     @app.route("/api/panstwa_by_kontynent")
     def api_panstwa_by_kontynent():
@@ -232,28 +211,32 @@ def init_regiony_routes(app):
         if not kontynent:
             return jsonify([])
 
-        panstwa = Panstwo.query.filter_by(kontynent=kontynent).order_by(Panstwo.panstwo_nazwa).all()
+        panstwa = (
+            Panstwo.query
+            .filter_by(kontynent=kontynent)
+            .order_by(Panstwo.panstwo_nazwa)
+            .all()
+        )
 
         return jsonify([
-            {
-                "PANSTWO_ID": p.PANSTWO_ID,
-                "panstwo_nazwa": p.panstwo_nazwa
-            }
+            {"PANSTWO_ID": p.PANSTWO_ID, "panstwo_nazwa": p.panstwo_nazwa}
             for p in panstwa
         ])
-    
+
     @app.route("/api/regiony_by_panstwo")
     def api_regiony_by_panstwo():
         panstwo_id = request.args.get("panstwo_id")
-        if not panstwo_id:
+        if not panstwo_id or not panstwo_id.isdigit():
             return jsonify([])
 
-        regiony = Region.query.filter_by(panstwo_id=panstwo_id).order_by(Region.region_nazwa).all()
+        regiony = (
+            Region.query
+            .filter_by(panstwo_id=int(panstwo_id))
+            .order_by(Region.region_nazwa)
+            .all()
+        )
 
         return jsonify([
-            {
-                "region_id": r.region_id,
-                "region_nazwa": r.region_nazwa
-            }
+            {"region_id": r.region_id, "region_nazwa": r.region_nazwa}
             for r in regiony
         ])
