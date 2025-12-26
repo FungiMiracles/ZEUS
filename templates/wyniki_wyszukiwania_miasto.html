@@ -506,40 +506,45 @@ Wyniki wyszukiwania miast
             {% endfor %}
         </div>
 
-        {% set args = request.args.to_dict(flat=True) %}
+        {% if pagination.pages > 1 %}
+            {% set args = request.args.to_dict(flat=True) %}
             {% if args.get('page') %}
                 {% do args.pop('page') %}
             {% endif %}
+        
             <div class="zeus-pagination">
+        
                 {% if pagination.has_prev %}
                     <a href="{{ url_for('wyniki_wyszukiwania_miasto',
                                         page=pagination.prev_num,
-                                        **request.args.to_dict(flat=True)) }}">
+                                        **args) }}">
                         ← Poprzednia
                     </a>
                 {% endif %}
-
+        
                 {% for p in range(1, pagination.pages + 1) %}
                     {% if p == pagination.page %}
                         <span class="active">{{ p }}</span>
                     {% else %}
                         <a href="{{ url_for('wyniki_wyszukiwania_miasto',
                                             page=p,
-                                            **request.args.to_dict(flat=True)) }}">
+                                            **args) }}">
                             {{ p }}
                         </a>
                     {% endif %}
                 {% endfor %}
-
+        
                 {% if pagination.has_next %}
                     <a href="{{ url_for('wyniki_wyszukiwania_miasto',
                                         page=pagination.next_num,
-                                        **request.args.to_dict(flat=True)) }}">
+                                        **args) }}">
                         Następna →
                     </a>
                 {% endif %}
+        
             </div>
         {% endif %}
+
 
         <div class="footer-actions">
             <a href="{{ url_for('home_page') }}" class="btn-return">
