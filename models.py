@@ -57,6 +57,7 @@ class Miasto(db.Model):
     miasto_typ = db.Column(db.String(255))
     region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"))
     czy_na_mapie = db.Column(db.Enum("TAK", "NIE", name="czy_na_mapie_enum"), nullable=False, default="TAK")
+    czy_generowane = db.Column(db.Boolean, default=False)
 
 class Wojsko(db.Model):
     __tablename__ = "wojsko"
