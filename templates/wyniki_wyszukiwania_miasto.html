@@ -134,6 +134,47 @@
     display: inline;
 }
 
+.zeus-filter-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 15px 0 18px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+.filter-group label {
+    font-size: 0.75em;
+    font-weight: 800;
+    color: #34495e;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.85em;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.filter-actions .btn-main {
+    width: 100%;
+    padding: 9px 0;
+    font-size: 0.85em;
+    font-weight: 800;
+}
+
 /* ============================================================
    MOBILE — LISTA MIAST (FINAL, STABILNA)
 ============================================================ */
@@ -215,7 +256,13 @@
   .assign-region-form button {
     width: 100%;
   }
+
+   @media (max-width: 768px) {
+    .zeus-filter-box {
+        grid-template-columns: 1fr;
+    }
 }
+
 
 </style>
 
@@ -232,10 +279,14 @@
     <input type="hidden" name="panstwo_nazwa" value="{{ request.args.get('panstwo_nazwa','') }}">
     <input type="hidden" name="region_nazwa" value="{{ request.args.get('region_nazwa','') }}">
 
-    <div>
-        <label style="font-size:0.8em; font-weight:700;">Na mapie</label><br>
-        <select name="czy_na_mapie"
-                style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
+    <form method="GET"
+      action="{{ url_for('wyniki_wyszukiwania_miasto') }}"
+      class="zeus-filter-box">
+
+    <!-- ===== STATUS ===== -->
+    <div class="filter-group">
+        <label>Na mapie</label>
+        <select name="czy_na_mapie">
             <option value="">— wszystkie —</option>
             <option value="TAK"
                 {% if request.args.get('czy_na_mapie') == 'TAK' %}selected{% endif %}>
@@ -248,6 +299,71 @@
         </select>
     </div>
 
+    <!-- ===== TYP MIASTA ===== -->
+    <div class="filter-group">
+        <label>Typ miasta</label>
+        <select name="miasto_typ">
+            <option value="">— wszystkie —</option>
+            <option value="stolica"
+                {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+                Stolica państwa
+            </option>
+            <option value="stolica_regionu"
+                {% if request.args.get('miasto_typ') == 'stolica_regionu' %}selected{% endif %}>
+                Stolica regionu
+            </option>
+            <option value="miasto"
+                {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+                Miasto
+            </option>
+        </select>
+    </div>
+
+    <!-- ===== POPULACJA OD ===== -->
+    <div class="filter-group">
+        <label>Populacja od</label>
+        <input type="number"
+               name="populacja_od"
+               value="{{ request.args.get('populacja_od','') }}">
+    </div>
+
+    <!-- ===== POPULACJA DO ===== -->
+    <div class="filter-group">
+        <label>Populacja do</label>
+        <input type="number"
+               name="populacja_do"
+               value="{{ request.args.get('populacja_do','') }}">
+    </div>
+
+    <!-- ===== SORTOWANIE ===== -->
+    <div class="filter-group">
+        <label>Sortuj populację</label>
+        <select name="sort_populacja">
+            <option value="">— brak —</option>
+            <option value="asc"
+                {% if request.args.get('sort_populacja') == 'asc' %}selected{% endif %}>
+                Rosnąco
+            </option>
+            <option value="desc"
+                {% if request.args.get('sort_populacja') == 'desc' %}selected{% endif %}>
+                Malejąco
+            </option>
+        </select>
+    </div>
+
+    <!-- ===== AKCJA ===== -->
+    <div class="filter-actions">
+        <button type="submit" class="btn-main">
+            Filtruj
+        </button>
+    </div>
+
+</form>
+
+
+
+</form>
+      
     <div>
         <button type="submit"
                 style="padding:7px 14px; border-radius:6px; border:none;
@@ -256,56 +372,7 @@
         </button>
     </div>
 
-      <div>
-    <label style="font-size:0.8em; font-weight:700;">Typ miasta</label><br>
-    <select name="miasto_typ"
-            style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
-        <option value="">— wszystkie —</option>
-        <option value="stolica"
-            {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>
-            Stolica państwa
-        </option>
-        <option value="stolica_regionu"
-            {% if request.args.get('miasto_typ') == 'stolica_regionu' %}selected{% endif %}>
-            Stolica regionu
-        </option>
-        <option value="miasto"
-            {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>
-            Miasto
-        </option>
-    </select>
-      </div>
-      <div>
-    <label style="font-size:0.8em; font-weight:700;">Sortuj populację</label><br>
-    <select name="sort_populacja"
-            style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
-        <option value="">— brak —</option>
-        <option value="asc"
-            {% if request.args.get('sort_populacja') == 'asc' %}selected{% endif %}>
-            Rosnąco
-        </option>
-        <option value="desc"
-            {% if request.args.get('sort_populacja') == 'desc' %}selected{% endif %}>
-            Malejąco
-        </option>
-    </select>
-</div>
-      <div>
-    <label style="font-size:0.8em; font-weight:700;">Populacja od</label><br>
-    <input type="number" name="populacja_od"
-           value="{{ request.args.get('populacja_od','') }}"
-           style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7; width:110px;">
-</div>
 
-<div>
-    <label style="font-size:0.8em; font-weight:700;">Populacja do</label><br>
-    <input type="number" name="populacja_do"
-           value="{{ request.args.get('populacja_do','') }}"
-           style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7; width:110px;">
-</div>
-
-
-</form>
    
 
 
