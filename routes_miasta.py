@@ -134,6 +134,8 @@ def init_miasta_routes(app):
         sort_populacja = request.args.get("sort_populacja")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
+        page = request.args.get("page", 1, type=int)
+        per_page = 25
 
         query = (
             db.session.query(Miasto, Panstwo, Region)
@@ -170,7 +172,13 @@ def init_miasta_routes(app):
         elif sort_populacja == "desc":
             query = query.order_by(Miasto.miasto_populacja.desc())
 
-        rows = query.all()
+        pagination = query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+        
+        rows = pagination.items
 
         results = []
         for m, p, r in rows:
@@ -190,7 +198,7 @@ def init_miasta_routes(app):
         empty = len(results) == 0
 
         return render_template(
-            "wyniki_wyszukiwania_miasto.html", results=results, empty=empty
+            "wyniki_wyszukiwania_miasto.html", results=results, empty=empty, pagination=pagination
         )
 
     # --------------------------------
