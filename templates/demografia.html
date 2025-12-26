@@ -85,11 +85,17 @@
         <div class="icon">🧮</div>
         Kalkulator demograficzny
     </a>
-
+    {% if session.rola == "wszechmocny" %}
     <a href="{{ url_for('demografia_generator_miast') }}" class="demo-tile"> 
         <div class="icon">✳️</div>
         Generator miast technicznych
     </a>
+    {% else %}
+    <a href="#" class="demo-tile" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')"> 
+        <div class="icon">✳️</div>
+        Generator miast technicznych
+    </a>
+    {% endif %}
 
 </div>
 
