@@ -150,7 +150,7 @@ def init_demografia_routes(app):
         )
 
     @app.route("/demografia/generator_miast", methods=["GET", "POST"])
-        def demografia_generator_miast():
+    def demografia_generator_miast():
     
             # --------------------------
             # DANE DO SELECTÓW (GET)
