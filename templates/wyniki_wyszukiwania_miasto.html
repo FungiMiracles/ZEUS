@@ -223,6 +223,42 @@
 
     <h1>Wyniki wyszukiwania miast</h1>
 
+   <form method="GET" action="{{ url_for('wyniki_wyszukiwania_miasto') }}"
+      style="margin-bottom:14px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+
+    <!-- zachowanie poprzednich filtrów -->
+    <input type="hidden" name="miasto_nazwa" value="{{ request.args.get('miasto_nazwa','') }}">
+    <input type="hidden" name="miasto_kod" value="{{ request.args.get('miasto_kod','') }}">
+    <input type="hidden" name="panstwo_nazwa" value="{{ request.args.get('panstwo_nazwa','') }}">
+    <input type="hidden" name="region_nazwa" value="{{ request.args.get('region_nazwa','') }}">
+
+    <div>
+        <label style="font-size:0.8em; font-weight:700;">Na mapie</label><br>
+        <select name="czy_na_mapie"
+                style="padding:6px 8px; border-radius:6px; border:1px solid #bdc3c7;">
+            <option value="">— wszystkie —</option>
+            <option value="TAK"
+                {% if request.args.get('czy_na_mapie') == 'TAK' %}selected{% endif %}>
+                TAK
+            </option>
+            <option value="NIE"
+                {% if request.args.get('czy_na_mapie') == 'NIE' %}selected{% endif %}>
+                NIE
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit"
+                style="padding:7px 14px; border-radius:6px; border:none;
+                       background:#5d7dce; color:white; font-weight:700;">
+            Filtruj
+        </button>
+    </div>
+
+</form>
+
+
    {% if not empty %}
     <div style="margin-bottom:14px; font-weight:600; color:#7f8c8d;">
         Ilość znalezionych miast: {{ results | length }}
