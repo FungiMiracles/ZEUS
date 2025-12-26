@@ -1,5 +1,5 @@
 # routes_regiony.py
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template, request, redirect, url_for, flash, abort, jsonify
 from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
@@ -163,9 +163,9 @@ def init_regiony_routes(app):
         )
 
 
-# --------------------------------
-# EDYCJA REGIONU
-# --------------------------------
+    # --------------------------------
+    # EDYCJA REGIONU
+    # --------------------------------
     @app.route("/region/<int:region_id>/edit", methods=["GET", "POST"])
     @wymaga_roli("wszechmocny")
     def region_form_edit(region_id):
