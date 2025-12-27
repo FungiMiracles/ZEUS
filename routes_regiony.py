@@ -219,10 +219,12 @@ def init_regiony_routes(app):
             file = request.files.get("region_map")
 
             if file and file.filename:
-                if not file.filename.lower().endswith(".jpg"):
+                ext = os.path.splitext(file.filename)[1].lower()
+            
+                if ext not in (".jpg", ".jpeg"):
                     return render_template(
                         "region_form_edit.html",
-                        error="Mapa regionu musi być plikiem JPG.",
+                        error="Mapa regionu musi być plikiem JPG lub JPEG.",
                         region=region,
                         form_data=request.form
                     )
@@ -231,6 +233,7 @@ def init_regiony_routes(app):
                 MAPS_DIR = os.path.join(BASE_DIR, "static", "maps")
                 os.makedirs(MAPS_DIR, exist_ok=True)
             
+                # Zeus zawsze zapisuje jako .jpg (ujednolicenie)
                 filename = f"{region.region_nazwa}.jpg"
                 file_path = os.path.join(MAPS_DIR, filename)
             
