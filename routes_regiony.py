@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, url_for, flash, abort, jso
 from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
+import os
 
 
 def init_regiony_routes(app):
@@ -215,6 +216,26 @@ def init_regiony_routes(app):
             region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
             region.panstwo_id = panstwo_id
 
+            file = request.files.get("region_map")
+
+            if file and file.filename:
+                if not file.filename.lower().endswith(".jpg"):
+                    return render_template(
+                        "region_form_edit.html",
+                        error="Mapa regionu musi być plikiem JPG.",
+                        region=region,
+                        form_data=request.form
+                    )
+            
+                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                MAPS_DIR = os.path.join(BASE_DIR, "static", "maps")
+                os.makedirs(MAPS_DIR, exist_ok=True)
+            
+                filename = f"{region.region_nazwa}.jpg"
+                file_path = os.path.join(MAPS_DIR, filename)
+            
+                file.save(file_path)
+                    
             db.session.commit()
 
             flash(
