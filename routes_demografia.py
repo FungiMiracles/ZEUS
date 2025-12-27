@@ -299,9 +299,6 @@ def init_demografia_routes(app):
     
         if not data or "regions" not in data:
             return jsonify(success=False, error="Brak danych regionów"), 400
-
-        if region.region_populacja < 0:
-            raise ValueError("Populacja regionu nie może być ujemna")
     
         try:
             total_population = 0
