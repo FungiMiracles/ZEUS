@@ -134,52 +134,59 @@ def init_miasta_routes(app):
         sort_populacja = request.args.get("sort_populacja")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
+    
         page = request.args.get("page", 1, type=int)
         per_page = 25
-
+    
+        # --------------------------------------------------
+        # BUDOWA ZAPYTANIA
+        # --------------------------------------------------
         query = (
             db.session.query(Miasto, Panstwo, Region)
             .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
             .outerjoin(Region, Miasto.region_id == Region.region_id)
         )
-
+    
         if miasto_nazwa:
             query = query.filter(Miasto.miasto_nazwa.like(f"{miasto_nazwa}%"))
-
+    
         if miasto_kod:
             query = query.filter(Miasto.miasto_kod.like(f"%{miasto_kod}%"))
-
+    
         if panstwo_nazwa:
             query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%"))
-
+    
         if region_nazwa:
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
-
+    
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
-
+    
         if miasto_typ:
             query = query.filter(Miasto.miasto_typ == miasto_typ)
-
+    
         if populacja_od and populacja_od.isdigit():
             query = query.filter(Miasto.miasto_populacja >= int(populacja_od))
-
+    
         if populacja_do and populacja_do.isdigit():
             query = query.filter(Miasto.miasto_populacja <= int(populacja_do))
-
+    
         if sort_populacja == "asc":
             query = query.order_by(Miasto.miasto_populacja.asc())
         elif sort_populacja == "desc":
             query = query.order_by(Miasto.miasto_populacja.desc())
-
+    
+        # --------------------------------------------------
+        # PAGINACJA
+        # --------------------------------------------------
         pagination = query.paginate(
             page=page,
             per_page=per_page,
             error_out=False
         )
-        
+    
         rows = pagination.items
-
+    
         results = []
         for m, p, r in rows:
             results.append(
@@ -194,12 +201,24 @@ def init_miasta_routes(app):
                     "region_nazwa": r.region_nazwa if r else "Brak przypisania regionalnego",
                 }
             )
-
-        empty = len(results) == 0
-
+    
+        # --------------------------------------------------
+        # ARGUMENTY DO PAGINACJI (BEZ page)
+        # --------------------------------------------------
+        args = request.args.to_dict(flat=True)
+        args.pop("page", None)
+    
+        empty = pagination.total == 0
+    
         return render_template(
-            "wyniki_wyszukiwania_miasto.html", results=results, empty=empty, pagination=pagination
+            "wyniki_wyszukiwania_miasto.html",
+            results=results,
+            pagination=pagination,
+            total=pagination.total,
+            args=args,
+            empty=empty
         )
+
 
     # --------------------------------
     # Dodawanie miasta – ORM + walidacja duplikatów
