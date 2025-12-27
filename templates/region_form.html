@@ -268,7 +268,7 @@
     <div style="margin-bottom: 25px; text-align: center;">
         <img
             src="{{ url_for('static', filename='regiony/' ~ region.region_nazwa ~ '.jpg') }}"
-            alt="Mapa regionu {{ region.region_nazwa }}"
+            alt="{{ region.region_nazwa }}"
             style="
                 max-width: 100%;
                 max-height: 420px;
