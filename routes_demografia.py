@@ -88,7 +88,7 @@ def init_demografia_routes(app):
     # ============================================================
 
     @app.route("/demografia/generator_miast", methods=["GET", "POST"])
-    @wymaga_roli("tworzyciel", "wszechmocny")
+    @wymaga_roli("wszechmocny")
     def demografia_generator_miast():
 
         kontynenty = (
