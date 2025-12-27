@@ -15,6 +15,7 @@ from permissions import wymaga_roli
 from sqlalchemy import func
 from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
 import random
+from flask import jsonify
 
 
 def init_demografia_routes(app):
@@ -291,4 +292,46 @@ def init_demografia_routes(app):
             dane=dane,
             tryb=tryb
         )
+
+    @app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
+    def demografia_kalkulator_zapisz(panstwo_id):
+        data = request.get_json()
+    
+        if not data or "regions" not in data:
+            return jsonify(success=False, error="Brak danych regionów"), 400
+    
+        try:
+            total_population = 0
+    
+            for r in data["regions"]:
+                region_id = r.get("region_id")
+                if not region_id:
+                    raise ValueError("Brak region_id w payloadzie")
+    
+                region = Region.query.get(region_id)
+                if not region:
+                    raise ValueError(f"Region ID {region_id} nie istnieje")
+    
+                # aktualizacja danych regionu
+                region.region_ludnosc_pozamiejska = int(r.get("region_ludnosc_pozamiejska", 0))
+                region.region_populacja = int(r.get("region_populacja", 0))
+    
+                total_population += region.region_populacja
+    
+            panstwo = Panstwo.query.get_or_404(panstwo_id)
+            panstwo.panstwo_populacja = total_population
+    
+            db.session.commit()
+    
+            return jsonify(
+                success=True,
+                panstwo_populacja=total_population
+            )
+    
+        except Exception as e:
+            db.session.rollback()
+            return jsonify(
+                success=False,
+                error=str(e)
+            ), 500
 
