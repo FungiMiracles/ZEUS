@@ -312,11 +312,25 @@ def init_demografia_routes(app):
                 if not region:
                     raise ValueError(f"Region ID {region_id} nie istnieje")
     
-                # aktualizacja danych regionu
-                region.region_ludnosc_pozamiejska = int(r.get("region_ludnosc_pozamiejska", 0))
-                region.region_populacja = int(r.get("region_populacja", 0))
+                # ─── ODCZYT + WALIDACJA ───
+                pop_region = int(r.get("region_populacja", 0))
+                pop_pozam = int(r.get("region_ludnosc_pozamiejska", 0))
     
-                total_population += region.region_populacja
+                if pop_region < 0:
+                    raise ValueError(
+                        f"Populacja regionu (ID {region_id}) nie może być ujemna"
+                    )
+    
+                if pop_pozam < 0:
+                    raise ValueError(
+                        f"Ludność pozamiejska regionu (ID {region_id}) nie może być ujemna"
+                    )
+    
+                # ─── ZAPIS DO MODELU ───
+                region.region_populacja = pop_region
+                region.region_ludnosc_pozamiejska = pop_pozam
+    
+                total_population += pop_region
     
             panstwo = Panstwo.query.get_or_404(panstwo_id)
             panstwo.panstwo_populacja = total_population
@@ -334,4 +348,5 @@ def init_demografia_routes(app):
                 success=False,
                 error=str(e)
             ), 500
+
 
