@@ -266,18 +266,19 @@
     </div>
     <!-- MAPA REGIONU -->
     <div style="margin-bottom: 25px; text-align: center;">
-        <img
-            src="{{ url_for('static/maps', filename='region.region_nazwa'.jpg') }}"
-            alt="{{ region.region_nazwa }}"
-            style="
-                max-width: 100%;
-                max-height: 420px;
-                border-radius: 12px;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-                object-fit: contain;
-            "
-            onerror="this.onerror=null; this.src='{{ url_for('static', filename='region_placeholder.jpg') }}';"
-        >
+            <img
+                src="{{ url_for('static', filename='maps/' ~ region.region_nazwa ~ '.jpg') }}"
+                alt="{{ region.region_nazwa }}"
+                style="
+                    max-width: 100%;
+                    max-height: 420px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+                    object-fit: contain;
+                "
+                onerror="this.onerror=null; this.src='{{ url_for('static', filename='region_placeholder.jpg') }}';"
+            >
+
     </div>
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
