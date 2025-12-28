@@ -56,6 +56,11 @@
     line-height: 1.55;
     font-size: 0.95em;
     color: #2c3e50;
+   text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+      padding-left: 2px;
+      padding-right: 2px;
 }
 
 /* ===== AKCJE ===== */
@@ -159,8 +164,8 @@
 
     <!-- ===== OPIS (MD) ===== -->
     <div class="historia-description">
-        {{ opis_md }}
-    </div>
+    {{ h.wydarzenie_opis }}
+   </div>
 
     <!-- ===== AKCJE ===== -->
     <div class="historia-actions">
