@@ -267,7 +267,7 @@
     <!-- MAPA REGIONU -->
     <div style="margin-bottom: 25px; text-align: center;">
             <img
-                src="{{ url_for('static', filename='maps/' ~ region.region_nazwa ~ '.jpg') }}"
+                src="{{ url_for('static', filename='maps/' ~ region.region_nazwa|replace(' ', '_') ~ '.jpg') }}"
                 alt="{{ region.region_nazwa }}"
                 style="
                     max-width: 100%;
