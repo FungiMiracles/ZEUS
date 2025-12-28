@@ -178,10 +178,9 @@ def init_historia_routes(app):
     @app.route("/historia/<int:historia_id>/edit", methods=["GET", "POST"])
     @wymaga_roli("wszechmocny")
     def historia_edytuj(historia_id):
-
+    
         h = Historia.query.get_or_404(historia_id)
-        md_path = get_event_md_path(h.HISTORIA_ID)
-
+    
         if request.method == "POST":
             try:
                 # ====== DANE FORMULARZA ======
@@ -189,48 +188,39 @@ def init_historia_routes(app):
                 h.slug = slugify(h.nazwa_wydarzenia)
                 h.epoka = request.form.get("epoka")
                 h.kontynent = request.form.get("kontynent") or None
-
+    
                 # DATA
                 h.data_od = parse_year_or_date(request.form.get("data_od"))
                 data_do_raw = request.form.get("data_do")
                 h.data_do = parse_year_or_date(data_do_raw) if data_do_raw else None
-
+    
                 if h.data_do and h.data_do < h.data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza niż początkowa.")
-
-                # ====== ZAPIS DB ======
+    
+                # ====== OPIS (NOWA ARCHITEKTURA) ======
+                h.wydarzenie_opis = request.form.get("wydarzenie_opis")
+    
+                # ====== ZAPIS DO BAZY ======
                 db.session.commit()
-
-                # ====== ZAPIS MD ======
-                opis_md = normalize_md_newlines(request.form.get("opis_md", ""))
-
-                os.makedirs(EVENTS_DESCRIPTIONS_FOLDER, exist_ok=True)
-                with open(md_path, "w", encoding="utf-8", newline="\n") as f:
-                    f.write(opis_md)
-
+    
                 flash("Wydarzenie zostało zaktualizowane.", "success")
                 return redirect(
                     url_for("historia_podglad", historia_id=h.HISTORIA_ID)
                 )
-
+    
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
                 return redirect(
                     url_for("historia_edytuj", historia_id=h.HISTORIA_ID)
                 )
-
+    
         # ====== GET ======
-        opis_md = ""
-        if os.path.exists(md_path):
-            with open(md_path, "r", encoding="utf-8") as f:
-                opis_md = f.read()
-
         return render_template(
             "historia_form_edit.html",
-            h=h,
-            opis_md=opis_md
+            h=h
         )
+
 
 
     # --------------------------------------------------------
