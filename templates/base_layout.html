@@ -146,25 +146,28 @@ main.container {
     background: #1f2a44;
     color: #ffffff;
 
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
 
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.35;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
 
     width: fit-content;
     max-width: 420px;
 
-    white-space: normal;
-    word-wrap: break-word;
+    /* 🔒 BEZPIECZNIKI */
+    max-height: 72px;          /* ⬅ ok. 2–3 linijki */
+    overflow: hidden;
 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    white-space: normal;
+    word-break: break-word;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.22);
 
     opacity: 0;
-    transform: translateY(10px);
-
-    animation: toast-in 0.25s ease-out forwards;
+    transform: translateY(8px);
+    animation: toast-in 0.2s ease-out forwards;
 }
 
 @keyframes toast-in {
@@ -236,12 +239,14 @@ main.container {
     }
 
     .toast {
-        width: calc(100vw - 16px);   /* ⬅ PRAWIE CAŁY EKRAN */
+        width: calc(100vw - 12px);
         max-width: none;
 
-        padding: 10px 14px;          /* czytelniej na mobile */
-        font-size: 0.95rem;
-        line-height: 1.4;
+        max-height: 96px;     /* ⬅ więcej miejsca */
+        padding: 8px 12px;
+
+        font-size: 0.9rem;
+        line-height: 1.25;
 
         text-align: center;
     }
