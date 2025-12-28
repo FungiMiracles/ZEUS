@@ -193,11 +193,15 @@
 
         <!-- ===== OPIS ===== -->
         <div class="historia-section">
-            <h3>Opis wydarzenia (Markdown)</h3>
+            <h3>Opis wydarzenia</h3>
 
             <div class="historia-field">
-                <textarea name="opis_md"
-                          rows="14">{{ opis_md }}</textarea>
+                <textarea
+                      name="wydarzenie_opis"
+                      id="wydarzenie_opis"
+                      rows="10"
+                      style="width:100%; resize:vertical;"
+                  >{{ form_data.wydarzenie_opis or wydarzenie.wydarzenie_opis or "" }}</textarea>
             </div>
         </div>
 
