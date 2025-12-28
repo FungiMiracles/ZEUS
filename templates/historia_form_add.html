@@ -195,7 +195,7 @@
                      name="wydarzenie_opis"
                      rows="14"
                      style="width:100%; resize:vertical;"
-                 >{{ form_data.wydarzenie_opis or "" }}</textarea>
+                 >{{ request.form.wydarzenie_opis if request.method == 'POST' else "" }}</textarea>
              </div>
          </div>
 
