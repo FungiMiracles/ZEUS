@@ -107,7 +107,6 @@ def init_historia_routes(app):
     
                 h = Historia(
                     nazwa_wydarzenia=form["nazwa_wydarzenia"],
-                    slug=slugify(form["nazwa_wydarzenia"]),
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
@@ -145,7 +144,6 @@ def init_historia_routes(app):
             try:
                 # ====== DANE FORMULARZA ======
                 h.nazwa_wydarzenia = request.form.get("nazwa_wydarzenia")
-                h.slug = slugify(h.nazwa_wydarzenia)
                 h.epoka = request.form.get("epoka")
                 h.kontynent = request.form.get("kontynent") or None
     
