@@ -559,27 +559,6 @@ html, body {
     overflow-x: hidden;
 }
 
-@media (max-width: 991.98px) {
-    .navbar-collapse.show {
-        display: block !important;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-    .panstwo-form .layout {
-        flex-wrap: nowrap;
-    }
-
-    .panstwo-form .col-left {
-        flex: 0 0 320px;
-        max-width: 320px;
-    }
-
-    .panstwo-form .col-right {
-        flex: 1;
-        min-width: 0;
-    }
-}
 
 /* ===============================
    PANSTWO FORM — TABLET FIX
@@ -600,7 +579,7 @@ html, body {
 
   .panstwo-form .col-right {
       flex: 1;
-      min-width: 0; /* KLUCZOWE */
+      min-width: 0; /* ← KLUCZOWE, bez tego flex się rozpycha */
   }
 }
 
