@@ -279,6 +279,26 @@ function toggleNav() {
         {% endif %}
     {% endwith %}
 </div>
+      
+<script>
+function zeusToast(message, type = "info") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(30px)";
+        setTimeout(() => toast.remove(), 400);
+    }, 4200);
+}
+</script>
+
 
 </body>
 </html>
