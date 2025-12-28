@@ -16,6 +16,8 @@
   <title>{% block title %}{% endblock %}</title>
 
   <!-- LINK DO ZEWNĘTRZNEGO CSS ZE STYLAMI -->
+  <link rel="stylesheet"
+      href="{{ url_for('static', filename='css/TEST_CSS_DZIALA.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/zeus.css') }}?v=2025-01-01-01">
 
   <!-- KALENDARZ ENTENDY + GLOBALNE TŁO ZEUSA -->
