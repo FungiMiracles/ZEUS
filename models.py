@@ -21,6 +21,7 @@ class Panstwo(db.Model):
     panstwo_religia = db.Column(db.String(255))
     kontynent = db.Column(db.String(255))
     panstwo_powierzchnia = db.Column(BigInteger)
+    panstwo_opis = db.Column(db.Text)
 
     # 🆕 STATUS SUWERENNOŚCI
     czy_suwerenny = db.Column(
@@ -233,6 +234,7 @@ class Historia(db.Model):
         server_default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp()
     )
+    wydarzenie_opis = db.Column(db.Text)
 
     # =========================================================
     #  RELACJE (opcjonalnie, ale zalecane)
