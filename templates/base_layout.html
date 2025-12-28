@@ -86,7 +86,6 @@ body {
     border-bottom: 1px solid #dcdcdc;
 }
 
-/* LINK = PRZYCISK */
 .zeus-nav a {
     color: #333;
     font-weight: 600;
@@ -102,13 +101,21 @@ body {
 }
 
 /* =====================================================
-   HAMBURGER
+   HAMBURGER (GLOBAL FIXED — KLUCZOWE)
 ===================================================== */
 .nav-toggle {
-    display: none;
+    display: none;               /* desktop: ukryty */
     background: none;
     border: none;
     font-size: 1.5rem;
+    cursor: pointer;
+
+    /* 🔒 PRZYKLEJONY DO VIEWPORTU */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
 }
 
 /* =====================================================
@@ -120,46 +127,8 @@ main.container {
 }
 
 /* =====================================================
-   MOBILE & TABLET
+   TOASTS (GLOBAL — NIE W MEDIA!)
 ===================================================== */
-@media (max-width: 1023px) {
-
-    .zeus-topbar {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .nav-toggle {
-        display: block;
-        cursor: pointer;
-    }
-
-    .zeus-nav {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        padding: 14px 0;
-    }
-
-    .zeus-nav.show {
-        display: flex;
-    }
-      
-      .nav-toggle {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-}
-}
-
-@media (max-width: 768px) {
-    .zeus-topbar {
-        flex-direction: column;
-        align-items: center;
-    }
 #toast-container {
     position: fixed;
     top: 20px;
@@ -197,7 +166,42 @@ main.container {
     }
 }
 
+/* =====================================================
+   MOBILE & TABLET
+===================================================== */
+@media (max-width: 1023px) {
+
+    .zeus-topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* hamburger widoczny */
+    .nav-toggle {
+        display: block;
+    }
+
+    .zeus-nav {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 0;
+    }
+
+    .zeus-nav.show {
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
+    .zeus-topbar {
+        flex-direction: column;
+        align-items: center;
+    }
+}
 </style>
+
 </head>
 
 <body>
