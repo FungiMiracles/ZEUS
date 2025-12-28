@@ -43,6 +43,29 @@
     color: #34495e;
 }
 
+/* ================= LAYOUT ================= */
+.panstwo-form .layout {
+    display: flex;
+    gap: 30px;
+    margin: 20px 30px;
+    align-items: flex-start;
+}
+
+.panstwo-form .col-left {
+    flex: 0 0 420px;
+    max-width: 420px;
+}
+
+.panstwo-form .col-right {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ================= SEKCJE ================= */
+.panstwo-section {
+    margin-bottom: 24px;
+}
+
 /* ================= OPIS HEADER ================= */
 .opis-header {
     display: flex;
@@ -102,12 +125,9 @@
 .panstwo-table tbody tr:nth-child(even) .cell {
     background-color: #d5dfff;
 }
+
 .panstwo-table tbody tr:nth-child(odd) .cell {
     background-color: #e2e8ff;
-}
-
-.panstwo-section {
-    margin-bottom: 24px;
 }
 
 /* ================= OBRAZY ================= */
@@ -124,6 +144,7 @@
 .city-row {
     font-weight: 600;
     text-align: right;
+    white-space: nowrap;
 }
 
 /* ================= OPIS ================= */
@@ -136,6 +157,9 @@
     font-size: 0.95em;
     line-height: 1.7;
     color: #2c3e50;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .no-desc {
@@ -172,49 +196,21 @@
 }
 
 /* ============================================================
-   DESKTOP (>=1024px) — BEZ ZMIAN
-============================================================ */
-@media (min-width: 1024px) {
-    .panstwo-form .layout {
-        display: flex;
-        gap: 30px;
-        margin: 20px 30px;
-    }
-
-    .panstwo-form .col-left {
-        flex: 1 1 400px;
-        max-width: 450px;
-    }
-
-    .panstwo-form .col-right {
-        flex: 1 1 500px;
-        max-width: 50%;
-    }
-}
-
-/* ============================================================
-   MOBILE — TYLKO UKŁAD (BEZ ZMIANY STYLU)
+   MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
 ============================================================ */
 @media (max-width: 767px) {
-
-   .panstwo-table {
-        margin-bottom: 18px;
-    }
 
     .panstwo-form {
         padding: 0 10px;
     }
 
-    /* ===== NAGŁÓWKI ===== */
     .panstwo-form .country-name,
     .panstwo-form .country-fullname {
         margin-left: 0;
         text-align: center;
     }
 
-    /* ===== LAYOUT ===== */
     .panstwo-form .layout {
-        display: flex;
         flex-direction: column;
         gap: 18px;
         margin: 10px 0;
@@ -223,18 +219,14 @@
     .panstwo-form .col-left,
     .panstwo-form .col-right {
         max-width: 100%;
-        min-width: 100%;
+        flex: 1 1 auto;
     }
 
-    /* ========================================================
-       TABELA — MOBILE STACK (POPRAWNIE)
-    ======================================================== */
-
     .panstwo-table {
+        margin-bottom: 18px;
         table-layout: auto;
     }
 
-    /* NIE RUSZAMY <tr> !!! */
     .panstwo-table td,
     .panstwo-table th {
         display: block;
@@ -244,34 +236,16 @@
         word-break: break-word;
     }
 
-    /* etykieta nad wartością */
-    .panstwo-table .label {
-        width: 100%;
-    }
-
+    .panstwo-table .label,
     .panstwo-table .cell,
     .panstwo-table .cell-big {
         width: 100%;
     }
 
-    /* ========================================================
-       OBRAZY
-    ======================================================== */
     .panstwo-image {
-        max-width: 100%;
         height: auto;
     }
 
-    /* ========================================================
-       NAJWIĘKSZE MIASTA
-    ======================================================== */
-    .city-row {
-        white-space: nowrap;
-    }
-
-    /* ========================================================
-       INFORMACJE SZCZEGÓŁOWE
-    ======================================================== */
     .opis-header {
         flex-direction: column;
         align-items: stretch;
@@ -282,28 +256,17 @@
         width: 100%;
     }
 
-    /* ========================================================
-       MARKDOWN — TWARDY FIX
-    ======================================================== */
     .country-description {
-        max-width: 100%;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        hyphens: auto;
         font-size: 0.9em;
         line-height: 1.6;
     }
 
-    .country-description img,
-    .country-description table {
-        max-width: 100%;
+    textarea[name="opis_html"] {
+        font-size: 16px; /* iOS anti-zoom */
     }
 
-    textarea[name="opis_html"] {
-    font-size: 16px;
-   }
-
     .opis-actions {
+        display: flex;
         flex-direction: column;
         gap: 8px;
     }
@@ -312,23 +275,7 @@
         width: 100%;
     }
 }
-
-   @media (min-width: 768px) and (max-width: 1023px) {
-    .panstwo-form .layout {
-        display: flex;
-        flex-direction: column;
-        gap: 22px;
-        margin: 20px;
-    }
-
-    .panstwo-form .col-left,
-    .panstwo-form .col-right {
-        max-width: 100%;
-    }
-}
 </style>
-
-
 
 <!-- HTML bez zmian -->
 <div class="panstwo-form">
