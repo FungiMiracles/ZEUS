@@ -92,19 +92,12 @@ def init_historia_routes(app):
     # --------------------------------------------------------
     @app.route("/historia/<int:historia_id>")
     def historia_podglad(historia_id):
-
+    
         h = Historia.query.get_or_404(historia_id)
-        md_path = get_event_md_path(historia_id)
-
-        opis_md = ""
-        if os.path.exists(md_path):
-            with open(md_path, "r", encoding="utf-8") as f:
-                opis_md = f.read()
-
+    
         return render_template(
             "historia_form.html",
-            h=h,
-            opis_md=opis_md
+            h=h
         )
 
     # --------------------------------------------------------
