@@ -220,7 +220,6 @@ class Historia(db.Model):
     #  TREŚĆ
     # =========================================================
     nazwa_wydarzenia = db.Column(db.String(255), nullable=False)
-    slug = db.Column(db.String(255), nullable=False, unique=True)
 
     # =========================================================
     #  AUDYT
