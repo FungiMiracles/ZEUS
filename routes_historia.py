@@ -8,19 +8,6 @@ from extensions import db
 from models import Historia
 from permissions import wymaga_roli
 from paths import EVENTS_DESCRIPTIONS_FOLDER
-
-
-# ============================================================
-#  POMOCNICZE
-# ============================================================
-
-def slugify(text: str) -> str:
-    text = text.lower()
-    text = re.sub(r"[^a-z0-9\s-]", "", text)
-    text = re.sub(r"\s+", "-", text.strip())
-    return text
-
-
 from datetime import date
 
 from datetime import date, datetime
@@ -202,21 +189,18 @@ def init_historia_routes(app):
     @app.route("/historia/<int:historia_id>/delete", methods=["POST"])
     @wymaga_roli("wszechmocny")
     def historia_usun(historia_id):
-
+    
         h = Historia.query.get_or_404(historia_id)
-        md_path = get_event_md_path(historia_id)
-
+    
         try:
             db.session.delete(h)
             db.session.commit()
-
-            if os.path.exists(md_path):
-                os.remove(md_path)
-
+    
             flash("Wydarzenie historyczne zostało usunięte.", "success")
-
+    
         except Exception as e:
             db.session.rollback()
             flash(f"Błąd podczas usuwania wydarzenia: {e}", "error")
-
+    
         return redirect(url_for("historia_lista"))
+
