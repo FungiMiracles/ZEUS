@@ -187,9 +187,6 @@ td {
 /* ---------------------------------------------
    COUNTRY FORM SPECIFIC (panstwo_form)
 ----------------------------------------------*/
-.country-layout { display: flex; gap: 30px; margin: 20px 30px; flex-wrap: wrap; }
-.country-left  { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 20px; }
-.country-right { flex: 3; min-width: 600px; }
 
 .label-cell {
     background: #5d7dce;
@@ -322,4 +319,29 @@ textarea {
 html, body {
     max-width: 100%;
     overflow-x: hidden;
+}
+
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        display: none !important;
+    }
+    .navbar-collapse.show {
+        display: block !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .panstwo-form .layout {
+        flex-wrap: nowrap;
+    }
+
+    .panstwo-form .col-left {
+        flex: 0 0 320px;
+        max-width: 320px;
+    }
+
+    .panstwo-form .col-right {
+        flex: 1;
+        min-width: 0;
+    }
 }
