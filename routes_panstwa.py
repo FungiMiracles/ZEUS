@@ -100,34 +100,19 @@ def init_panstwa_routes(app):
     @app.route("/panstwo/<int:panstwo_id>")
     def panstwo_form(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
-
+    
         miasta = (
             Miasto.query
             .filter_by(panstwo_id=panstwo_id)
             .order_by(Miasto.miasto_populacja.desc())
             .all()
         )
-
-        # 🔑 HTML do podglądu, RAW MD do edycji
-        opis_html = get_panstwo_description(p.panstwo_nazwa)
-        opis_md = get_panstwo_description_raw(p.panstwo_nazwa)
-
-        # ===== DATA OSTATNIEJ EDYCJI OPISU =====
-        filename = p.panstwo_nazwa.replace(" ", "_") + ".md"
-        filepath = os.path.join(DESCRIPTIONS_FOLDER, filename)
-
-        ostatnia_edycja = None
-        if os.path.exists(filepath):
-            ts = os.path.getmtime(filepath)  # timestamp
-            ostatnia_edycja = datetime.fromtimestamp(ts)
-
+    
         return render_template(
             "panstwo_form.html",
             p=p,
             miasta=miasta,
-            opis_html=opis_html,
-            opis_md=opis_md,
-            ostatnia_edycja=ostatnia_edycja
+            ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
         )
 
     # ================= DODAWANIE PAŃSTWA =================
