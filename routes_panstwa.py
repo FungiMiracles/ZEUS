@@ -243,20 +243,16 @@ def init_panstwa_routes(app):
     @wymaga_roli("wszechmocny")
     def panstwo_opis_edit(panstwo_id):
         panstwo = Panstwo.query.get_or_404(panstwo_id)
-
-        nowy_opis = request.form.get("opis_md", "")
-
-        # 🔥 NORMALIZACJA NOWYCH LINII (CRLF -> LF)
-        nowy_opis = nowy_opis.replace("\r\n", "\n").strip()
+    
+        nowy_opis = request.form.get("opis_html", "").strip()
+    
         if not nowy_opis:
             flash("Opis nie może być pusty.", "error")
             return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
-
-        filename = panstwo.panstwo_nazwa.replace(" ", "_") + ".md"
-        filepath = os.path.join(DESCRIPTIONS_FOLDER, filename)
-
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(nowy_opis)
-
+    
+        panstwo.panstwo_opis = nowy_opis
+        db.session.commit()
+    
         flash("Informacje szczegółowe zostały zapisane.", "success")
         return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
+
