@@ -40,7 +40,7 @@ body {
 }
 
 .zeus-logo img {
-    height: 76px; /* 🔼 lekko większa ikona */
+    height: 76px;
 }
 
 .zeus-role {
@@ -145,6 +145,14 @@ main.container {
     .zeus-nav.show {
         display: flex;
     }
+      
+      .nav-toggle {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
 }
 
 @media (max-width: 768px) {
@@ -152,7 +160,43 @@ main.container {
         flex-direction: column;
         align-items: center;
     }
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
+
+.toast {
+    min-width: 260px;
+    max-width: 380px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    animation: toast-slide-in 0.35s ease-out;
+}
+
+.toast-success { background: #27ae60; }
+.toast-error   { background: #c0392b; }
+.toast-warning { background: #f39c12; }
+.toast-info    { background: #2980b9; }
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 </style>
 </head>
 
@@ -219,6 +263,18 @@ function toggleNav() {
     document.getElementById("zeusNav").classList.toggle("show");
 }
 </script>
+
+<div id="toast-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="toast toast-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 
 </body>
 </html>
