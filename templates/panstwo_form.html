@@ -457,7 +457,7 @@
                                       action="{{ url_for('panstwo_opis_edit', panstwo_id=p.PANSTWO_ID) }}">
                                     <textarea name="opis_html"
                                               rows="18"
-                                              style="width:100%; font-family: monospace; font-size: 0.75em; padding: 10px;">
+                                              style="width:100%; font-family: monospace; font-size: 0.75em; padding: 10px; text-align: justify; text-justify: inter-word; hyphens: auto; padding-left: 2px; padding-right: 2px;">
                                                 {{ p.panstwo_opis or "" }}</textarea>
 
                                     <div class="opis-actions">
