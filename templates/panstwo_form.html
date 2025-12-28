@@ -290,90 +290,92 @@
     <hr class="title-separator">
 
     <div class="layout">
-        <!-- LEWA KOLUMNA -->
+
+        <!-- ================= LEWA KOLUMNA ================= -->
         <div class="col-left">
-           <div class="panstwo-section">
-            <!-- INFORMACJE O PAŃSTWIE -->
-            <table class="panstwo-table">
-           </div>
-                <thead>
-                    <tr>
-                        <th colspan="3">Informacje o państwie</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- FLAGA -->
-                    <tr>
-                        <td class="label">Flaga:</td>
-                        <td colspan="2" class="cell-big cell">
-                            {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                            <img class="panstwo-image"
-                                 src="{{ url_for('static', filename=flag_path) }}"
-                                 onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
-                        </td>
-                    </tr>
 
-                    <!-- MAPA -->
-                    <tr>
-                        <td class="label">Mapa:</td>
-                        <td colspan="2" class="cell-big cell">
-                            {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                            <img class="panstwo-image"
-                                 src="{{ url_for('static', filename=mapa_path) }}"
-                                 onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
-                        </td>
-                    </tr>
-
-                    <!-- DANE -->
-                    {% for label, value in [
-                        ('Kontynent:', p.kontynent),
-                        ('Ustrój polityczny:', p.panstwo_ustroj),
-                        ('Stolica:', p.panstwo_stolica),
-                        ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
-                        ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
-                        ('Waluta:', p.panstwo_waluta),
-                        ('Język urzędowy:', p.panstwo_jezyk),
-                        ('Religia dominująca:', p.panstwo_religia),
-                        ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
-                        ('PKB per capita:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI"),
-                    ] %}
-                    <tr>
-                        <td class="label">{{ label }}</td>
-                        <td colspan="2" class="cell">{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-           <div class="panstwo-section">
-            <!-- NAJWIĘKSZE MIASTA -->
-            <table class="panstwo-table">
-                <thead>
-                    <tr>
-                        <th colspan="3">Największe miasta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if miasta %}
-                        {% for m in miasta[:5] %}
+            <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
+            <div class="panstwo-section">
+                <table class="panstwo-table">
+                    <thead>
                         <tr>
-                            <td colspan="2" class="cell">{{ m.miasto_nazwa }}</td>
-                            <td class="cell city-row">
-                                {{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}
+                            <th colspan="3">Informacje o państwie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td class="label">Flaga:</td>
+                            <td colspan="2" class="cell-big cell">
+                                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                                <img class="panstwo-image"
+                                     src="{{ url_for('static', filename=flag_path) }}"
+                                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
                             </td>
                         </tr>
-                        {% endfor %}
-                    {% else %}
+
                         <tr>
-                            <td colspan="3" class="cell">Brak danych o miastach.</td>
+                            <td class="label">Mapa:</td>
+                            <td colspan="2" class="cell-big cell">
+                                {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                                <img class="panstwo-image"
+                                     src="{{ url_for('static', filename=mapa_path) }}"
+                                     onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+                            </td>
                         </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-           </div>
+
+                        {% for label, value in [
+                            ('Kontynent:', p.kontynent),
+                            ('Ustrój polityczny:', p.panstwo_ustroj),
+                            ('Stolica:', p.panstwo_stolica),
+                            ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
+                            ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
+                            ('Waluta:', p.panstwo_waluta),
+                            ('Język urzędowy:', p.panstwo_jezyk),
+                            ('Religia dominująca:', p.panstwo_religia),
+                            ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
+                            ('PKB per capita:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI"),
+                        ] %}
+                        <tr>
+                            <td class="label">{{ label }}</td>
+                            <td colspan="2" class="cell">{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== NAJWIĘKSZE MIASTA ===== -->
+            <div class="panstwo-section">
+                <table class="panstwo-table">
+                    <thead>
+                        <tr>
+                            <th colspan="3">Największe miasta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if miasta %}
+                            {% for m in miasta[:5] %}
+                            <tr>
+                                <td colspan="2" class="cell">{{ m.miasto_nazwa }}</td>
+                                <td class="cell city-row">
+                                    {{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="cell">Brak danych o miastach.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
         </div>
 
-        <!-- PRAWA KOLUMNA -->
+        <!-- ================= PRAWA KOLUMNA ================= -->
         <div class="col-right">
             <table class="panstwo-table">
                 <thead>
@@ -395,27 +397,29 @@
                                     </button>
                                 {% endif %}
                             </div>
+
                             {% if p.opis_updated_at %}
-                              <div class="opis-meta">
-                                  Ostatnio edytowany:
-                                  {{ p.opis_updated_at.strftime("%d.%m.%Y, %H:%M") }}
-                              </div>
-                              {% endif %}
+                            <div class="opis-meta">
+                                Ostatnio edytowany:
+                                {{ p.opis_updated_at.strftime("%d.%m.%Y, %H:%M") }}
+                            </div>
+                            {% endif %}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td class="description-cell">
+
                             <!-- PODGLĄD -->
                             <div id="opis-view">
                                 {% if p.panstwo_opis %}
-                                     <div class="country-description">
-                                         {{ p.panstwo_opis | safe }}
-                                     </div>
-                                 {% else %}
-                                     <p class="no-desc">Brak informacji szczegółowych.</p>
-                                 {% endif %}
+                                    <div class="country-description">
+                                        {{ p.panstwo_opis | safe }}
+                                    </div>
+                                {% else %}
+                                    <p class="no-desc">Brak informacji szczegółowych.</p>
+                                {% endif %}
                             </div>
 
                             <!-- EDYCJA -->
@@ -424,12 +428,10 @@
                                       action="{{ url_for('panstwo_opis_edit', panstwo_id=p.PANSTWO_ID) }}">
                                     <textarea name="opis_html"
                                               rows="18"
-                                              style="
-                                                width:100%;
-                                                font-family: monospace;
-                                                font-size: 0.9em;
-                                                padding: 10px;
-                                              ">{{ p.panstwo_opis or "" }}</textarea>
+                                              style="width:100%; font-family: monospace; font-size: 0.9em; padding: 10px;">
+{{ p.panstwo_opis or "" }}</textarea>
+
+                                    <div class="opis-actions">
                                         <button type="submit"
                                                 class="btn-zeus btn-zeus-save">
                                             Zapisz
@@ -442,13 +444,16 @@
                                     </div>
                                 </form>
                             </div>
+
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
     </div>
 </div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
