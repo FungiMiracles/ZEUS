@@ -435,28 +435,27 @@
                         <td class="description-cell">
                             <!-- PODGLĄD -->
                             <div id="opis-view">
-                                {% if opis_html %}
-                                    <div class="country-description">
-                                        {{ opis_html | safe }}
-                                    </div>
-                                {% else %}
-                                    <p class="no-desc">Brak informacji szczegółowych.</p>
-                                {% endif %}
+                                {% if p.panstwo_opis %}
+                                     <div class="country-description">
+                                         {{ p.panstwo_opis | safe }}
+                                     </div>
+                                 {% else %}
+                                     <p class="no-desc">Brak informacji szczegółowych.</p>
+                                 {% endif %}
                             </div>
 
                             <!-- EDYCJA -->
                             <div id="opis-edit" style="display:none;">
                                 <form method="POST"
                                       action="{{ url_for('panstwo_opis_edit', panstwo_id=p.PANSTWO_ID) }}">
-                                    <textarea name="opis_md"
+                                    <textarea name="opis_html"
                                               rows="18"
                                               style="
                                                 width:100%;
                                                 font-family: monospace;
                                                 font-size: 0.9em;
                                                 padding: 10px;
-                                              ">{{ opis_md }}</textarea>
-                                    <div class="opis-actions">
+                                              ">{{ p.panstwo_opis or "" }}</textarea>
                                         <button type="submit"
                                                 class="btn-zeus btn-zeus-save">
                                             Zapisz
