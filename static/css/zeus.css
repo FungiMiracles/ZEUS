@@ -345,3 +345,7 @@ html, body {
         min-width: 0;
     }
 }
+
+html {
+    background: red !important;
+}
