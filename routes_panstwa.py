@@ -23,6 +23,7 @@ from paths import (
 )
 
 from permissions import wymaga_roli
+from sqlalchemy import inspect
 
 
 # ============================================================
@@ -231,6 +232,12 @@ def init_panstwa_routes(app):
             return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
     
         panstwo.panstwo_opis = nowy_opis
+
+        insp = inspect(panstwo)
+
+        print("DIRTY:", insp.attrs.panstwo_opis.history.has_changes())
+        print("VALUE:", panstwo.panstwo_opis)
+        
         db.session.commit()
     
         flash("Informacje szczegółowe zostały zapisane.", "success")
