@@ -10,36 +10,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ============================================================
-   ZEUS — TŁO GLOBALNE (MAPA + GRADIENT)
-============================================================ */
-
-.zeus-background {
-    position: fixed;
-    inset: 0;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(30, 40, 70, 0.82),
-            rgba(70, 95, 160, 0.82)
-        ),
-        url("/static/maps/mapa_swiata.jpeg");
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-}
-
-/* MGŁA / BLUR */
-.zeus-fog {
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
-    z-index: 1;
-}
-
 /* CAŁA TREŚĆ */
 .zeus-content {
     position: relative;
@@ -180,8 +150,11 @@ main.container {
 @media (min-width: 768px) and (max-width: 1023px) {
 
     .panstwo-form .col-left {
-        flex: 0 0 320px;
-        max-width: 320px;
+        flex: 0 0 420px;
+    }
+    .panstwo-form .col-right {
+        flex: 1;
+        min-width: 0;
     }
 }
 
@@ -198,9 +171,5 @@ main.container {
     .panstwo-form .col-left,
     .panstwo-form .col-right {
         max-width: 100%;
-    }
-
-    .navbar-toggler {
-        display: block;
     }
 }
