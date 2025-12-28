@@ -560,9 +560,6 @@ html, body {
 }
 
 @media (max-width: 991.98px) {
-    .navbar-collapse {
-        display: none !important;
-    }
     .navbar-collapse.show {
         display: block !important;
     }
@@ -587,3 +584,27 @@ html, body {
 html {
     background: red !important;
 }
+
+/* ===============================
+   PANSTWO FORM — TABLET FIX
+   =============================== */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  .panstwo-form .layout {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 24px;
+  }
+
+  .panstwo-form .col-left {
+      flex: 0 0 320px;
+      max-width: 320px;
+  }
+
+  .panstwo-form .col-right {
+      flex: 1;
+      min-width: 0; /* KLUCZOWE */
+  }
+}
+
