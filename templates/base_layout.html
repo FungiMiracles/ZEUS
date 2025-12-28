@@ -350,6 +350,18 @@ function zeusToast(message) {
 }
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toasts = document.querySelectorAll("#toast-container .toast");
+
+    toasts.forEach(toast => {
+        setTimeout(() => {
+            toast.style.animation = "toast-out 0.3s ease-in forwards";
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    });
+});
+</script>
 
 </body>
 </html>
