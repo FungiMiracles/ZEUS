@@ -1,3 +1,7 @@
+/* ============================================================
+   ZEUS — GLOBAL
+============================================================ */
+
 body {
     margin: 0;
     min-height: 100vh;
@@ -6,7 +10,10 @@ body {
     overflow-x: hidden;
 }
 
-/* MAPA ŚWIATA */
+/* ============================================================
+   ZEUS — TŁO GLOBALNE (MAPA + GRADIENT)
+============================================================ */
+
 .zeus-background {
     position: fixed;
     inset: 0;
@@ -16,7 +23,7 @@ body {
             rgba(30, 40, 70, 0.82),
             rgba(70, 95, 160, 0.82)
         ),
-        url("{{ url_for('static', filename='maps/mapa_swiata.jpeg') }}");
+        url("/static/maps/mapa_swiata.jpeg");
     background-size: cover;
     background-position: center;
     z-index: 0;
@@ -27,17 +34,21 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(4px);          /* 🔥 SUBTELNY BLUR */
+    backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
     z-index: 1;
 }
 
-/* CAŁA TREŚĆ ZEUSA */
+/* CAŁA TREŚĆ */
 .zeus-content {
     position: relative;
     z-index: 2;
 }
+
+/* ============================================================
+   TOAST
+============================================================ */
 
 #zeus-toast {
     position: fixed;
@@ -55,531 +66,141 @@ body {
     transition: opacity 0.3s ease-in-out;
 }
 
-    /* ===== GLOBALNE TŁO (subtelny wzorek) ===== */
-    /*body {
-      background-color: #fafafa !important;
-      background-image:
-        radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
-        radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
-      background-position:
-        0 0,
-        25px 25px;
-      background-size: 50px 50px;
-    }*/
-
-    /* LOADER (ukryty na początku) */
-    #loader {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.85);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #cccccc;
-      border-top-color: #0057ff;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ====== KALENDARZ ENTENDY ====== */
-    .entenda-clock {
-      position: absolute;
-      right: 20px;
-      top: 35px;
-      font-weight: 800;
-      font-size: 26px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.6);
-      box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
-    }
-    .ent-month {
-      color: #0057ff;
-      text-shadow: 0 0 6px #4d8cff;
-    }
-    .ent-dot {
-      color: #000;
-      font-weight: 900;
-    }
-    .ent-year {
-      color: #e60000;
-      text-shadow: 0 0 8px #ff4d4d;
-    }
-    .ent-ce {
-      color: #000;
-      margin-left: 3px;
-      font-weight: 700;
-    }
-
-    /* ====== PANEL STATYSTYK ====== */
-    .entenda-stats-bar {
-      text-align: center;
-      font-size: 13px;
-      padding: 4px 10px;
-      background: #f5f7fb;
-      color: #444;
-      border-top: 1px solid #e2e6f0;
-      border-bottom: 1px solid #e2e6f0;
-    }
-    .entenda-stats-bar strong {
-      font-weight: 700;
-      color: #2c3e70;
-    }
-
-    /* ===================================================== */
-/* ================== MOBILE & TABLET ================== */
-/* ===================================================== */
-
-@media (max-width: 768px) {
-
-  /* ====== GÓRNY PASEK ====== */
-  .zeus-topbar {
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 10px 6px;
-  }
-
-  /* LOGO ZEUSA – ŚRODEK, GÓRA */
-  .zeus-logo {
-    margin: 0 auto 6px;
-  }
-
-  .zeus-logo img {
-    width: 90px;
-    height: auto;
-  }
-
-  /* ROLA POD LOGO */
-  .zeus-role {
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    margin-bottom: 6px;
-    padding: 4px 10px;
-    background: rgba(255,255,255,0.75);
-    border-radius: 6px;
-  }
-
-  /* ZEGAR ENTENDY – MNIEJSZY, ALE TEN SAM STYL */
-  .zeus-clock {
-    position: static;
-    margin: 6px auto 4px;
-    font-size: 18px;
-    padding: 4px 10px;
-    box-shadow: 0 0 8px rgba(0,120,255,0.5);
-  }
-
-  /* STATYSTYKI – MNIEJSZA CZCIONKA */
-  .zeus-stats {
-    font-size: 11.5px;
-    padding: 6px 8px;
-    line-height: 1.4;
-  }
-
-  /* ====== DOLNA NAWIGACJA ====== */
-  .zeus-bottom-nav {
-    height: auto;
-    padding: 4px 0;
-  }
-
-  .zeus-bottom-nav .navbar-toggler {
-    margin: 0 auto;
-  }
-
-  /* LINKI W ROZWIJANEJ LIŚCIE */
-  #navbarNavLower {
-    text-align: center;
-  }
-
-  #navbarNavLower .nav-link {
-    padding: 6px 0;
-    font-size: 0.95rem;
-  }
-
-  /* ====== BEZ WYJEŻDŻANIA ====== */
-  body {
-    overflow-x: hidden;
-  }
-}
-
-  /* ROLA – KOMPAKTOWA */
-.zeus-role {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;                 /* 👈 kontrolowana przerwa */
-  font-size: 0.78rem;
-  line-height: 1.2;
-  margin-bottom: 6px;
-  padding: 4px 8px;
-  background: rgba(255,255,255,0.75);
-  border-radius: 6px;
-  white-space: nowrap;
-}
-
-/* ZMIEŃ – bez dodatkowych odstępów */
-.zeus-role a {
-  margin-left: 2px;
-}
-/* ---------------------------------------------
+/* ============================================================
    LOADER
-----------------------------------------------*/
+============================================================ */
+
 #loader {
+    display: none;
     position: fixed;
     inset: 0;
-    background-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255,255,255,0.85);
     z-index: 9999;
-    display: none;
     justify-content: center;
     align-items: center;
 }
+
 .spinner {
-    border: 8px solid #f3f3f3;
-    border-top: 8px solid #1d3662;
+    width: 60px;
+    height: 60px;
+    border: 6px solid #cccccc;
+    border-top-color: #0057ff;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
-    animation: spin 1s linear infinite;
+    animation: spin 0.9s linear infinite;
 }
+
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* ---------------------------------------------
-   GLOBAL
-----------------------------------------------*/
-body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #fafafa;
-    color: #2c3e50;
-    margin: 0;
-    padding: 0;
-}
-hr {
-    border: none;
-    height: 1px;
-    background-color: #b3b3b3;
-    margin: 20px 0;
+/* ============================================================
+   KALENDARZ ENTENDY
+============================================================ */
+
+.entenda-clock {
+    position: absolute;
+    right: 20px;
+    top: 35px;
+    font-weight: 800;
+    font-size: 26px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.6);
+    box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
 }
 
-/* ---------------------------------------------
-   NAVIGATION
-----------------------------------------------*/
+.ent-month { color: #0057ff; text-shadow: 0 0 6px #4d8cff; }
+.ent-dot   { color: #000; font-weight: 900; }
+.ent-year  { color: #e60000; text-shadow: 0 0 8px #ff4d4d; }
+.ent-ce    { margin-left: 3px; font-weight: 700; }
+
+/* ============================================================
+   PANEL STATYSTYK
+============================================================ */
+
+.entenda-stats-bar {
+    text-align: center;
+    font-size: 13px;
+    padding: 4px 10px;
+    background: #f5f7fb;
+    color: #444;
+    border-top: 1px solid #e2e6f0;
+    border-bottom: 1px solid #e2e6f0;
+}
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+
 .navbar-light.bg-white {
     background-color: #ffffff !important;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+
 .navbar-nav .nav-link {
     color: rgb(0, 33, 118);
     font-weight: 700;
     margin: 0 20px;
-    transition: color 0.1s;
-}
-.navbar-nav .nav-link:hover {
-    color: #355fbf;
 }
 
-/* ---------------------------------------------
-   PAGE STRUCTURE
-----------------------------------------------*/
+/* ============================================================
+   LAYOUT STRON
+============================================================ */
+
 main.container {
     margin: 30px auto 40px auto;
     max-width: 1800px;
     width: 100%;
 }
-.page-header {
-    text-align: center;
-    margin: 20px 0 30px 0;
-}
-.page-header h1 {
-    font-size: 1.8em;
-    font-weight: 700;
-    color: #34495e;
-}
 
-/* ---------------------------------------------
-   TABLE — GLOBAL ZEUS STYLE
-----------------------------------------------*/
-.zeus-table,
-.results-table {
-    width: 60%;
-    margin: 0 auto;        /* <-- to ją wyśrodkuje */
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fefefe;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    font-size: 1em;
-    color: #333;
-    text-align: center;
-}
+/* ============================================================
+   PANSTWO FORM — DESKTOP + TABLET
+============================================================ */
 
-/* Header */
-.zeus-table thead tr,
-.results-table thead tr {
-    background: linear-gradient(90deg, #5d7dce, #adc8ff);
-    color: white;
-    font-weight: 700;
-    font-size: 1.1em;
-}
-.zeus-table th,
-.results-table th {
-    padding: 12px 15px;
-}
-
-/* Alternating rows */
-.zeus-table tbody tr:nth-child(even),
-.results-table tbody tr:nth-child(even) {
-    background-color: #e8edff;
-}
-.zeus-table tbody tr:nth-child(odd),
-.results-table tbody tr:nth-child(odd) {
-    background-color: #f5f8ff;
-}
-.zeus-table tbody tr:hover,
-.results-table tbody tr:hover {
-    background-color: #d0d9ff;
-}
-
-/* Cells */
-td {
-    padding: 10px 15px;
-    white-space: nowrap;
-    font-weight: 600;
-}
-
-/* ---------------------------------------------
-   ACTION BUTTONS
-----------------------------------------------*/
-.action-buttons {
+.panstwo-form .layout {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-}
-.action-buttons a,
-.action-buttons button {
-    display: inline-block;
-    padding: 6px 8px;
-    font-size: 0.9em;
-    border-radius: 5px;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color .2s;
-}
-.btn-view   { background-color: #5d7dce; }
-.btn-edit   { background-color: #3498db; }
-.btn-delete { background-color: #e74c3c; }
-.btn-view:hover   { background-color: #315eb8; }
-.btn-edit:hover   { background-color: #1d6da3; }
-.btn-delete:hover { background-color: #a82b1d; }
-
-/* ---------------------------------------------
-   RETURN / UTILITY BUTTONS
-----------------------------------------------*/
-.btn-return {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #ecf0f1;
-    border: 1.5px solid #bdc3c7;
-    border-radius: 6px;
-    text-decoration: none;
-    color: #34495e;
-    font-weight: 600;
-    transition: .3s;
-}
-.btn-return:hover {
-    background-color: #3498db;
-    color: white;
+    align-items: flex-start;
+    gap: 24px;
 }
 
-.no-results {
-    text-align: center;
-    font-size: 1.1em;
-    font-weight: 700;
-    color: #c0392b;
-    margin: 50px 20px;
+.panstwo-form .col-left {
+    flex: 0 0 420px;
+    max-width: 420px;
 }
-.delete-form { display: inline; }
 
-/* ---------------------------------------------
-   COUNTRY FORM SPECIFIC (panstwo_form)
-----------------------------------------------*/
-
-.label-cell {
-    background: #5d7dce;
-    color: white;
-    font-weight: 700;
-    padding: 12px 15px;
-    width: 160px;
-}
-.image-cell {
-    padding: 18px;
-    text-align: center;
-}
-.country-image {
-    max-height: 130px;
-    max-width: 100%;
-    object-fit: contain;
-    background: #fafafa;
-    border-radius: 8px;
-    border: 1.5px solid #888;
-}
-.country-description {
-    max-height: 2000px;
-    overflow-y: auto;
-    padding-right: 10px;
-    line-height: 1.7;
-    color: #2c3e50;
-    font-size: 0.95em;
+.panstwo-form .col-right {
+    flex: 1;
+    min-width: 0; /* KLUCZ */
 }
 
 /* ============================================================
-   ZEUS — BLOKADA ZMIANY KOLORU TEKSTU NA PRZYCISKACH
+   TABLET FIX
 ============================================================ */
 
-/* Wszystkie przyciski i linki-przyciski */
-button,
-.btn,
-.btn-zeus,
-.btn-zeus-action,
-a.btn,
-a.btn-zeus {
-    color: inherit !important;
-}
-
-/* Hover */
-button:hover,
-.btn:hover,
-.btn-zeus:hover,
-.btn-zeus-action:hover,
-a.btn:hover,
-a.btn-zeus:hover {
-    color: inherit !important;
-    text-decoration: none !important;
-}
-
-/* Focus (kliknięcie / tab) */
-button:focus,
-.btn:focus,
-.btn-zeus:focus,
-.btn-zeus-action:focus,
-a.btn:focus,
-a.btn-zeus:focus {
-    color: inherit !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-/* Active (wciśnięty) */
-button:active,
-.btn:active,
-.btn-zeus:active,
-.btn-zeus-action:active,
-a.btn:active,
-a.btn-zeus:active {
-    color: inherit !important;
-}
-
-/* ============================================================
-   ZEUS — STAŁY BIAŁY TEKST NA PRZYCISKACH
-============================================================ */
-
-/* Wszystkie przyciski i linki-przyciski */
-button,
-.btn,
-.btn-zeus,
-.btn-zeus-action,
-a.btn,
-a.btn-zeus {
-    color: #ffffff !important;
-}
-
-/* Hover */
-button:hover,
-.btn:hover,
-.btn-zeus:hover,
-.btn-zeus-action:hover,
-a.btn:hover,
-a.btn-zeus:hover {
-    color: #ffffff !important;
-    text-decoration: none !important;
-}
-
-/* Focus */
-button:focus,
-.btn:focus,
-.btn-zeus:focus,
-.btn-zeus-action:focus,
-a.btn:focus,
-a.btn-zeus:focus {
-    color: #ffffff !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-/* Active */
-button:active,
-.btn:active,
-.btn-zeus:active,
-.btn-zeus-action:active,
-a.btn:active,
-a.btn-zeus:active {
-    color: #ffffff !important;
-}
-
-textarea {
-    white-space: pre-wrap;   /* zachowuje entery + zawija */
-    word-wrap: break-word;  /* łamie długie słowa */
-    overflow-wrap: break-word;
-}
-
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-
-/* ===============================
-   PANSTWO FORM — TABLET FIX
-   =============================== */
 @media (min-width: 768px) and (max-width: 1023px) {
 
-  .panstwo-form .layout {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 24px;
-  }
-
-  .panstwo-form .col-left {
-      flex: 0 0 320px;
-      max-width: 320px;
-  }
-
-  .panstwo-form .col-right {
-      flex: 1;
-      min-width: 0; /* ← KLUCZOWE, bez tego flex się rozpycha */
-  }
+    .panstwo-form .col-left {
+        flex: 0 0 320px;
+        max-width: 320px;
+    }
 }
 
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 767px) {
+
+    .panstwo-form .layout {
+        flex-direction: column;
+    }
+
+    .panstwo-form .col-left,
+    .panstwo-form .col-right {
+        max-width: 100%;
+    }
+
+    .navbar-toggler {
+        display: block;
+    }
+}
