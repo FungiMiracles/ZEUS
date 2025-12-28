@@ -64,14 +64,16 @@ body {
 .ent-year  { color: #e60000; }
 
 /* =====================================================
-   STATS BAR
+   STATS BAR  (⬅ TU MA BYĆ HAMBURGER POD SPODEN)
 ===================================================== */
 .entenda-stats {
     text-align: center;
     font-size: 13px;
-    padding: 6px 10px;
+    padding: 6px 10px 12px 10px;
     background: #f5f7fb;
     border-bottom: 1px solid #e2e6f0;
+
+    position: relative; /* ⬅ punkt odniesienia dla hamburgera */
 }
 
 /* =====================================================
@@ -101,21 +103,20 @@ body {
 }
 
 /* =====================================================
-   HAMBURGER (GLOBAL FIXED — KLUCZOWE)
+   HAMBURGER
+   - NIE FIXED
+   - NIE CENTER EKRANU
+   - POD STATYSTYKĄ ENTENDA
 ===================================================== */
 .nav-toggle {
-    display: none;               /* desktop: ukryty */
+    display: none;                /* desktop: ukryty */
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     cursor: pointer;
 
-    /* 🔒 PANCERNE PRZYCZEPIENIE DO EKRANU */
-    position: absolute;
-    top: 50vh;
-    left: 50vw;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
+    margin: 8px auto 4px auto;    /* ⬅ POD TEKSTEM */
+    color: #2c3e50;
 }
 
 /* =====================================================
@@ -127,42 +128,46 @@ main.container {
 }
 
 /* =====================================================
-   TOASTS (GLOBAL — NIE W MEDIA!)
+   TOASTS — NOWA WERSJA (ZGODNA Z WYMAGANIAMI)
 ===================================================== */
 #toast-container {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     z-index: 10000;
+
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: flex-end;
+    gap: 10px;
 }
 
 .toast {
-    min-width: 260px;
-    max-width: 380px;
-    padding: 14px 18px;
+    background: #1f2a44;          /* granat */
+    color: #ffffff;               /* białe litery */
+
+    padding: 10px 14px;
     border-radius: 8px;
+
+    font-size: 0.95rem;
     font-weight: 600;
-    color: white;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    animation: toast-slide-in 0.35s ease-out;
+    line-height: 1.4;
+
+    width: auto;
+    max-width: 420px;
+    white-space: normal;
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+
+    opacity: 0;
+    transform: translateY(12px);
+    animation: toast-in 0.25s ease-out forwards;
 }
 
-.toast-success { background: #27ae60; }
-.toast-error   { background: #c0392b; }
-.toast-warning { background: #f39c12; }
-.toast-info    { background: #2980b9; }
-
-@keyframes toast-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
+@keyframes toast-in {
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
 
@@ -176,7 +181,7 @@ main.container {
         gap: 10px;
     }
 
-    /* hamburger widoczny */
+    /* hamburger widoczny na mobile */
     .nav-toggle {
         display: block;
     }
@@ -194,13 +199,31 @@ main.container {
     }
 }
 
+/* =====================================================
+   MOBILE (MAŁE EKRANY)
+===================================================== */
 @media (max-width: 768px) {
+
     .zeus-topbar {
         flex-direction: column;
         align-items: center;
     }
+
+    /* toast na środku dołu */
+    #toast-container {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        align-items: center;
+    }
+
+    .toast {
+        max-width: calc(100vw - 40px);
+        text-align: center;
+    }
 }
 </style>
+
 
 </head>
 
@@ -281,21 +304,22 @@ function toggleNav() {
 </div>
       
 <script>
-function zeusToast(message, type = "info") {
+function zeusToast(message) {
     const container = document.getElementById("toast-container");
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = `toast toast-${type}`;
+    toast.className = "toast";
     toast.textContent = message;
 
     container.appendChild(toast);
 
+    // 5 sekund widoczności
     setTimeout(() => {
         toast.style.opacity = "0";
-        toast.style.transform = "translateX(30px)";
-        setTimeout(() => toast.remove(), 400);
-    }, 4200);
+        toast.style.transform = "translateY(12px)";
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
 }
 </script>
 
