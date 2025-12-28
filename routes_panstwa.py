@@ -18,8 +18,7 @@ from datetime import datetime
 
 from paths import (
     FLAGI_DIR,
-    MAPY_DIR,
-    DESCRIPTIONS_FOLDER
+    MAPY_DIR
 )
 
 from permissions import wymaga_roli
