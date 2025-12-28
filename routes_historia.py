@@ -60,24 +60,6 @@ def parse_year_or_date(value: str) -> date:
     )
 
 
-def get_event_md_path(historia_id: int) -> str:
-    """
-    Jeden plik MD = jedno wydarzenie (ID)
-    → brak problemów przy zmianie dat / sluga
-    """
-    filename = f"{historia_id}.md"
-    return os.path.join(EVENTS_DESCRIPTIONS_FOLDER, filename)
-
-
-def normalize_md_newlines(text: str) -> str:
-    if not text:
-        return ""
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    while "\n\n\n" in text:
-        text = text.replace("\n\n\n", "\n\n")
-    return text
-
-
 # ============================================================
 #  ROUTES HISTORII
 # ============================================================
@@ -131,45 +113,43 @@ def init_historia_routes(app):
     @app.route("/historia/dodaj", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def historia_dodaj():
-
+    
         if request.method == "POST":
             try:
                 form = request.form
-
+    
                 data_od = parse_year_or_date(form["data_od"])
                 data_do_raw = form.get("data_do")
                 data_do = parse_year_or_date(data_do_raw) if data_do_raw else None
-
+    
                 if data_do and data_do < data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza.")
-
+    
                 h = Historia(
                     nazwa_wydarzenia=form["nazwa_wydarzenia"],
                     slug=slugify(form["nazwa_wydarzenia"]),
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
-                    kontynent=form.get("kontynent")or None,
+                    kontynent=form.get("kontynent") or None,
+    
+                    # 🔥 KLUCZOWA LINIA
+                    wydarzenie_opis=form.get("wydarzenie_opis")
                 )
-
+    
                 db.session.add(h)
                 db.session.commit()
-
-                opis_md = normalize_md_newlines(form.get("opis_md", ""))
-                os.makedirs(EVENTS_DESCRIPTIONS_FOLDER, exist_ok=True)
-
-                with open(get_event_md_path(h.HISTORIA_ID), "w", encoding="utf-8") as f:
-                    f.write(opis_md)
-
+    
                 flash("Wydarzenie zostało dodane.", "success")
                 return redirect(url_for("historia_lista"))
-
+    
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
                 return redirect(url_for("historia_dodaj"))
-
+    
         return render_template("historia_form_add.html")
+
 
 
     # --------------------------------------------------------
