@@ -22,6 +22,7 @@ class Panstwo(db.Model):
     kontynent = db.Column(db.String(255))
     panstwo_powierzchnia = db.Column(BigInteger)
     panstwo_opis = db.Column(db.Text)
+    opis_updated_at = db.Column(db.DateTime)
 
     # 🆕 STATUS SUWERENNOŚCI
     czy_suwerenny = db.Column(
