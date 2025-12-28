@@ -1,3 +1,241 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+    overflow-x: hidden;
+}
+
+/* MAPA ŚWIATA */
+.zeus-background {
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(30, 40, 70, 0.82),
+            rgba(70, 95, 160, 0.82)
+        ),
+        url("{{ url_for('static', filename='maps/mapa_swiata.jpeg') }}");
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+/* MGŁA / BLUR */
+.zeus-fog {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);          /* 🔥 SUBTELNY BLUR */
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: inset 0 0 140px rgba(0,0,0,0.35);
+    z-index: 1;
+}
+
+/* CAŁA TREŚĆ ZEUSA */
+.zeus-content {
+    position: relative;
+    z-index: 2;
+}
+
+#zeus-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #2f3e63;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    font-size: 0.9em;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+    /* ===== GLOBALNE TŁO (subtelny wzorek) ===== */
+    /*body {
+      background-color: #fafafa !important;
+      background-image:
+        radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
+        radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px);
+      background-position:
+        0 0,
+        25px 25px;
+      background-size: 50px 50px;
+    }
+
+    /* LOADER (ukryty na początku) */
+    #loader {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #cccccc;
+      border-top-color: #0057ff;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ====== KALENDARZ ENTENDY ====== */
+    .entenda-clock {
+      position: absolute;
+      right: 20px;
+      top: 35px;
+      font-weight: 800;
+      font-size: 26px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.6);
+      box-shadow: 0 0 12px rgba(0, 120, 255, 0.6);
+    }
+    .ent-month {
+      color: #0057ff;
+      text-shadow: 0 0 6px #4d8cff;
+    }
+    .ent-dot {
+      color: #000;
+      font-weight: 900;
+    }
+    .ent-year {
+      color: #e60000;
+      text-shadow: 0 0 8px #ff4d4d;
+    }
+    .ent-ce {
+      color: #000;
+      margin-left: 3px;
+      font-weight: 700;
+    }
+
+    /* ====== PANEL STATYSTYK ====== */
+    .entenda-stats-bar {
+      text-align: center;
+      font-size: 13px;
+      padding: 4px 10px;
+      background: #f5f7fb;
+      color: #444;
+      border-top: 1px solid #e2e6f0;
+      border-bottom: 1px solid #e2e6f0;
+    }
+    .entenda-stats-bar strong {
+      font-weight: 700;
+      color: #2c3e70;
+    }
+
+    /* ===================================================== */
+/* ================== MOBILE & TABLET ================== */
+/* ===================================================== */
+
+@media (max-width: 768px) {
+
+  /* ====== GÓRNY PASEK ====== */
+  .zeus-topbar {
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 10px 6px;
+  }
+
+  /* LOGO ZEUSA – ŚRODEK, GÓRA */
+  .zeus-logo {
+    margin: 0 auto 6px;
+  }
+
+  .zeus-logo img {
+    width: 90px;
+    height: auto;
+  }
+
+  /* ROLA POD LOGO */
+  .zeus-role {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 6px;
+  }
+
+  /* ZEGAR ENTENDY – MNIEJSZY, ALE TEN SAM STYL */
+  .zeus-clock {
+    position: static;
+    margin: 6px auto 4px;
+    font-size: 18px;
+    padding: 4px 10px;
+    box-shadow: 0 0 8px rgba(0,120,255,0.5);
+  }
+
+  /* STATYSTYKI – MNIEJSZA CZCIONKA */
+  .zeus-stats {
+    font-size: 11.5px;
+    padding: 6px 8px;
+    line-height: 1.4;
+  }
+
+  /* ====== DOLNA NAWIGACJA ====== */
+  .zeus-bottom-nav {
+    height: auto;
+    padding: 4px 0;
+  }
+
+  .zeus-bottom-nav .navbar-toggler {
+    margin: 0 auto;
+  }
+
+  /* LINKI W ROZWIJANEJ LIŚCIE */
+  #navbarNavLower {
+    text-align: center;
+  }
+
+  #navbarNavLower .nav-link {
+    padding: 6px 0;
+    font-size: 0.95rem;
+  }
+
+  /* ====== BEZ WYJEŻDŻANIA ====== */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+  /* ROLA – KOMPAKTOWA */
+.zeus-role {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;                 /* 👈 kontrolowana przerwa */
+  font-size: 0.78rem;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ZMIEŃ – bez dodatkowych odstępów */
+.zeus-role a {
+  margin-left: 2px;
+}
 /* ---------------------------------------------
    LOADER
 ----------------------------------------------*/
