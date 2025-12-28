@@ -188,13 +188,16 @@
 
         <!-- ===== OPIS ===== -->
         <div class="historia-section">
-            <h3>Opis wydarzenia (Markdown)</h3>
-
-            <div class="historia-field">
-                <textarea name="opis_md"
-                          rows="14"></textarea>
-            </div>
-        </div>
+             <h3>Opis wydarzenia</h3>
+         
+             <div class="historia-field">
+                 <textarea
+                     name="wydarzenie_opis"
+                     rows="14"
+                     style="width:100%; resize:vertical;"
+                 >{{ form_data.wydarzenie_opis or "" }}</textarea>
+             </div>
+         </div>
 
         <!-- ===== AKCJE ===== -->
         <div class="historia-actions">
