@@ -2,138 +2,132 @@
 <html lang="pl">
 <head>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-  
-  <!-- Required meta tags -->
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-  <!-- Bootstrap CSS -->
+  <!-- META -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- BOOTSTRAP 4.5 -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
-        crossorigin="anonymous" />
+        crossorigin="anonymous">
 
   <title>{% block title %}{% endblock %}</title>
 
-  <!-- LINK DO ZEWNĘTRZNEGO CSS ZE STYLAMI -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/zeus.css') }}?v=2025-01-01-01">
-
-  <!-- KALENDARZ ENTENDY + GLOBALNE TŁO ZEUSA -->
+  <!-- ZEUS CSS -->
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/zeus.css') }}?v=FINAL">
 </head>
-
 
 <body>
 
+  <!-- WARSTWY TŁA ZEUSA -->
+  <div class="zeus-background"></div>
+  <div class="zeus-fog"></div>
 
-  
-  <!-- Loader -->
-  <div id="loader">
-    <div class="spinner"></div>
-  </div>
+  <!-- CAŁA TREŚĆ -->
+  <div class="zeus-content">
 
-  <!-- Górny pasek nawigacji -->
-  <nav class="navbar navbar-expand-md navbar-light bg-white zeus-topbar">
-    <a class="navbar-brand zeus-logo" href="{{ url_for('home_page') }}">
-      <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}"
-           alt="ZEUS LOGO" width="110" height="110" />
-    </a>
-
-        {% if session.rola %}
-          <div class="zeus-role">
-              Rola: <strong>{{ session.rola|capitalize }}</strong>
-              |
-              <a href="{{ url_for('wejscie') }}">Zmień</a>
-          </div>
-        {% endif %}
-
-
-
-    <!-- KALENDARZ ENTENDY -->
-    <div class="entenda-clock zeus-clock">
-      <span class="ent-month">{{ ENTENDA_MONTH }}</span>
-      <span class="ent-dot">.</span>
-      <span class="ent-year">{{ ENTENDA_YEAR }}</span>
-      <span class="ent-ce"> CE</span>
+    <!-- LOADER -->
+    <div id="loader">
+      <div class="spinner"></div>
     </div>
 
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarNav"
-      aria-controls="navbarNav"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <!-- ================= GÓRNY PASEK ================= -->
+    <nav class="navbar navbar-expand-md navbar-light bg-white zeus-topbar">
+      <a class="navbar-brand zeus-logo" href="{{ url_for('home_page') }}">
+        <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}"
+             alt="ZEUS LOGO"
+             width="110"
+             height="110">
+      </a>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- przyszłe górne linki -->
+      {% if session.rola %}
+        <div class="zeus-role">
+          Rola: <strong>{{ session.rola|capitalize }}</strong>
+          |
+          <a href="{{ url_for('wejscie') }}">Zmień</a>
+        </div>
+      {% endif %}
+
+      <!-- ZEGAR ENTENDY -->
+      <div class="entenda-clock zeus-clock">
+        <span class="ent-month">{{ ENTENDA_MONTH }}</span>
+        <span class="ent-dot">.</span>
+        <span class="ent-year">{{ ENTENDA_YEAR }}</span>
+        <span class="ent-ce"> CE</span>
+      </div>
+
+      <!-- (górny navbar bez linków, więc collapse niepotrzebny) -->
+    </nav>
+
+    <hr class="my-1">
+
+    <!-- ================= STATYSTYKI ŚWIATA ================= -->
+    <div class="entenda-stats-bar zeus-stats">
+      Entenda to
+      <strong>{{ E_WORLD_POP }}</strong> ludzi,
+      na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach,
+      w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach,
+      w <strong>{{ E_WORLD_REGIONS }}</strong> regionach
+      i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
     </div>
-  </nav>
 
-  <hr class="my-1" />
+    <!-- ================= DOLNA NAWIGACJA ================= -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white zeus-bottom-nav">
 
-  <!-- WSKAŹNIK ŚWIATA ENTENDY -->
-  <div class="entenda-stats-bar zeus-stats">
-    Entenda to
-    <strong>{{ E_WORLD_POP }}</strong> ludzi,
-    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach,
-    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach,
-    w <strong>{{ E_WORLD_REGIONS }}</strong> regionach
-    i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
-  </div>
+      <!-- HAMBURGER (tablet + mobile) -->
+      <button class="navbar-toggler"
+              type="button"
+              data-toggle="collapse"
+              data-target="#navbarNavLower"
+              aria-controls="navbarNavLower"
+              aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-  <!-- Dolny pasek nawigacji -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white zeus-bottom-nav">
-    
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarNavLower"
-      aria-controls="navbarNavLower"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
+      <div class="collapse navbar-collapse justify-content-center"
+           id="navbarNavLower">
+        <ul class="navbar-nav">
 
-    <div class="collapse navbar-collapse justify-content-center" id="navbarNavLower">
-      <ul class="navbar-nav">
-        {% set nav_links = [
-        ('home_page', 'Strona główna'),
-        ('mapy', 'Mapy'),
-        ('historia', 'Historia'),
-        ('kultura', 'Kultura'),
-        ('sily_zbrojne', 'Siły zbrojne'),
-        ('gospodarka', 'Gospodarka'),
-        ('demografia', 'Demografia'),
-        ('natura', 'Natura'),
-        ('dyplomacja', 'Dyplomacja'),
-        ('artykuly', 'Artykuły'),
-        ('pliki', 'Pliki'),
-        ('info', 'Info')
-        ] %}
+          {% set nav_links = [
+            ('home_page', 'Strona główna'),
+            ('mapy', 'Mapy'),
+            ('historia', 'Historia'),
+            ('kultura', 'Kultura'),
+            ('sily_zbrojne', 'Siły zbrojne'),
+            ('gospodarka', 'Gospodarka'),
+            ('demografia', 'Demografia'),
+            ('natura', 'Natura'),
+            ('dyplomacja', 'Dyplomacja'),
+            ('artykuly', 'Artykuły'),
+            ('pliki', 'Pliki'),
+            ('info', 'Info')
+          ] %}
 
-        {% for endpoint, label in nav_links %}
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for(endpoint) }}">{{ label }}</a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-  </nav>
+          {% for endpoint, label in nav_links %}
+          <li class="nav-item">
+            <a class="nav-link"
+               href="{{ url_for(endpoint) }}">{{ label }}</a>
+          </li>
+          {% endfor %}
 
-  <hr class="my-1" />
+        </ul>
+      </div>
+    </nav>
 
-  <main class="container">
-    {% block content %}{% endblock %}
-  </main>
+    <hr class="my-1">
 
+    <!-- ================= TREŚĆ STRONY ================= -->
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
 
-  <!-- Optional JavaScript -->
+  </div> <!-- /.zeus-content -->
+
+  <!-- ================= JS ================= -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
           integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
           crossorigin="anonymous"></script>
@@ -142,47 +136,35 @@
           integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
           crossorigin="anonymous"></script>
 
-
-  <!-- ============================
-       LOADER FIX (BFCache + normal)
-       ============================ -->
-      <script>
-    window.addEventListener("beforeunload", function (e) {
-        // 🔒 jeśli kliknięto link do pobierania – NIE pokazuj loadera
-        if (document.activeElement &&
-            document.activeElement.hasAttribute("data-download")) {
-            return;
-        }
-
-        document.getElementById("loader").style.display = "flex";
-    });
-    </script>
-  <div id="zeus-toast" style="display:none;">
-      <span id="zeus-toast-text"></span>
-  </div>
+  <!-- LOADER -->
   <script>
-function zeusToast(message, duration = 5000) {
-    const toast = document.getElementById("zeus-toast");
-    const text = document.getElementById("zeus-toast-text");
-
-    if (!toast || !text) return;
-
-    text.textContent = message;
-    toast.style.display = "block";
-
-    requestAnimationFrame(() => {
-        toast.style.opacity = "1";
+    window.addEventListener("beforeunload", function () {
+      const loader = document.getElementById("loader");
+      if (loader) loader.style.display = "flex";
     });
+  </script>
 
-    setTimeout(() => {
+  <!-- TOAST -->
+  <div id="zeus-toast" style="display:none;">
+    <span id="zeus-toast-text"></span>
+  </div>
+
+  <script>
+    function zeusToast(message, duration = 5000) {
+      const toast = document.getElementById("zeus-toast");
+      const text = document.getElementById("zeus-toast-text");
+      if (!toast || !text) return;
+
+      text.textContent = message;
+      toast.style.display = "block";
+      requestAnimationFrame(() => toast.style.opacity = "1");
+
+      setTimeout(() => {
         toast.style.opacity = "0";
-        setTimeout(() => {
-            toast.style.display = "none";
-        }, 300);
-    }, duration);
-}
-</script>
-
+        setTimeout(() => toast.style.display = "none", 300);
+      }, duration);
+    }
+  </script>
 
 </body>
 </html>
