@@ -106,6 +106,10 @@
     background-color: #e2e8ff;
 }
 
+.panstwo-section {
+    margin-bottom: 24px;
+}
+
 /* ================= OBRAZY ================= */
 .panstwo-image {
     max-width: 100%;
@@ -192,6 +196,10 @@
    MOBILE — TYLKO UKŁAD (BEZ ZMIANY STYLU)
 ============================================================ */
 @media (max-width: 767px) {
+
+   .panstwo-table {
+        margin-bottom: 18px;
+    }
 
     .panstwo-form {
         padding: 0 10px;
@@ -291,9 +299,9 @@
         max-width: 100%;
     }
 
-    textarea[name="opis_md"] {
-        font-size: 16px; /* iOS anti-zoom */
-    }
+    textarea[name="opis_html"] {
+    font-size: 16px;
+   }
 
     .opis-actions {
         flex-direction: column;
@@ -302,6 +310,20 @@
 
     .opis-actions .btn-zeus {
         width: 100%;
+    }
+}
+
+   @media (min-width: 768px) and (max-width: 1023px) {
+    .panstwo-form .layout {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        margin: 20px;
+    }
+
+    .panstwo-form .col-left,
+    .panstwo-form .col-right {
+        max-width: 100%;
     }
 }
 </style>
@@ -323,8 +345,10 @@
     <div class="layout">
         <!-- LEWA KOLUMNA -->
         <div class="col-left">
+           <div class="panstwo-section">
             <!-- INFORMACJE O PAŃSTWIE -->
             <table class="panstwo-table">
+           </div>
                 <thead>
                     <tr>
                         <th colspan="3">Informacje o państwie</th>
@@ -374,6 +398,7 @@
                 </tbody>
             </table>
 
+           <div class="panstwo-section">
             <!-- NAJWIĘKSZE MIASTA -->
             <table class="panstwo-table">
                 <thead>
@@ -383,7 +408,7 @@
                 </thead>
                 <tbody>
                     {% if miasta %}
-                        {% for m in miasta %}
+                        {% for m in miasta[:5] %}
                         <tr>
                             <td colspan="2" class="cell">{{ m.miasto_nazwa }}</td>
                             <td class="cell city-row">
@@ -398,6 +423,7 @@
                     {% endif %}
                 </tbody>
             </table>
+           </div>
         </div>
 
         <!-- PRAWA KOLUMNA -->
