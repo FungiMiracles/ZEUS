@@ -422,11 +422,12 @@
                                     </button>
                                 {% endif %}
                             </div>
-                            {% if ostatnia_edycja %}
-                                <div class="opis-meta">
-                                    Ostatnio edytowany: {{ ostatnia_edycja.strftime("%d.%m.%Y, %H:%M") }}
-                                </div>
-                            {% endif %}
+                            {% if p.opis_updated_at %}
+                              <div class="opis-meta">
+                                  Ostatnio edytowany:
+                                  {{ p.opis_updated_at.strftime("%d.%m.%Y, %H:%M") }}
+                              </div>
+                              {% endif %}
                         </th>
                     </tr>
                 </thead>
