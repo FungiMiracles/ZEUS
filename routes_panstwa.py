@@ -16,11 +16,6 @@ from extensions import db
 from models import Panstwo, Miasto
 from datetime import datetime
 
-from markdown_utils import (
-    get_panstwo_description,
-    get_panstwo_description_raw
-)
-
 from paths import (
     FLAGI_DIR,
     MAPY_DIR,
