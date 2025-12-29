@@ -192,7 +192,7 @@
                         <option>Wyspy Mniejsze</option>
                     </select>
 
-                    <label>Nazwa</label>
+                    <label>Nazwa państwa</label>
                     <input type="text" name="panstwo_nazwa">
 
                     <label>Kod państwa (ECC)</label>
@@ -210,10 +210,10 @@
                 <h4>Regiony</h4>
 
                 <form action="{{ url_for('wyniki_wyszukiwania_region') }}" method="GET">
-                    <label>Państwo</label>
+                    <label>Nazwa państwa</label>
                     <input type="text" name="panstwo_nazwa">
 
-                    <label>Region</label>
+                    <label>Nazwa regionu</label>
                     <input type="text" name="region_nazwa">
 
                     <button class="btn-search">Szukaj</button>
@@ -228,13 +228,13 @@
                 <h4>Miasta</h4>
 
                 <form action="{{ url_for('wyniki_wyszukiwania_miasto') }}" method="GET">
-                    <label>Nazwa</label>
+                    <label>Nazwa miasta</label>
                     <input type="text" name="miasto_nazwa">
 
                     <label>Kod miasta (ECIC)</label>
                     <input type="text" name="miasto_kod">
 
-                    <label>Państwo</label>
+                    <label>Nazwa państwa</label>
                     <input type="text" name="panstwo_nazwa">
 
                     <button class="btn-search">Szukaj</button>
