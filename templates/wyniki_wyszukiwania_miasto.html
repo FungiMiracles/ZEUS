@@ -248,6 +248,7 @@ Wyniki wyszukiwania miast
     .miasto-actions button,
     .miasto-actions form {
         width: 100%;
+        grid-column: span 1;
     }
 
     .miasto-actions a,
@@ -264,16 +265,15 @@ Wyniki wyszukiwania miast
     }
 
     /* ===== PRZYPISZ REGION — CAŁA SZEROKOŚĆ ===== */
-    .miasto-actions {
+    .miasto-acrions .btn-region {
+        grid-column: span 3;
+    }
+
+	.miasto-actions .assign-region-form {
         grid-column: span 3;
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
-    }
-    
-    .assign-region-form .btn-region {
-        grid-column: span 1;
-    }
 
     .assign-region-form input {
         width: 100%;
