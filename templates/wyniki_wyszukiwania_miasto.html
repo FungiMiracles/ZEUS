@@ -224,6 +224,17 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
     cursor: pointer;
 }
 
+.checkbox-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.checkbox-inline label {
+    cursor: pointer;
+}
+
 /* ============================================================
    MOBILE — LISTA MIAST (JEDYNE ŹRÓDŁO PRAWDY)
 ============================================================ */
@@ -458,14 +469,15 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 </select>
             </div>
 
-            <div class="filter-group">
-                <label>
+           <div class="filter-group">
+                <div class="checkbox-inline">
                     <input type="checkbox"
                            name="bez_regionu"
                            value="1"
+                           id="bez-regionu"
                            {% if request.args.get('bez_regionu') == '1' %}checked{% endif %}>
-                    Bez regionu
-                </label>
+                    <label for="bez-regionu">Bez regionu</label>
+                </div>
             </div>
 
             <!-- ===== AKCJA ===== -->
