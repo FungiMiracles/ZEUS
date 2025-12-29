@@ -4,6 +4,7 @@ from extensions import db
 from models import Miasto, Panstwo, Region
 from permissions import wymaga_roli
 from demografia_utils import przelicz_region_demografia
+from sqlalchemy import or_
 
 
 def init_miasta_routes(app):
@@ -161,7 +162,12 @@ def init_miasta_routes(app):
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
 
         if bez_regionu == "1":
-            query = query.filter(Miasto.region_id.is_(None))
+            query = query.filter(
+                or_(
+                    Miasto.region_id.is_(None),
+                    Miasto.region_id == 0
+                )
+            )
     
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
