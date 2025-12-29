@@ -327,6 +327,38 @@ Wyniki wyszukiwania miast
         width: 100%;
         text-align: center;
     }
+
+    /* FORM JAKO KOLUMNA */
+    form[action*="wyniki_wyszukiwania_miasto"] {
+        display: block !important;
+        width: 100%;
+    }
+
+    /* KONTENER FILTRÓW — PEŁNA SZEROKOŚĆ */
+    .zeus-filter-box {
+        width: 100%;
+        box-sizing: border-box;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /* STOS PIONOWY */
+    .zeus-filter-box {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .filter-group,
+    .filter-actions {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .filter-actions button {
+        width: 100%;
+    }
 }
 
 </style>
