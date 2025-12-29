@@ -284,6 +284,22 @@ Wyniki wyszukiwania miast
         width: 100%;
         font-size: 0.85em;
     }
+
+        /* Ukrywamy TYLKO FORMULARZ */
+    form.assign-region-form {
+        display: none;
+    }
+
+    /* Gdy JS ustawi display:flex → pokaż FORM */
+    form.assign-region-form[style*="display: flex"] {
+        display: flex !important;
+    }
+
+    /* INPUT MA BYĆ ZAWSZE WIDOCZNY, GDY FORM JEST WIDOCZNY */
+    form.assign-region-form input.assign-region-form {
+        display: block !important;
+        width: 100%;
+    }
 }
 
 </style>
