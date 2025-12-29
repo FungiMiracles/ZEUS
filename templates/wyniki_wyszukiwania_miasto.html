@@ -129,6 +129,16 @@ Wyniki wyszukiwania miast
     display: none;
 }
 
+/* gdy JS ustawi display:flex — pokaż FORM */
+form.assign-region-form[style*="display: flex"] {
+    display: flex !important;
+}
+
+/* gdy FORM jest widoczny — pokaż INPUT */
+form.assign-region-form[style*="display: flex"] > input.assign-region-form {
+    display: block !important;
+}
+
 /* Pokazuj, gdy JS ustawi display:flex */
 .assign-region-form[style*="display: flex"] {
     display: flex !important;
