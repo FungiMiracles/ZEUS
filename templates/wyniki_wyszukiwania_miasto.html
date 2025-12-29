@@ -450,6 +450,16 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 </select>
             </div>
 
+            <div class="filter-group">
+                <label>
+                    <input type="checkbox"
+                           name="bez_regionu"
+                           value="1"
+                           {% if request.args.get('bez_regionu') == '1' %}checked{% endif %}>
+                    Bez regionu
+                </label>
+            </div>
+
             <!-- ===== AKCJA ===== -->
             <div class="filter-actions">
                 <button type="submit"
