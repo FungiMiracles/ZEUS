@@ -241,6 +241,79 @@ Wyniki wyszukiwania miast
         width: 100%;
         font-size: 0.85em;
     }
+
+    @media (max-width: 768px) {
+
+    /* Cały wiersz jako karta */
+    .miasto-row {
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 10px;
+    }
+
+    /* ===== GÓRA: NAZWA MIASTA ===== */
+    .miasto-main {
+        max-width: 100%;
+    }
+
+    .miasto-name {
+        font-size: 1.05em;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    /* ===== META: SZCZEGÓŁY ===== */
+    .miasto-meta {
+        font-size: 0.85em;
+        line-height: 1.5;
+        white-space: normal;
+    }
+
+    /* ===== AKCJE ===== */
+    .miasto-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    /* Wyświetl / Edytuj / Usuń — jedna linia */
+    .miasto-actions > a,
+    .miasto-actions > button,
+    .miasto-actions > form.inline-form {
+        grid-column: span 1;
+        width: 100%;
+    }
+
+    .miasto-actions > form.inline-form button {
+        width: 100%;
+    }
+
+    /* ===== PRZYPISZ REGION — PEŁNA SZEROKOŚĆ ===== */
+    .miasto-actions .btn-region {
+        grid-column: span 3;
+        width: 100%;
+    }
+
+    /* ===== FORMULARZ PRZYPISANIA REGIONU ===== */
+    .assign-region-form {
+        grid-column: span 3;
+        display: none;            /* domyślnie ukryty */
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+
+    /* input — dokładnie szerokość przycisku */
+    .assign-region-form input {
+        width: 100%;
+        font-size: 0.85em;
+    }
+
+    /* Zapisz — dokładnie szerokość przycisku */
+    .assign-region-form button {
+        width: 100%;
+    }
 }
 </style>
 
