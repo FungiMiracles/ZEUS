@@ -208,34 +208,6 @@ Wyniki wyszukiwania miast
    ============================================================ */
 @media (max-width: 768px) {
 
-    /* ===== WIERSZ ===== */
-    .miasto-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 14px;
-    }
-
-    /* ===== DANE MIASTA ===== */
-    .miasto-main {
-        font-size: 0.95em;
-    }
-
-    .miasto-name {
-        font-size: 1.05em;
-        font-weight: 800;
-        margin-bottom: 2px;
-    }
-
-    .miasto-meta {
-        font-size: 0.85em;
-        color: #7f8c8d;
-        line-height: 1.4;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    /* ===== AKCJE — GRID ===== */
     .miasto-actions {
         width: 100%;
         display: grid;
@@ -243,46 +215,31 @@ Wyniki wyszukiwania miast
         gap: 8px;
     }
 
-    /* wszystkie przyciski równe */
+    /* 3 akcje w jednej linii */
     .miasto-actions a,
     .miasto-actions button,
-    .miasto-actions form {
+    .miasto-actions form:not(.assign-region-form) {
         width: 100%;
         grid-column: span 1;
     }
 
-    .miasto-actions a,
-    .miasto-actions button {
-        display: block;
-        text-align: center;
-        font-size: 0.8em;
-        padding: 8px 0;
-        border-radius: 6px;
+    /* Przypisz region – cała szerokość */
+    .miasto-actions .btn-region {
+        grid-column: span 3;
     }
 
-    .miasto-actions form {
-        margin: 0;
-    }
-
-    /* ===== PRZYPISZ REGION — CAŁA SZEROKOŚĆ ===== */
-    
+    /* Formularz – cała szerokość */
     .assign-region-form {
         grid-column: span 3;
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
-
-    .assign-region-form input {
-        width: 100%;
-        font-size: 0.85em;
     }
 
+    .assign-region-form input,
     .assign-region-form button {
         width: 100%;
-    }
-
-    .zeus-filter-box {
-        grid-template-columns: 1fr;
+        font-size: 0.85em;
     }
 }
 </style>
