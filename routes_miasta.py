@@ -134,6 +134,7 @@ def init_miasta_routes(app):
         sort_populacja = request.args.get("sort_populacja")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
+        bez_regionu = request.args.get("bez_regionu")
     
         page = request.args.get("page", 1, type=int)
         per_page = 25
@@ -158,6 +159,9 @@ def init_miasta_routes(app):
     
         if region_nazwa:
             query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
+
+        if bez_regionu == "1":
+            query = query.filter(Miasto.region_id.is_(None))
     
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
