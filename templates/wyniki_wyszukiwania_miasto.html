@@ -264,8 +264,11 @@ Wyniki wyszukiwania miast
     }
 
     /* ===== PRZYPISZ REGION — CAŁA SZEROKOŚĆ ===== */
-    .miasto-actions .btn-region .assign-region-form {
+    .miasto-actions .assign-region-form {
         grid-column: span 3;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
     }
 
     .assign-region-form input {
