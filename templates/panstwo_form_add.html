@@ -177,6 +177,31 @@
     .form-actions a {
         margin-left: 0;
     }
+
+   /* ============================================================
+   CRITICAL MOBILE FIX — OVERFLOW INPUTS
+============================================================ */
+
+   *, *::before, *::after {
+       box-sizing: border-box;
+   }
+   
+   .form-group,
+   .form-card,
+   .country-add,
+   .region-add {
+       max-width: 100%;
+       overflow-x: hidden;
+   }
+   
+   .form-group input,
+   .form-group select,
+   .form-group textarea {
+       width: 100%;
+       max-width: 100%;
+       box-sizing: border-box;
+   }
+
 }
 </style>
 
