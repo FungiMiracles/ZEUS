@@ -155,7 +155,7 @@ def init_historia_routes(app):
                 db.session.rollback()
                 flash(str(e), "error")
                 return render_template(
-                "historia_dodaj.html",
+                "historia_form_add.html",
                 form_data=request.form
             )
     
@@ -202,7 +202,7 @@ def init_historia_routes(app):
                 db.session.rollback()
                 flash(str(e), "error")
                 return render_template(
-                "historia_edytuj.html",
+                "historia_form_edit.html",
                 form_data=request.form
             )
     
