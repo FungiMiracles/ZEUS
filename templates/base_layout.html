@@ -215,23 +215,15 @@ main.container {
         display: block;
     }
    
-   .zeus-nav {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
+   /* WRAPPER decyduje o wysokości */
+    .zeus-nav-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.35s ease;
+    }
 
-        /* 🔥 KLUCZ */
-        transform: scaleY(0);
-        transform-origin: top;
-        opacity: 0;
-
-        transition:
-            transform 0.3s ease,
-            opacity 0.2s ease;
-
-        background: #ffffff;
-        border-bottom: 1px solid #dcdcdc;
+    .zeus-nav-wrapper.show {
+        grid-template-rows: 1fr;
     }
 
     .zeus-nav.show {
@@ -239,12 +231,24 @@ main.container {
         opacity: 1;
     }
 
-    /* linki */
+    .zeus-nav {
+        overflow: hidden;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+
+        background: #ffffff;
+        border-bottom: 1px solid #dcdcdc;
+    }
+
     .zeus-nav a {
         width: 100%;
         text-align: center;
         padding: 12px 20px;
     }
+}
 }
 /* =====================================================
    MOBILE (MAŁE EKRANY)
@@ -319,7 +323,8 @@ main.container {
 <hr>
 
 <!-- NAV -->
-<nav class="zeus-nav" id="zeusNav">
+<div class="zeus-nav-wrapper" id="zeusNavWrapper">
+<nav class="zeus-nav">
     {% for endpoint, label in [
         ('home_page','Strona główna'),
         ('mapy','Mapy'),
@@ -337,6 +342,7 @@ main.container {
     <a href="{{ url_for(endpoint) }}">{{ label }}</a>
     {% endfor %}
 </nav>
+</div>
 
 <main class="container">
 {% block content %}{% endblock %}
