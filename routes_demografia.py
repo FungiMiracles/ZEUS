@@ -151,12 +151,12 @@ def init_demografia_routes(app):
             suma_pop = sum(populacje)
             pula = region.region_ludnosc_pozamiejska or 0
 
-            if suma_pop > pula * 0.5 and confirm != "yes":
+            if suma_pop > pula * 0.9 and confirm != "yes":
                 return render_template(
                     "demografia_generator.html",
                     warning=(
                         f"Wygenerowanie tych miast odbierze regionowi "
-                        f"{region.region_nazwa} ponad 50% jego ludności pozamiejskiej. "
+                        f"{region.region_nazwa} ponad 90% jego ludności pozamiejskiej. "
                         f"Czy chcesz kontynuować?"
                     ),
                     confirm_required=True,
