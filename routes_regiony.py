@@ -57,34 +57,34 @@ def init_regiony_routes(app):
     def region_add_form():
         if request.method == "POST":
             errors = []
-
+    
             nazwa = request.form.get("region_nazwa")
             populacja = request.form.get("region_populacja")
             panstwo_id = request.form.get("panstwo_id")
-
+    
             if not nazwa:
                 errors.append("Pole 'Nazwa regionu' jest wymagane.")
-
+    
             if not populacja:
                 errors.append("Pole 'Populacja regionu' jest wymagane.")
             elif not populacja.isdigit():
                 errors.append("Pole 'Populacja regionu' musi być liczbą.")
-
+    
             if not panstwo_id:
                 errors.append("Pole 'ID państwa' jest wymagane.")
             elif not panstwo_id.isdigit():
                 errors.append("Pole 'ID państwa' musi być liczbą.")
-
+    
             if errors:
                 return render_template(
                     "region_form_add.html",
                     error=" ".join(errors),
                     form_data=request.form,
                 )
-
+    
             populacja = int(populacja)
             panstwo_id = int(panstwo_id)
-
+    
             panstwo = Panstwo.query.get(panstwo_id)
             if not panstwo:
                 return render_template(
@@ -92,33 +92,52 @@ def init_regiony_routes(app):
                     error=f"Państwo o ID {panstwo_id} nie istnieje.",
                     form_data=request.form,
                 )
-
+    
             duplicates = (
-                db.session.query(Region, Panstwo)
-                .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
+                db.session.query(Region)
                 .filter(Region.region_nazwa == nazwa)
                 .all()
             )
-
+    
             if duplicates:
-                duplicates_info = [
-                    f"{reg.region_nazwa} — państwo: {pan.panstwo_nazwa}, populacja regionu: {reg.region_populacja}"
-                    for reg, pan in duplicates
-                ]
-
                 return render_template(
                     "region_form_add.html",
                     error="Region o takiej nazwie już istnieje.",
-                    duplicates=duplicates_info,
                     form_data=request.form,
                 )
-
+    
+            # ───── UTWORZENIE REGIONU ─────
+            new_region = Region(
+                region_nazwa=nazwa,
+                region_populacja=populacja,
+                panstwo_id=panstwo_id,
+            )
+    
+            # ───── OPCJONALNA MAPA ─────
+            file = request.files.get("region_map")
+    
+            if file and file.filename:
+                if file.mimetype not in ("image/jpeg", "image/png"):
+                    return render_template(
+                        "region_form_add.html",
+                        error="Mapa regionu musi być plikiem JPG lub PNG.",
+                        form_data=request.form,
+                    )
+    
+                file_bytes = file.read()
+                MAX_SIZE = 2 * 1024 * 1024  # 2 MB
+    
+                if len(file_bytes) > MAX_SIZE:
+                    return render_template(
+                        "region_form_add.html",
+                        error="Mapa regionu jest za duża (maks. 2 MB).",
+                        form_data=request.form,
+                    )
+    
+                new_region.region_mapa = file_bytes
+                new_region.region_mapa_mime = file.mimetype
+    
             try:
-                new_region = Region(
-                    region_nazwa=nazwa,
-                    region_populacja=populacja,
-                    panstwo_id=panstwo_id,
-                )
                 db.session.add(new_region)
                 db.session.commit()
             except Exception as e:
@@ -128,10 +147,12 @@ def init_regiony_routes(app):
                     error=f"Błąd podczas zapisu regionu: {e}",
                     form_data=request.form,
                 )
-
-            return redirect(url_for("region_dodano"))
-
+    
+            flash("Region został dodany.", "success")
+            return redirect(url_for("region_form", region_id=new_region.region_id))
+    
         return render_template("region_form_add.html")
+
 
     # --------------------------------
     # Usuwanie regionu
