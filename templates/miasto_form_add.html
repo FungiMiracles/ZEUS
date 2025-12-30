@@ -2,178 +2,313 @@
 {% block title %}Dodaj miasto{% endblock %}
 
 {% block content %}
-<form method="POST" enctype="multipart/form-data">
-<div style="max-width: 900px; margin: 30px auto;">
-  <h2 style="text-align:center; color:hsl(210, 29%, 24%); font-weight:700; margin-bottom:20px;">
-      Dodaj nowy formularz miasta
-  </h2>
 
-  <h2 style="text-align:center; color:#179048; font-weight:350; font-size: 25px; margin-bottom:20px;">
-      Ważne! Uzupełnij <strong>wszystkie</strong> pola
-  </h2>
+<style>
+/* ============================================================
+   ZEUS — DODAWANIE MIASTA (RESPONSYWNY FORMULARZ)
+============================================================ */
 
-  {% if error %}
-  <div style="color: red; font-weight: bold; margin-bottom: 10px; text-align: center;">
-    {{ error }}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
-    {% if duplicates %}
-    <div style="margin-top: 10px; padding: 10px; background: #ffe0e0; border: 1px solid #cc0000; border-radius: 6px;">
-        <p><strong>Istniejące miasta o tej nazwie:</strong></p>
-        <ul>
-        {% for d in duplicates %}
-            <li>{{ d }}</li>
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
+.city-add {
+    max-width: 900px;
+    margin: 30px auto;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+}
 
-  <table style="
+/* ===================== HEADERS ===================== */
+
+.city-add h1 {
+    text-align: center;
+    font-size: 1.9em;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.city-add .subtitle {
+    text-align: center;
+    font-size: 1.1em;
+    color: #179048;
+    margin-bottom: 26px;
+}
+
+/* ===================== CARD ===================== */
+
+.form-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    overflow-x: hidden;
+}
+
+/* ===================== GRID ===================== */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 22px;
+}
+
+/* ===================== FIELDS ===================== */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+}
+
+.form-group input,
+.form-group select {
     width: 100%;
-    border-collapse: collapse;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #fefefe;
-  ">
-    <thead>
-      <tr style="background: linear-gradient(90deg, #5d7dce, #adc8ff); color:white; font-weight:700;">
-        <th style="padding:12px;">Pole</th>
-        <th style="padding:12px;">Wartość</th>
-      </tr>
-    </thead>
+    max-width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #b4b9be;
+    font-size: 15px;
+    box-sizing: border-box;
+}
 
-    <tbody style="color:#2c3e50;">
+.form-group select {
+    background: #fff;
+}
 
-      <!-- NAZWA MIASTA -->
-      <tr style="background-color:#e8edff;">
-        <td style="padding:10px; font-weight:600;">Nazwa miasta</td>
-        <td style="padding:10px;">
-          <input type="text" name="miasto_nazwa"
-                 value="{{ form_data.get('miasto_nazwa','') if form_data is defined else '' }}"
-                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
-        </td>
-      </tr>
+.form-hint {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 4px;
+}
 
-      <!-- KOD MIASTA -->
-      <tr style="background-color:#f5f8ff;">
-        <td style="padding:10px; font-weight:600;">Kod miasta</td>
-        <td style="padding:10px;">
-          <input type="text" name="miasto_kod"
-                 value="{{ form_data.get('miasto_kod','') if form_data is defined else '' }}"
-                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
-        </td>
-      </tr>
+/* ===================== ERRORS ===================== */
 
-      <!-- PAŃSTWO -->
-      <tr style="background-color:#e8edff;">
-        <td style="padding:10px; font-weight:600;">ID Państwa</td>
-        <td style="padding:10px;">
-          <input type="number" name="panstwo_id"
-                 value="{{ form_data.get('panstwo_id','') if form_data is defined else '' }}"
-                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
-        </td>
-      </tr>
+.form-error {
+    background: #ffe5e5;
+    border: 1px solid #cc0000;
+    color: #900;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
 
-      <!-- POPULACJA -->
-      <tr style="background-color:#f5f8ff;">
-        <td style="padding:10px; font-weight:600;">Populacja miasta</td>
-        <td style="padding:10px;">
-          <input type="number" name="miasto_populacja"
-                 value="{{ form_data.get('miasto_populacja','') if form_data is defined else '' }}"
-                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
-        </td>
-      </tr>
+/* ===================== ACTIONS ===================== */
 
-      <!-- TYP MIASTA -->
-      <tr style="background-color:#e8edff;">
-        <td style="padding:10px; font-weight:600;">Typ miasta</td>
-        <td style="padding:10px;">
-          <select name="miasto_typ"
-                  style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+.form-actions {
+    text-align: center;
+    margin-top: 28px;
+}
 
-              <option value="">-- Wybierz --</option>
+.form-actions button,
+.form-actions a {
+    padding: 11px 28px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    transition: background-color 0.25s;
+}
 
-              <option value="stolica"
-                {% if form_data is defined and form_data.get('miasto_typ') == 'stolica' %}selected{% endif %}>
-                stolica
-              </option>
+.form-actions button {
+    background: #5d7dce;
+    color: #fff;
+    border: none;
+}
 
-              <option value="stolica regionu"
-                {% if form_data is defined and form_data.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
-                stolica regionu
-              </option>
+.form-actions button:hover {
+    background: #4171d1;
+}
 
-              <option value="miasto"
-                {% if form_data is defined and form_data.get('miasto_typ') == 'miasto' %}selected{% endif %}>
-                miasto
-              </option>
+.form-actions a {
+    background: #c0392b;
+    color: #fff;
+    margin-left: 10px;
+}
 
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:10px; font-weight:600;">Na mapie</td>
-        <td style="padding:10px;">
-            <select name="czy_na_mapie" style="width:100%; padding:6px;">
-                <option value="TAK"
-                    {% if (form_data and form_data.czy_na_mapie == "TAK") 
-                          or (not form_data and miasto.czy_na_mapie == "TAK") %}
-                        selected
-                    {% endif %}
-                >TAK</option>
-    
-                <option value="NIE"
-                    {% if (form_data and form_data.czy_na_mapie == "NIE") 
-                          or (not form_data and miasto.czy_na_mapie == "NIE") %}
-                        selected
-                    {% endif %}
-                >NIE</option>
-            </select>
-        </td>
-    </tr>
+.form-actions a:hover {
+    background: #96281b;
+}
 
-      <!-- REGION -->
-      <tr style="background-color:#e8edff;">
-        <td style="padding:10px; font-weight:600;">ID regionu</td>
-        <td style="padding:10px;">
-          <input type="number" name="region_id"
-                 value="{{ form_data.get('region_id','') if form_data is defined else '' }}"
-                 style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid:#ccc;">
-        </td>
-      </tr>
+/* ===================== MOBILE ===================== */
 
-    </tbody>
-  </table>
+@media (max-width: 767px) {
 
-  <!-- PRZYCISKI -->
-  <div style="margin-top:20px; text-align:center;">
-    <button style="
-      padding:10px 25px;
-      background-color:#5d7dce;
-      color:white;
-      font-weight:600;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      transition: background-color 0.3s;
-    " onmouseover="this.style.backgroundColor='#4171d1';"
-      onmouseout="this.style.backgroundColor='#5d7dce';">
-      Zatwierdź
-    </button>
+    .city-add {
+        margin: 18px 10px;
+    }
 
-    <a href="{{ url_for('home_page') }}"
-       style="padding:10px 25px; background-color:#c0392b; color:white;
-              font-weight:600; border:none; border-radius:6px; cursor:pointer;
-              text-decoration:none; display:inline-block; transition: background-color 0.3s; margin-left:10px;"
-       onmouseover="this.style.backgroundColor='#96281b'"
-       onmouseout="this.style.backgroundColor='#c0392b'">
-       Anuluj
-    </a>
-  </div>
+    .city-add h1 {
+        font-size: 1.6em;
+    }
+
+    .city-add .subtitle {
+        font-size: 1em;
+        margin-bottom: 22px;
+    }
+
+    .form-card {
+        padding: 18px 16px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .form-group input,
+    .form-group select {
+        font-size: 16px; /* anti-zoom iOS */
+        padding: 10px 12px;
+    }
+
+    .form-actions button,
+    .form-actions a {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        font-size: 15px;
+    }
+
+    .form-actions a {
+        margin-left: 0;
+    }
+}
+</style>
+
+<div class="city-add">
+
+    <h1>Dodaj nowe miasto</h1>
+    <div class="subtitle">
+        Uzupełnij wszystkie pola formularza
+    </div>
+
+    {% if error %}
+        <div class="form-error">
+            {{ error }}
+
+            {% if duplicates %}
+                <ul style="margin-top:8px;">
+                {% for d in duplicates %}
+                    <li>{{ d }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <div class="form-card">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Nazwa miasta</label>
+                    <input
+                        type="text"
+                        name="miasto_nazwa"
+                        value="{{ form_data.get('miasto_nazwa','') if form_data }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Kod miasta</label>
+                    <input
+                        type="text"
+                        name="miasto_kod"
+                        value="{{ form_data.get('miasto_kod','') if form_data }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>ID państwa</label>
+                    <input
+                        type="number"
+                        name="panstwo_id"
+                        value="{{ form_data.get('panstwo_id','') if form_data }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Populacja miasta</label>
+                    <input
+                        type="number"
+                        name="miasto_populacja"
+                        value="{{ form_data.get('miasto_populacja','') if form_data }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Typ miasta</label>
+                    <select name="miasto_typ" required>
+                        <option value="">— wybierz —</option>
+                        <option value="stolica"
+                            {% if form_data and form_data.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+                            stolica
+                        </option>
+                        <option value="stolica regionu"
+                            {% if form_data and form_data.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
+                            stolica regionu
+                        </option>
+                        <option value="miasto"
+                            {% if form_data and form_data.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+                            miasto
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Na mapie</label>
+                    <select name="czy_na_mapie">
+                        <option value="TAK"
+                            {% if not form_data or form_data.get('czy_na_mapie') == 'TAK' %}selected{% endif %}>
+                            TAK
+                        </option>
+                        <option value="NIE"
+                            {% if form_data and form_data.get('czy_na_mapie') == 'NIE' %}selected{% endif %}>
+                            NIE
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group full">
+                    <label>ID regionu</label>
+                    <input
+                        type="number"
+                        name="region_id"
+                        value="{{ form_data.get('region_id','') if form_data }}"
+                        required
+                    >
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Zapisz miasto</button>
+            <a href="{{ url_for('home_page') }}">Anuluj</a>
+        </div>
+
+    </form>
 
 </div>
-</form>
+
 {% endblock %}
