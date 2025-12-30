@@ -344,19 +344,18 @@ function toggleNav() {
 </script>
       
 <script>
-function zeusToast(message) {
+function zeusToast(message, type = "info") {
     const container = document.getElementById("toast-container");
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = "toast";
+    toast.className = `zeus-toast zeus-toast-${type}`;
     toast.textContent = message;
 
     container.appendChild(toast);
 
-    // ⏱️ 5 sekund widoczności
     setTimeout(() => {
-        toast.style.animation = "toast-out 0.3s ease-in forwards";
+        toast.classList.add("out");
         setTimeout(() => toast.remove(), 300);
     }, 5000);
 }
