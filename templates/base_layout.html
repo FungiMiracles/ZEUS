@@ -214,14 +214,12 @@ main.container {
     .nav-toggle {
         display: block;
     }
-
-    .zeus-nav {
-        /* układ */
+   
+   .zeus-nav {
         flex-direction: column;
         align-items: center;
         gap: 10px;
 
-        /* animacja */
         max-height: 0;
         overflow: hidden;
 
@@ -232,16 +230,19 @@ main.container {
             max-height 0.35s ease,
             opacity 0.25s ease,
             transform 0.25s ease;
-
-        padding: 0 20px;
     }
 
     .zeus-nav.show {
-        max-height: 420px;   /* ⬅ wystarczająco dużo na linki */
+        max-height: 500px;   /* ⬅ zapas */
         opacity: 1;
         transform: translateY(0);
+    }
 
-        padding: 14px 20px;
+    /* ⬇️ PADDING NA LINKACH, NIE NA NAV */
+    .zeus-nav a {
+        width: 100%;
+        text-align: center;
+        padding: 10px 20px;
     }
 }
 
