@@ -43,6 +43,8 @@ class Region(db.Model):
     region_nazwa = db.Column(db.String(255))
     region_populacja = db.Column(BigInteger)
     region_ludnosc_pozamiejska = db.Column(BigInteger, nullable=False, default=0)
+    region_mapa = db.Column(db.LargeBinary, nullable=True)
+    region_mapa_mime = db.Column(db.String(50), nullable=True)
 
     # Relacja do miast
     miasta = db.relationship("Miasto", backref="region", lazy=True)
