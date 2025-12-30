@@ -2,7 +2,91 @@
 {% block title %}Dodaj region{% endblock %}
 
 {% block content %}
+
+<style>
+  @media (max-width: 767px) {
+
+    .region-add h2 {
+        font-size: 18px !important;
+        text-align: center;
+        line-height: 1.25;
+        margin-bottom: 10px;
+    }
+
+    .region-add .form-table {
+        box-shadow: none;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .region-add .form-table thead {
+        display: none;
+    }
+
+    .region-add .form-table,
+    .region-add .form-table tbody,
+    .region-add .form-table tr,
+    .region-add .form-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .region-add .form-table tr {
+        background: #f4f6ff;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        overflow: hidden;
+    }
+
+    .region-add .form-table td {
+        padding: 8px 10px;
+        box-sizing: border-box;
+    }
+
+    /* LABEL */
+    .region-add .form-table td:first-child {
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: rgba(93,125,206,0.12);
+        padding-bottom: 4px;
+        color: #2c3e50;
+    }
+
+    /* INPUT */
+    .region-add .form-table input,
+    .region-add .form-table select {
+        font-size: 16px; /* anti zoom iOS */
+        padding: 8px 10px;
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    /* FILE INPUT */
+    .region-add input[type="file"] {
+        padding: 6px 0;
+        font-size: 14px;
+    }
+
+    /* INFO TEXT */
+    .region-add .form-table small,
+    .region-add .form-table div {
+        font-size: 0.75rem;
+        color: #555;
+    }
+
+    /* ACTIONS */
+    .region-add .form-actions button,
+    .region-add .form-actions a {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        font-size: 15px;
+    }
+}
+</style>
 <form method="POST" enctype="multipart/form-data">
+<div class="form-wrapper region-add">
 <div style="max-width: 900px; margin: 30px auto;">
   <h2 style="text-align:center; color:hsl(210, 29%, 24%); font-weight:700; margin-bottom:20px;">Dodaj nowy formularz regionu</h2>
   <h2 style="text-align:center; color:#179048; font-weight:350; font-size: 25px; margin-bottom:20px;">Ważne! Uzupełnij <strong>wszystkie</strong> pola</h2>
@@ -52,17 +136,18 @@
         <td style="padding:10px;"><input type="text" name="panstwo_id" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></td>
       </tr>
       <tr>
-        <td style="padding:10px; font-weight:600;">Mapa regionu (opcjonalnie)</td>
-        <td>
-            <input
-                type="file"
-                name="region_map"
-                accept=".jpg,.jpeg,.png"
-            >
-            <div style="font-size:0.85em; color:#666; margin-top:4px;">
-                JPG lub PNG, maks. 2 MB
-            </div>
-        </td>
+      <td>Mapa regionu (opcjonalnie)</td>
+          <td>
+              <input
+                  type="file"
+                  name="region_map"
+                  accept=".jpg,.jpeg,.png"
+              >
+              <div class="file-hint">
+                  JPG / PNG, maks. 2 MB
+              </div>
+          </td>
+      </tr>
     </tr>
     </tbody>
   </table>
