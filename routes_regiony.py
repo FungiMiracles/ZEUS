@@ -220,10 +220,10 @@ def init_regiony_routes(app):
             file = request.files.get("region_map")
 
             if file and file.filename:
-                if not file.mimetype.startswith("image/"):
+                if file.mimetype not in ("image/jpeg", "image/png"):
                     return render_template(
                         "region_form_edit.html",
-                        error="Mapa regionu musi być obrazem.",
+                        error="Mapa regionu musi być plikiem JPG lub PNG.",
                         region=region,
                         form_data=request.form
                     )
@@ -247,12 +247,16 @@ def init_regiony_routes(app):
         region = Region.query.get_or_404(region_id)
 
         if not region.region_mapa:
-            return redirect(
-                url_for("static", filename="region_placeholder.jpg")
+            return send_file(
+                "static/region_placeholder.jpg",
+                mimetype="image/jpeg"
             )
 
         return Response(
             region.region_mapa,
-            mimetype=region.region_mapa_mime
+            mimetype=region.region_mapa_mime,
+            headers={
+                "Cache-Control": "public, max-age=86400"
+            }
         )
 
