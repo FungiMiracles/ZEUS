@@ -8,8 +8,6 @@ from extensions import db
 from models import Historia
 from permissions import wymaga_roli
 from paths import EVENTS_DESCRIPTIONS_FOLDER
-from datetime import date
-
 from datetime import date, datetime
 
 def parse_year_or_date(value: str) -> date:
@@ -29,17 +27,47 @@ def parse_year_or_date(value: str) -> date:
 
     value = value.strip()
 
-    # SAM ROK (1–4 cyfry) → normalizacja do YYYY-01-01
+    # ───────────────
+    # SAM ROK
+    # ───────────────
     if value.isdigit() and 1 <= len(value) <= 4:
-        year = int(value)
-        return date(year, 1, 1)
+        return date(int(value), 1, 1)
 
-    # Pełne daty
-    for fmt in ("%d-%m-%Y", "%Y-%m-%d"):
+    # ───────────────
+    # DD-MM-YYYY
+    # ───────────────
+    m = re.fullmatch(r"(\d{1,2})-(\d{1,2})-(\d{4})", value)
+    if m:
+        day, month, year = map(int, m.groups())
+
+        if month < 1 or month > 12:
+            raise ValueError("Nieprawidłowy format daty")
+
+        if day < 1 or day > 31:
+            raise ValueError("Nieprawidłowy format daty")
+
         try:
-            return datetime.strptime(value, fmt).date()
+            return date(year, month, day)
         except ValueError:
-            pass
+            raise ValueError("Nieprawidłowy format daty")
+
+    # ───────────────
+    # YYYY-MM-DD
+    # ───────────────
+    m = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", value)
+    if m:
+        year, month, day = map(int, m.groups())
+
+        if month < 1 or month > 12:
+            raise ValueError("Nieprawidłowy format daty")
+
+        if day < 1 or day > 31:
+            raise ValueError("Nieprawidłowy format daty")
+
+        try:
+            return date(year, month, day)
+        except ValueError:
+            raise ValueError("Nieprawidłowy format daty")
 
     raise ValueError(
         "Nieprawidłowy format daty. "
