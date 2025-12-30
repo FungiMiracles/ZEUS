@@ -3,9 +3,7 @@ from flask import render_template, request, redirect, url_for, flash, abort, jso
 from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
-import os
-from flask import Response
-
+from flask import Response, send_file
 
 def init_regiony_routes(app):
 
@@ -15,7 +13,6 @@ def init_regiony_routes(app):
     def wyniki_wyszukiwania_region():
         panstwo_nazwa = request.args.get("panstwo_nazwa")
         region_nazwa = request.args.get("region_nazwa")
-        region_ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
 
         query = db.session.query(Region, Panstwo).join(
             Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID
@@ -221,6 +218,7 @@ def init_regiony_routes(app):
 
             if file and file.filename:
                 if file.mimetype not in ("image/jpeg", "image/png"):
+                    db.session.rollback()
                     return render_template(
                         "region_form_edit.html",
                         error="Mapa regionu musi być plikiem JPG lub PNG.",
@@ -228,9 +226,22 @@ def init_regiony_routes(app):
                         form_data=request.form
                     )
             
-                region.region_mapa = file.read()
+                file_bytes = file.read()
+
+                MAX_SIZE = 2 * 1024 * 1024  # 2 MB
+
+                if len(file_bytes) > MAX_SIZE:
+                    db.session.rollback()        
+                    return render_template(
+                        "region_form_edit.html",
+                        error="Mapa regionu jest za duża (maks. 2 MB).",
+                        region=region,
+                        form_data=request.form
+                    )
+
+                region.region_mapa = file_bytes
                 region.region_mapa_mime = file.mimetype
-                    
+                                    
             db.session.commit()
 
             flash(
@@ -254,7 +265,7 @@ def init_regiony_routes(app):
 
         return Response(
             region.region_mapa,
-            mimetype=region.region_mapa_mime,
+            mimetype=region.region_mapa_mime or "image/jpeg",
             headers={
                 "Cache-Control": "public, max-age=86400"
             }
