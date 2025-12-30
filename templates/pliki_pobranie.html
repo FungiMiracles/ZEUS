@@ -50,12 +50,20 @@
 .plik-nazwa {
     font-weight: 700;
     color: #2c3e50;
+    word-break: break-word;
 }
 
 .plik-meta {
     font-size: 0.8em;
     color: #7f8c8d;
 }
+
+.plik-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== PRZYCISKI ===== */
 
 .btn-download {
     padding: 8px 16px;
@@ -67,6 +75,7 @@
     transition: 0.2s;
     border: none;
     cursor: pointer;
+    text-align: center;
 }
 
 .btn-download:hover {
@@ -85,6 +94,52 @@
     margin-top: 30px;
     text-align: center;
 }
+
+/* ============================================================
+   MOBILE — NAPRAWA UKŁADU
+============================================================ */
+@media (max-width: 768px) {
+
+    .pliki-wrapper {
+        margin: 15px 8px;
+        padding: 18px 14px 26px;
+        border-radius: 10px;
+    }
+
+    .pliki-header h1 {
+        font-size: 1.4em;
+    }
+
+    .plik-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .plik-actions {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .plik-actions a,
+    .plik-actions button,
+    .plik-actions form {
+        width: 100%;
+    }
+
+    .btn-download {
+        width: 100%;
+        font-size: 0.95em;
+        padding: 10px 0;
+    }
+
+    .pliki-footer a {
+        display: block;
+        width: 100%;
+    }
+}
 </style>
 
 <div class="pliki-wrapper">
@@ -102,19 +157,17 @@
         <div class="pliki-lista">
             {% for f in files %}
                 <div class="plik-row">
+
                     <div>
                         <div class="plik-nazwa">{{ f.name }}</div>
-                        <div class="plik-meta">
-                            {{ f.size }} KB
-                        </div>
+                        <div class="plik-meta">{{ f.size }} KB</div>
                     </div>
 
-                    <div style="display:flex; gap:10px;">
-                        <!-- POBIERANIE -->
+                    <div class="plik-actions">
+
                         <a href="{{ url_for('pobierz_plik', filename=f.name) }}"
-                        class="btn-download"
-                        data-download>
-                        Pobierz
+                           class="btn-download">
+                            Pobierz
                         </a>
 
                         {% if session.rola == "wszechmocny" %}
@@ -127,14 +180,13 @@
                                 </button>
                             </form>
                         {% else %}
-                            <form method="POST"
-                                  onclick="event.preventDefault(); zeusToast('Twoja obecna rola nie pozwala na tę akcję');">
-                                <button type="submit"
-                                        class="btn-download btn-secondary">
-                                    Usuń
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn-download btn-secondary"
+                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                Usuń
+                            </button>
                         {% endif %}
+
                     </div>
                 </div>
             {% endfor %}
