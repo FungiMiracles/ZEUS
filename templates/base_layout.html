@@ -216,36 +216,36 @@ main.container {
     }
    
    .zeus-nav {
+        display: flex;
         flex-direction: column;
         align-items: center;
         gap: 10px;
 
-        max-height: 0;
-        overflow: hidden;
-
+        /* 🔥 KLUCZ */
+        transform: scaleY(0);
+        transform-origin: top;
         opacity: 0;
-        transform: translateY(-6px);
 
         transition:
-            max-height 0.35s ease,
-            opacity 0.25s ease,
-            transform 0.25s ease;
+            transform 0.3s ease,
+            opacity 0.2s ease;
+
+        background: #ffffff;
+        border-bottom: 1px solid #dcdcdc;
     }
 
     .zeus-nav.show {
-        max-height: 500px;   /* ⬅ zapas */
+        transform: scaleY(1);
         opacity: 1;
-        transform: translateY(0);
     }
 
-    /* ⬇️ PADDING NA LINKACH, NIE NA NAV */
+    /* linki */
     .zeus-nav a {
         width: 100%;
         text-align: center;
-        padding: 10px 20px;
+        padding: 12px 20px;
     }
 }
-
 /* =====================================================
    MOBILE (MAŁE EKRANY)
 ===================================================== */
