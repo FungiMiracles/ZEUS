@@ -130,43 +130,23 @@ main.container {
 /* =====================================================
    TOASTS — NOWA WERSJA (ZGODNA Z WYMAGANIAMI)
 ===================================================== */
-#toast-container {
+#zeus-toast-container {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 10000;
+    z-index: 9999;
 
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
+    gap: 10px;
 }
 
-.toast {
+.zeus-toast {
     background: #1f2a44;
-    color: #ffffff;
-
-    padding: 6px 10px;
-    border-radius: 6px;
-
-    font-size: 1.00rem;
-    font-weight: 500;
-    line-height: 1.2;
-
-    width: fit-content;
-    max-width: 420px;
-
-    /* 🔒 BEZPIECZNIKI */
-    max-height: 40px;          /* ⬅ ok. 2–3 linijki */
-    overflow: hidden;
-
-    white-space: normal;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.22);
-
-    opacity: 0;
-    transform: translateY(8px);
-    animation: toast-in 0.2s ease-out forwards;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
 }
 
 @keyframes toast-in {
@@ -345,7 +325,7 @@ function toggleNav() {
       
 <script>
 function zeusToast(message, type = "info") {
-    const container = document.getElementById("toast-container");
+    const container = document.getElementById("zeus-toast-container");
     if (!container) return;
 
     const toast = document.createElement("div");
