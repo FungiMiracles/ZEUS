@@ -4,15 +4,18 @@ def przelicz_region_demografia(region):
     region_populacja = suma miast + ludność pozamiejska
     """
 
-    # 🔒 NORMALIZACJA NULL
-    region.region_populacja = region.region_populacja or 0
-    region.region_ludnosc_pozamiejska = region.region_ludnosc_pozamiejska or 0
-
     ludnosc_miast = sum(
         (m.miasto_populacja or 0)
         for m in region.miasta
     )
 
+    # 🔑 INICJALIZACJA REGIONU (KLUCZOWA LINIA)
+    if region.region_populacja is None:
+        region.region_populacja = ludnosc_miast
+        region.region_ludnosc_pozamiejska = 0
+        return  # ⬅️ pierwszy poprawny stan, bez walidacji
+
+    # normalny tryb pracy
     region.region_ludnosc_pozamiejska = (
         region.region_populacja - ludnosc_miast
     )
