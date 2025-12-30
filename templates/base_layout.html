@@ -146,7 +146,14 @@ main.container {
     color: #fff;
     padding: 10px 14px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 400;
+   
+   box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+
+    /* ⬇️ START ANIMACJI */
+    opacity: 0;
+    transform: translateY(10px);
+    animation: toast-in 0.25s ease-out forwards;
 }
 
 @keyframes toast-in {
