@@ -4,6 +4,13 @@ from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
 from flask import Response, send_file
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PLACEHOLDER_PATH = os.path.join(BASE_DIR, "static", "region_placeholder.jpg")
+
+with open(PLACEHOLDER_PATH, "rb") as f:
+    REGION_PLACEHOLDER_BYTES = f.read()
 
 def init_regiony_routes(app):
 
@@ -258,9 +265,12 @@ def init_regiony_routes(app):
         region = Region.query.get_or_404(region_id)
 
         if not region.region_mapa:
-            return send_file(
-                "static/region_placeholder.jpg",
-                mimetype="image/jpeg"
+            return Response(
+                REGION_PLACEHOLDER_BYTES,
+                mimetype="image/jpeg",
+                headers={
+                    "Cache-Control": "public, max-age=86400"
+                }
             )
 
         return Response(
@@ -270,4 +280,5 @@ def init_regiony_routes(app):
                 "Cache-Control": "public, max-age=86400"
             }
         )
+            
 
