@@ -4,6 +4,7 @@ from extensions import db
 from models import Region, Panstwo, Miasto
 from permissions import wymaga_roli
 import os
+from flask import Response
 
 
 def init_regiony_routes(app):
@@ -219,25 +220,16 @@ def init_regiony_routes(app):
             file = request.files.get("region_map")
 
             if file and file.filename:
-                ext = os.path.splitext(file.filename)[1].lower()
-            
-                if ext not in (".jpg", ".jpeg"):
+                if not file.mimetype.startswith("image/"):
                     return render_template(
                         "region_form_edit.html",
-                        error="Mapa regionu musi być plikiem JPG lub JPEG.",
+                        error="Mapa regionu musi być obrazem.",
                         region=region,
                         form_data=request.form
                     )
             
-                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-                MAPS_DIR = os.path.join(BASE_DIR, "static", "maps")
-                os.makedirs(MAPS_DIR, exist_ok=True)
-            
-                # Zeus zawsze zapisuje jako .jpg (ujednolicenie)
-                filename = f"{region.region_nazwa}.jpg"
-                file_path = os.path.join(MAPS_DIR, filename)
-            
-                file.save(file_path)
+                region.region_mapa = file.read()
+                region.region_mapa_mime = file.mimetype
                     
             db.session.commit()
 
@@ -249,4 +241,18 @@ def init_regiony_routes(app):
 
         # ───── GET ─────
         return render_template("region_form_edit.html", region=region)
+
+    @app.route("/region/<int:region_id>/mapa")
+    def region_mapa(region_id):
+        region = Region.query.get_or_404(region_id)
+
+        if not region.region_mapa:
+            return redirect(
+                url_for("static", filename="region_placeholder.jpg")
+            )
+
+        return Response(
+            region.region_mapa,
+            mimetype=region.region_mapa_mime
+        )
 
