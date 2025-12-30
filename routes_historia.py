@@ -149,11 +149,15 @@ def init_historia_routes(app):
     
                 flash("Wydarzenie zostało dodane.", "success")
                 return redirect(url_for("historia_lista"))
-    
+            
+            
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
-                return redirect(url_for("historia_dodaj"))
+                return render_template(
+                "historia_dodaj.html",
+                form_data=request.form
+            )
     
         return render_template("historia_form_add.html")
 
@@ -197,9 +201,10 @@ def init_historia_routes(app):
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
-                return redirect(
-                    url_for("historia_edytuj", historia_id=h.HISTORIA_ID)
-                )
+                return render_template(
+                "historia_edytuj.html",
+                form_data=request.form
+            )
     
         # ====== GET ======
         return render_template(
