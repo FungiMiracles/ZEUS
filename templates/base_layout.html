@@ -342,18 +342,6 @@ function toggleNav() {
     document.getElementById("zeusNav").classList.toggle("show");
 }
 </script>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flash-container">
-            {% for category, message in messages %}
-                <div class="flash flash-{{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
       
 <script>
 function zeusToast(message) {
