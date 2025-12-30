@@ -191,6 +191,28 @@ main.container {
     }
 }
 
+.flash-container {
+    max-width: 1200px;
+    margin: 10px auto;
+}
+
+.flash {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.flash-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.flash-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* =====================================================
    MOBILE & TABLET
 ===================================================== */
@@ -321,17 +343,17 @@ function toggleNav() {
 }
 </script>
 
-<div id="toast-container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-container">
             {% for category, message in messages %}
-                <div class="toast toast-{{ category }}">
+                <div class="flash flash-{{ category }}">
                     {{ message }}
                 </div>
             {% endfor %}
-        {% endif %}
-    {% endwith %}
-</div>
+        </div>
+    {% endif %}
+{% endwith %}
       
 <script>
 function zeusToast(message) {
@@ -350,19 +372,6 @@ function zeusToast(message) {
         setTimeout(() => toast.remove(), 300);
     }, 5000);
 }
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const toasts = document.querySelectorAll("#toast-container .toast");
-
-    toasts.forEach(toast => {
-        setTimeout(() => {
-            toast.style.animation = "toast-out 0.3s ease-in forwards";
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    });
-});
 </script>
 
 </body>
