@@ -406,31 +406,22 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             <!-- ===== Po kontynencie, państwie, regionie -->
             <div class="filter-group">
                 <label>Kontynent</label>
-                <select name="kontynent">
+                <select name="kontynent" id="kontynent-select">
                     <option value="">— wszystkie —</option>
-                    {% for k in kontynenty%}
-                        <option value="{{ k }}" {% if k == selected_kontynent %}selected{% endif %}>{{ k }}</option>
-                    {% endfor %}
                 </select>
             </div>
             
             <div class="filter-group">
                 <label>Państwo</label>
-                <select name="panstwo_nazwa">
+                <select name="panstwo_nazwa" id="panstwo-select">
                     <option value="">— wszystkie —</option>
-                    {%for p in panstwa %}
-                        <option value="{{ p.panstwo_nazwa }}" {% if p.panstwo_nazwa|string == selected_panstwo_nazwa|string %}selected{% endif %}>{{ p.panstwo_nazwa }}</option>
-                    {% endfor %}
                 </select>
             </div>
             
             <div class="filter-group">
                 <label>Region</label>
-                <select name="region_nazwa">
+                <select name="region_nazwa" id="region-select">
                     <option value="">— wszystkie —</option>
-                    {% for r in regiony %}
-                        <option value="{{ r.region_nazwa }}" {% if r.region_nazwa|string == selected_region_nazwa|string %}selected{% endif %}>{{ r.region_nazwa }}</option>
-                    {% endfor %}
                 </select>
             </div>
 
@@ -728,4 +719,65 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const kontynentSelect = document.getElementById("kontynent-select");
+    const panstwoSelect = document.getElementById("panstwo-select");
+    const regionSelect = document.getElementById("region-select");
+
+    function resetSelect(select, placeholder) {
+        select.innerHTML = "";
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = placeholder;
+        select.appendChild(opt);
+    }
+
+    // ===== KONTYNENT → PAŃSTWA =====
+    kontynentSelect.addEventListener("change", () => {
+        const kontynent = kontynentSelect.value;
+
+        resetSelect(panstwoSelect, "— wybierz państwo —");
+        resetSelect(regionSelect, "— wybierz region —");
+
+        if (!kontynent) return;
+
+        fetch(`/api/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.panstwo_nazwa;
+                    opt.textContent = p.panstwo_nazwa;
+                    panstwoSelect.appendChild(opt);
+                });
+            });
+    });
+
+    // ===== PAŃSTWO → REGIONY =====
+    panstwoSelect.addEventListener("change", () => {
+        const panstwo = panstwoSelect.value;
+
+        resetSelect(regionSelect, "— wybierz region —");
+
+        if (!panstwo) return;
+
+        fetch(`/api/regiony?panstwo_nazwa=${encodeURIComponent(panstwo)}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(r => {
+                    const opt = document.createElement("option");
+                    opt.value = r.region_nazwa;
+                    opt.textContent = r.region_nazwa;
+                    regionSelect.appendChild(opt);
+                });
+            });
+    });
+
+});
+</script>
+                            
+                            
 {% endblock %}
