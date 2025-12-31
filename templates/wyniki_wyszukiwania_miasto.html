@@ -403,6 +403,37 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
         <input type="hidden" name="region_nazwa"  value="{{ request.args.get('region_nazwa','') }}">
 
         <div class="zeus-filter-box">
+            <!-- ===== Po kontynencie, państwie, regionie -->
+            <div class="filter-group">
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— wszystkie —</option>
+                    {% for k in kontynenty%}
+                        <option value="{{ k }}" {% if k == selected_kontynent %}selected{% endif %}>{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Państwo</label>
+                <select name="panstwo_nazwa">
+                    <option value="">— wszystkie —</option>
+                    {%for p in panstwa %}
+                        <option value="{{ p.panstwo_nazwa }}" {% if p.panstwo_nazwa|string == selected_panstwo_nazwa|string %}selected{% endif %}>{{ p.panstwo_nazwa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Region</label>
+                <select name="region_nazwa">
+                    <option value="">— wszystkie —</option>
+                    {% for r in regiony %}
+                        <option value="{{ r.region_nazwa }}" {% if r.region_nazwa|string == selected_region_nazwa|string %}selected{% endif %}>{{ r.region_nazwa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <!-- ===== STATUS ===== -->
             <div class="filter-group">
                 <label>Na mapie</label>
