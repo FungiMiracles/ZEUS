@@ -430,6 +430,20 @@
 
         <!-- ================= PRAWA KOLUMNA ================= -->
         <div class="col-right">
+                       {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    <div style="margin-bottom:15px;">
+                                        {% for category, message in messages %}
+                                            <div style="padding:10px; border-radius:6px;
+                                                {% if category == 'success' %}background:#d4edda; color:#155724;
+                                                {% elif category == 'error' %}background:#f8d7da; color:#721c24;
+                                                {% endif %}">
+                                                {{ message }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
             <table class="panstwo-table">
                 <thead>
                     <tr>
@@ -449,20 +463,7 @@
                                         Edytuj informacje szczegółowe
                                     </button>
                                 {% endif %}
-                               {% with messages = get_flashed_messages(with_categories=true) %}
-                                {% if messages %}
-                                    <div style="margin-bottom:15px;">
-                                        {% for category, message in messages %}
-                                            <div style="padding:10px; border-radius:6px;
-                                                {% if category == 'success' %}background:#d4edda; color:#155724;
-                                                {% elif category == 'error' %}background:#f8d7da; color:#721c24;
-                                                {% endif %}">
-                                                {{ message }}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
+                               
                             </div>
 
                             {% if p.opis_updated_at %}
