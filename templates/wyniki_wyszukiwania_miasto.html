@@ -725,11 +725,17 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
 </div>
 
 <script>
+    const SELECTED_KONTYNENT = "{{ selected_kontynent or '' }}";
+    const SELECTED_PANSTWO   = "{{ selected_panstwo_nazwa or '' }}";
+    const SELECTED_REGION    = "{{ selected_region_nazwa or '' }}";
+</script>
+                            
+<script>
 document.addEventListener("DOMContentLoaded", () => {
 
     const kontynentSelect = document.getElementById("kontynent-select");
-    const panstwoSelect = document.getElementById("panstwo-select");
-    const regionSelect = document.getElementById("region-select");
+    const panstwoSelect   = document.getElementById("panstwo-select");
+    const regionSelect    = document.getElementById("region-select");
 
     function resetSelect(select, placeholder) {
         select.innerHTML = "";
@@ -740,9 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ===== KONTYNENT → PAŃSTWA =====
-    kontynentSelect.addEventListener("change", () => {
-        const kontynent = kontynentSelect.value;
-
+    function loadPanstwa(kontynent, selectedPanstwo = null) {
         resetSelect(panstwoSelect, "— wybierz państwo —");
         resetSelect(regionSelect, "— wybierz region —");
 
@@ -755,15 +759,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement("option");
                     opt.value = p.panstwo_nazwa;
                     opt.textContent = p.panstwo_nazwa;
+                    if (p.panstwo_nazwa === selectedPanstwo) {
+                        opt.selected = true;
+                    }
                     panstwoSelect.appendChild(opt);
                 });
+
+                if (selectedPanstwo) {
+                    loadRegiony(selectedPanstwo, SELECTED_REGION);
+                }
             });
-    });
+    }
 
     // ===== PAŃSTWO → REGIONY =====
-    panstwoSelect.addEventListener("change", () => {
-        const panstwo = panstwoSelect.value;
-
+    function loadRegiony(panstwo, selectedRegion = null) {
         resetSelect(regionSelect, "— wybierz region —");
 
         if (!panstwo) return;
@@ -775,11 +784,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement("option");
                     opt.value = r.region_nazwa;
                     opt.textContent = r.region_nazwa;
+                    if (r.region_nazwa === selectedRegion) {
+                        opt.selected = true;
+                    }
                     regionSelect.appendChild(opt);
                 });
             });
+    }
+
+    // ===== EVENTY =====
+    kontynentSelect.addEventListener("change", () => {
+        loadPanstwa(kontynentSelect.value);
     });
 
+    panstwoSelect.addEventListener("change", () => {
+        loadRegiony(panstwoSelect.value);
+    });
+
+    // ===== REHYDRACJA PO RELOADZIE =====
+    if (SELECTED_KONTYNENT) {
+        kontynentSelect.value = SELECTED_KONTYNENT;
+        loadPanstwa(SELECTED_KONTYNENT, SELECTED_PANSTWO);
+    }
 });
 </script>
                             
