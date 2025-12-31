@@ -161,17 +161,6 @@ def init_miasta_routes(app):
     
         if panstwo_nazwa:
             query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%"))
-    
-        if region_nazwa:
-            query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
-
-        if bez_regionu == "1":
-            query = query.filter(
-                or_(
-                    Miasto.region_id.is_(None),
-                    Miasto.region_id == 0
-                )
-            )
 
         if bez_regionu == "1":
             query = query.filter(
@@ -226,6 +215,17 @@ def init_miasta_routes(app):
                     "kontynent": p.kontynent,
                 }
             )
+        
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+        kontynenty = [k[0] for k in kontynenty if k[0]]
+
+        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+        regiony = Region.query.order_by(Region.region_nazwa).all()
     
         # --------------------------------------------------
         # ARGUMENTY DO PAGINACJI (BEZ page)
@@ -241,7 +241,15 @@ def init_miasta_routes(app):
             pagination=pagination,
             total=pagination.total,
             args=args,
-            empty=empty
+            empty=empty,
+
+            kontynenty=kontynenty,
+            panstwa=panstwa,
+            regiony=regiony,
+
+            selected_kontynent=kontynent,
+            selected_panstwo_nazwa=panstwo_nazwa,
+            selected_region_nazwa=region_nazwa
         )
 
     # --------------------------------
