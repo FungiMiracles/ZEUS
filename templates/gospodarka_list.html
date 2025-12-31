@@ -4,12 +4,20 @@
 {% block content %}
 
 <style>
+
 /* ============================================================
-   FILTR – identyczny jak w sily_zbrojne_list, ale z kolorami gospodarki
+   GLOBAL SAFETY
+============================================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   FILTR
 ============================================================ */
 .gosp-filter-box {
     max-width: 1150px;
-    margin: 20px auto 25px auto;
+    margin: 20px auto 25px;
     background: #ffffff;
     border-radius: 10px;
     border: 1px solid #d3d6da;
@@ -31,11 +39,10 @@
 }
 
 .gosp-filter-grid label {
-    font-size: 0.92em;
+    font-size: 0.9em;
     font-weight: 700;
     margin-bottom: 6px;
     display: block;
-    color: #2c3e50;
 }
 
 .gosp-filter-grid input,
@@ -44,133 +51,62 @@
     padding: 9px 12px;
     border-radius: 6px;
     border: 1px solid #b4b9be;
-    background: #ffffff;
     font-size: 0.95em;
-    font-weight: 600;
 }
-
-.gosp-filter-actions {
-    margin-top: 18px;
-    text-align: right;
-}
-
-.gosp-filter-btn {
-    background: #2c73d2;
-    padding: 10px 22px;
-    color: white;
-    font-weight: 700;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.gosp-filter-btn:hover {
-    background: #1e5cac;
-}
-
 
 /* ============================================================
-   TABELA – zachowana Twoja kolorystyka gospodarki
+   TABELA — DESKTOP / TABLET
 ============================================================ */
-.gosp-list {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f8;
-    padding-bottom: 40px;
+
+/* wrapper przeciw rozjeżdżaniu */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .results-table {
     width: 100%;
+    min-width: 900px; /* KLUCZ */
     max-width: 1150px;
-    margin: 0 auto 40px auto;
+    margin: 0 auto 40px;
     border-collapse: separate;
     border-spacing: 0;
     background: #ffffff;
     border-radius: 10px;
-    overflow: hidden;
     box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 .results-table thead tr {
     background: linear-gradient(90deg, #2c73d2, #6aa8ff);
     color: white;
-    font-weight: 700;
 }
 
-.results-table thead th {
-    padding: 12px 15px;
-    border-right: 1px solid rgba(255,255,255,0.25);
-}
-
-.results-table tbody td {
-    padding: 10px 15px;
-    font-weight: 600;
+.results-table th,
+.results-table td {
+    padding: 10px 14px;
     font-size: 0.95em;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .results-table tbody tr:nth-child(even) {
     background-color: #eef3ff;
 }
+
 .results-table tbody tr:nth-child(odd) {
     background-color: #f7faff;
 }
 
-.results-table tbody tr:hover {
-    background-color: #d8e4ff;
-}
-
-.action-buttons {
-    display: inline-flex;
-    gap: 6px;
-}
-
-.action-buttons a {
-    padding: 6px 10px;
-    font-size: 0.85em;
-    border-radius: 5px;
-    color: white;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-.btn-view { background-color: #2c73d2; }
-.btn-view:hover { background-color: #1e5cac; }
-
-.btn-edit { background-color: #3498db; }
-.btn-edit:hover { background-color: #1d6da3; }
-
-.btn-add { background-color: #27ae60; }
-.btn-add:hover { background-color: #1e8749; }
-
-.no-results {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 1.2em;
-    font-weight: 700;
-    color: #c0392b;
-}
-
 /* ============================================================
-   GLOBAL MOBILE SAFETY
-============================================================ */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-/* ============================================================
-   GOSPODARKA — FILTR MOBILE
+   MOBILE — TABELA → KARTY (JEDYNA STRATEGIA)
 ============================================================ */
 @media (max-width: 767px) {
 
+    /* filtr */
     .gosp-filter-box {
-        margin: 15px 10px 20px 10px;
+        margin: 15px 10px 20px;
         padding: 16px 14px;
-    }
-
-    .gosp-filter-title {
-        font-size: 1.15em;
-        text-align: center;
-        margin-bottom: 14px;
     }
 
     .gosp-filter-grid {
@@ -178,27 +114,17 @@
         gap: 14px;
     }
 
-    .gosp-filter-actions {
-        text-align: center;
-        margin-top: 16px;
+    /* wyłączamy scroll-wrapper */
+    .table-scroll {
+        overflow: visible;
     }
 
-    .gosp-filter-btn {
-        width: 100%;
-        font-size: 15px;
-        padding: 11px;
-    }
-}
-
-/* ============================================================
-   GOSPODARKA — LISTA MOBILE (TABELA → KARTY)
-============================================================ */
-@media (max-width: 767px) {
-
+    /* tabela → karty */
     .results-table {
+        min-width: 0;
+        background: transparent;
         box-shadow: none;
         border-radius: 0;
-        background: transparent;
     }
 
     .results-table thead {
@@ -215,43 +141,31 @@
 
     .results-table tr {
         background: #ffffff;
-        margin: 0 10px 14px 10px;
+        margin: 0 10px 14px;
         border-radius: 12px;
         box-shadow: 0 3px 8px rgba(0,0,0,0.12);
         overflow: hidden;
     }
 
-    .results-table tbody td {
+    .results-table td {
         padding: 8px 12px;
-        font-size: 0.9em;
         border-bottom: 1px solid #e2e6ec;
+        font-size: 0.9em;
     }
 
-    .results-table tbody td:last-child {
+    .results-table td:last-child {
         border-bottom: none;
     }
 
-    /* pseudo-labels */
-    .results-table tbody td::before {
+    /* pseudo-label */
+    .results-table td::before {
         content: attr(data-label);
         display: block;
         font-size: 0.7em;
         font-weight: 700;
-        text-transform: uppercase;
         color: #6c7a89;
-        margin-bottom: 2px;
-    }
-
-    .action-buttons {
-        margin-top: 6px;
-    }
-
-    .action-buttons a {
-        display: inline-block;
-        margin-bottom: 6px;
-        width: 100%;
-        text-align: center;
-        font-size: 0.9em;
+        margin-bottom: 3px;
+        text-transform: uppercase;
     }
 }
 
