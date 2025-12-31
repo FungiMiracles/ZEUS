@@ -1,5 +1,5 @@
 # routes_miasta.py
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
 from models import Miasto, Panstwo, Region
 from permissions import wymaga_roli
