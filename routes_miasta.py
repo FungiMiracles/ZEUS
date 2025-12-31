@@ -224,8 +224,24 @@ def init_miasta_routes(app):
         )
         kontynenty = [k[0] for k in kontynenty if k[0]]
 
-        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-        regiony = Region.query.order_by(Region.region_nazwa).all()
+        panstwa_query = Panstwo.query
+
+        if kontynent:
+            panstwa_query = panstwa_query.filter(Panstwo.kontynent == kontynent)
+
+        panstwa = panstwa_query_order_by(Panstwo.panstwo_nazwa).all()
+
+        regiony_query = Region.query.join(Panstwo)
+
+        if kontynent:
+            region_query = regiony_query.filter(Panstwo.kontynent == kontynent)
+
+        if panstwo_nazwa:
+            region_query = regiony_query.filter(
+                Panstwo.panstwo_nazwa == panstwo_nazwa
+            )
+
+        regiony = regiony_query.order_by(Region.region_nazwa).all()
     
         # --------------------------------------------------
         # ARGUMENTY DO PAGINACJI (BEZ page)
