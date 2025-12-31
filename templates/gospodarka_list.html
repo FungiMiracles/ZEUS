@@ -227,110 +227,110 @@
         <p class="no-results">Brak wyników spełniających kryteria filtrów.</p>
 
     {% else %}
-
-    <table class="results-table">
-
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Państwo</th>
-                <th>Kontynent</th>
-                <th>PKB wzrost (%)</th>
-                <th>Bezrobocie (%)</th>
-                <th>Surowce</th>
-                <th>Akcja</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        {% for p in panstwa %}
-            <tr>
-
-                   <td data-label="ID">
-                       {{ p.PANSTWO_ID }}
-                   </td>
-               
-                   <td data-label="Państwo">
-                       {{ p.panstwo_nazwa }}<br>
-                       <span style="font-size:0.8em; color:#666;">
-                           {{ p.panstwo_pelna_nazwa }}
-                       </span>
-                   </td>
-               
-                   <td data-label="Kontynent">
-                       {{ p.kontynent or "—" }}
-                   </td>
-               
-                   {% if p.gospodarka %}
-               
-                       <td data-label="PKB wzrost (%)">
-                           {{ p.gospodarka.wzrost_pkb or "—" }}
-                       </td>
-               
-                       <td data-label="Bezrobocie (%)">
-                           {{ p.gospodarka.bezrobocie or "—" }}
-                       </td>
-               
-                       <td data-label="Surowce">
-                           {% set g = p.gospodarka %}
-                           {% if g.ropa_wydobycie or g.gaz_wydobycie or g.wegiel_wydobycie
-                                 or g.uran_wydobycie or g.zloto_wydobycie %}
-                               ✓
-                           {% else %}
-                               —
-                           {% endif %}
-                       </td>
-               
-                       <td data-label="Akcja" class="action-buttons">
-                           <a class="btn-view"
-                              href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
-                               Podgląd
-                           </a>
-               
-                           {% if session.rola == "wszechmocny" %}
-                           <a class="btn-edit"
-                              href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
-                               Edytuj
-                           </a>
-                           {% else %}
-                           <a class="btn-edit"
-                              href="#"
-                              onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-                               Edytuj
-                           </a>
-                           {% endif %}
-                       </td>
-               
-                   {% else %}
-               
-                       <td data-label="PKB wzrost (%)">—</td>
-                       <td data-label="Bezrobocie (%)">—</td>
-                       <td data-label="Surowce">—</td>
-               
-                       <td data-label="Akcja" class="action-buttons">
-                           {% if session.rola == "wszechmocny" %}
-                           <a class="btn-add"
-                              href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
-                               Dodaj
-                           </a>
-                           {% else %}
-                           <a class="btn-add"
-                              href="#"
-                              onclick="zeusToast('Ta funkcja tymczasowo dostępna jest tylko dla roli Wszechmocny')">
-                               Dodaj
-                           </a>
-                           {% endif %}
-                       </td>
-               
-                   {% endif %}
-               
+   <div class="table-scroll">
+       <table class="results-table">
+   
+           <thead>
+               <tr>
+                   <th>ID</th>
+                   <th>Państwo</th>
+                   <th>Kontynent</th>
+                   <th>PKB wzrost (%)</th>
+                   <th>Bezrobocie (%)</th>
+                   <th>Surowce</th>
+                   <th>Akcja</th>
                </tr>
-
-        {% endfor %}
-        </tbody>
-
-    </table>
-
+           </thead>
+   
+           <tbody>
+           {% for p in panstwa %}
+               <tr>
+   
+                      <td data-label="ID">
+                          {{ p.PANSTWO_ID }}
+                      </td>
+                  
+                      <td data-label="Państwo">
+                          {{ p.panstwo_nazwa }}<br>
+                          <span style="font-size:0.8em; color:#666;">
+                              {{ p.panstwo_pelna_nazwa }}
+                          </span>
+                      </td>
+                  
+                      <td data-label="Kontynent">
+                          {{ p.kontynent or "—" }}
+                      </td>
+                  
+                      {% if p.gospodarka %}
+                  
+                          <td data-label="PKB wzrost (%)">
+                              {{ p.gospodarka.wzrost_pkb or "—" }}
+                          </td>
+                  
+                          <td data-label="Bezrobocie (%)">
+                              {{ p.gospodarka.bezrobocie or "—" }}
+                          </td>
+                  
+                          <td data-label="Surowce">
+                              {% set g = p.gospodarka %}
+                              {% if g.ropa_wydobycie or g.gaz_wydobycie or g.wegiel_wydobycie
+                                    or g.uran_wydobycie or g.zloto_wydobycie %}
+                                  ✓
+                              {% else %}
+                                  —
+                              {% endif %}
+                          </td>
+                  
+                          <td data-label="Akcja" class="action-buttons">
+                              <a class="btn-view"
+                                 href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
+                                  Podgląd
+                              </a>
+                  
+                              {% if session.rola == "wszechmocny" %}
+                              <a class="btn-edit"
+                                 href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
+                                  Edytuj
+                              </a>
+                              {% else %}
+                              <a class="btn-edit"
+                                 href="#"
+                                 onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                  Edytuj
+                              </a>
+                              {% endif %}
+                          </td>
+                  
+                      {% else %}
+                  
+                          <td data-label="PKB wzrost (%)">—</td>
+                          <td data-label="Bezrobocie (%)">—</td>
+                          <td data-label="Surowce">—</td>
+                  
+                          <td data-label="Akcja" class="action-buttons">
+                              {% if session.rola == "wszechmocny" %}
+                              <a class="btn-add"
+                                 href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
+                                  Dodaj
+                              </a>
+                              {% else %}
+                              <a class="btn-add"
+                                 href="#"
+                                 onclick="zeusToast('Ta funkcja tymczasowo dostępna jest tylko dla roli Wszechmocny')">
+                                  Dodaj
+                              </a>
+                              {% endif %}
+                          </td>
+                  
+                      {% endif %}
+                  
+                  </tr>
+   
+           {% endfor %}
+           </tbody>
+   
+       </table>
+   </div>
     {% endif %}
 
 </div>
