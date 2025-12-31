@@ -408,6 +408,12 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 <label>Kontynent</label>
                 <select name="kontynent" id="kontynent-select">
                     <option value="">— wszystkie —</option>
+                    {% for k in kontynenty %}
+                        <option value="{{ k }}"
+                            {% if k == selected_kontynent %}selected{% endif %}>
+                            {{ k }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             
