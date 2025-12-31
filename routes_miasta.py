@@ -8,6 +8,42 @@ from sqlalchemy import or_
 
 
 def init_miasta_routes(app):
+
+    @app.route("/api/panstwa")
+    def api_panstwa():
+        kontynent = request.args.get("kontynent")
+    
+        query = Panstwo.query
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
+    
+        panstwa = query.order_by(Panstwo.panstwo_nazwa).all()
+    
+        return jsonify([
+            {
+                "panstwo_nazwa": p.panstwo_nazwa
+            }
+            for p in panstwa
+        ])
+
+    @app.route("/api/regiony")
+    def api_regiony():
+        panstwo_nazwa = request.args.get("panstwo_nazwa")
+    
+        query = Region.query.join(Panstwo)
+    
+        if panstwo_nazwa:
+            query = query.filter(Panstwo.panstwo_nazwa == panstwo_nazwa)
+    
+        regiony = query.order_by(Region.region_nazwa).all()
+    
+        return jsonify([
+            {
+                "region_nazwa": r.region_nazwa
+            }
+            for r in regiony
+        ])
+
     # --------------------------------
     # Podgląd miasta – ORM
     # --------------------------------
