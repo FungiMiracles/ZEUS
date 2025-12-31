@@ -136,6 +136,7 @@ def init_miasta_routes(app):
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
         bez_regionu = request.args.get("bez_regionu")
+        kontynent = request.args.get("kontynent")
     
         page = request.args.get("page", 1, type=int)
         per_page = 25
@@ -148,6 +149,9 @@ def init_miasta_routes(app):
             .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
             .outerjoin(Region, Miasto.region_id == Region.region_id)
         )
+
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
     
         if miasto_nazwa:
             query = query.filter(Miasto.miasto_nazwa.like(f"{miasto_nazwa}%"))
@@ -168,6 +172,16 @@ def init_miasta_routes(app):
                     Miasto.region_id == 0
                 )
             )
+
+        if bez_regionu == "1":
+            query = query.filter(
+                or_(
+                    Miasto.region_id.is_(None),
+                    Miasto.region_id == 0
+                )
+            )
+        elif region_nazwa:
+            query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
     
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
@@ -209,6 +223,7 @@ def init_miasta_routes(app):
                     "czy_na_mapie": m.czy_na_mapie,
                     "panstwo_nazwa": p.panstwo_nazwa,
                     "region_nazwa": r.region_nazwa if r else "Brak przypisania regionalnego",
+                    "kontynent": p.kontynent,
                 }
             )
     
@@ -228,7 +243,6 @@ def init_miasta_routes(app):
             args=args,
             empty=empty
         )
-
 
     # --------------------------------
     # Dodawanie miasta – ORM + walidacja duplikatów
