@@ -167,6 +167,37 @@
         margin-bottom: 3px;
         text-transform: uppercase;
     }
+
+   /* ============================================================
+   FIX — PRZYCISKI W WIDOKU MOBILE
+   ============================================================ */
+   @media (max-width: 767px) {
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-buttons a,
+    .action-buttons button {
+        width: 100%;
+        text-align: center;
+        padding: 8px 10px;
+        font-size: 0.85em;
+        border-radius: 6px;
+    }
+
+      .gosp-list {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .table-scroll {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
 }
 
 </style>
