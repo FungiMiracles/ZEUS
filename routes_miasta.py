@@ -265,7 +265,7 @@ def init_miasta_routes(app):
         if kontynent:
             panstwa_query = panstwa_query.filter(Panstwo.kontynent == kontynent)
 
-        panstwa = panstwa_query_order_by(Panstwo.panstwo_nazwa).all()
+        panstwa = panstwa_query.order_by(Panstwo.panstwo_nazwa).all()
 
         regiony_query = Region.query.join(Panstwo)
 
