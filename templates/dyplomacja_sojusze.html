@@ -197,7 +197,7 @@ kontynentSelect.addEventListener("change", () => {
 
     if (!kontynentSelect.value) return;
 
-    fetch(`/api/panstwa?kontynent=${kontynentSelect.value}`)
+    fetch("/api/dyplomacja/panstwa?kontynent=${kontynentSelect.value}`)
         .then(r => r.json())
         .then(data => {
             data.forEach(p => {
