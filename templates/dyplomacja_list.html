@@ -150,7 +150,7 @@
                     <option value="">— wybierz —</option>
                     {% for p in panstwa %}
                         <option value="{{ p.PANSTWO_ID }}"
-                                data-flag="{{ p.panstwo_kod }}">
+                                data-flag="{{ p.panstwo_nazwa }}">
                             {{ p.panstwo_nazwa }}
                         </option>
                     {% endfor %}
