@@ -116,44 +116,56 @@
 
         <div class="soj-filter-grid">
 
-            <div>
-                <label>Kontynent</label>
-                <select id="kontynentSelect">
-                    <option value="">— wybierz —</option>
-                </select>
-            </div>
+            <div class="dyp-select-box">
+               <label for="kontynentSelect">Kontynent</label>
+               <select id="kontynentSelect">
+                   <option value="">— wybierz —</option>
+                   {% for k in kontynenty %}
+                       <option value="{{ k }}">{{ k }}</option>
+                   {% endfor %}
+               </select>
+           </div>
 
-            <div>
-                <label>Państwo</label>
-                <select id="panstwoSelect">
-                    <option value="">— wybierz —</option>
-                </select>
-            </div>
+            <div class="dyp-select-box">
+               <label for="panstwoSelect">Państwo</label>
+               <select id="panstwoSelect" disabled>
+                   <option value="">— wybierz kontynent —</option>
+               </select>
+           </div>
 
-            <div>
-                <label>Relacja (opcjonalnie)</label>
-                <select id="relacjaFilter">
-                    <option value="">— wszystkie —</option>
-                    <option value="sojusznicze">Sojusznicze</option>
-                    <option value="partnerskie_strategiczne">Partnerskie strategiczne</option>
-                    <option value="partnerskie">Partnerskie</option>
-                    <option value="neutralne">Neutralne</option>
-                    <option value="chlodne">Chłodne</option>
-                    <option value="wrogie">Wrogie</option>
-                </select>
-            </div>
+            <div class="dyp-select-box">
+               <label for="relacjaFilter">Relacja (opcjonalnie)</label>
+               <select id="relacjaFilter">
+                   <option value="">— wszystkie —</option>
+                   <option value="sojusznicze">Sojusznicze</option>
+                   <option value="partnerskie_strategiczne">Partnerskie strategiczne</option>
+                   <option value="partnerskie">Partnerskie</option>
+                   <option value="przyjazne">Przyjazne</option>
+                   <option value="dobre">Dobre</option>
+                   <option value="neutralne">Neutralne</option>
+                   <option value="chlodne">Chłodne</option>
+                   <option value="zle">Złe</option>
+                   <option value="napiete">Napięte</option>
+                   <option value="wrogie">Wrogie</option>
+                   <option value="egzystencjalnie_wrogie">Egzystencjalnie wrogie</option>
+               </select>
+           </div>
 
-            <div>
-                <label>Stan (opcjonalnie)</label>
-                <select id="stanFilter">
-                    <option value="">— wszystkie —</option>
-                    <option value="pokoj">Pokój</option>
-                    <option value="konflikt_dyplomatyczny">Konflikt dyplomatyczny</option>
-                    <option value="wojna_handlowa">Wojna handlowa</option>
-                    <option value="wojna_hybrydowa">Wojna hybrydowa</option>
-                    <option value="wojna_kinetyczna">Wojna kinetyczna</option>
-                </select>
-            </div>
+            <div class="dyp-select-box">
+               <label for="stanFilter">Stan (opcjonalnie)</label>
+               <select id="stanFilter">
+                   <option value="">— wszystkie —</option>
+                   <option value="pokoj">Pokój</option>
+                   <option value="zawieszenie_broni">Zawieszenie broni</option>
+                   <option value="konflikt_dyplomatyczny">Konflikt dyplomatyczny</option>
+                   <option value="wojna_handlowa">Wojna handlowa</option>
+                   <option value="wojna_informacyjna">Wojna informacyjna</option>
+                   <option value="wojna_hybrydowa">Wojna hybrydowa</option>
+                   <option value="konflikt_kinetyczny_zamrozony">Konflikt kinetyczny (zamrożony)</option>
+                   <option value="wojna_kinetyczna">Wojna kinetyczna</option>
+                   <option value="okupacja">Okupacja</option>
+               </select>
+           </div>
 
         </div>
     </div>
