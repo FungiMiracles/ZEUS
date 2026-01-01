@@ -96,6 +96,23 @@
     display: inline-block;
 }
 
+.btn-edit-relation {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #5d7dce, #3f5fbf);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: 0.2s;
+}
+
+.btn-edit-relation:hover {
+    background: linear-gradient(135deg, #4b6acb, #2f4ea6);
+    transform: translateY(-2px);
+}
+
 /* ===================== KOLORY ===================== */
 
 .rel-green { background: #d4edda; color: #155724; }
@@ -177,6 +194,30 @@
     </div>
 
 </div>
+<div class="relation-card" id="relationCard">
+
+    <div class="relation-row">
+        <div class="relation-label">Relacja</div>
+        <div class="relation-value" id="relacjaValue"></div>
+    </div>
+
+    <div class="relation-row">
+        <div class="relation-label">Stan</div>
+        <div class="relation-value" id="stanValue"></div>
+    </div>
+
+    <!-- NOWY PRZYCISK -->
+    {% if session.rola == "wszechmocny" %}
+    <div style="margin-top:16px; text-align:center;">
+        <a id="editRelationBtn"
+           class="btn-edit-relation"
+           href="#">
+            ✏️ Modyfikuj relacje
+        </a>
+    </div>
+    {% endif %}
+
+</div>
 
 <script>
 const relacjeGreen = [
@@ -238,11 +279,20 @@ function updateFlag(select, target) {
 }
 
 function updateRelation() {
+    const card = document.getElementById("relationCard");
+
     if (!p1.value || !p2.value || p1.value === p2.value) {
-        document.getElementById("relationCard").style.display = "none";
+        card.style.display = "none";
         return;
     }
 
+    // ===== PRZYCISK EDYCJI =====
+    const editBtn = document.getElementById("editRelationBtn");
+    if (editBtn) {
+        editBtn.href = `/dyplomacja/edit?panstwo_id=${p1.value}&panstwo_id2=${p2.value}`;
+    }
+
+    // ===== POBRANIE RELACJI =====
     fetch(`/api/dyplomacja?p1=${p1.value}&p2=${p2.value}`)
         .then(r => r.json())
         .then(d => {
@@ -255,7 +305,7 @@ function updateRelation() {
             rel.className = "relation-value " + colorClassRelacja(d.relacja);
             stan.className = "relation-value " + colorClassStan(d.stan);
 
-            document.getElementById("relationCard").style.display = "block";
+            card.style.display = "block";
         });
 }
 
