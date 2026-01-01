@@ -226,12 +226,15 @@ const p2 = document.getElementById("panstwo2");
 
 function updateFlag(select, target) {
     const opt = select.selectedOptions[0];
-    if (!opt || !opt.dataset.flag) {
-        console.warn("Brak flagi dla selecta", select);
+    if (!opt) {
         target.innerHTML = "";
         return;
     }
-    target.innerHTML = `<img src="/static/flags/${opt.dataset.flag}.jpg">`;
+
+    const rawName = opt.textContent.trim();
+    const fileName = rawName.replaceAll(" ", "_");
+
+    target.innerHTML = `<img src="/static/flags/${fileName}.jpg">`;
 }
 
 function updateRelation() {
