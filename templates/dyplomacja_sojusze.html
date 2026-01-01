@@ -15,7 +15,7 @@
     color: #2c3e50;
 }
 
-sojusze-results {
+.sojusze-results {
     margin-top: 25px;
     display: flex;
     flex-direction: column;
@@ -59,6 +59,13 @@ sojusze-results {
     border-radius: 6px;
     border: 1px solid #bdc3c7;
     font-size: 0.9em;
+}
+
+.soj-select-box label {
+    font-size: 0.75em;
+    font-weight: 800;
+    margin-bottom: 4px;
+    display: block;
 }
 
 /* ===================== LISTA RELACJI ===================== */
@@ -123,7 +130,7 @@ sojusze-results {
 
         <div class="soj-filter-grid">
 
-            <div class="dyp-select-box">
+            <div class="soj-select-box">
                <label for="kontynentSelect">Kontynent</label>
                <select id="kontynentSelect">
                    <option value="">— wybierz —</option>
@@ -189,7 +196,7 @@ const kontynentSelect = document.getElementById("kontynentSelect");
 const panstwoSelect = document.getElementById("panstwoSelect");
 const relacjaFilter = document.getElementById("relacjaFilter");
 const stanFilter = document.getElementById("stanFilter");
-const sojList = document.getElementById("sojList");
+const sojList = document.getElementById("sojuszeResults");
 
 kontynentSelect.addEventListener("change", () => {
     const kontynent = kontynentSelect.value;
