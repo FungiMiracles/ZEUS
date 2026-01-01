@@ -18,6 +18,8 @@ def init_dyplomacja_routes(app):
     # ============================================================
     @app.route("/dyplomacja/list")
     def dyplomacja_list():
+        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+        
         stosunki = (
             Stosunki.query
             .join(Panstwo, Stosunki.PANSTWO_ID == Panstwo.PANSTWO_ID)
@@ -28,7 +30,7 @@ def init_dyplomacja_routes(app):
         return render_template(
             "dyplomacja_list.html",
             stosunki=stosunki,
-            panstwo=panstwo
+            panstwa=panstwa
         )
 
     # ============================================================
