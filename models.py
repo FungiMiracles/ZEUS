@@ -246,13 +246,14 @@ class Stosunki(db.Model):
 
     PANSTWO_ID = db.Column(
         db.Integer,
-        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE"),
-        primary_key=True)
-    
+        db.ForeignKey("panstwa.PANSTWO_ID"),
+        primary_key=True
+    )
     PANSTWO_ID2 = db.Column(
-        db.Integer, 
-        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE"),
-        primary_key=True)
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID"),
+        primary_key=True
+    )
     
     relacja = db.Column(db.Enum(
         "sojusznicze", 
