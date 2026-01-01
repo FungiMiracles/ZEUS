@@ -136,7 +136,7 @@
                     <option value="">— wybierz —</option>
                     {% for p in panstwa %}
                         <option value="{{ p.PANSTWO_ID }}"
-                                data-flag="{{ p.panstwo_kod }}">
+                                data-flag="{{ p.panstwo_nazwa }}">
                             {{ p.panstwo_nazwa }}
                         </option>
                     {% endfor %}
@@ -230,7 +230,7 @@ function updateFlag(select, target) {
         target.innerHTML = "";
         return;
     }
-    target.innerHTML = `<img src="/static/flags/${opt.dataset.flag}.png">`;
+    target.innerHTML = `<img src="/static/flags/${opt.dataset.flag}.jpg">`;
 }
 
 function updateRelation() {
