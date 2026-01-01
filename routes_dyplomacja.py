@@ -171,4 +171,79 @@ def init_dyplomacja_routes(app):
             "stan": rel.stan
         })
 
+    @app.route("/api/kontynenty")
+    def api_kontynenty():
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+    
+        return jsonify([k[0] for k in kontynenty if k[0]])
+
+    @app.route("/api/panstwa")
+    def api_panstwa():
+        kontynent = request.args.get("kontynent")
+    
+        query = Panstwo.query
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
+    
+        panstwa = query.order_by(Panstwo.panstwo_nazwa).all()
+    
+        return jsonify([
+            {
+                "id": p.PANSTWO_ID,
+                "nazwa": p.panstwo_nazwa
+            }
+            for p in panstwa
+        ])
+
+    @app.route("/api/sojusze")
+    def api_sojusze():
+    
+        panstwo_id = request.args.get("panstwo_id", type=int)
+        relacja_f = request.args.get("relacja")
+        stan_f = request.args.get("stan")
+    
+        if not panstwo_id:
+            return jsonify([])
+    
+        # wszystkie relacje, gdzie państwo bierze udział
+        stosunki = Stosunki.query.filter(
+            (Stosunki.PANSTWO_ID == panstwo_id) |
+            (Stosunki.PANSTWO_ID2 == panstwo_id)
+        ).all()
+    
+        wynik = []
+    
+        for s in stosunki:
+    
+            # ustalamy "drugie państwo"
+            other_id = (
+                s.PANSTWO_ID2 if s.PANSTWO_ID == panstwo_id
+                else s.PANSTWO_ID
+            )
+    
+            panstwo = Panstwo.query.get(other_id)
+            if not panstwo:
+                continue
+    
+            # ─── FILTRY (opcjonalne!) ───
+            if relacja_f and s.relacja != relacja_f:
+                continue
+    
+            if stan_f and s.stan != stan_f:
+                continue
+    
+            wynik.append({
+                "panstwo": panstwo.panstwo_nazwa,
+                "relacja": s.relacja,
+                "stan": s.stan
+            })
+    
+        return jsonify(wynik)
+
+
 
