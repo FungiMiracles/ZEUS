@@ -2,7 +2,6 @@
 from sqlalchemy import BigInteger
 from extensions import db
 from datetime import datetime
-from extensions import db
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
@@ -160,13 +159,6 @@ class Gospodarka(db.Model):
 
     data_aktualizacji = db.Column(db.DateTime, default=db.func.now())
 
-    from datetime import datetime
-from extensions import db
-
-
-from extensions import db
-from datetime import date
-
 
 class Historia(db.Model):
     __tablename__ = "historia"
@@ -249,6 +241,59 @@ class Historia(db.Model):
     #  WŁAŚCIWOŚCI POMOCNICZE (LOGIKA)
     # =========================================================
 
+class Stosunki(db.Model):
+    __tablename__ = "stosunki"
+
+    PANSTWO_ID = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE"),
+        primary_key=True)
+    
+    PANSTWO_ID2 = db.Column(
+        db.Integer, 
+        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE"),
+        primary_key=True)
+    
+    relacja = db.Column(db.Enum(
+        "sojusznicze", 
+        "partnerskie_strategiczne", 
+        "partnerskie",
+        "przyjazne",
+        "dobre",
+        "neutralne",
+        "chlodne",
+        "zle",
+        "napiete",
+        "wrogie",
+        "egzystencjalnie_wrogie",
+        name="relacja_enum"), nullable=False, default="neutralne")
+    
+    stan = db.Column(db.Enum(
+        "pokoj",
+        "zwieszenie_broni",
+        "konflikt_dyplomatyczny",
+        "wojna_handlowa",
+        "wojna_informacyjna",
+        "wojna_hybrydowa",
+        "konflikt_kinetyczny_zamrozony",
+        "wojna_kinetyczna",
+        "okupacja",
+        name="stan_enum"
+    ), nullable=False, default="pokoj")
+
+    panstwo = db.relationship(
+    "Panstwo",
+    foreign_keys=[PANSTWO_ID],
+    lazy="joined"
+    )
+
+    panstwo2 = db.relationship(
+        "Panstwo",
+        foreign_keys=[PANSTWO_ID2],
+        lazy="joined"
+    )
+
+
     @property
     def zakres_dat_label(self) -> str:
         """
@@ -280,7 +325,3 @@ class Historia(db.Model):
             f"{self.nazwa_wydarzenia} | "
             f"{self.zakres_dat_label}>"
         )
-
-
-
-
