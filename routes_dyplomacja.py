@@ -117,6 +117,24 @@ def init_dyplomacja_routes(app):
             ]
         )
 
+    @app.route("/dyplomacja/sojusze")
+    def dyplomacja_sojusze():
+    
+        kontynenty = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+    
+        kontynenty = [k[0] for k in kontynenty if k[0]]
+    
+        return render_template(
+            "dyplomacja_sojusze.html",
+            kontynenty=kontynenty
+        )
+
+
     # ============================================================
     # USUWANIE RELACJI
     # ============================================================
