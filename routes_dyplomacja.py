@@ -263,5 +263,25 @@ def init_dyplomacja_routes(app):
     
         return jsonify(wynik)
 
-
+    @app.route("/api/dyplomacja/panstwa")
+    def api_dyplomacja_panstwa():
+        kontynent = request.args.get("kontynent")
+    
+        if not kontynent:
+            return jsonify([])
+    
+        panstwa = (
+            Panstwo.query
+            .filter(Panstwo.kontynent == kontynent)
+            .order_by(Panstwo.panstwo_nazwa)
+            .all()
+        )
+    
+        return jsonify([
+            {
+                "id": p.PANSTWO_ID,
+                "nazwa": p.panstwo_nazwa
+            }
+            for p in panstwa
+        ])
 
