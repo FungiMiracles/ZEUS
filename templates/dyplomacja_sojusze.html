@@ -191,82 +191,34 @@ const relacjaFilter = document.getElementById("relacjaFilter");
 const stanFilter = document.getElementById("stanFilter");
 const sojList = document.getElementById("sojList");
 
-/* ===== KOLORY ===== */
-function colorRel(v) {
-    if (["sojusznicze","partnerskie","partnerskie_strategiczne","dobre"].includes(v)) return "rel-green";
-    if (["neutralne"].includes(v)) return "rel-grey";
-    if (["chlodne","zle","napiete"].includes(v)) return "rel-orange";
-    if (["wrogie","egzystencjalnie_wrogie"].includes(v)) return "rel-red";
-    return "rel-grey";
-}
-
-/* ===== LOAD CONTINENTS ===== */
-fetch("/api/kontynenty")
-    .then(r => r.json())
-    .then(data => {
-        data.forEach(k => {
-            const opt = document.createElement("option");
-            opt.value = k;
-            opt.textContent = k;
-            kontynentSelect.appendChild(opt);
-        });
-    });
-
-/* ===== CONTINENT → COUNTRIES ===== */
 kontynentSelect.addEventListener("change", () => {
+    const kontynent = kontynentSelect.value;
+
     panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
+    panstwoSelect.disabled = true;
     sojList.innerHTML = "";
 
-    if (!kontynentSelect.value) return;
+    if (!kontynent) return;
 
-    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynentSelect.value)}`)
+    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
         .then(res => res.json())
         .then(data => {
-            console.log("PAŃSTWA:", data); // ← TO JEST KLUCZOWE
+            console.log("PAŃSTWA:", data);
+
             data.forEach(p => {
                 const opt = document.createElement("option");
                 opt.value = p.id;
                 opt.textContent = p.nazwa;
                 panstwoSelect.appendChild(opt);
             });
+
+            // 🔑 TO JEST KLUCZOWE
+            panstwoSelect.disabled = false;
         })
-        .catch(err => console.error("API ERROR:", err));
-});
-
-/* ===== LOAD RELATIONS ===== */
-function loadRelations() {
-    sojList.innerHTML = "";
-    if (!panstwoSelect.value) return;
-
-    const params = new URLSearchParams({
-        panstwo_id: panstwoSelect.value,
-        relacja: relacjaFilter.value,
-        stan: stanFilter.value
-    });
-
-    fetch(`/api/sojusze?${params.toString()}`)
-        .then(r => r.json())
-        .then(data => {
-            if (!data.length) {
-                sojList.innerHTML = `<div class="empty">Brak wyników</div>`;
-                return;
-            }
-
-            data.forEach(r => {
-                sojList.innerHTML += `
-                    <div class="soj-card">
-                        <div class="soj-country">${r.panstwo}</div>
-                        <div class="soj-badge ${colorRel(r.relacja)}">${r.relacja}</div>
-                        <div class="soj-badge ${colorRel(r.stan)}">${r.stan}</div>
-                    </div>
-                `;
-            });
+        .catch(err => {
+            console.error("Błąd API:", err);
         });
-}
-
-[panstwoSelect, relacjaFilter, stanFilter].forEach(el =>
-    el.addEventListener("change", loadRelations)
-);
+});
 </script>
 
 
