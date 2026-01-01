@@ -27,7 +27,8 @@ def init_dyplomacja_routes(app):
 
         return render_template(
             "dyplomacja_list.html",
-            stosunki=stosunki
+            stosunki=stosunki,
+            panstwa=panstwa
         )
 
     # ============================================================
