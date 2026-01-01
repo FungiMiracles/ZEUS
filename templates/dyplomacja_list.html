@@ -1,0 +1,271 @@
+{% extends "base_layout.html" %}
+{% block title %}Dyplomacja{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — DYPLOMACJA
+============================================================ */
+
+.dyplomacja-container {
+    max-width: 1200px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===================== FILTR ===================== */
+
+.dyp-filter-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.dyp-filter-title {
+    font-size: 1.2em;
+    font-weight: 800;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.dyp-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.dyp-select-box label {
+    font-size: 0.75em;
+    font-weight: 800;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.dyp-select-box select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.9em;
+}
+
+.flag-preview {
+    margin-top: 6px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.flag-preview img {
+    height: 42px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* ===================== KARTA RELACJI ===================== */
+
+.relation-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #d3d7dc;
+    padding: 18px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.relation-row {
+    margin-bottom: 14px;
+}
+
+.relation-label {
+    font-size: 0.75em;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.relation-value {
+    font-size: 1.05em;
+    font-weight: 800;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+/* ===================== KOLORY ===================== */
+
+.rel-green { background: #d4edda; color: #155724; }
+.rel-grey  { background: #ecf0f1; color: #2c3e50; }
+.rel-orange{ background: #ffe5c2; color: #8a4b00; }
+.rel-red   { background: #f8d7da; color: #721c24; }
+
+/* ===================== MOBILE ===================== */
+
+@media (max-width: 768px) {
+
+    .dyp-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .relation-card {
+        padding: 16px;
+    }
+
+    .relation-value {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<div class="dyplomacja-container">
+
+    <!-- ===================== FILTR ===================== -->
+    <div class="dyp-filter-box">
+        <div class="dyp-filter-title">Porównanie stosunków dyplomatycznych</div>
+
+        <div class="dyp-filter-grid">
+
+            <div class="dyp-select-box">
+                <label>Państwo 1</label>
+                <select id="panstwo1">
+                    <option value="">— wybierz —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}"
+                                data-flag="{{ p.panstwo_kod }}">
+                            {{ p.panstwo_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="flag-preview" id="flag1"></div>
+            </div>
+
+            <div class="dyp-select-box">
+                <label>Państwo 2</label>
+                <select id="panstwo2">
+                    <option value="">— wybierz —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}"
+                                data-flag="{{ p.panstwo_kod }}">
+                            {{ p.panstwo_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="flag-preview" id="flag2"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================== WYNIK ===================== -->
+    <div class="relation-card" id="relationCard">
+
+        <div class="relation-row">
+            <div class="relation-label">Relacja</div>
+            <div class="relation-value" id="relacjaValue"></div>
+        </div>
+
+        <div class="relation-row">
+            <div class="relation-label">Stan</div>
+            <div class="relation-value" id="stanValue"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+const relacjeGreen = [
+    "sojusznicze",
+    "partnerskie_strategiczne",
+    "partnerskie",
+    "dobre"
+];
+
+const relacjeGrey = ["neutralne"];
+
+const relacjeOrange = ["chlodne", "zle", "napiete"];
+
+const relacjeRed = ["wrogie", "egzystencjalnie_wrogie"];
+
+const stanyGreen = ["pokoj"];
+const stanyOrange = [
+    "zawieszenie_broni",
+    "konflikt_dyplomatyczny",
+    "wojna_handlowa",
+    "wojna_informacyjna",
+    "wojna_hybrydowa"
+];
+const stanyRed = [
+    "konflikt_kinetyczny_zamrozony",
+    "wojna_kinetyczna",
+    "okupacja"
+];
+
+function colorClassRelacja(v) {
+    if (relacjeGreen.includes(v)) return "rel-green";
+    if (relacjeGrey.includes(v)) return "rel-grey";
+    if (relacjeOrange.includes(v)) return "rel-orange";
+    if (relacjeRed.includes(v)) return "rel-red";
+    return "rel-grey";
+}
+
+function colorClassStan(v) {
+    if (stanyGreen.includes(v)) return "rel-green";
+    if (stanyOrange.includes(v)) return "rel-orange";
+    if (stanyRed.includes(v)) return "rel-red";
+    return "rel-grey";
+}
+
+const p1 = document.getElementById("panstwo1");
+const p2 = document.getElementById("panstwo2");
+
+function updateFlag(select, target) {
+    const opt = select.selectedOptions[0];
+    if (!opt || !opt.dataset.flag) {
+        target.innerHTML = "";
+        return;
+    }
+    target.innerHTML = `<img src="/static/flags/${opt.dataset.flag}.png">`;
+}
+
+function updateRelation() {
+    if (!p1.value || !p2.value || p1.value === p2.value) {
+        document.getElementById("relationCard").style.display = "none";
+        return;
+    }
+
+    fetch(`/api/dyplomacja?p1=${p1.value}&p2=${p2.value}`)
+        .then(r => r.json())
+        .then(d => {
+            const rel = document.getElementById("relacjaValue");
+            const stan = document.getElementById("stanValue");
+
+            rel.textContent = d.relacja;
+            stan.textContent = d.stan;
+
+            rel.className = "relation-value " + colorClassRelacja(d.relacja);
+            stan.className = "relation-value " + colorClassStan(d.stan);
+
+            document.getElementById("relationCard").style.display = "block";
+        });
+}
+
+[p1, p2].forEach(sel => {
+    sel.addEventListener("change", () => {
+        if (p1.value === p2.value && p1.value !== "") {
+            sel.value = "";
+            return;
+        }
+        updateFlag(p1, document.getElementById("flag1"));
+        updateFlag(p2, document.getElementById("flag2"));
+        updateRelation();
+    });
+});
+</script>
+
+{% endblock %}
