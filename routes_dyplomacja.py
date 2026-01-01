@@ -8,6 +8,7 @@ from flask import (
 from extensions import db
 from models import Panstwo, Stosunki
 from permissions import wymaga_roli
+from flask import jsonify
 
 
 def init_dyplomacja_routes(app):
@@ -136,3 +137,29 @@ def init_dyplomacja_routes(app):
             flash(f"Błąd usuwania: {e}", "error")
 
         return redirect(url_for("dyplomacja_list"))
+
+    @app.route("/api/dyplomacja")
+    def api_dyplomacja():
+        p1 = request.args.get("p1", type=int)
+        p2 = request.args.get("p2", type=int)
+    
+        if not p1 or not p2 or p1 == p2:
+            return jsonify({"relacja": "neutralne", "stan": "pokoj"})
+    
+        rel = Stosunki.query.filter_by(
+            PANSTWO_ID=p1,
+            PANSTWO_ID2=p2
+        ).first()
+    
+        if not rel:
+            # fallback świata
+            return jsonify({
+                "relacja": "neutralne",
+                "stan": "pokoj"
+            })
+    
+        return jsonify({
+            "relacja": rel.relacja,
+            "stan": rel.stan
+        })
+
