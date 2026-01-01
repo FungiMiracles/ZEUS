@@ -150,8 +150,8 @@ def init_dyplomacja_routes(app):
             return jsonify({"relacja": "neutralne", "stan": "pokoj"})
     
         rel = Stosunki.query.filter_by(
-            PANSTWO_ID=p1,
-            PANSTWO_ID2=p2
+            PANSTWO_ID=a,
+            PANSTWO_ID2=b
         ).first()
     
         if not rel:
