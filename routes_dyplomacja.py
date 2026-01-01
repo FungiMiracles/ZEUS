@@ -147,7 +147,13 @@ def init_dyplomacja_routes(app):
         p2 = request.args.get("p2", type=int)
     
         if not p1 or not p2 or p1 == p2:
-            return jsonify({"relacja": "neutralne", "stan": "pokoj"})
+            return jsonify({
+                "relacja": "neutralne",
+                "stan": "pokoj"
+            })
+    
+        # 🔑 KANONICZNY PORZĄDEK — ABSOLUTNIE KLUCZOWE
+        a, b = sorted([p1, p2])
     
         rel = Stosunki.query.filter_by(
             PANSTWO_ID=a,
@@ -155,7 +161,6 @@ def init_dyplomacja_routes(app):
         ).first()
     
         if not rel:
-            # fallback świata
             return jsonify({
                 "relacja": "neutralne",
                 "stan": "pokoj"
@@ -165,4 +170,5 @@ def init_dyplomacja_routes(app):
             "relacja": rel.relacja,
             "stan": rel.stan
         })
+
 
