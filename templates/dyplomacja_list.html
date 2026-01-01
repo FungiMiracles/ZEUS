@@ -227,6 +227,7 @@ const p2 = document.getElementById("panstwo2");
 function updateFlag(select, target) {
     const opt = select.selectedOptions[0];
     if (!opt || !opt.dataset.flag) {
+        console.warn("Brak flagi dla selecta", select);
         target.innerHTML = "";
         return;
     }
@@ -257,12 +258,21 @@ function updateRelation() {
 
 [p1, p2].forEach(sel => {
     sel.addEventListener("change", () => {
-        if (p1.value === p2.value && p1.value !== "") {
-            sel.value = "";
-            return;
-        }
+
         updateFlag(p1, document.getElementById("flag1"));
         updateFlag(p2, document.getElementById("flag2"));
+
+        if (!p1.value || !p2.value) {
+            document.getElementById("relationCard").style.display = "none";
+            return;
+        }
+
+        if (p1.value === p2.value) {
+            zeusToast("Nie możesz porównywać państwa z samym sobą");
+            document.getElementById("relationCard").style.display = "none";
+            return;
+        }
+
         updateRelation();
     });
 });
