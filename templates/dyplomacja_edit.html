@@ -1,0 +1,250 @@
+{% extends "base_layout.html" %}
+{% block title %}Modyfikuj relacje dyplomatyczne{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — DYPLOMACJA EDIT
+============================================================ */
+
+.dyp-edit-container {
+    max-width: 900px;
+    margin: 25px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== KARTA ===== */
+
+.dyp-card {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ===== HEADER ===== */
+
+.dyp-card h1 {
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 800;
+    margin-bottom: 22px;
+}
+
+/* ===== GRID ===== */
+
+.dyp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.dyp-field label {
+    font-size: 0.75em;
+    font-weight: 800;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.dyp-field select {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.9em;
+}
+
+/* ===== FLAGI ===== */
+
+.flag-preview {
+    margin-top: 8px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.flag-preview img {
+    height: 44px;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* ===== RELACJA / STAN ===== */
+
+.dyp-full {
+    margin-top: 18px;
+}
+
+.dyp-full select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.95em;
+    font-weight: 700;
+}
+
+/* ===== PRZYCISKI ===== */
+
+.dyp-actions {
+    margin-top: 26px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.dyp-actions button,
+.dyp-actions a {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.9em;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-save {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-save:hover {
+    background: #1e8749;
+}
+
+.btn-cancel {
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 768px) {
+    .dyp-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dyp-actions {
+        flex-direction: column;
+    }
+
+    .dyp-actions button,
+    .dyp-actions a {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<div class="dyp-edit-container">
+    <div class="dyp-card">
+
+        <h1>Modyfikuj relacje dyplomatyczne</h1>
+
+        <form method="POST">
+
+            <div class="dyp-grid">
+
+                <!-- PAŃSTWO 1 -->
+                <div class="dyp-field">
+                    <label>Państwo 1</label>
+                    <select name="panstwo_id" id="p1" required>
+                        <option value="">— wybierz —</option>
+                        {% for p in panstwa %}
+                            <option value="{{ p.PANSTWO_ID }}"
+                                    data-flag="{{ p.panstwo_nazwa|replace(' ', '_') }}"
+                                    {% if request.args.get('panstwo_id') == p.PANSTWO_ID|string %}selected{% endif %}>
+                                {{ p.panstwo_nazwa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="flag-preview" id="flag1"></div>
+                </div>
+
+                <!-- PAŃSTWO 2 -->
+                <div class="dyp-field">
+                    <label>Państwo 2</label>
+                    <select name="panstwo_id2" id="p2" required>
+                        <option value="">— wybierz —</option>
+                        {% for p in panstwa %}
+                            <option value="{{ p.PANSTWO_ID }}"
+                                    data-flag="{{ p.panstwo_nazwa|replace(' ', '_') }}"
+                                    {% if request.args.get('panstwo_id2') == p.PANSTWO_ID|string %}selected{% endif %}>
+                                {{ p.panstwo_nazwa }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="flag-preview" id="flag2"></div>
+                </div>
+
+            </div>
+
+            <!-- RELACJA -->
+            <div class="dyp-full">
+                <label>Relacja</label>
+                <select name="relacja" required>
+                    {% for r in relacje %}
+                        <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- STAN -->
+            <div class="dyp-full">
+                <label>Stan</label>
+                <select name="stan" required>
+                    {% for s in stany %}
+                        <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- AKCJE -->
+            <div class="dyp-actions">
+                <button type="submit" class="btn-save">Zapisz relacje</button>
+                <a href="{{ url_for('dyplomacja_list') }}" class="btn-cancel">Anuluj</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+const p1 = document.getElementById("p1");
+const p2 = document.getElementById("p2");
+
+function showFlag(select, targetId) {
+    const opt = select.selectedOptions[0];
+    const target = document.getElementById(targetId);
+
+    if (!opt || !opt.dataset.flag) {
+        target.innerHTML = "";
+        return;
+    }
+
+    target.innerHTML = `<img src="/static/flags/${opt.dataset.flag}.jpg">`;
+}
+
+[p1, p2].forEach(sel => {
+    sel.addEventListener("change", () => {
+        if (p1.value && p1.value === p2.value) {
+            sel.value = "";
+            return;
+        }
+        showFlag(p1, "flag1");
+        showFlag(p2, "flag2");
+    });
+});
+
+// preload flag przy wejściu
+showFlag(p1, "flag1");
+showFlag(p2, "flag2");
+</script>
+
+{% endblock %}
