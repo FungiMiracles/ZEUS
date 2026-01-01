@@ -214,21 +214,23 @@ fetch("/api/kontynenty")
 
 /* ===== CONTINENT → COUNTRIES ===== */
 kontynentSelect.addEventListener("change", () => {
-    panstwoSelect.innerHTML = `<option value="">— wybierz —</option>`;
+    panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
     sojList.innerHTML = "";
 
     if (!kontynentSelect.value) return;
 
     fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynentSelect.value)}`)
-        .then(r => r.json())
+        .then(res => res.json())
         .then(data => {
+            console.log("PAŃSTWA:", data); // ← TO JEST KLUCZOWE
             data.forEach(p => {
                 const opt = document.createElement("option");
                 opt.value = p.id;
                 opt.textContent = p.nazwa;
                 panstwoSelect.appendChild(opt);
             });
-        });
+        })
+        .catch(err => console.error("API ERROR:", err));
 });
 
 /* ===== LOAD RELATIONS ===== */
