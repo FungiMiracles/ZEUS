@@ -205,6 +205,32 @@
 </div>
 
 <script>
+const STAN_LABELS = {
+    pokoj: "Pokój",
+    zwieszenie_broni: "Zawieszenie broni",
+    konflikt_dyplomatyczny: "Konflikt dyplomatyczny",
+    wojna_handlowa: "Wojna handlowa",
+    wojna_informacyjna: "Wojna informacyjna",
+    wojna_hybrydowa: "Wojna hybrydowa",
+    konflikt_kinetyczny_zamrozony: "Konflikt kinetyczny (zamrożony)",
+    wojna_kinetyczna: "Wojna kinetyczna",
+    okupacja: "Okupacja",
+};
+
+const RELACJA_LABELS = {
+    sojusznicze: "Sojusznicze",
+    partnerskie_strategiczne: "Partnerskie strategiczne",
+    partnerskie: "Partnerskie",
+    przyjazne: "Przyjazne",
+    dobre: "Dobre",
+    neutralne: "Neutralne",
+    chlodne: "Chłodne",
+    zle: "Złe",
+    napiete: "Napięte",
+    wrogie: "Wrogie",
+    egzystencjalnie_wrogie: "Egzystencjalnie wrogie",
+};
+   
 const relacjeGreen = [
     "sojusznicze",
     "partnerskie_strategiczne",
@@ -284,8 +310,8 @@ function updateRelation() {
             const rel = document.getElementById("relacjaValue");
             const stan = document.getElementById("stanValue");
 
-            rel.textContent = d.relacja;
-            stan.textContent = d.stan;
+            rel.textContent = RELACJA_LABELS[d.relacja] ?? d.relacja;
+            stan.textContent = STAN_LABELS[d.stan] ?? d.stan;
 
             rel.className = "relation-value " + colorClassRelacja(d.relacja);
             stan.className = "relation-value " + colorClassStan(d.stan);
