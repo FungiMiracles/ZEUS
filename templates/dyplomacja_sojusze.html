@@ -205,7 +205,10 @@ fetch("/api/kontynenty")
     .then(r => r.json())
     .then(data => {
         data.forEach(k => {
-            kontynentSelect.innerHTML += `<option value="${k}">${k}</option>`;
+            const opt = document.createElement("option");
+            opt.value = k;
+            opt.textContent = k;
+            kontynentSelect.appendChild(opt);
         });
     });
 
@@ -216,11 +219,14 @@ kontynentSelect.addEventListener("change", () => {
 
     if (!kontynentSelect.value) return;
 
-    fetch("/api/dyplomacja/panstwa?kontynent=${kontynentSelect.value}`)
+    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynentSelect.value)}`)
         .then(r => r.json())
         .then(data => {
             data.forEach(p => {
-                panstwoSelect.innerHTML += `<option value="${p.id}">${p.nazwa}</option>`;
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.nazwa;
+                panstwoSelect.appendChild(opt);
             });
         });
 });
@@ -228,7 +234,6 @@ kontynentSelect.addEventListener("change", () => {
 /* ===== LOAD RELATIONS ===== */
 function loadRelations() {
     sojList.innerHTML = "";
-
     if (!panstwoSelect.value) return;
 
     const params = new URLSearchParams({
@@ -240,6 +245,11 @@ function loadRelations() {
     fetch(`/api/sojusze?${params.toString()}`)
         .then(r => r.json())
         .then(data => {
+            if (!data.length) {
+                sojList.innerHTML = `<div class="empty">Brak wyników</div>`;
+                return;
+            }
+
             data.forEach(r => {
                 sojList.innerHTML += `
                     <div class="soj-card">
@@ -256,5 +266,6 @@ function loadRelations() {
     el.addEventListener("change", loadRelations)
 );
 </script>
+
 
 {% endblock %}
