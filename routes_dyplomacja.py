@@ -16,7 +16,7 @@ def init_dyplomacja_routes(app):
     # ============================================================
     # LISTA STOSUNKÓW
     # ============================================================
-    @app.route("/dyplomacja")
+    @app.route("/dyplomacja/list")
     def dyplomacja_list():
         stosunki = (
             Stosunki.query
