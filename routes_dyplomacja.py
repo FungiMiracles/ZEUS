@@ -204,46 +204,41 @@ def init_dyplomacja_routes(app):
     def api_dyplomacja_sojusze():
     
         panstwo_id = request.args.get("panstwo_id", type=int)
-        relacja_f = request.args.get("relacja")
-        stan_f = request.args.get("stan")
+        relacja = request.args.get("relacja")
+        stan = request.args.get("stan")
     
         if not panstwo_id:
             return jsonify([])
     
-        # wszystkie relacje, gdzie państwo bierze udział
-        stosunki = Stosunki.query.filter(
+        q = Stosunki.query.filter(
             (Stosunki.PANSTWO_ID == panstwo_id) |
             (Stosunki.PANSTWO_ID2 == panstwo_id)
-        ).all()
+        )
     
-        wynik = []
+        if relacja:
+            q = q.filter(Stosunki.relacja == relacja)
     
-        for s in stosunki:
+        if stan:
+            q = q.filter(Stosunki.stan == stan)
     
-            # ustalamy "drugie państwo"
+        wyniki = []
+    
+        for s in q.all():
             other_id = (
-                s.PANSTWO_ID2 if s.PANSTWO_ID == panstwo_id
-                else s.PANSTWO_ID
+                s.PANSTWO_ID2 if s.PANSTWO_ID == panstwo_id else s.PANSTWO_ID
             )
     
-            panstwo = Panstwo.query.get(other_id)
-            if not panstwo:
-                continue
+            p = Panstwo.query.get(other_id)
     
-            # ─── FILTRY (opcjonalne!) ───
-            if relacja_f and s.relacja != relacja_f:
-                continue
-    
-            if stan_f and s.stan != stan_f:
-                continue
-    
-            wynik.append({
-                "panstwo": panstwo.panstwo_nazwa,
+            wyniki.append({
+                "panstwo_id": p.PANSTWO_ID,
+                "panstwo_nazwa": p.panstwo_nazwa,
                 "relacja": s.relacja,
                 "stan": s.stan
             })
     
-        return jsonify(wynik)
+        return jsonify(wyniki)
+
 
     @app.route("/api/dyplomacja/panstwa")
     def api_dyplomacja_panstwa():
