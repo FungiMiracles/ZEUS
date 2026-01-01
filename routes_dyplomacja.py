@@ -189,8 +189,8 @@ def init_dyplomacja_routes(app):
             "stan": rel.stan
         })
 
-    @app.route("/api/kontynenty")
-    def api_kontynenty():
+    @app.route("/api/dyplomacja/kontynenty")
+    def api_dyplomacja_kontynenty():
         kontynenty = (
             db.session.query(Panstwo.kontynent)
             .distinct()
@@ -200,8 +200,8 @@ def init_dyplomacja_routes(app):
     
         return jsonify([k[0] for k in kontynenty if k[0]])
 
-    @app.route("/api/panstwa")
-    def api_panstwa():
+    @app.route("/api/dyplomacja/panstwa")
+    def api_dyplomacja_panstwa():
         kontynent = request.args.get("kontynent")
     
         query = Panstwo.query
@@ -218,8 +218,8 @@ def init_dyplomacja_routes(app):
             for p in panstwa
         ])
 
-    @app.route("/api/sojusze")
-    def api_sojusze():
+    @app.route("/api/dyplomacja/sojusze")
+    def api_dyplomacja_sojusze():
     
         panstwo_id = request.args.get("panstwo_id", type=int)
         relacja_f = request.args.get("relacja")
