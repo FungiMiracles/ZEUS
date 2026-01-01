@@ -257,34 +257,4 @@ function loadRelations() {
 );
 </script>
 
-<script>
-const kontynentSelect = document.getElementById("kontynentSelect");
-const panstwoSelect = document.getElementById("panstwoSelect");
-
-kontynentSelect.addEventListener("change", () => {
-    const kontynent = kontynentSelect.value;
-
-    panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
-    panstwoSelect.disabled = true;
-
-    if (!kontynent) return;
-
-    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.id;
-                opt.textContent = p.nazwa;
-                panstwoSelect.appendChild(opt);
-            });
-            panstwoSelect.disabled = false;
-        })
-        .catch(err => {
-            console.error("Błąd pobierania państw:", err);
-        });
-});
-</script>
-
-
 {% endblock %}
