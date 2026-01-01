@@ -193,30 +193,15 @@
 
     </div>
 
-</div>
-<div class="relation-card" id="relationCard">
-
-    <div class="relation-row">
-        <div class="relation-label">Relacja</div>
-        <div class="relation-value" id="relacjaValue"></div>
-    </div>
-
-    <div class="relation-row">
-        <div class="relation-label">Stan</div>
-        <div class="relation-value" id="stanValue"></div>
-    </div>
-
-    <!-- NOWY PRZYCISK -->
-    {% if session.rola == "wszechmocny" %}
-    <div style="margin-top:16px; text-align:center;">
-        <a id="editRelationBtn"
-           class="btn-edit-relation"
-           href="#">
-            ✏️ Modyfikuj relacje
-        </a>
-    </div>
-    {% endif %}
-
+       {% if session.rola == "wszechmocny" %}
+       <div style="margin-top:16px; text-align:center;">
+           <a id="editRelationBtn"
+              class="btn-edit-relation"
+              href="#">
+               ✏️ Modyfikuj relacje
+           </a>
+       </div>
+       {% endif %}
 </div>
 
 <script>
