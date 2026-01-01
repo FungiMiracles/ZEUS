@@ -17,6 +17,7 @@ def init_dyplomacja_routes(app):
     # LISTA STOSUNKÓW
     # ============================================================
     @app.route("/dyplomacja")
+    @wymaga_roli("obserwator", "tworzyciel", "wszechmocny")
     def dyplomacja_list():
         stosunki = (
             Stosunki.query
