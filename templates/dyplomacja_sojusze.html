@@ -1,0 +1,241 @@
+{% extends "base_layout.html" %}
+{% block title %}Sojusze i bloki{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — SOJUSZE I BLOKI
+============================================================ */
+
+.soj-container {
+    max-width: 1200px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===================== FILTR ===================== */
+
+.soj-filter {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+}
+
+.soj-filter h2 {
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.soj-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.soj-filter label {
+    font-size: 0.75em;
+    font-weight: 800;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.soj-filter select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.9em;
+}
+
+/* ===================== LISTA RELACJI ===================== */
+
+.soj-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.soj-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #d3d7dc;
+    padding: 16px 18px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.soj-country {
+    font-weight: 800;
+    font-size: 1.05em;
+}
+
+.soj-badge {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85em;
+    text-align: center;
+}
+
+/* ===== KOLORY ===== */
+.rel-green { background: #d4edda; color: #155724; }
+.rel-grey  { background: #ecf0f1; color: #2c3e50; }
+.rel-orange{ background: #ffe5c2; color: #8a4b00; }
+.rel-red   { background: #f8d7da; color: #721c24; }
+
+/* ===================== MOBILE ===================== */
+
+@media (max-width: 768px) {
+
+    .soj-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .soj-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+</style>
+
+<div class="soj-container">
+
+    <!-- ===================== FILTR ===================== -->
+    <div class="soj-filter">
+        <h2>Sojusze i bloki</h2>
+
+        <div class="soj-filter-grid">
+
+            <div>
+                <label>Kontynent</label>
+                <select id="kontynentSelect">
+                    <option value="">— wybierz —</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Państwo</label>
+                <select id="panstwoSelect">
+                    <option value="">— wybierz —</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Relacja (opcjonalnie)</label>
+                <select id="relacjaFilter">
+                    <option value="">— wszystkie —</option>
+                    <option value="sojusznicze">Sojusznicze</option>
+                    <option value="partnerskie_strategiczne">Partnerskie strategiczne</option>
+                    <option value="partnerskie">Partnerskie</option>
+                    <option value="neutralne">Neutralne</option>
+                    <option value="chlodne">Chłodne</option>
+                    <option value="wrogie">Wrogie</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Stan (opcjonalnie)</label>
+                <select id="stanFilter">
+                    <option value="">— wszystkie —</option>
+                    <option value="pokoj">Pokój</option>
+                    <option value="konflikt_dyplomatyczny">Konflikt dyplomatyczny</option>
+                    <option value="wojna_handlowa">Wojna handlowa</option>
+                    <option value="wojna_hybrydowa">Wojna hybrydowa</option>
+                    <option value="wojna_kinetyczna">Wojna kinetyczna</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================== WYNIKI ===================== -->
+    <div class="soj-list" id="sojList">
+        <!-- dynamicznie -->
+    </div>
+
+</div>
+
+<script>
+const kontynentSelect = document.getElementById("kontynentSelect");
+const panstwoSelect = document.getElementById("panstwoSelect");
+const relacjaFilter = document.getElementById("relacjaFilter");
+const stanFilter = document.getElementById("stanFilter");
+const sojList = document.getElementById("sojList");
+
+/* ===== KOLORY ===== */
+function colorRel(v) {
+    if (["sojusznicze","partnerskie","partnerskie_strategiczne","dobre"].includes(v)) return "rel-green";
+    if (["neutralne"].includes(v)) return "rel-grey";
+    if (["chlodne","zle","napiete"].includes(v)) return "rel-orange";
+    if (["wrogie","egzystencjalnie_wrogie"].includes(v)) return "rel-red";
+    return "rel-grey";
+}
+
+/* ===== LOAD CONTINENTS ===== */
+fetch("/api/kontynenty")
+    .then(r => r.json())
+    .then(data => {
+        data.forEach(k => {
+            kontynentSelect.innerHTML += `<option value="${k}">${k}</option>`;
+        });
+    });
+
+/* ===== CONTINENT → COUNTRIES ===== */
+kontynentSelect.addEventListener("change", () => {
+    panstwoSelect.innerHTML = `<option value="">— wybierz —</option>`;
+    sojList.innerHTML = "";
+
+    if (!kontynentSelect.value) return;
+
+    fetch(`/api/panstwa?kontynent=${kontynentSelect.value}`)
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(p => {
+                panstwoSelect.innerHTML += `<option value="${p.id}">${p.nazwa}</option>`;
+            });
+        });
+});
+
+/* ===== LOAD RELATIONS ===== */
+function loadRelations() {
+    sojList.innerHTML = "";
+
+    if (!panstwoSelect.value) return;
+
+    const params = new URLSearchParams({
+        panstwo_id: panstwoSelect.value,
+        relacja: relacjaFilter.value,
+        stan: stanFilter.value
+    });
+
+    fetch(`/api/sojusze?${params.toString()}`)
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(r => {
+                sojList.innerHTML += `
+                    <div class="soj-card">
+                        <div class="soj-country">${r.panstwo}</div>
+                        <div class="soj-badge ${colorRel(r.relacja)}">${r.relacja}</div>
+                        <div class="soj-badge ${colorRel(r.stan)}">${r.stan}</div>
+                    </div>
+                `;
+            });
+        });
+}
+
+[panstwoSelect, relacjaFilter, stanFilter].forEach(el =>
+    el.addEventListener("change", loadRelations)
+);
+</script>
+
+{% endblock %}
