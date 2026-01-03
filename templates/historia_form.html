@@ -123,11 +123,6 @@
 
 <div class="historia-view-wrapper">
 
-    <!-- ===== TYTUŁ ===== -->
-    <div class="historia-title">
-        {{ h.nazwa_wydarzenia }}
-    </div>
-   
    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div style="margin-bottom:15px;">
@@ -142,6 +137,11 @@
             </div>
         {% endif %}
     {% endwith %}
+
+    <!-- ===== TYTUŁ ===== -->
+    <div class="historia-title">
+        {{ h.nazwa_wydarzenia }}
+    </div>
 
     <!-- ===== META ===== -->
     <div class="historia-meta">
