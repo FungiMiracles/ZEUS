@@ -1,5 +1,5 @@
 {% extends "base_layout.html" %}
-{% block title %}Edytuj wydarzenie{% endblock %}
+{% block title %}Edytuj wydarzenie – {{ h.nazwa_wydarzenia }}{% endblock %}
 
 {% block content %}
 
@@ -63,11 +63,11 @@
     border: 1px solid #b4b9be;
     font-size: 0.95em;
     font-weight: 600;
+    box-sizing: border-box;
 }
 
 .historia-field textarea {
     resize: vertical;
-    
 }
 
 /* ===== AKCJE ===== */
@@ -84,7 +84,7 @@
     gap: 10px;
 }
 
-/* ===== PRZYCISKI ZEUS ===== */
+/* ===== PRZYCISKI ===== */
 
 .btn-zeus {
     padding: 9px 18px;
@@ -97,29 +97,61 @@
     transition: all 0.2s ease;
 }
 
-/* Anuluj */
 .btn-cancel {
     background-color: #eaeaea;
     color: #34495e;
     border: 1.5px solid #bdc3c7;
 }
+
 .btn-cancel:hover {
-   background-color: #999999;
+    background-color: #999999;
 }
 
-/* Zapisz */
 .btn-save {
-    background-color: #3498db;
+    background-color: #27ae60;
     color: white;
 }
+
 .btn-save:hover {
-    background-color: #1d6da3;
+    background-color: #1e8749;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 640px) {
+
+    .historia-edit-wrapper {
+        margin: 16px 10px;
+    }
+
+    .historia-edit-title {
+        font-size: 1.35em;
+    }
+
+    .historia-section {
+        padding: 16px 14px;
+    }
+
+    .historia-actions {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .historia-actions .right {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-zeus {
+        width: 100%;
+        text-align: center;
+    }
 }
 </style>
 
 <div class="historia-edit-wrapper">
 
-    <!-- ===== TYTUŁ ===== -->
     <div class="historia-edit-title">
         Edytuj wydarzenie historyczne
     </div>
@@ -128,63 +160,124 @@
 
         <!-- ===== PODSTAWOWE INFORMACJE ===== -->
         <div class="historia-section">
-             <h3>Lokalizacja</h3>
-         
-             <!-- KONTYNENT -->
-             <div class="historia-field">
-                 <label>Kontynent</label>
-                 <select name="kontynent">
-                     <option value="">— brak —</option>
-                     {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
-                         <option value="{{ k }}" {% if h.kontynent == k %}selected{% endif %}>
-                             {{ k }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         
-             <!-- PAŃSTWO -->
-             <div class="historia-field">
-                 <label>Państwo</label>
-                 <select name="panstwo_id">
-                     <option value="">— brak —</option>
-                     {% for p in panstwa %}
-                         <option value="{{ p.PANSTWO_ID }}"
-                                 {% if h.panstwo_id == p.PANSTWO_ID %}selected{% endif %}>
-                             {{ p.panstwo_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         
-             <!-- REGION -->
-             <div class="historia-field">
-                 <label>Region</label>
-                 <select name="region_id">
-                     <option value="">— brak —</option>
-                     {% for r in regiony %}
-                         <option value="{{ r.region_id }}"
-                                 {% if h.region_id == r.region_id %}selected{% endif %}>
-                             {{ r.region_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         
-             <!-- MIASTO -->
-             <div class="historia-field">
-                 <label>Miasto</label>
-                 <select name="miasto_id">
-                     <option value="">— brak —</option>
-                     {% for m in miasta %}
-                         <option value="{{ m.miasto_id }}"
-                                 {% if h.miasto_id == m.miasto_id %}selected{% endif %}>
-                             {{ m.miasto_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         </div>
+            <h3>Podstawowe informacje</h3>
+
+            <div class="historia-field">
+                <label>Nazwa wydarzenia *</label>
+                <input type="text"
+                       name="nazwa_wydarzenia"
+                       value="{{ h.nazwa_wydarzenia }}"
+                       required>
+            </div>
+
+            <div class="historia-field">
+                <label>Epoka *</label>
+                <select name="epoka" required>
+                    <option value="">— wybierz —</option>
+                    <option value="starozytna" {% if h.epoka == "starozytna" %}selected{% endif %}>Starożytna</option>
+                    <option value="sredniowieczna" {% if h.epoka == "sredniowieczna" %}selected{% endif %}>Średniowieczna</option>
+                    <option value="wspolczesna" {% if h.epoka == "wspolczesna" %}selected{% endif %}>Współczesna</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== CZAS ===== -->
+        <div class="historia-section">
+            <h3>Czas trwania</h3>
+
+            <div class="historia-field">
+                <label>Data od *</label>
+                <input type="text"
+                       name="data_od"
+                       value="{{ h.data_od.year }}"
+                       required>
+            </div>
+
+            <div class="historia-field">
+                <label>Data do</label>
+                <input type="text"
+                       name="data_do"
+                       value="{{ h.data_do.year if h.data_do }}">
+            </div>
+        </div>
+
+        <!-- ===== LOKALIZACJA ===== -->
+        <div class="historia-section">
+            <h3>Lokalizacja</h3>
+
+            <div class="historia-field">
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— brak —</option>
+                    {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
+                        <option value="{{ k }}" {% if h.kontynent == k %}selected{% endif %}>{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="historia-field">
+                <label>Państwo</label>
+                <select name="panstwo_id">
+                    <option value="">— brak —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}" {% if h.panstwo_id == p.PANSTWO_ID %}selected{% endif %}>
+                            {{ p.panstwo_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="historia-field">
+                <label>Region</label>
+                <select name="region_id">
+                    <option value="">— brak —</option>
+                    {% for r in regiony %}
+                        <option value="{{ r.region_id }}" {% if h.region_id == r.region_id %}selected{% endif %}>
+                            {{ r.region_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="historia-field">
+                <label>Miasto</label>
+                <select name="miasto_id">
+                    <option value="">— brak —</option>
+                    {% for m in miasta %}
+                        <option value="{{ m.miasto_id }}" {% if h.miasto_id == m.miasto_id %}selected{% endif %}>
+                            {{ m.miasto_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== OPIS ===== -->
+        <div class="historia-section">
+            <h3>Opis wydarzenia</h3>
+
+            <div class="historia-field">
+                <textarea name="wydarzenie_opis"
+                          rows="14">{{ h.wydarzenie_opis }}</textarea>
+            </div>
+        </div>
+
+        <!-- ===== AKCJE ===== -->
+        <div class="historia-actions">
+
+            <a href="{{ url_for('historia_podglad', historia_id=h.HISTORIA_ID) }}"
+               class="btn-zeus btn-cancel">
+                Anuluj
+            </a>
+
+            <div class="right">
+                <button type="submit"
+                        class="btn-zeus btn-save">
+                    Zapisz zmiany
+                </button>
+            </div>
+
+        </div>
 
     </form>
 
