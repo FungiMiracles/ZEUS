@@ -4,7 +4,64 @@
 {% block content %}
 
 <style>
+/* ============================================================
+   ZEUS BUTTONS — GOSPODARKA
+============================================================ */
 
+.btn-zeus {
+    display: inline-block;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+/* Filtruj */
+.gosp-filter-btn {
+    margin-top: 18px;
+    background: #2c73d2;
+    color: white;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+}
+.gosp-filter-btn:hover {
+    background: #1f5bb0;
+}
+
+/* Podgląd */
+.btn-view {
+    background: #ecf0f1;
+    color: #34495e;
+    border: 1px solid #bdc3c7;
+}
+.btn-view:hover {
+    background: #dfe6e9;
+}
+
+/* Edytuj */
+.btn-edit {
+    background: #3498db;
+    color: white;
+}
+.btn-edit:hover {
+    background: #1d6da3;
+}
+
+/* Dodaj */
+.btn-add {
+    background: #27ae60;
+    color: white;
+}
+.btn-add:hover {
+    background: #1e8749;
+}
 /* ============================================================
    GLOBAL SAFETY
 ============================================================ */
@@ -98,6 +155,13 @@
     background-color: #f7faff;
 }
 
+.gosp-list {
+          max-width: 1150px;
+          margin: 0 auto;
+          padding-left: 10px;
+          padding-right: 10px;
+      }
+
 /* ============================================================
    MOBILE — TABELA → KARTY (JEDYNA STRATEGIA)
 ============================================================ */
@@ -168,6 +232,16 @@
         text-transform: uppercase;
     }
 
+   .gosp-list {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .results-table tr {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
    /* ============================================================
    FIX — PRZYCISKI W WIDOKU MOBILE
    ============================================================ */
@@ -186,11 +260,6 @@
         padding: 8px 10px;
         font-size: 0.85em;
         border-radius: 6px;
-    }
-
-      .gosp-list {
-        padding-left: 12px;
-        padding-right: 12px;
     }
 
     .table-scroll {
@@ -247,7 +316,7 @@
             </div>
 
             <div class="gosp-filter-actions">
-                <button class="gosp-filter-btn">Filtruj</button>
+                <button class="btn-zeus gosp-filter-btn">Filtruj</button>
             </div>
 
         </form>
@@ -313,18 +382,18 @@
                           </td>
                   
                           <td data-label="Akcja" class="action-buttons">
-                              <a class="btn-view"
+                              <a class="btn-zeus btn-view"
                                  href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
                                   Podgląd
                               </a>
                   
                               {% if session.rola == "wszechmocny" %}
-                              <a class="btn-edit"
+                              <a class="btn-zeus btn-edit"
                                  href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
                                   Edytuj
                               </a>
                               {% else %}
-                              <a class="btn-edit"
+                              <a class="btn-zeus btn-edit"
                                  href="#"
                                  onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                                   Edytuj
@@ -340,12 +409,12 @@
                   
                           <td data-label="Akcja" class="action-buttons">
                               {% if session.rola == "wszechmocny" %}
-                              <a class="btn-add"
+                              <a class="btn-zeus btn-add"
                                  href="{{ url_for('gospodarka_edit', panstwo_id=p.PANSTWO_ID) }}">
                                   Dodaj
                               </a>
                               {% else %}
-                              <a class="btn-add"
+                              <a class="btn-zeus btn-add"
                                  href="#"
                                  onclick="zeusToast('Ta funkcja tymczasowo dostępna jest tylko dla roli Wszechmocny')">
                                   Dodaj
