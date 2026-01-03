@@ -240,7 +240,18 @@ class Historia(db.Model):
 # =========================================================
 #  COMPUTED / PRESENTATION PROPERTIES
 # =========================================================
+    @property
+    def lokalizacja_label(self):
+        parts = []
+        if self.miasto:
+            parts.append(self.miasto.miasto_nazwa)
+        if self.region:
+            parts.append(self.region.region_nazwa)
+        if self.panstwo:
+            parts.append(self.panstwo.panstwo_nazwa)
 
+        return " → ".join(parts) if parts else "Brak lokalizacji"
+    
     @property
     def zakres_dat_label(self) -> str:
         """
