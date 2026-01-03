@@ -221,6 +221,18 @@
                  </select>
              </div>
          </div>
+          <!-- ===== OPIS ===== -->
+         <div class="historia-section">
+             <h3>Opis wydarzenia</h3>
+         
+             <div class="historia-field">
+                 <textarea
+                     name="wydarzenie_opis"
+                     rows="14"
+                     style="width:100%; resize:vertical;"
+                 >{{ form_data.wydarzenie_opis if form_data else "" }}</textarea>
+             </div>
+         </div>
 
 
     </form>
