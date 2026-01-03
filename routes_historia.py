@@ -1,13 +1,11 @@
 from flask import render_template, request, redirect, url_for, flash
 from sqlalchemy import case
 from datetime import datetime
-import os
 import re
 
 from extensions import db
 from models import Historia
 from permissions import wymaga_roli
-from paths import EVENTS_DESCRIPTIONS_FOLDER
 from datetime import date, datetime
 
 def parse_year_or_date(value: str) -> date:
