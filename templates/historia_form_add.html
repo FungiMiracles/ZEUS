@@ -167,54 +167,61 @@
                        placeholder="np. 1945">
             </div>
         </div>
-
-        <!-- ===== LOKALIZACJA ===== -->
-        <div class="historia-section">
-            <h3>Lokalizacja</h3>
-
-            <div class="historia-field">
-                <label>Kontynent</label>
-                <select name="kontynent">
-                    <option value="">— brak —</option>
-                    <option>Kao</option>
-                    <option>Beifa</option>
-                    <option>Anzinia</option>
-                    <option>Peryfa</option>
-                    <option>Wyspy Większe</option>
-                    <option>Wyspy Mniejsze</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- ===== OPIS ===== -->
-        <div class="historia-section">
-             <h3>Opis wydarzenia</h3>
+       
+         <!-- ===== LOKALIZACJA ===== -->
+         <div class="historia-section">
+             <h3>Lokalizacja</h3>
          
              <div class="historia-field">
-                 <textarea
-                     name="wydarzenie_opis"
-                     rows="14"
-                     style="width:100%; resize:vertical;"
-                 >{{ request.form.wydarzenie_opis if request.method == 'POST' else "" }}</textarea>
+                 <label>Kontynent</label>
+                 <select name="kontynent">
+                     <option value="">— brak —</option>
+                     <option>Kao</option>
+                     <option>Beifa</option>
+                     <option>Anzinia</option>
+                     <option>Peryfa</option>
+                     <option>Wyspy Większe</option>
+                     <option>Wyspy Mniejsze</option>
+                 </select>
+             </div>
+         
+             <div class="historia-field">
+                 <label>Państwo</label>
+                 <select name="panstwo_id">
+                     <option value="">— brak —</option>
+                     {% for p in panstwa %}
+                         <option value="{{ p.PANSTWO_ID }}">
+                             {{ p.panstwo_nazwa }}
+                         </option>
+                     {% endfor %}
+                 </select>
+             </div>
+         
+             <div class="historia-field">
+                 <label>Region</label>
+                 <select name="region_id">
+                     <option value="">— brak —</option>
+                     {% for r in regiony %}
+                         <option value="{{ r.region_id }}">
+                             {{ r.region_nazwa }}
+                         </option>
+                     {% endfor %}
+                 </select>
+             </div>
+         
+             <div class="historia-field">
+                 <label>Miasto</label>
+                 <select name="miasto_id">
+                     <option value="">— brak —</option>
+                     {% for m in miasta %}
+                         <option value="{{ m.miasto_id }}">
+                             {{ m.miasto_nazwa }}
+                         </option>
+                     {% endfor %}
+                 </select>
              </div>
          </div>
 
-        <!-- ===== AKCJE ===== -->
-        <div class="historia-actions">
-
-            <a href="{{ url_for('historia_lista') }}"
-               class="btn-zeus btn-cancel">
-                Anuluj
-            </a>
-
-            <div class="right">
-                <button type="submit"
-                        class="btn-zeus btn-save">
-                    Zapisz wydarzenie
-                </button>
-            </div>
-
-        </div>
 
     </form>
 
