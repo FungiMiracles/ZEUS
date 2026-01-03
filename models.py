@@ -237,6 +237,40 @@ class Historia(db.Model):
     region = db.relationship("Region", lazy="joined")
     miasto = db.relationship("Miasto", lazy="joined")
 
+# =========================================================
+#  COMPUTED / PRESENTATION PROPERTIES
+# =========================================================
+
+    @property
+    def zakres_dat_label(self) -> str:
+        """
+        Zwraca zakres dat w formacie:
+        - 1200
+        - 1200–1250
+        """
+        if not self.data_od:
+            return "—"
+    
+        if self.data_do and self.data_do != self.data_od:
+            return f"{self.data_od.year}–{self.data_do.year}"
+    
+        return str(self.data_od.year)
+    
+    
+    @property
+    def epoka_label(self) -> str:
+        """
+        Mapowanie ENUM → label UI
+        """
+        MAPA_EPOK = {
+            "starozytna": "Starożytność",
+            "sredniowieczna": "Średniowiecze",
+            "wspolczesna": "Współczesność",
+        }
+    
+        return MAPA_EPOK.get(self.epoka, "Nieznana epoka")
+
+
     # =========================================================
     #  WŁAŚCIWOŚCI POMOCNICZE (LOGIKA)
     # =========================================================
