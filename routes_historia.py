@@ -4,6 +4,7 @@ from extensions import db
 from models import Historia
 from permissions import wymaga_roli
 from datetime import date, datetime
+from models import Panstwo, Region, Miasto
 import re
 
 def parse_year_or_date(value: str) -> date:
@@ -122,6 +123,9 @@ def init_historia_routes(app):
             try:
                 form = request.form
     
+                # ───────────────
+                # DATY
+                # ───────────────
                 data_od = parse_year_or_date(form["data_od"])
                 data_do_raw = form.get("data_do")
                 data_do = parse_year_or_date(data_do_raw) if data_do_raw else None
@@ -129,15 +133,60 @@ def init_historia_routes(app):
                 if data_do and data_do < data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza.")
     
+                # ───────────────
+                # FK PARSE
+                # ───────────────
+                def parse_fk(v):
+                    return int(v) if v and v.isdigit() else None
+    
+                panstwo_id = parse_fk(form.get("panstwo_id"))
+                region_id = parse_fk(form.get("region_id"))
+                miasto_id = parse_fk(form.get("miasto_id"))
+    
+                # ───────────────
+                # HIERARCHIA GEO
+                # ───────────────
+                panstwo = region = miasto = None
+    
+                if miasto_id:
+                    miasto = Miasto.query.get(miasto_id)
+                    if not miasto:
+                        raise ValueError("Wybrane miasto nie istnieje.")
+    
+                    region = miasto.region
+                    panstwo = miasto.panstwo
+    
+                if region_id:
+                    region = Region.query.get(region_id)
+                    if not region:
+                        raise ValueError("Wybrany region nie istnieje.")
+    
+                    if miasto and miasto.region_id != region.region_id:
+                        raise ValueError("Miasto nie należy do wybranego regionu.")
+    
+                    panstwo = region.panstwo
+    
+                if panstwo_id:
+                    panstwo = Panstwo.query.get(panstwo_id)
+                    if not panstwo:
+                        raise ValueError("Wybrane państwo nie istnieje.")
+    
+                    if region and region.panstwo_id != panstwo.PANSTWO_ID:
+                        raise ValueError("Region nie należy do wybranego państwa.")
+    
+                # ───────────────
+                # ZAPIS
+                # ───────────────
                 h = Historia(
                     nazwa_wydarzenia=form["nazwa_wydarzenia"],
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
                     kontynent=form.get("kontynent") or None,
-    
-                    # 🔥 KLUCZOWA LINIA
-                    wydarzenie_opis=form.get("wydarzenie_opis")
+                    wydarzenie_opis=form.get("wydarzenie_opis"),
+                    panstwo_id=panstwo.PANSTWO_ID if panstwo else None,
+                    region_id=region.region_id if region else None,
+                    miasto_id=miasto.miasto_id if miasto else None,
                 )
     
                 db.session.add(h)
@@ -145,18 +194,16 @@ def init_historia_routes(app):
     
                 flash("Wydarzenie zostało dodane.", "success")
                 return redirect(url_for("historia_lista"))
-            
-            
+    
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
                 return render_template(
-                "historia_form_add.html",
-                form_data=request.form
-            )
+                    "historia_form_add.html",
+                    form_data=request.form
+                )
     
         return render_template("historia_form_add.html")
-
 
 
     # --------------------------------------------------------
