@@ -283,6 +283,8 @@
 
 </style>
 
+<div class="region-container">
+
 {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div style="margin-bottom:15px;">
@@ -297,9 +299,7 @@
             </div>
         {% endif %}
     {% endwith %}
-
-<div class="region-container">
-
+    
     <!-- Nagłówek -->
     <div class="region-header">
         <h1>Region: {{ region.region_nazwa }} ({{ region.region_id }})</h1>
