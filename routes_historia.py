@@ -226,9 +226,14 @@ def init_historia_routes(app):
             except Exception as e:
                 db.session.rollback()
                 flash(str(e), "error")
+
+                panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+                regiony = Region.query.order_by(Region.region_nazwa).all()
+                miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
+            
                 return render_template(
                     "historia_form_add.html",
-                    form_data=form,
+                    form_data=request.form,
                     panstwa=panstwa,
                     regiony=regiony,
                     miasta=miasta
