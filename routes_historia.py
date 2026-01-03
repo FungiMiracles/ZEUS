@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from sqlalchemy import case
+from sqlalchemy.orm import joinedload
 from extensions import db
 from models import Historia
 from permissions import wymaga_roli
@@ -81,23 +82,35 @@ def init_historia_routes(app):
     # --------------------------------------------------------
     # LISTA WYDARZEŃ
     # --------------------------------------------------------
+
     @app.route("/historia/lista")
     def historia_lista():
         epoka = request.args.get("epoka")
-
-        query = Historia.query
+    
+        query = (
+            Historia.query
+            .options(
+                joinedload(Historia.panstwo),
+                joinedload(Historia.region),
+                joinedload(Historia.miasto),
+            )
+        )
+    
         if epoka:
             query = query.filter(Historia.epoka == epoka)
-
-        wydarzenia = query.order_by(
-            Historia.data_od.desc()
-        ).all()
-
+    
+        wydarzenia = (
+            query
+            .order_by(Historia.data_od.desc())
+            .all()
+        )
+    
         return render_template(
             "historia_lista.html",
             wydarzenia=wydarzenia,
             epoka=epoka
         )
+
 
     # --------------------------------------------------------
     # PODGLĄD WYDARZENIA
@@ -105,7 +118,15 @@ def init_historia_routes(app):
     @app.route("/historia/<int:historia_id>")
     def historia_podglad(historia_id):
     
-        h = Historia.query.get_or_404(historia_id)
+        h = (
+            Historia.query
+            .options(
+                joinedload(Historia.panstwo),
+                joinedload(Historia.region),
+                joinedload(Historia.miasto),
+            )
+            .get_or_404(historia_id)
+        )
     
         return render_template(
             "historia_form.html",
@@ -217,23 +238,77 @@ def init_historia_routes(app):
     
         if request.method == "POST":
             try:
-                # ====== DANE FORMULARZA ======
-                h.nazwa_wydarzenia = request.form.get("nazwa_wydarzenia")
-                h.epoka = request.form.get("epoka")
-                h.kontynent = request.form.get("kontynent") or None
+                form = request.form
     
-                # DATA
-                h.data_od = parse_year_or_date(request.form.get("data_od"))
-                data_do_raw = request.form.get("data_do")
+                # ───────────────
+                # POLA PODSTAWOWE
+                # ───────────────
+                h.nazwa_wydarzenia = form.get("nazwa_wydarzenia")
+                h.epoka = form.get("epoka")
+                h.kontynent = form.get("kontynent") or None
+                h.wydarzenie_opis = form.get("wydarzenie_opis")
+    
+                # ───────────────
+                # DATY
+                # ───────────────
+                h.data_od = parse_year_or_date(form.get("data_od"))
+                data_do_raw = form.get("data_do")
                 h.data_do = parse_year_or_date(data_do_raw) if data_do_raw else None
     
                 if h.data_do and h.data_do < h.data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza niż początkowa.")
     
-                # ====== OPIS (NOWA ARCHITEKTURA) ======
-                h.wydarzenie_opis = request.form.get("wydarzenie_opis")
+                # ───────────────
+                # FK PARSE
+                # ───────────────
+                def parse_fk(v):
+                    return int(v) if v and v.isdigit() else None
     
-                # ====== ZAPIS DO BAZY ======
+                panstwo_id = parse_fk(form.get("panstwo_id"))
+                region_id = parse_fk(form.get("region_id"))
+                miasto_id = parse_fk(form.get("miasto_id"))
+    
+                # ───────────────
+                # HIERARCHIA GEO
+                # ───────────────
+                panstwo = region = miasto = None
+    
+                if miasto_id:
+                    miasto = Miasto.query.get(miasto_id)
+                    if not miasto:
+                        raise ValueError("Wybrane miasto nie istnieje.")
+    
+                    region = miasto.region
+                    panstwo = miasto.panstwo
+    
+                if region_id:
+                    region = Region.query.get(region_id)
+                    if not region:
+                        raise ValueError("Wybrany region nie istnieje.")
+    
+                    if miasto and miasto.region_id != region.region_id:
+                        raise ValueError("Miasto nie należy do wybranego regionu.")
+    
+                    panstwo = region.panstwo
+    
+                if panstwo_id:
+                    panstwo = Panstwo.query.get(panstwo_id)
+                    if not panstwo:
+                        raise ValueError("Wybrane państwo nie istnieje.")
+    
+                    if region and region.panstwo_id != panstwo.PANSTWO_ID:
+                        raise ValueError("Region nie należy do wybranego państwa.")
+    
+                # ───────────────
+                # PRZYPISANIE FK
+                # ───────────────
+                h.panstwo_id = panstwo.PANSTWO_ID if panstwo else None
+                h.region_id = region.region_id if region else None
+                h.miasto_id = miasto.miasto_id if miasto else None
+    
+                # ───────────────
+                # ZAPIS
+                # ───────────────
                 db.session.commit()
     
                 flash("Wydarzenie zostało zaktualizowane.", "success")
@@ -245,15 +320,19 @@ def init_historia_routes(app):
                 db.session.rollback()
                 flash(str(e), "error")
                 return render_template(
-                "historia_form_edit.html",
-                form_data=request.form
-            )
+                    "historia_form_edit.html",
+                    h=h,
+                    form_data=form
+                )
     
-        # ====== GET ======
+        # ───────────────
+        # GET
+        # ───────────────
         return render_template(
             "historia_form_edit.html",
             h=h
         )
+
 
 
 
