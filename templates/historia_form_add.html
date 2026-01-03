@@ -233,7 +233,13 @@
                  >{{ form_data.wydarzenie_opis if form_data else "" }}</textarea>
              </div>
          </div>
-
+          <!-- ===== AKCJE ===== --> 
+         <div class="historia-actions"> 
+               <a href="{{ url_for('historia_lista') }}" class="btn-zeus btn-cancel"> Anuluj </a> 
+            <div class="right"> 
+               <button type="submit" class="btn-zeus btn-save"> Zapisz wydarzenie </button> 
+            </div> 
+         </div>
 
     </form>
 
