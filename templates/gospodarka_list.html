@@ -7,7 +7,11 @@
 /* ============================================================
    ZEUS BUTTONS — GOSPODARKA
 ============================================================ */
-
+.btn-zeus:focus {
+    text-decoration: none !important; /* ⬅ usuwa podkreślenie */
+    color: inherit;                   /* ⬅ nie zmienia koloru */
+}
+   
 .btn-zeus {
     display: inline-block;
     padding: 7px 14px;
@@ -249,18 +253,15 @@
 
     .action-buttons {
         display: flex;
-        flex-direction: column;   
+        flex-direction: column;   /* ⬅ KLUCZ */
         gap: 8px;
         align-items: stretch;
     }
 
     .action-buttons a,
     .action-buttons button {
-        width: 100%;              
+        width: 100%;              /* ⬅ pełna szerokość */
         text-align: center;
-        padding: 8px 10px;
-        font-size: 0.85em;
-        border-radius: 6px;
     }
 
     .table-scroll {
