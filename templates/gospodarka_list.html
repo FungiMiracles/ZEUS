@@ -7,11 +7,7 @@
 /* ============================================================
    ZEUS BUTTONS — GOSPODARKA
 ============================================================ */
-.btn-zeus:focus {
-    text-decoration: none !important; /* ⬅ usuwa podkreślenie */
-    color: inherit;                   /* ⬅ nie zmienia koloru */
-}
-   
+
 .btn-zeus {
     display: inline-block;
     padding: 7px 14px;
@@ -166,107 +162,31 @@
           padding-right: 10px;
       }
 
+.btn-zeus,
+.btn-zeus:link,
+.btn-zeus:visited,
+.btn-zeus:hover,
+.btn-zeus:active,
+.btn-zeus:focus {
+    text-decoration: none !important;
+    color: inherit !important;
+}
 /* ============================================================
    MOBILE — TABELA → KARTY (JEDYNA STRATEGIA)
 ============================================================ */
 @media (max-width: 767px) {
 
-    /* filtr */
-    .gosp-filter-box {
-        margin: 15px 10px 20px;
-        padding: 16px 14px;
-    }
-
-    .gosp-filter-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    /* wyłączamy scroll-wrapper */
-    .table-scroll {
-        overflow: visible;
-    }
-
-    /* tabela → karty */
-    .results-table {
-        min-width: 0;
-        background: transparent;
-        box-shadow: none;
-        border-radius: 0;
-    }
-
-    .results-table thead {
-        display: none;
-    }
-
-    .results-table,
-    .results-table tbody,
-    .results-table tr,
-    .results-table td {
-        display: block;
-        width: 100%;
-    }
-
-    .results-table tr {
-        background: #ffffff;
-        margin: 0 10px 14px;
-        border-radius: 12px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-        overflow: hidden;
-    }
-
-    .results-table td {
-        padding: 8px 12px;
-        border-bottom: 1px solid #e2e6ec;
-        font-size: 0.9em;
-    }
-
-    .results-table td:last-child {
-        border-bottom: none;
-    }
-
-    /* pseudo-label */
-    .results-table td::before {
-        content: attr(data-label);
-        display: block;
-        font-size: 0.7em;
-        font-weight: 700;
-        color: #6c7a89;
-        margin-bottom: 3px;
-        text-transform: uppercase;
-    }
-
-   .gosp-list {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    .results-table tr {
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-   /* ============================================================
-   FIX — PRZYCISKI W WIDOKU MOBILE
-   ============================================================ */
-   @media (max-width: 767px) {
-
     .action-buttons {
-        display: flex;
-        flex-direction: column;   /* ⬅ KLUCZ */
+        display: flex !important;
+        flex-direction: column !important;
         gap: 8px;
         align-items: stretch;
     }
 
     .action-buttons a,
     .action-buttons button {
-        width: 100%;              /* ⬅ pełna szerokość */
+        width: 100%;
         text-align: center;
-    }
-
-    .table-scroll {
-        margin-left: 0;
-        margin-right: 0;
     }
 
 }
