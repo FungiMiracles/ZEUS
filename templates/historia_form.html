@@ -50,17 +50,19 @@
     background: #ffffff;
     border: 1px solid #d3d7dc;
     border-radius: 12px;
-    padding: 24px 28px;
+    padding: 20px 24px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+
     white-space: pre-wrap;
-    line-height: 1.55;
+    line-height: 1.6;
     font-size: 0.95em;
     color: #2c3e50;
-   text-align: justify;
-      text-justify: inter-word;
-      hyphens: auto;
-      padding-left: 2px;
-      padding-right: 2px;
+
+    max-width: 100%;
+    box-sizing: border-box;
+
+    text-align: justify;
+    hyphens: auto;
 }
 
 /* ===== AKCJE ===== */
@@ -146,6 +148,11 @@
         <div class="historia-meta-row">
             <strong>Lokalizacja:</strong> {{ h.lokalizacja_label }}
         </div>
+       
+             <!-- ===== OPIS (MD) ===== -->
+          <div class="historia-description">
+          {{ h.wydarzenie_opis }}
+         </div>
 
     </div>
 </div>
