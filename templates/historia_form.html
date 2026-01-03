@@ -126,15 +126,15 @@
         {{ h.nazwa_wydarzenia }}
     </div>
 
-    <!-- ===== META Z BAZY ===== -->
+    <!-- ===== META ===== -->
     <div class="historia-meta">
+
         <div class="historia-meta-row">
             <strong>Epoka:</strong> {{ h.epoka_label }}
         </div>
 
         <div class="historia-meta-row">
-            <strong>Data:</strong>
-            {{ h.zakres_dat_label }}
+            <strong>Data:</strong> {{ h.zakres_dat_label }}
         </div>
 
         {% if h.kontynent %}
@@ -143,24 +143,12 @@
         </div>
         {% endif %}
 
-        {% if h.panstwo %}
         <div class="historia-meta-row">
-            <strong>Państwo:</strong> {{ h.panstwo.nazwa }}
+            <strong>Lokalizacja:</strong> {{ h.lokalizacja_label }}
         </div>
-        {% endif %}
 
-        {% if h.region %}
-        <div class="historia-meta-row">
-            <strong>Region:</strong> {{ h.region.nazwa }}
-        </div>
-        {% endif %}
-
-        {% if h.miasto %}
-        <div class="historia-meta-row">
-            <strong>Miasto:</strong> {{ h.miasto.nazwa }}
-        </div>
-        {% endif %}
     </div>
+</div>
 
     <!-- ===== OPIS (MD) ===== -->
     <div class="historia-description">
