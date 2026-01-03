@@ -256,6 +256,10 @@ def init_historia_routes(app):
     @app.route("/historia/<int:historia_id>/edit", methods=["GET", "POST"])
     @wymaga_roli("wszechmocny")
     def historia_edytuj(historia_id):
+
+        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+        regiony = Region.query.order_by(Region.region_nazwa).all()
+        miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
     
         h = Historia.query.get_or_404(historia_id)
     
@@ -353,7 +357,10 @@ def init_historia_routes(app):
         # ───────────────
         return render_template(
             "historia_form_edit.html",
-            h=h
+            h=h,
+            panstwa=panstwa,
+            regiony=regiony,
+            miasta=miasta
         )
 
 
