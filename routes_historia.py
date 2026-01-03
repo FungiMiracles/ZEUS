@@ -140,6 +140,13 @@ def init_historia_routes(app):
     @wymaga_roli("tworzyciel", "wszechmocny")
     def historia_dodaj():
     
+        # ─────────────────────────────
+        # DANE DO FORMULARZA (GET + ERROR)
+        # ─────────────────────────────
+        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+        regiony = Region.query.order_by(Region.region_nazwa).all()
+        miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
+    
         if request.method == "POST":
             try:
                 form = request.form
@@ -221,10 +228,21 @@ def init_historia_routes(app):
                 flash(str(e), "error")
                 return render_template(
                     "historia_form_add.html",
-                    form_data=request.form
+                    form_data=form,
+                    panstwa=panstwa,
+                    regiony=regiony,
+                    miasta=miasta
                 )
     
-        return render_template("historia_form_add.html")
+        # ───────────────
+        # GET
+        # ───────────────
+        return render_template(
+            "historia_form_add.html",
+            panstwa=panstwa,
+            regiony=regiony,
+            miasta=miasta
+        )
 
 
     # --------------------------------------------------------
