@@ -217,6 +217,92 @@ const relacjaFilter = document.getElementById("relacjaFilter");
 const stanFilter = document.getElementById("stanFilter");
 const sojList = document.getElementById("sojuszeResults");
 
+const RELACJA_MAP = {
+    sojusznicze: {
+        label: "Sojusznicze",
+        class: "rel-green"
+    },
+    partnerskie_strategiczne: {
+        label: "Partnerskie strategiczne",
+        class: "rel-green"
+    },
+    partnerskie: {
+        label: "Partnerskie",
+        class: "rel-green"
+    },
+    przyjazne: {
+        label: "Przyjazne",
+        class: "rel-green"
+    },
+    dobre: {
+        label: "Dobre",
+        class: "rel-green"
+    },
+    neutralne: {
+        label: "Neutralne",
+        class: "rel-grey"
+    },
+    chlodne: {
+        label: "Chłodne",
+        class: "rel-orange"
+    },
+    zle: {
+        label: "Złe",
+        class: "rel-red"
+    },
+    napiete: {
+        label: "Napięte",
+        class: "rel-red"
+    },
+    wrogie: {
+        label: "Wrogie",
+        class: "rel-red"
+    },
+    egzystencjalnie_wrogie: {
+        label: "Egzystencjalnie wrogie",
+        class: "rel-red"
+    }
+};
+
+const STAN_MAP = {
+    pokoj: {
+        label: "Pokój",
+        class: "rel-green"
+    },
+    zawieszenie_broni: {
+        label: "Zawieszenie broni",
+        class: "rel-orange"
+    },
+    konflikt_dyplomatyczny: {
+        label: "Konflikt dyplomatyczny",
+        class: "rel-orange"
+    },
+    wojna_handlowa: {
+        label: "Wojna handlowa",
+        class: "rel-orange"
+    },
+    wojna_informacyjna: {
+        label: "Wojna informacyjna",
+        class: "rel-orange"
+    },
+    wojna_hybrydowa: {
+        label: "Wojna hybrydowa",
+        class: "rel-red"
+    },
+    konflikt_kinetyczny_zamrozony: {
+        label: "Konflikt kinetyczny (zamrożony)",
+        class: "rel-red"
+    },
+    wojna_kinetyczna: {
+        label: "Wojna kinetyczna",
+        class: "rel-red"
+    },
+    okupacja: {
+        label: "Okupacja",
+        class: "rel-red"
+    }
+};
+
 kontynentSelect.addEventListener("change", () => {
     const kontynent = kontynentSelect.value;
 
@@ -266,6 +352,9 @@ searchBtn.addEventListener("click", () => {
 
     if (relacja) params.append("relacja", relacja);
     if (stan) params.append("stan", stan);
+    if (!RELACJA_MAP[r.relacja]) {
+        console.warn("Nieznana relacja:", r.relacja);
+    }
 
     fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
         .then(res => res.json())
@@ -278,13 +367,23 @@ searchBtn.addEventListener("click", () => {
             data.forEach(r => {
                 const card = document.createElement("div");
                 card.className = "soj-card";
-
+            
+                const rel = RELACJA_MAP[r.relacja] || {
+                    label: r.relacja,
+                    class: "rel-grey"
+                };
+            
+                const stanObj = STAN_MAP[r.stan] || {
+                    label: r.stan,
+                    class: "rel-grey"
+                };
+            
                 card.innerHTML = `
                     <div class="soj-country">${r.panstwo_nazwa}</div>
-                    <div class="soj-badge rel-grey">${r.relacja}</div>
-                    <div class="soj-badge rel-grey">${r.stan}</div>
+                    <div class="soj-badge ${rel.class}">${rel.label}</div>
+                    <div class="soj-badge ${stanObj.class}">${stanObj.label}</div>
                 `;
-
+            
                 sojList.appendChild(card);
             });
         })
