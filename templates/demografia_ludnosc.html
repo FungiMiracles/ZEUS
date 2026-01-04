@@ -292,4 +292,29 @@
 
 </div>
 
+<script>
+const kontynentSelect = document.querySelector('select[name="kontynent"]');
+const panstwoSelect = document.querySelector('select[name="panstwo_id"]');
+
+kontynentSelect.addEventListener("change", () => {
+    const kontynent = kontynentSelect.value;
+
+    panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
+
+    if (!kontynent) return;
+
+    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.PANSTWO_ID;
+                opt.textContent = p.panstwo_nazwa;
+                panstwoSelect.appendChild(opt);
+            });
+        })
+        .catch(err => console.error(err));
+});
+</script>
+
 {% endblock %}
