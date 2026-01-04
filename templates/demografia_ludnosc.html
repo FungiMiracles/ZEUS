@@ -277,10 +277,39 @@
 
     {% elif tryb == "panstwo" %}
 
-    <div class="data-box">
-        <h2>{{ dane.nazwa }}</h2>
-        <p>Widok państwa – do uzupełnienia w kolejnym kroku.</p>
-    </div>
+    {% elif tryb == "panstwo" and dane %}
+
+      <div class="data-box">
+          <h2>{{ dane.nazwa }}</h2>
+      
+          <div class="data-grid">
+              <div class="data-item"><span class="label">Populacja</span><span class="value">{{ dane.populacja | spacenum }}</span></div>
+              <div class="data-item"><span class="label">Powierzchnia</span><span class="value">{{ dane.powierzchnia | spacenum }} km²</span></div>
+              <div class="data-item"><span class="label">Gęstość</span><span class="value">{{ dane.gestosc }} os./km²</span></div>
+              <div class="data-item"><span class="label">Regiony</span><span class="value">{{ dane.liczba_regionow }}</span></div>
+              <div class="data-item"><span class="label">Miasta</span><span class="value">{{ dane.liczba_miast }}</span></div>
+              <div class="data-item"><span class="label">Urbanizacja</span><span class="value">{{ dane.urbanizacja_pct }} %</span></div>
+              <div class="data-item"><span class="label">Śr. populacja regionu</span><span class="value">{{ dane.srednia_region | spacenum }}</span></div>
+          </div>
+      
+          <div class="list-box">
+              <h3>Regiony</h3>
+              <ul>
+                  {% for r in dane.regiony %}
+                      <li>{{ r.nazwa }} — {{ r.populacja | spacenum }}</li>
+                  {% endfor %}
+              </ul>
+          </div>
+      
+          <div class="list-box">
+              <h3>Największe miasta</h3>
+              <ul>
+                  {% for m in dane.top_miasta %}
+                      <li>{{ m.miasto_nazwa }} — {{ m.miasto_populacja | spacenum }}</li>
+                  {% endfor %}
+              </ul>
+          </div>
+      </div>
 
     {% else %}
 
