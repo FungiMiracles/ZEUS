@@ -352,9 +352,6 @@ searchBtn.addEventListener("click", () => {
 
     if (relacja) params.append("relacja", relacja);
     if (stan) params.append("stan", stan);
-    if (!RELACJA_MAP[r.relacja]) {
-        console.warn("Nieznana relacja:", r.relacja);
-    }
 
     fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
         .then(res => res.json())
