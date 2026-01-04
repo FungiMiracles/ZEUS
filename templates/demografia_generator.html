@@ -171,6 +171,22 @@
 
     <h1>Generator miast technicznych</h1>
 
+   {% with messages = get_flashed_messages(with_categories=true) %}
+       {% if messages %}
+           {% for category, message in messages %}
+               <div class="zeus-msg
+                   {% if category == 'success' %}zeus-success
+                   {% elif category == 'error' %}zeus-error
+                   {% elif category == 'warning' %}zeus-warning
+                   {% endif %}">
+                   <div class="zeus-msg-text">
+                       {{ message }}
+                   </div>
+               </div>
+           {% endfor %}
+       {% endif %}
+   {% endwith %}
+
     {# ===== OSTRZEŻENIE + DECYZJA ===== #}
     {% if warning %}
         <div class="zeus-msg zeus-warning">
