@@ -4,6 +4,89 @@
 {% block content %}
 
 <style>
+* =============================
+   ZEUS — KOMUNIKATY SYSTEMOWE
+============================= */
+
+.zeus-msg {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 16px 20px;
+    border-radius: 10px;
+    border: 1px solid;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+/* Tekst komunikatu */
+.zeus-msg-text {
+    font-size: 0.95em;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+/* Kolory */
+.zeus-success {
+    background: #eaf7ef;
+    border-color: #2ecc71;
+    color: #1e8449;
+}
+
+.zeus-error {
+    background: #fdecea;
+    border-color: #e74c3c;
+    color: #922b21;
+}
+
+.zeus-warning {
+    background: #fff6e5;
+    border-color: #f39c12;
+    color: #7d4f00;
+}
+
+/* =============================
+   POTWIERDZENIE (TAK / NIE)
+============================= */
+
+.zeus-confirm-box {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+/* Przyciski */
+.zeus-btn {
+    min-width: 90px;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+/* TAK */
+.zeus-btn-yes {
+    background: #27ae60;
+    color: #ffffff;
+}
+.zeus-btn-yes:hover {
+    background: #1e8749;
+    transform: translateY(-1px);
+}
+
+/* NIE */
+.zeus-btn-no {
+    background: #c0392b;
+    color: #ffffff;
+}
+.zeus-btn-no:hover {
+    background: #992d22;
+    transform: translateY(-1px);
+}
+    
 .generator-box {
     max-width: 900px;
     margin: 30px auto;
@@ -112,24 +195,36 @@
 
     <!-- KOMUNIKATY -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="zeus-msg
-                    {% if category == 'success' %}zeus-success
-                    {% elif category == 'error' %}zeus-error
-                    {% elif category == 'warning' %}zeus-warning
-                    {% endif %}">
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="zeus-msg
+                {% if category == 'success' %}zeus-success
+                {% elif category == 'error' %}zeus-error
+                {% elif category == 'warning' %}zeus-warning
+                {% endif %}">
+
+                <div class="zeus-msg-text">
                     {{ message }}
-                        {% if confirm_required %}
-                        <form method="POST">
-                            {% for key, value in form_data.items() %}
-                                <input type="hidden" name="{{ key }}" value="{{ value }}">
-                            {% endfor %}
-                        
-                            <button name="confirm" value="yes">TAK</button>
-                            <button name="confirm" value="no">NIE</button>
-                        </form>
-                        {% endif %}
+                </div>
+
+                {% if confirm_required %}
+                    <form method="POST" class="zeus-confirm-box">
+                        {% for key, value in form_data.items() %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+
+                        <button type="submit" name="confirm" value="yes"
+                                class="zeus-btn zeus-btn-yes">
+                            TAK
+                        </button>
+
+                        <button type="submit" name="confirm" value="no"
+                                class="zeus-btn zeus-btn-no">
+                            NIE
+                        </button>
+                    </form>
+                {% endif %}
+
                 </div>
             {% endfor %}
         {% endif %}
