@@ -171,16 +171,13 @@
 
     <h1>Generator miast technicznych</h1>
 
-    {# =========================
-       TRYB OSTRZEŻENIA
-       ========================= #}
+    {# ===== OSTRZEŻENIE + DECYZJA ===== #}
     {% if warning %}
         <div class="zeus-msg zeus-warning">
             <div class="zeus-msg-text">
                 {{ warning }}
             </div>
 
-            <!-- FORMULARZ DECYZYJNY (TAK / NIE) -->
             <form method="POST" class="zeus-confirm-box">
                 {% for key, value in form_data.items() %}
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
@@ -201,94 +198,100 @@
                 </button>
             </form>
         </div>
+    {% endif %}
 
-    {# =========================
-       TRYB BŁĘDU
-       ========================= #}
-    {% elif error %}
+    {# ===== BŁĄD ===== #}
+    {% if error %}
         <div class="zeus-msg zeus-error">
             {{ error }}
         </div>
-
-        <!-- FORMULARZ GENERATORA -->
-        <form method="POST">
-            <!-- pola generatora -->
-        </form>
-
-    {# =========================
-       TRYB NORMALNY
-       ========================= #}
-    {% else %}
-        <!-- FORMULARZ GENERATORA -->
-        <form method="POST">
-
-            <!-- ===== LOKALIZACJA ===== -->
-            <div class="generator-section">
-                <h3>Lokalizacja</h3>
-                <div class="generator-grid">
-
-                    <div>
-                        <label>Kontynent</label>
-                        <select name="kontynent" id="kontynent" required>
-                            <option value="">— wybierz —</option>
-                            {% for k in kontynenty %}
-                                <option value="{{ k }}">{{ k }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Państwo</label>
-                        <select name="panstwo_id" id="panstwo" required disabled>
-                            <option value="">— wybierz kontynent —</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Region</label>
-                        <select name="region_id" id="region" required disabled>
-                            <option value="">— wybierz państwo —</option>
-                        </select>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- ===== PARAMETRY ===== -->
-            <div class="generator-section">
-                <h3>Parametry generacji</h3>
-                <div class="generator-grid">
-
-                    <div>
-                        <label>Ilość miast</label>
-                        <input type="number" name="ilosc" min="1" required>
-                    </div>
-
-                    <div>
-                        <label>Ludność od</label>
-                        <input type="number" name="min_pop" required>
-                    </div>
-
-                    <div>
-                        <label>Ludność do</label>
-                        <input type="number" name="max_pop" required>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- ===== AKCJE ===== -->
-            <div class="generator-actions">
-                <button class="btn-main btn-green" type="submit">
-                    Zrzuć do bazy
-                </button>
-                <a href="{{ url_for('home_page') }}" class="btn-main btn-gray">
-                    Anuluj
-                </a>
-            </div>
-
-        </form>
     {% endif %}
+
+    {# ===== FORMULARZ GENERATORA (ZAWSZE) ===== #}
+    <form method="POST">
+
+        <!-- ===== LOKALIZACJA ===== -->
+        <div class="generator-section">
+            <h3>Lokalizacja</h3>
+            <div class="generator-grid">
+
+                <div>
+                    <label>Kontynent</label>
+                    <select name="kontynent" id="kontynent" required>
+                        <option value="">— wybierz —</option>
+                        {% for k in kontynenty %}
+                            <option value="{{ k }}"
+                                {% if form_data and form_data.kontynent == k %}selected{% endif %}>
+                                {{ k }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>Państwo</label>
+                    <select name="panstwo_id" id="panstwo" required>
+                        <option value="">— wybierz —</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Region</label>
+                    <select name="region_id" id="region" required>
+                        <option value="">— wybierz —</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== PARAMETRY ===== -->
+        <div class="generator-section">
+            <h3>Parametry generacji</h3>
+            <div class="generator-grid">
+
+                <div>
+                    <label>Ilość miast</label>
+                    <input type="number"
+                           name="ilosc"
+                           min="1"
+                           value="{{ form_data.ilosc if form_data }}"
+                           required>
+                </div>
+
+                <div>
+                    <label>Ludność od</label>
+                    <input type="number"
+                           name="min_pop"
+                           value="{{ form_data.min_pop if form_data }}"
+                           required>
+                </div>
+
+                <div>
+                    <label>Ludność do</label>
+                    <input type="number"
+                           name="max_pop"
+                           value="{{ form_data.max_pop if form_data }}"
+                           required>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== AKCJE ===== -->
+        <div class="generator-actions">
+            <button class="btn-main btn-green"
+                    type="submit"
+                    {% if warning %}disabled{% endif %}>
+                Zrzuć do bazy
+            </button>
+
+            <a href="{{ url_for('home_page') }}" class="btn-main btn-gray">
+                Anuluj
+            </a>
+        </div>
+
+    </form>
 
 </div>
 
