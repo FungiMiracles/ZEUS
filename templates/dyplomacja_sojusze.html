@@ -182,6 +182,11 @@
            </div>
 
         </div>
+       <div style="text-align:center; margin-top:18px;">
+          <button id="sojSearchBtn" class="btn-main" style="background:#2c73d2;">
+              Filtruj
+          </button>
+      </div>
     </div>
 
     <!-- ===================== WYNIKI ===================== -->
@@ -224,6 +229,54 @@ kontynentSelect.addEventListener("change", () => {
         })
         .catch(err => {
             console.error("Błąd API:", err);
+        });
+});
+
+const searchBtn = document.getElementById("sojSearchBtn");
+
+searchBtn.addEventListener("click", () => {
+    const panstwoId = panstwoSelect.value;
+    const relacja = relacjaFilter.value;
+    const stan = stanFilter.value;
+
+    sojList.innerHTML = "";
+
+    if (!panstwoId) {
+        sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Wybierz państwo.</div>";
+        return;
+    }
+
+    const params = new URLSearchParams({
+        panstwo_id: panstwoId
+    });
+
+    if (relacja) params.append("relacja", relacja);
+    if (stan) params.append("stan", stan);
+
+    fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Brak relacji.</div>";
+                return;
+            }
+
+            data.forEach(r => {
+                const card = document.createElement("div");
+                card.className = "soj-card";
+
+                card.innerHTML = `
+                    <div class="soj-country">${r.panstwo_nazwa}</div>
+                    <div class="soj-badge rel-grey">${r.relacja}</div>
+                    <div class="soj-badge rel-grey">${r.stan}</div>
+                `;
+
+                sojList.appendChild(card);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            sojList.innerHTML = "<div>Błąd pobierania danych.</div>";
         });
 });
 </script>
