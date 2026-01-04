@@ -4,7 +4,7 @@
 {% block content %}
 
 <style>
-* =============================
+/* =============================
    ZEUS — KOMUNIKATY SYSTEMOWE
 ============================= */
 
@@ -165,169 +165,131 @@
     color: #34495e;
 }
 
-.zeus-msg {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 18px;
-    font-weight: 700;
-    text-align: center;
-}
-
-.zeus-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.zeus-error {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.zeus-warning {
-    background: #fff3cd;
-    color: #856404;
-}
 </style>
 
 <div class="generator-box">
 
     <h1>Generator miast technicznych</h1>
 
-    <!-- KOMUNIKATY -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="zeus-msg
-                {% if category == 'success' %}zeus-success
-                {% elif category == 'error' %}zeus-error
-                {% elif category == 'warning' %}zeus-warning
-                {% endif %}">
-
-                <div class="zeus-msg-text">
-                    {{ message }}
-                </div>
-
-                {% if confirm_required %}
-                    <form method="POST" class="zeus-confirm-box">
-                        {% for key, value in form_data.items() %}
-                            <input type="hidden" name="{{ key }}" value="{{ value }}">
-                        {% endfor %}
-
-                        <button type="submit" name="confirm" value="yes"
-                                class="zeus-btn zeus-btn-yes">
-                            TAK
-                        </button>
-
-                        <button type="submit" name="confirm" value="no"
-                                class="zeus-btn zeus-btn-no">
-                            NIE
-                        </button>
-                    </form>
-                {% endif %}
-
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% if confirm_required %}
-    <form method="POST">
-        {% for key, value in form_data.items() %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endfor %}
-    
-        <button name="confirm" value="yes">TAK</button>
-        <button name="confirm" value="no">NIE</button>
-    </form>
-    {% endif %}
-
+    {# =========================
+       TRYB OSTRZEŻENIA
+       ========================= #}
     {% if warning %}
         <div class="zeus-msg zeus-warning">
-            {{ warning }}
-        </div>
-    {% endif %}
+            <div class="zeus-msg-text">
+                {{ warning }}
+            </div>
 
-    {% if error %}
+            <!-- FORMULARZ DECYZYJNY (TAK / NIE) -->
+            <form method="POST" class="zeus-confirm-box">
+                {% for key, value in form_data.items() %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+
+                <button type="submit"
+                        name="confirm"
+                        value="yes"
+                        class="zeus-btn zeus-btn-yes">
+                    TAK
+                </button>
+
+                <button type="submit"
+                        name="confirm"
+                        value="no"
+                        class="zeus-btn zeus-btn-no">
+                    NIE
+                </button>
+            </form>
+        </div>
+
+    {# =========================
+       TRYB BŁĘDU
+       ========================= #}
+    {% elif error %}
         <div class="zeus-msg zeus-error">
             {{ error }}
         </div>
+
+        <!-- FORMULARZ GENERATORA -->
+        <form method="POST">
+            <!-- pola generatora -->
+        </form>
+
+    {# =========================
+       TRYB NORMALNY
+       ========================= #}
+    {% else %}
+        <!-- FORMULARZ GENERATORA -->
+        <form method="POST">
+
+            <!-- ===== LOKALIZACJA ===== -->
+            <div class="generator-section">
+                <h3>Lokalizacja</h3>
+                <div class="generator-grid">
+
+                    <div>
+                        <label>Kontynent</label>
+                        <select name="kontynent" id="kontynent" required>
+                            <option value="">— wybierz —</option>
+                            {% for k in kontynenty %}
+                                <option value="{{ k }}">{{ k }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Państwo</label>
+                        <select name="panstwo_id" id="panstwo" required disabled>
+                            <option value="">— wybierz kontynent —</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Region</label>
+                        <select name="region_id" id="region" required disabled>
+                            <option value="">— wybierz państwo —</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ===== PARAMETRY ===== -->
+            <div class="generator-section">
+                <h3>Parametry generacji</h3>
+                <div class="generator-grid">
+
+                    <div>
+                        <label>Ilość miast</label>
+                        <input type="number" name="ilosc" min="1" required>
+                    </div>
+
+                    <div>
+                        <label>Ludność od</label>
+                        <input type="number" name="min_pop" required>
+                    </div>
+
+                    <div>
+                        <label>Ludność do</label>
+                        <input type="number" name="max_pop" required>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ===== AKCJE ===== -->
+            <div class="generator-actions">
+                <button class="btn-main btn-green" type="submit">
+                    Zrzuć do bazy
+                </button>
+                <a href="{{ url_for('home_page') }}" class="btn-main btn-gray">
+                    Anuluj
+                </a>
+            </div>
+
+        </form>
     {% endif %}
 
-    <form method="POST">
-
-        {% if confirm_required %}
-            <input type="hidden" name="confirm" value="yes">
-            {% for k, v in form_data.items() %}
-                <input type="hidden" name="{{ k }}" value="{{ v }}">
-            {% endfor %}
-        {% endif %}
-
-        <!-- ===== LOKALIZACJA ===== -->
-        <div class="generator-section">
-            <h3>Lokalizacja</h3>
-            <div class="generator-grid">
-
-                <div>
-                    <label>Kontynent</label>
-                    <select name="kontynent" id="kontynent" required>
-                        <option value="">— wybierz —</option>
-                        {% for k in kontynenty %}
-                            <option value="{{ k }}">{{ k }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label>Państwo</label>
-                    <select name="panstwo_id" id="panstwo" required disabled>
-                        <option value="">— wybierz kontynent —</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Region</label>
-                    <select name="region_id" id="region" required disabled>
-                        <option value="">— wybierz państwo —</option>
-                    </select>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ===== PARAMETRY ===== -->
-        <div class="generator-section">
-            <h3>Parametry generacji</h3>
-            <div class="generator-grid">
-
-                <div>
-                    <label>Ilość miast</label>
-                    <input type="number" name="ilosc" min="1" required>
-                </div>
-
-                <div>
-                    <label>Ludność od</label>
-                    <input type="number" name="min_pop" required>
-                </div>
-
-                <div>
-                    <label>Ludność do</label>
-                    <input type="number" name="max_pop" required>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ===== AKCJE ===== -->
-        <div class="generator-actions">
-            <button class="btn-main btn-green" type="submit">
-                Zrzuć do bazy
-            </button>
-            <a href="{{ url_for('home_page') }}" class="btn-main btn-gray">
-                Anuluj
-            </a>
-        </div>
-
-    </form>
 </div>
 
 <script>
