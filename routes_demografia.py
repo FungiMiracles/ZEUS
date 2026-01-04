@@ -132,6 +132,28 @@ def init_demografia_routes(app):
             min_pop = int(min_pop)
             max_pop = int(max_pop)
 
+            if ilosc > 100:
+                return render_template(
+                    "demografia_generator.html",
+                    error="Nie można wygenerować więcej niż 100 miast za jednym razem.",
+                    form_data=request.form,
+                    kontynenty=kontynenty
+                )
+            
+            # miękkie ostrzeżenie
+            if ilosc > 50 and confirm is None:
+                return render_template(
+                    "demografia_generator.html",
+                    warning=(
+                        f"Zamierzasz wygenerować {ilosc} miast. "
+                        "Może to istotnie wpłynąć na strukturę demograficzną regionu. "
+                        "Czy chcesz kontynuować?"
+                    ),
+                    confirm_required=True,
+                    form_data=request.form,
+                    kontynenty=kontynenty
+                )
+
             if min_pop > max_pop:
                 return render_template(
                     "demografia_generator.html",
@@ -151,7 +173,15 @@ def init_demografia_routes(app):
             suma_pop = sum(populacje)
             pula = region.region_ludnosc_pozamiejska or 0
 
-            if suma_pop > pula * 0.9 and confirm != "yes":
+            if confirm == "no":
+                return render_template(
+                    "demografia_generator.html",
+                    info="Anulowano generowanie miast.",
+                    form_data=request.form,
+                    kontynenty=kontynenty
+                )
+
+            if suma_pop > pula * 0.9 and confirm is None:
                 return render_template(
                     "demografia_generator.html",
                     warning=(
