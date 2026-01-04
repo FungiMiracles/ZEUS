@@ -350,61 +350,61 @@ def init_demografia_routes(app):
             ), 500
 
     def licz_dane_panstwa(panstwo_id):
-    p = Panstwo.query.get_or_404(panstwo_id)
-
-    regiony = (
-        db.session.query(
-            Region.region_nazwa,
-            Region.region_populacja
+        p = Panstwo.query.get_or_404(panstwo_id)
+    
+        regiony = (
+            db.session.query(
+                Region.region_nazwa,
+                Region.region_populacja
+            )
+            .filter(Region.panstwo_id == panstwo_id)
+            .all()
         )
-        .filter(Region.panstwo_id == panstwo_id)
-        .all()
-    )
-
-    liczba_regionow = len(regiony)
-    populacja = p.panstwo_populacja or 0
-    powierzchnia = p.panstwo_powierzchnia or 0
-
-    gestosc = round(populacja / powierzchnia, 2) if powierzchnia else 0
-
-    liczba_miast = Miasto.query.filter_by(panstwo_id=panstwo_id).count()
-
-    ludnosc_miejska = (
-        db.session.query(func.coalesce(func.sum(Miasto.miasto_populacja), 0))
-        .filter(Miasto.panstwo_id == panstwo_id)
-        .scalar()
-    )
-
-    urbanizacja = round((ludnosc_miejska / populacja) * 100, 2) if populacja else 0
-    srednia_region = round(populacja / liczba_regionow) if liczba_regionow else 0
-
-    top_miasta = (
-        Miasto.query
-        .filter_by(panstwo_id=panstwo_id)
-        .order_by(Miasto.miasto_populacja.desc())
-        .limit(3)
-        .all()
-    )
-
-    return {
-        "nazwa": p.panstwo_nazwa,
-        "populacja": populacja,
-        "powierzchnia": powierzchnia,
-        "gestosc": gestosc,
-        "liczba_regionow": liczba_regionow,
-        "regiony": [
-            {"nazwa": r.region_nazwa, "populacja": r.region_populacja}
-            for r in regiony
-        ],
-        "liczba_miast": liczba_miast,
-        "urbanizacja_pct": urbanizacja,
-        "srednia_region": srednia_region,
-        "top_miasta": [
-            {
-                "miasto_nazwa": m.miasto_nazwa,
-                "miasto_populacja": m.miasto_populacja
-            }
-            for m in top_miasta
-        ]
-    }
+    
+        liczba_regionow = len(regiony)
+        populacja = p.panstwo_populacja or 0
+        powierzchnia = p.panstwo_powierzchnia or 0
+    
+        gestosc = round(populacja / powierzchnia, 2) if powierzchnia else 0
+    
+        liczba_miast = Miasto.query.filter_by(panstwo_id=panstwo_id).count()
+    
+        ludnosc_miejska = (
+            db.session.query(func.coalesce(func.sum(Miasto.miasto_populacja), 0))
+            .filter(Miasto.panstwo_id == panstwo_id)
+            .scalar()
+        )
+    
+        urbanizacja = round((ludnosc_miejska / populacja) * 100, 2) if populacja else 0
+        srednia_region = round(populacja / liczba_regionow) if liczba_regionow else 0
+    
+        top_miasta = (
+            Miasto.query
+            .filter_by(panstwo_id=panstwo_id)
+            .order_by(Miasto.miasto_populacja.desc())
+            .limit(3)
+            .all()
+        )
+    
+        return {
+            "nazwa": p.panstwo_nazwa,
+            "populacja": populacja,
+            "powierzchnia": powierzchnia,
+            "gestosc": gestosc,
+            "liczba_regionow": liczba_regionow,
+            "regiony": [
+                {"nazwa": r.region_nazwa, "populacja": r.region_populacja}
+                for r in regiony
+            ],
+            "liczba_miast": liczba_miast,
+            "urbanizacja_pct": urbanizacja,
+            "srednia_region": srednia_region,
+            "top_miasta": [
+                {
+                    "miasto_nazwa": m.miasto_nazwa,
+                    "miasto_populacja": m.miasto_populacja
+                }
+                for m in top_miasta
+            ]
+        }
 
