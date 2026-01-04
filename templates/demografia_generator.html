@@ -125,6 +125,17 @@
         {% endif %}
     {% endwith %}
 
+    {% if confirm_required %}
+    <form method="POST">
+        {% for key, value in form_data.items() %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+    
+        <button name="confirm" value="yes">TAK</button>
+        <button name="confirm" value="no">NIE</button>
+    </form>
+    {% endif %}
+
     {% if warning %}
         <div class="zeus-msg zeus-warning">
             {{ warning }}
