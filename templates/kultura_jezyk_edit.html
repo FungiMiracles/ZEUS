@@ -1,0 +1,163 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+Kultura — Edytuj język
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — KULTURA: EDYTUJ JĘZYK
+============================================================ */
+
+.jezyk-edit {
+    max-width: 900px;
+    margin: 25px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.jezyk-edit .header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.jezyk-edit h1 {
+    font-size: 1.8em;
+    font-weight: 800;
+}
+
+.form-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.form-row {
+    margin-bottom: 18px;
+}
+
+.form-row label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-row input,
+.form-row textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-family: inherit;
+}
+
+.form-row textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 768px) {
+
+    .jezyk-edit {
+        margin: 15px 10px 30px 10px;
+    }
+
+    .jezyk-edit h1 {
+        font-size: 1.45em;
+    }
+
+    .form-box {
+        padding: 18px 16px;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+</style>
+
+<div class="jezyk-edit">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <h1>Edytuj język</h1>
+    </div>
+
+    <div class="form-box">
+
+        <form method="POST">
+
+            <!-- NAZWA -->
+            <div class="form-row">
+                <label>Nazwa języka *</label>
+                <input name="jezyk_nazwa"
+                       value="{{ jezyk.jezyk_nazwa }}"
+                       required>
+            </div>
+
+            <!-- KOD -->
+            <div class="form-row">
+                <label>Kod języka (2 litery)</label>
+                <input name="jezyk_kod"
+                       maxlength="2"
+                       value="{{ jezyk.jezyk_kod or '' }}"
+                       style="text-transform: uppercase;">
+            </div>
+
+            <!-- RODZINA -->
+            <div class="form-row">
+                <label>Rodzina językowa</label>
+                <input name="jezyk_rodzina"
+                       value="{{ jezyk.jezyk_rodzina or '' }}"
+                       placeholder="np. indoeuropejska">
+            </div>
+
+            <!-- PRZYKŁAD PL -->
+            <div class="form-row">
+                <label>Przykład w języku polskim</label>
+                <textarea name="przyklad_polski">{{ jezyk.przyklad_polski or '' }}</textarea>
+            </div>
+
+            <!-- PRZYKŁAD DOCELOWY -->
+            <div class="form-row">
+                <label>Przykład w języku docelowym</label>
+                <textarea name="przyklad_docelowy">{{ jezyk.przyklad_docelowy or '' }}</textarea>
+            </div>
+
+            <!-- OPIS -->
+            <div class="form-row">
+                <label>Opis języka</label>
+                <textarea name="opis" style="min-height: 140px;">{{ jezyk.opis or '' }}</textarea>
+            </div>
+
+            <!-- AKCJE -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">
+                    Zapisz zmiany
+                </button>
+
+                <a href="{{ url_for('kultura_jezyk_form', jezyk_id=jezyk.jezyk_id) }}"
+                   class="btn btn-secondary">
+                    Wróć
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
