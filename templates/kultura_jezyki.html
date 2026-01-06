@@ -418,7 +418,7 @@ Kultura — Języki
                                     Edytuj przypisanie
                                 </a>
                         
-                                <a href="#"
+                                <a href="{{ url_for('kultura_jezyk_usun', jezyk_id=j.jezyk_id) }}"
                                    class="btn-zeus btn-danger"
                                    onclick="return confirm('Czy na pewno chcesz usunąć ten język?');">
                                     Usuń
