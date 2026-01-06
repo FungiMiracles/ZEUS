@@ -59,7 +59,7 @@ Kultura — Języki
     text-align: center;
 }
 
-/* ===== ACTIONS ===== */
+/* ===== ACTIONS (TOP) ===== */
 
 .actions {
     display: flex;
@@ -93,6 +93,8 @@ Kultura — Języki
     margin-bottom: 10px;
 }
 
+/* ===== TABELA ===== */
+
 .lang-table {
     width: 100%;
     border-collapse: collapse;
@@ -106,6 +108,8 @@ Kultura — Języki
     vertical-align: top;
 }
 
+/* ===== PRZYCISKI — ZEUS ===== */
+
 .btn-zeus {
     padding: 9px 18px;
     border-radius: 8px;
@@ -114,16 +118,51 @@ Kultura — Języki
     border: none;
     cursor: pointer;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease;
+    display: inline-block;
 }
 
+/* Zeus — standard (niebieski) */
+.btn-zeus {
+    background: #5d7dce;
+    color: #ffffff;
+}
+
+.btn-zeus:hover {
+    background: #4a6bb8;
+    color: #ffffff;
+}
+
+/* Zeus — ciemny (szczegóły) */
+.btn-zeus-dark {
+    background: #34495e;
+    color: #ffffff;
+}
+
+.btn-zeus-dark:hover {
+    background: #2c3e50;
+    color: #ffffff;
+}
+
+/* Danger */
+.btn-danger {
+    background: #a00d0d;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #7f0a0a;
+}
+
+/* Zachowane globalne */
 .btn-success {
     background-color: #27ae60;
-    color: white;
+    color: #ffffff;
 }
 
 .btn-primary {
-   margin-top: 18px;
+    margin-top: 18px;
     background: #2c73d2;
     color: #ffffff !important;
     padding: 9px 18px;
@@ -136,13 +175,26 @@ Kultura — Języki
     background: #1f5bb0;
 }
 
+/* ===== AKCJE POD JĘZYKIEM ===== */
+
+.language-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
 @media (max-width: 768px) {
 
     .kultura-jezyki {
         margin: 15px 10px 30px 10px;
     }
 
-    /* ===== HEADER ===== */
+    /* HEADER */
 
     .page-header h1 {
         font-size: 1.45em;
@@ -152,7 +204,7 @@ Kultura — Języki
         font-size: 0.9em;
     }
 
-    /* ===== FILTRY ===== */
+    /* FILTRY */
 
     .filter-box {
         padding: 16px 16px;
@@ -177,7 +229,7 @@ Kultura — Języki
         font-size: 1em;
     }
 
-    /* ===== ACTIONS ===== */
+    /* TOP ACTIONS */
 
     .actions {
         flex-direction: column;
@@ -191,7 +243,7 @@ Kultura — Języki
         font-size: 1em;
     }
 
-    /* ===== WYNIKI ===== */
+    /* WYNIKI */
 
     .results-box {
         padding: 18px 16px;
@@ -206,7 +258,7 @@ Kultura — Języki
         line-height: 1.45;
     }
 
-    /* ===== TABELA ===== */
+    /* TABELA */
 
     .lang-table th,
     .lang-table td {
@@ -216,6 +268,18 @@ Kultura — Języki
 
     .lang-table th {
         font-weight: 700;
+    }
+
+    /* AKCJE JĘZYKA */
+
+    .language-actions {
+        flex-direction: column;
+    }
+
+    .language-actions .btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
     }
 }
 </style>
@@ -330,6 +394,33 @@ Kultura — Języki
                                 <td>{{ j.przyklad_docelowy or "—" }}</td>
                             </tr>
                         </table>
+
+                       <!-- ===== AKCJE JĘZYKA ===== -->
+                            <div class="language-actions">
+                        
+                                <a href="{{ url_for('kultura_jezyk_szczegoly', jezyk_id=j.jezyk_id) }}"
+                                   class="btn btn-zeus-dark">
+                                    Szczegóły
+                                </a>
+                        
+                                <a href="{{ url_for('kultura_jezyk_edit', jezyk_id=j.jezyk_id) }}"
+                                   class="btn btn-zeus">
+                                    Edytuj język
+                                </a>
+                        
+                                <a href="{{ url_for('kultura_jezyk_przypisz') }}?jezyk_id={{ j.jezyk_id }}"
+                                   class="btn btn-zeus">
+                                    Edytuj przypisanie
+                                </a>
+                        
+                                <a href="{{ url_for('kultura_jezyk_delete', jezyk_id=j.jezyk_id) }}"
+                                   class="btn btn-danger"
+                                   onclick="return confirm('Czy na pewno chcesz usunąć ten język?');">
+                                    Usuń
+                                </a>
+                        
+                            </div>
+
 
                     </div>
                 {% endfor %}
