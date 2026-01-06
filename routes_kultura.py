@@ -230,5 +230,45 @@ def init_kultura_routes(app):
             wyniki=wyniki
         )
 
+    @app.route("/kultura/jezyki/usun/<int:jezyk_id>")
+    def kultura_jezyk_usun(jezyk_id):
+    
+        jezyk = Jezyk.query.get(jezyk_id)
+    
+        if not jezyk:
+            flash("Nie znaleziono wskazanego języka.", "error")
+            return redirect(url_for("kultura_jezyki"))
+    
+        powiazania = JezykiPerPanstwo.query.all()
+    
+        for p in powiazania:
+            if p.jezyk_urzedowy1 == jezyk_id:
+                p.jezyk_urzedowy1 = None
+            if p.jezyk_urzedowy2 == jezyk_id:
+                p.jezyk_urzedowy2 = None
+            if p.jezyk_urzedowy3 == jezyk_id:
+                p.jezyk_urzedowy3 = None
+    
+            if p.jezyk_mniejszosciowy1 == jezyk_id:
+                p.jezyk_mniejszosciowy1 = None
+            if p.jezyk_mniejszosciowy2 == jezyk_id:
+                p.jezyk_mniejszosciowy2 = None
+            if p.jezyk_mniejszosciowy3 == jezyk_id:
+                p.jezyk_mniejszosciowy3 = None
+            if p.jezyk_mniejszosciowy4 == jezyk_id:
+                p.jezyk_mniejszosciowy4 = None
+            if p.jezyk_mniejszosciowy5 == jezyk_id:
+                p.jezyk_mniejszosciowy5 = None
+    
+        # ===============================
+        # USUNIĘCIE JĘZYKA
+        # ===============================
+    
+        db.session.delete(jezyk)
+        db.session.commit()
+    
+        flash("Język został usunięty.", "success")
+        return redirect(url_for("kultura_jezyki"))
+
 
 
