@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
 from models import Panstwo, Jezyk, JezykiPerPanstwo
 from sqlalchemy import func
+from permissions import wymaga_roli
 
 def init_kultura_routes(app):
 
@@ -64,6 +65,7 @@ def init_kultura_routes(app):
         ])
 
     @app.route("/kultura/jezyki/add", methods=["GET", "POST"])
+    @wymaga_roli("tworzyciel", "wszechmocny")
     def kultura_jezyk_add():
     
         if request.method == "POST":
@@ -119,6 +121,7 @@ def init_kultura_routes(app):
         return render_template("kultura_jezyk_add.html")
 
     @app.route("/kultura/jezyki/przypisz", methods=["GET", "POST"])
+    @wymaga_roli("tworzyciel", "wszechmocny")
     def kultura_jezyk_przypisz():
     
         def normalize(v):
@@ -233,6 +236,7 @@ def init_kultura_routes(app):
         )
 
     @app.route("/kultura/jezyki/usun/<int:jezyk_id>")
+    @wymaga_roli("wszechmocny")
     def kultura_jezyk_usun(jezyk_id):
     
         jezyk = Jezyk.query.get(jezyk_id)
@@ -287,6 +291,7 @@ def init_kultura_routes(app):
         )
 
     @app.route("/kultura/jezyki/edytuj/<int:jezyk_id>", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
     def kultura_jezyk_edit(jezyk_id):
     
         jezyk = Jezyk.query.get(jezyk_id)
