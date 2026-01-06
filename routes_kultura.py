@@ -119,20 +119,23 @@ def init_kultura_routes(app):
     @app.route("/kultura/jezyki/przypisz", methods=["GET", "POST"])
     def kultura_jezyk_przypisz():
     
+        def normalize(v):
+            return v if v else None
+    
         if request.method == "POST":
             panstwo_id = request.form.get("panstwo_id")
     
             # języki urzędowe
-            urz1 = request.form.get("jezyk_urzedowy1")
-            urz2 = request.form.get("jezyk_urzedowy2")
-            urz3 = request.form.get("jezyk_urzedowy3")
+            urz1 = normalize(request.form.get("jezyk_urzedowy1"))
+            urz2 = normalize(request.form.get("jezyk_urzedowy2"))
+            urz3 = normalize(request.form.get("jezyk_urzedowy3"))
     
             # języki mniejszościowe
-            min1 = request.form.get("jezyk_mniejszosciowy1")
-            min2 = request.form.get("jezyk_mniejszosciowy2")
-            min3 = request.form.get("jezyk_mniejszosciowy3")
-            min4 = request.form.get("jezyk_mniejszosciowy4")
-            min5 = request.form.get("jezyk_mniejszosciowy5")
+            min1 = normalize(request.form.get("jezyk_mniejszosciowy1"))
+            min2 = normalize(request.form.get("jezyk_mniejszosciowy2"))
+            min3 = normalize(request.form.get("jezyk_mniejszosciowy3"))
+            min4 = normalize(request.form.get("jezyk_mniejszosciowy4"))
+            min5 = normalize(request.form.get("jezyk_mniejszosciowy5"))
     
             # ===============================
             # WALIDACJA
@@ -179,5 +182,6 @@ def init_kultura_routes(app):
             return redirect(url_for("kultura_jezyki"))
     
         return render_template("kultura_jezyk_przypisz.html")
+
 
 
