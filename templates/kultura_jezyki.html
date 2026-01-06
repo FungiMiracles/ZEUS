@@ -156,15 +156,31 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Placeholder – tu później wjedzie fetch do API
-        panstwoSelect.disabled = false;
-        panstwoSelect.innerHTML = "<option value=''>— wszystkie państwa —</option>";
+        panstwoSelect.disabled = true;
+        panstwoSelect.innerHTML = "<option value=''>Ładowanie państw...</option>";
 
-        // DEBUG / ETAP 0
-        const opt = document.createElement("option");
-        opt.value = "TEST";
-        opt.textContent = "Państwo testowe";
-        panstwoSelect.appendChild(opt);
+        fetch(`/api/kultura/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Błąd pobierania państw");
+                }
+                return response.json();
+            })
+            .then(data => {
+                panstwoSelect.disabled = false;
+                panstwoSelect.innerHTML = "<option value=''>— wszystkie państwa —</option>";
+
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+                    panstwoSelect.appendChild(opt);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                panstwoSelect.innerHTML = "<option value=''>Błąd ładowania</option>";
+            });
     });
 
 });
