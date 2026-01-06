@@ -72,7 +72,7 @@ Kultura — Języki
     <!-- ===== FILTRY ===== -->
     <div class="filter-box">
 
-    <form id="jezyki-filter-form">
+    <form id="jezyki-filter-form" method="POST" action="{{ url_for('kultura_jezyki_search') }}">
 
               <div style="
                   display: grid;
@@ -122,26 +122,58 @@ Kultura — Języki
               </div>
       
           </form>
+
+           <div class="actions">
+              <a href="{{ url_for('kultura_jezyk_add') }}" class="btn btn-success">
+                  Dodaj nowy język
+              </a>
+          </div>
+      
+         <div class="actions">
+              <a href="{{ url_for('kultura_jezyk_przypisz') }}" class="btn btn-success">
+                  Przypisz język do państwa
+              </a>
+          </div>
       
       </div>
 
-    <!-- ===== AKCJE ===== -->
-    <div class="actions">
-        <a href="{{ url_for('kultura_jezyk_add') }}" class="btn btn-success">
-            Dodaj nowy język
-        </a>
-    </div>
+      {% if wyniki is defined %}
+    {% if wyniki %}
+        {% for j in wyniki %}
+            <div class="language-card">
 
-   <div class="actions">
-        <a href="{{ url_for('kultura_jezyk_przypisz') }}" class="btn btn-success">
-            Przypisz język do państwa
-        </a>
-    </div>
+                <h3>
+                    {{ j.jezyk_nazwa }}
+                    {% if j.jezyk_kod %}
+                        <span style="font-size:0.75em;color:#666;">
+                            ({{ j.jezyk_kod }})
+                        </span>
+                    {% endif %}
+                </h3>
 
-    <!-- ===== WYNIKI ===== -->
-    <div class="results-box">
-        Wybierz kryteria wyszukiwania, aby wyświetlić języki.
-    </div>
+                {% if j.opis %}
+                    <p>{{ j.opis }}</p>
+                {% endif %}
+
+                <table class="lang-table">
+                    <tr>
+                        <th>Polski</th>
+                        <th>Język docelowy</th>
+                    </tr>
+                    <tr>
+                        <td>{{ j.przyklad_polski or "—" }}</td>
+                        <td>{{ j.przyklad_docelowy or "—" }}</td>
+                    </tr>
+                </table>
+
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="results-box">
+            Brak wyników dla wybranych filtrów.
+        </div>
+    {% endif %}
+{% endif %}
 
 </div>
 
