@@ -41,88 +41,65 @@ label {
     display: block;
 }
 
+/* ============================================================
+   ZEUS — KULTURA: PRZYPISANIE JĘZYKÓW (MOBILE)
+============================================================ */
+
 @media (max-width: 768px) {
 
-    .kultura-jezyki {
+    .jezyk-przypisz {
         margin: 15px 10px 30px 10px;
     }
 
-    /* ===== HEADER ===== */
+    /* ===== SEKCJE ===== */
 
-    .page-header h1 {
-        font-size: 1.45em;
-    }
-
-    .page-header p {
-        font-size: 0.9em;
-    }
-
-    /* ===== FILTRY ===== */
-
-    .filter-box {
+    .section-box {
         padding: 16px 16px;
+        margin-bottom: 18px;
     }
 
-    .filters-grid {
+    .section-box h2 {
+        font-size: 1.1em;
+        margin-bottom: 12px;
+    }
+
+    /* ===== GRID ===== */
+
+    .grid {
         grid-template-columns: 1fr;
-        gap: 14px;
+        gap: 12px;
     }
 
-    .filters-grid label {
+    /* ===== LABELS ===== */
+
+    label {
+        font-size: 0.9em;
         margin-bottom: 4px;
     }
 
-    .filter-actions {
-        margin-top: 16px;
+    /* ===== SELECT / INPUT ===== */
+
+    select.form-control,
+    input.form-control {
+        font-size: 1em;
+        padding: 9px 10px;
     }
 
-    .filter-actions .btn {
+    /* ===== PRZYCISKI ===== */
+
+    .btn {
         width: 100%;
         padding: 10px 0;
         font-size: 1em;
     }
 
-    /* ===== ACTIONS ===== */
+    /* ===== DOLNE AKCJE ===== */
 
-    .actions {
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .actions .btn {
-        width: 100%;
-        padding: 10px 0;
-        font-size: 1em;
-    }
-
-    /* ===== WYNIKI ===== */
-
-    .results-box {
-        padding: 18px 16px;
-    }
-
-    .language-card h3 {
-        font-size: 1.1em;
-    }
-
-    .language-card p {
-        font-size: 0.95em;
-        line-height: 1.45;
-    }
-
-    /* ===== TABELA ===== */
-
-    .lang-table th,
-    .lang-table td {
-        padding: 8px 9px;
-        font-size: 0.9em;
-    }
-
-    .lang-table th {
-        font-weight: 700;
+    form > div:last-child {
+        margin-top: 20px;
     }
 }
+
 </style>
 
 <div class="jezyk-przypisz">
