@@ -371,3 +371,66 @@ class Stosunki(db.Model):
             f"{self.nazwa_wydarzenia} | "
             f"{self.zakres_dat_label}>"
         )
+
+class Jezyk(db.Model):
+    __tablename__ = "jezyki"
+
+    jezyk_id = db.Column(db.Integer, primary_key=True)
+
+    jezyk_nazwa = db.Column(db.Text, nullable=False)
+    jezyk_kod = db.Column(db.String(2))
+    jezyk_rodzina = db.Column(db.Text)
+
+    przyklad_polski = db.Column(db.Text)
+    przyklad_docelowy = db.Column(db.Text)
+
+    opis = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"<Jezyk {self.jezyk_nazwa}>"
+
+class JezykiPerPanstwo(db.Model):
+    __tablename__ = "jezyki_per_panstwo"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    panstwo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE"),
+        nullable=False,
+        unique=True
+    )
+
+    jezyk_urzedowy1 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_urzedowy2 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_urzedowy3 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+
+    jezyk_mniejszosciowy1 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_mniejszosciowy2 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_mniejszosciowy3 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_mniejszosciowy4 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+    jezyk_mniejszosciowy5 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
+
+    panstwo = db.relationship(
+        "Panstwo",
+        backref=db.backref("profil_jezykowy", uselist=False)
+    )
+
+    def get_jezyki_urzedowe(self):
+        return [
+            self.jezyk_urzedowy1,
+            self.jezyk_urzedowy2,
+            self.jezyk_urzedowy3,
+        ]
+
+    def get_jezyki_mniejszosciowe(self):
+        return [
+            self.jezyk_mniejszosciowy1,
+            self.jezyk_mniejszosciowy2,
+            self.jezyk_mniejszosciowy3,
+            self.jezyk_mniejszosciowy4,
+            self.jezyk_mniejszosciowy5,
+        ]
+
+    def __repr__(self):
+        return f"<JezykiPerPanstwo panstwo_id={self.panstwo_id}>"
