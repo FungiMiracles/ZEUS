@@ -72,6 +72,7 @@ def init_kultura_routes(app):
             przyklad_pl = request.form.get("przyklad_polski", "").strip()
             przyklad_doc = request.form.get("przyklad_docelowy", "").strip()
             opis = request.form.get("opis", "").strip()
+            rodzina = request.form.get("jezyk_rodzina", "").strip()
     
             # ===============================
             # WALIDACJA
@@ -103,6 +104,7 @@ def init_kultura_routes(app):
             jezyk = Jezyk(
                 jezyk_nazwa=nazwa,
                 jezyk_kod=kod or None,
+                jezyk_rodzina=rodzina or None,
                 przyklad_polski=przyklad_pl or None,
                 przyklad_docelowy=przyklad_doc or None,
                 opis=opis or None,
