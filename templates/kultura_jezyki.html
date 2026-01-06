@@ -143,7 +143,12 @@ Kultura — Języki
 document.addEventListener("DOMContentLoaded", function () {
 
     const kontynentSelect = document.getElementById("filter-kontynent");
-    const panstwoSelect = document.getElementById("filter-panstwo");
+    const panstwoSelect   = document.getElementById("filter-panstwo");
+    const jezykSelect     = document.getElementById("filter-jezyk");
+
+    // ===============================
+    // KONTYNENT → PAŃSTWO
+    // ===============================
 
     kontynentSelect.addEventListener("change", function () {
         const kontynent = this.value;
@@ -183,56 +188,17 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const kontynentSelect = document.getElementById("filter-kontynent");
-    const panstwoSelect = document.getElementById("filter-panstwo");
-    const jezykSelect = document.getElementById("filter-jezyk");
-
-    // ===============================
-    // KONTYNENT → PAŃSTWO
-    // ===============================
-
-    kontynentSelect.addEventListener("change", function () {
-        const kontynent = this.value;
-
-        panstwoSelect.innerHTML = "";
-
-        if (!kontynent) {
-            panstwoSelect.disabled = true;
-            panstwoSelect.innerHTML = "<option value=''>— wybierz kontynent —</option>";
-            return;
-        }
-
-        panstwoSelect.disabled = true;
-        panstwoSelect.innerHTML = "<option value=''>Ładowanie państw...</option>";
-
-        fetch(`/api/kultura/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
-            .then(r => r.json())
-            .then(data => {
-                panstwoSelect.disabled = false;
-                panstwoSelect.innerHTML = "<option value=''>— wszystkie państwa —</option>";
-
-                data.forEach(p => {
-                    const opt = document.createElement("option");
-                    opt.value = p.id;
-                    opt.textContent = p.nazwa;
-                    panstwoSelect.appendChild(opt);
-                });
-            })
-            .catch(() => {
-                panstwoSelect.innerHTML = "<option value=''>Błąd ładowania</option>";
-            });
-    });
-
     // ===============================
     // LISTA JĘZYKÓW (ON LOAD)
     // ===============================
 
     fetch("/api/kultura/jezyki")
-        .then(r => r.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Błąd pobierania języków");
+            }
+            return response.json();
+        })
         .then(data => {
             data.forEach(j => {
                 const opt = document.createElement("option");
@@ -241,12 +207,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 jezykSelect.appendChild(opt);
             });
         })
-        .catch(() => {
+        .catch(err => {
+            console.error(err);
             jezykSelect.innerHTML = "<option value=''>Błąd ładowania języków</option>";
         });
 
 });
 </script>
-
 
 {% endblock %}
