@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify
 from extensions import db
-from models import Panstwo
+from models import Panstwo, Jezyk
 
 def init_kultura_routes(app):
 
@@ -42,4 +42,24 @@ def init_kultura_routes(app):
             {"id": p.PANSTWO_ID, "nazwa": p.panstwo_nazwa}
             for p in panstwa
         ])
+
+    from models import Jezyk
+
+
+    @app.route("/api/kultura/jezyki")
+    def api_kultura_jezyki():
+        jezyki = (
+            Jezyk.query
+            .order_by(Jezyk.jezyk_nazwa.asc())
+            .all()
+        )
+    
+        return jsonify([
+            {
+                "id": j.jezyk_id,
+                "nazwa": j.jezyk_nazwa
+            }
+            for j in jezyki
+        ])
+
 
