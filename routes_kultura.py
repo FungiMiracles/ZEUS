@@ -347,7 +347,7 @@ def init_kultura_routes(app):
         # GET — formularz edycji
         # ===============================
         return render_template(
-            "kultura_jezyk_add.html",
+            "kultura_jezyk_edit.html",
             jezyk=jezyk,
             tryb="edit"
         )
