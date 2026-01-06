@@ -20,24 +20,6 @@ def init_kultura_routes(app):
     def kultura_jezyki():
         return render_template("kultura_jezyki.html")
 
-    def init_kultura_routes(app):
-
-    # ===============================
-    # MODUŁ KULTURY – STRONA GŁÓWNA
-    # ===============================
-
-    @app.route("/kultura")
-    def kultura_home():
-        return render_template("kultura.html")
-
-    # ===============================
-    # MODUŁ KULTURY – JĘZYKI
-    # ===============================
-
-    @app.route("/kultura/jezyki")
-    def kultura_jezyki():
-        return render_template("kultura_jezyki.html")
-
     # ===============================
     # API – PAŃSTWA PO KONTYNENCIE
     # ===============================
