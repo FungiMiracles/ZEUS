@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
-from models import Panstwo, Jezyk
+from models import Panstwo, Jezyk, JezykiPerPanstwo
 from sqlalchemy import func
 
 def init_kultura_routes(app):
@@ -115,5 +115,69 @@ def init_kultura_routes(app):
             return redirect(url_for("kultura_jezyki"))
     
         return render_template("kultura_jezyk_add.html")
+
+    @app.route("/kultura/jezyki/przypisz", methods=["GET", "POST"])
+    def kultura_jezyk_przypisz():
+    
+        if request.method == "POST":
+            panstwo_id = request.form.get("panstwo_id")
+    
+            # języki urzędowe
+            urz1 = request.form.get("jezyk_urzedowy1")
+            urz2 = request.form.get("jezyk_urzedowy2")
+            urz3 = request.form.get("jezyk_urzedowy3")
+    
+            # języki mniejszościowe
+            min1 = request.form.get("jezyk_mniejszosciowy1")
+            min2 = request.form.get("jezyk_mniejszosciowy2")
+            min3 = request.form.get("jezyk_mniejszosciowy3")
+            min4 = request.form.get("jezyk_mniejszosciowy4")
+            min5 = request.form.get("jezyk_mniejszosciowy5")
+    
+            # ===============================
+            # WALIDACJA
+            # ===============================
+    
+            if not panstwo_id:
+                flash("Musisz wybrać państwo.", "error")
+                return redirect(url_for("kultura_jezyk_przypisz"))
+    
+            if not urz1:
+                flash("Musisz wybrać co najmniej język urzędowy 1.", "error")
+                return redirect(url_for("kultura_jezyk_przypisz"))
+    
+            wszystkie = [urz1, urz2, urz3, min1, min2, min3, min4, min5]
+            wszystkie = [j for j in wszystkie if j]
+    
+            if len(wszystkie) != len(set(wszystkie)):
+                flash("Ten sam język nie może być przypisany wielokrotnie.", "error")
+                return redirect(url_for("kultura_jezyk_przypisz"))
+    
+            # ===============================
+            # ZAPIS / UPDATE
+            # ===============================
+    
+            rekord = JezykiPerPanstwo.query.filter_by(panstwo_id=panstwo_id).first()
+    
+            if not rekord:
+                rekord = JezykiPerPanstwo(panstwo_id=panstwo_id)
+    
+            rekord.jezyk_urzedowy1 = urz1
+            rekord.jezyk_urzedowy2 = urz2
+            rekord.jezyk_urzedowy3 = urz3
+    
+            rekord.jezyk_mniejszosciowy1 = min1
+            rekord.jezyk_mniejszosciowy2 = min2
+            rekord.jezyk_mniejszosciowy3 = min3
+            rekord.jezyk_mniejszosciowy4 = min4
+            rekord.jezyk_mniejszosciowy5 = min5
+    
+            db.session.add(rekord)
+            db.session.commit()
+    
+            flash("Profil językowy państwa został zapisany.", "success")
+            return redirect(url_for("kultura_jezyki"))
+    
+        return render_template("kultura_jezyk_przypisz.html")
 
 
