@@ -71,8 +71,59 @@ Kultura — Języki
 
     <!-- ===== FILTRY ===== -->
     <div class="filter-box">
-        <p><strong>Filtry wyszukiwania</strong> (w przygotowaniu)</p>
-    </div>
+
+    <form id="jezyki-filter-form">
+
+              <div style="
+                  display: grid;
+                  grid-template-columns: repeat(3, 1fr);
+                  gap: 18px;
+                  align-items: end;
+              ">
+      
+                  <!-- KONTYNENT -->
+                  <div>
+                      <label for="filter-kontynent"><strong>Kontynent</strong></label>
+                      <select id="filter-kontynent" name="kontynent" class="form-control">
+                          <option value="">— wszystkie kontynenty —</option>
+                          <option value="Kao">Kao</option>
+                          <option value="Beifa">Beifa</option>
+                          <option value="Anzinia">Anzinia</option>
+                          <option value="Peryfa">Peryfa</option>
+                          <option value="Wyspy Większe">Wyspy Większe</option>
+                          <option value="Wyspy Mniejsze">Wyspy Mniejsze</option>
+                      </select>
+                  </div>
+      
+                  <!-- PAŃSTWO -->
+                  <div>
+                      <label for="filter-panstwo"><strong>Państwo</strong></label>
+                      <select id="filter-panstwo" name="panstwo" class="form-control" disabled>
+                          <option value="">— wybierz kontynent —</option>
+                      </select>
+                  </div>
+      
+                  <!-- JĘZYK -->
+                  <div>
+                      <label for="filter-jezyk"><strong>Język</strong></label>
+                      <select id="filter-jezyk" name="jezyk" class="form-control">
+                          <option value="">— wszystkie języki —</option>
+                          <!-- docelowo: jezyki z bazy -->
+                      </select>
+                  </div>
+      
+              </div>
+      
+              <!-- AKCJE -->
+              <div style="margin-top: 20px; text-align: center;">
+                  <button type="submit" class="btn btn-primary">
+                      Szukaj
+                  </button>
+              </div>
+      
+          </form>
+      
+      </div>
 
     <!-- ===== AKCJE ===== -->
     <div class="actions">
@@ -87,5 +138,37 @@ Kultura — Języki
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const kontynentSelect = document.getElementById("filter-kontynent");
+    const panstwoSelect = document.getElementById("filter-panstwo");
+
+    kontynentSelect.addEventListener("change", function () {
+        const kontynent = this.value;
+
+        panstwoSelect.innerHTML = "";
+
+        if (!kontynent) {
+            panstwoSelect.disabled = true;
+            panstwoSelect.innerHTML = "<option value=''>— wybierz kontynent —</option>";
+            return;
+        }
+
+        // Placeholder – tu później wjedzie fetch do API
+        panstwoSelect.disabled = false;
+        panstwoSelect.innerHTML = "<option value=''>— wszystkie państwa —</option>";
+
+        // DEBUG / ETAP 0
+        const opt = document.createElement("option");
+        opt.value = "TEST";
+        opt.textContent = "Państwo testowe";
+        panstwoSelect.appendChild(opt);
+    });
+
+});
+</script>
+
 
 {% endblock %}
