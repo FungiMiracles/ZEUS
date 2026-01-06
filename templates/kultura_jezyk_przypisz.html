@@ -1,0 +1,163 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+Kultura — Przypisz języki do państwa
+{% endblock %}
+
+{% block content %}
+
+<style>
+.jezyk-przypisz {
+    max-width: 1100px;
+    margin: 25px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.section-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 25px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.section-box h2 {
+    font-size: 1.25em;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+</style>
+
+<div class="jezyk-przypisz">
+
+    <h1 style="text-align:center;margin-bottom:30px;">
+        Przypisz języki do państwa
+    </h1>
+
+    <form method="POST">
+
+        <!-- ===============================
+             PAŃSTWO
+        =============================== -->
+        <div class="section-box">
+            <h2>Państwo</h2>
+
+            <div class="grid">
+                <div>
+                    <label>Kontynent</label>
+                    <select id="filter-kontynent" class="form-control">
+                        <option value="">— wybierz —</option>
+                        <option>Kao</option>
+                        <option>Beifa</option>
+                        <option>Anzinia</option>
+                        <option>Peryfa</option>
+                        <option>Wyspy Większe</option>
+                        <option>Wyspy Mniejsze</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Państwo</label>
+                    <select id="filter-panstwo" name="panstwo_id" class="form-control" disabled>
+                        <option value="">— wybierz kontynent —</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===============================
+             JĘZYKI URZĘDOWE
+        =============================== -->
+        <div class="section-box">
+            <h2>Języki urzędowe</h2>
+
+            <div class="grid">
+                <select name="jezyk_urzedowy1" class="form-control" required></select>
+                <select name="jezyk_urzedowy2" class="form-control"></select>
+                <select name="jezyk_urzedowy3" class="form-control"></select>
+            </div>
+        </div>
+
+        <!-- ===============================
+             JĘZYKI MNIEJSZOŚCIOWE
+        =============================== -->
+        <div class="section-box">
+            <h2>Języki mniejszościowe</h2>
+
+            <div class="grid">
+                <select name="jezyk_mniejszosciowy1" class="form-control"></select>
+                <select name="jezyk_mniejszosciowy2" class="form-control"></select>
+                <select name="jezyk_mniejszosciowy3" class="form-control"></select>
+                <select name="jezyk_mniejszosciowy4" class="form-control"></select>
+                <select name="jezyk_mniejszosciowy5" class="form-control"></select>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:30px;">
+            <button class="btn btn-success">Zapisz</button>
+            <a href="{{ url_for('kultura_jezyki') }}" class="btn btn-secondary">Anuluj</a>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const kontynent = document.getElementById("filter-kontynent");
+    const panstwo = document.getElementById("filter-panstwo");
+    const selects = document.querySelectorAll("select[name^='jezyk_']");
+
+    // ----- państwa -----
+    kontynent.addEventListener("change", () => {
+        panstwo.disabled = true;
+        panstwo.innerHTML = "<option>Ładowanie...</option>";
+
+        fetch(`/api/kultura/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent.value)}`)
+            .then(r => r.json())
+            .then(data => {
+                panstwo.disabled = false;
+                panstwo.innerHTML = "<option value=''>— wybierz —</option>";
+                data.forEach(p => {
+                    const o = document.createElement("option");
+                    o.value = p.id;
+                    o.textContent = p.nazwa;
+                    panstwo.appendChild(o);
+                });
+            });
+    });
+
+    // ----- języki -----
+    fetch("/api/kultura/jezyki")
+        .then(r => r.json())
+        .then(data => {
+            selects.forEach(sel => {
+                sel.innerHTML = "<option value=''>— brak —</option>";
+                data.forEach(j => {
+                    const o = document.createElement("option");
+                    o.value = j.id;
+                    o.textContent = j.nazwa;
+                    sel.appendChild(o);
+                });
+            });
+        });
+
+});
+</script>
+
+{% endblock %}
