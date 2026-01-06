@@ -272,5 +272,18 @@ def init_kultura_routes(app):
         flash("Język został usunięty.", "success")
         return redirect(url_for("kultura_jezyki"))
 
+    @app.route("/kultura/jezyki/<int:jezyk_id>")
+    def kultura_jezyk_form(jezyk_id):
+    
+        jezyk = Jezyk.query.get(jezyk_id)
+    
+        if not jezyk:
+            flash("Nie znaleziono wskazanego języka.", "error")
+            return redirect(url_for("kultura_jezyki"))
+    
+        return render_template(
+            "kultura_jezyk_form.html",
+            jezyk=jezyk
+        )
 
 
