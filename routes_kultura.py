@@ -183,5 +183,52 @@ def init_kultura_routes(app):
     
         return render_template("kultura_jezyk_przypisz.html")
 
+    @app.route("/kultura/jezyki/search", methods=["POST"])
+    def kultura_jezyki_search():
+    
+        kontynent = request.form.get("kontynent")
+        panstwo_id = request.form.get("panstwo")
+        jezyk_id = request.form.get("jezyk")
+    
+        query = db.session.query(Jezyk).distinct()
+    
+        # ===============================
+        # FILTR PO JĘZYKU
+        # ===============================
+        if jezyk_id:
+            query = query.filter(Jezyk.jezyk_id == jezyk_id)
+    
+        # ===============================
+        # FILTR PO PAŃSTWIE / KONTYNENCIE
+        # ===============================
+        if panstwo_id or kontynent:
+            query = query.join(
+                JezykiPerPanstwo,
+                db.or_(
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_urzedowy1,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_urzedowy2,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_urzedowy3,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_mniejszosciowy1,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_mniejszosciowy2,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_mniejszosciowy3,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_mniejszosciowy4,
+                    Jezyk.jezyk_id == JezykiPerPanstwo.jezyk_mniejszosciowy5,
+                )
+            )
+    
+            query = query.join(Panstwo, Panstwo.PANSTWO_ID == JezykiPerPanstwo.panstwo_id)
+    
+            if panstwo_id:
+                query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
+            elif kontynent:
+                query = query.filter(Panstwo.kontynent == kontynent)
+    
+        wyniki = query.order_by(Jezyk.jezyk_nazwa).all()
+    
+        return render_template(
+            "kultura_jezyki.html",
+            wyniki=wyniki
+        )
+
 
 
