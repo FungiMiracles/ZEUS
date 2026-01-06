@@ -1,0 +1,125 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+Kultura — Dodaj język
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — KULTURA: DODAJ JĘZYK
+============================================================ */
+
+.jezyk-add {
+    max-width: 900px;
+    margin: 25px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.jezyk-add .header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.jezyk-add h1 {
+    font-size: 1.8em;
+    font-weight: 800;
+}
+
+.form-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.form-row {
+    margin-bottom: 18px;
+}
+
+.form-row label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-row input,
+.form-row textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-family: inherit;
+}
+
+.form-row textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+</style>
+
+<div class="jezyk-add">
+
+    <div class="header">
+        <h1>Dodaj nowy język</h1>
+    </div>
+
+    <div class="form-box">
+
+        <form method="POST">
+
+            <!-- NAZWA -->
+            <div class="form-row">
+                <label>Nazwa języka *</label>
+                <input name="jezyk_nazwa" required>
+            </div>
+
+            <!-- KOD -->
+            <div class="form-row">
+                <label>Kod języka (2 litery)</label>
+                <input name="jezyk_kod" maxlength="2" style="text-transform: uppercase;">
+            </div>
+
+            <!-- PRZYKŁAD PL -->
+            <div class="form-row">
+                <label>Przykład w języku polskim</label>
+                <textarea name="przyklad_polski"></textarea>
+            </div>
+
+            <!-- PRZYKŁAD DOCELOWY -->
+            <div class="form-row">
+                <label>Przykład w języku docelowym</label>
+                <textarea name="przyklad_docelowy"></textarea>
+            </div>
+
+            <!-- OPIS -->
+            <div class="form-row">
+                <label>Opis języka</label>
+                <textarea name="opis" style="min-height: 140px;"></textarea>
+            </div>
+
+            <!-- AKCJE -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">
+                    Zapisz język
+                </button>
+                <a href="{{ url_for('kultura_jezyki') }}" class="btn btn-secondary">
+                    Anuluj
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
