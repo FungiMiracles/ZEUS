@@ -24,24 +24,22 @@ def init_kultura_routes(app):
     # API – PAŃSTWA PO KONTYNENCIE
     # ===============================
 
-    @app.route("/api/panstwa/by_kontynent")
-    def api_panstwa_by_kontynent():
+    @app.route("/api/kultura/panstwa_by_kontynent")
+    def api_kultura_panstwa_by_kontynent():
         kontynent = request.args.get("kontynent")
-
+    
         if not kontynent:
             return jsonify([])
-
+    
         panstwa = (
             Panstwo.query
             .filter(Panstwo.kontynent == kontynent)
             .order_by(Panstwo.panstwo_nazwa.asc())
             .all()
         )
-
+    
         return jsonify([
-            {
-                "id": p.PANSTWO_ID,
-                "nazwa": p.panstwo_nazwa
-            }
+            {"id": p.PANSTWO_ID, "nazwa": p.panstwo_nazwa}
             for p in panstwa
         ])
+
