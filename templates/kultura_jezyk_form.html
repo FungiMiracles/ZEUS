@@ -85,6 +85,29 @@ Kultura — {{ jezyk.jezyk_nazwa }}
     text-align: center;
 }
 
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    display: inline-block;
+}
+
+/* Zeus — standard (niebieski) */
+.btn-zeus {
+    background: #5d7dce;
+    color: #ffffff;
+}
+
+.btn-zeus:hover {
+    background: #4a6bb8;
+    color: #ffffff;
+}
+
 @media (max-width: 768px) {
 
     .jezyk-form {
@@ -122,7 +145,7 @@ Kultura — {{ jezyk.jezyk_nazwa }}
 
         <div class="field">
             <label>Nazwa języka</label>
-            <div class="value">{{ jezyk.jezyk_nazwa }}</div>
+            <div class="value">Język {{ jezyk.jezyk_nazwa }}</div>
         </div>
 
         <div class="field">
