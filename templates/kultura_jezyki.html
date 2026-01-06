@@ -1,0 +1,91 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+Kultura — Języki
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — KULTURA: JĘZYKI (ETAP 0)
+============================================================ */
+
+.kultura-jezyki {
+    max-width: 1200px;
+    margin: 25px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.kultura-jezyki .page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.kultura-jezyki .page-header h1 {
+    font-size: 1.8em;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.kultura-jezyki .page-header p {
+    font-size: 0.95em;
+    color: #555;
+}
+
+.kultura-jezyki .filter-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+.kultura-jezyki .actions {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.kultura-jezyki .results-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 25px;
+    min-height: 120px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    text-align: center;
+    color: #777;
+    font-weight: 600;
+}
+</style>
+
+<div class="kultura-jezyki">
+
+    <!-- ===== HEADER ===== -->
+    <div class="page-header">
+        <h1>Języki</h1>
+        <p>Moduł językowy świata Entendy</p>
+    </div>
+
+    <!-- ===== FILTRY ===== -->
+    <div class="filter-box">
+        <p><strong>Filtry wyszukiwania</strong> (w przygotowaniu)</p>
+    </div>
+
+    <!-- ===== AKCJE ===== -->
+    <div class="actions">
+        <a href="#" class="btn btn-success">
+            Dodaj nowy język
+        </a>
+    </div>
+
+    <!-- ===== WYNIKI ===== -->
+    <div class="results-box">
+        Wybierz kryteria wyszukiwania, aby wyświetlić języki.
+    </div>
+
+</div>
+
+{% endblock %}
