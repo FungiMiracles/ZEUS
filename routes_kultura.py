@@ -286,4 +286,70 @@ def init_kultura_routes(app):
             jezyk=jezyk
         )
 
+    @app.route("/kultura/jezyki/edytuj/<int:jezyk_id>", methods=["GET", "POST"])
+    def kultura_jezyk_edit(jezyk_id):
+    
+        jezyk = Jezyk.query.get(jezyk_id)
+    
+        if not jezyk:
+            flash("Nie znaleziono wskazanego języka.", "error")
+            return redirect(url_for("kultura_jezyki"))
+    
+        # ===============================
+        # POST — zapis zmian
+        # ===============================
+        if request.method == "POST":
+    
+            nazwa = request.form.get("jezyk_nazwa", "").strip()
+            kod = request.form.get("jezyk_kod", "").strip().upper()
+            rodzina = request.form.get("jezyk_rodzina", "").strip()
+            przyklad_pl = request.form.get("przyklad_polski", "").strip()
+            przyklad_doc = request.form.get("przyklad_docelowy", "").strip()
+            opis = request.form.get("opis", "").strip()
+    
+            # ===== WALIDACJA =====
+    
+            if not nazwa:
+                flash("Nazwa języka jest wymagana.", "error")
+                return redirect(url_for("kultura_jezyk_edit", jezyk_id=jezyk_id))
+    
+            # unikalność nazwy (pomijamy aktualny rekord)
+            istnieje = (
+                db.session.query(Jezyk)
+                .filter(func.lower(Jezyk.jezyk_nazwa) == nazwa.lower())
+                .filter(Jezyk.jezyk_id != jezyk_id)
+                .first()
+            )
+    
+            if istnieje:
+                flash("Język o tej nazwie już istnieje.", "error")
+                return redirect(url_for("kultura_jezyk_edit", jezyk_id=jezyk_id))
+    
+            if kod and (len(kod) != 2 or not kod.isalpha()):
+                flash("Kod języka musi składać się z dwóch liter.", "error")
+                return redirect(url_for("kultura_jezyk_edit", jezyk_id=jezyk_id))
+    
+            # ===== ZAPIS =====
+    
+            jezyk.jezyk_nazwa = nazwa
+            jezyk.jezyk_kod = kod or None
+            jezyk.jezyk_rodzina = rodzina or None
+            jezyk.przyklad_polski = przyklad_pl or None
+            jezyk.przyklad_docelowy = przyklad_doc or None
+            jezyk.opis = opis or None
+    
+            db.session.commit()
+    
+            flash("Zmiany zostały zapisane.", "success")
+            return redirect(url_for("kultura_jezyk_form", jezyk_id=jezyk.jezyk_id))
+    
+        # ===============================
+        # GET — formularz edycji
+        # ===============================
+        return render_template(
+            "kultura_jezyk_add.html",
+            jezyk=jezyk,
+            tryb="edit"
+        )
+
 
