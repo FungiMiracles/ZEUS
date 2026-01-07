@@ -194,10 +194,18 @@ Kultura — {{ jezyk.jezyk_nazwa }}
 
     <!-- ===== AKCJE ===== -->
     <div class="form-actions">
+       {% if session.rola == "wszechmocny" %}
         <a href="{{ url_for('kultura_jezyk_edit', jezyk_id=jezyk.jezyk_id) }}"
            class="btn-zeus btn-edit">
             Edytuj
         </a>
+       {% else %}
+        <a href="#"
+           class="btn-zeus btn-edit"
+           onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Edytuj
+        </a>
+       {% endif %}
 
         <a href="{{ url_for('kultura_jezyki') }}"
            class="btn-zeus btn-secondary">
