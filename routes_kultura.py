@@ -121,7 +121,7 @@ def init_kultura_routes(app):
         return render_template("kultura_jezyk_add.html")
 
     @app.route("/kultura/jezyki/przypisz", methods=["GET", "POST"])
-    @wymaga_roli("tworzyciel", "wszechmocny")
+    @wymaga_roli("wszechmocny")
     def kultura_jezyk_przypisz():
     
         def normalize(v):
