@@ -167,6 +167,10 @@ Kultura — Języki
     color: #ffffff;
 }
 
+.btn-edit {
+   background-color: #7f8c8d;
+}
+
 .btn-primary {
     margin-top: 18px;
     background: #2c73d2;
@@ -410,12 +414,12 @@ Kultura — Języki
                                 </a>
                         
                                 <a href="{{ url_for('kultura_jezyk_edit', jezyk_id=j.jezyk_id) }}"
-                                   class="btn btn-zeus">
+                                   class="btn-zeus btn-edit">
                                     Edytuj język
                                 </a>
                         
                                 <a href="#"
-                                   class="btn btn-zeus">
+                                   class="btn-zeus btn-edit">
                                     Edytuj przypisanie
                                 </a>
                         
