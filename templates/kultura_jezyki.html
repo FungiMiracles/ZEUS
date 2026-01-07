@@ -365,12 +365,26 @@ Kultura — Języki
 
     <!-- ===== AKCJE ===== -->
     <div class="actions">
+
+        {% if session.rola in ["tworzyciel", "wszechmocny"] %}
         <a href="{{ url_for('kultura_jezyk_add') }}" class="btn-zeus btn-success">
             Dodaj nowy język
         </a>
+        {% else %}
+        <a href="#" class="btn-zeus btn-success" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Dodaj nowy język
+        </a>
+        {% endif %}
+       
+        {% if session.rola == "wszechmocny" %}
         <a href="{{ url_for('kultura_jezyk_przypisz') }}" class="btn-zeus btn-success">
             Przypisz język do państwa
         </a>
+        {% else %}
+        <a href="#" class="btn-zeus btn-success" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Przypisz język do państwa
+        </a>
+        {% endif %}
     </div>
 
     <!-- ===== WYNIKI ===== -->
@@ -412,22 +426,45 @@ Kultura — Języki
                                    class="btn-zeus btn-zeus-dark">
                                     Szczegóły
                                 </a>
-                        
+                                {% if session.rola == "wszechmocny" %}
                                 <a href="{{ url_for('kultura_jezyk_edit', jezyk_id=j.jezyk_id) }}"
                                    class="btn-zeus btn-edit">
                                     Edytuj język
                                 </a>
-                        
+                                {% else %}
+                                <a href="#"
+                                   class="btn-zeus btn-edit"
+                                   onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                    Edytuj język
+                                </a>
+                                {% endif %}
+
+                                {% if session.rola == "wszechmocny" %}
                                 <a href="#"
                                    class="btn-zeus btn-edit">
                                     Edytuj przypisanie
                                 </a>
-                        
+                                {% else %}
+                                <a href="#"
+                                   class="btn-zeus btn-edit"
+                                   onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                    Edytuj przypisanie
+                                </a>
+                                {% endif %}
+
+                                {% if session.rola == "wszechmocny" %}
                                 <a href="{{ url_for('kultura_jezyk_usun', jezyk_id=j.jezyk_id) }}"
                                    class="btn-zeus btn-danger"
                                    onclick="return confirm('Czy na pewno chcesz usunąć ten język?');">
                                     Usuń
                                 </a>
+                                {% else %}
+                                <a href="#"
+                                   class="btn-zeus btn-danger"
+                                   onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                                    Usuń
+                                </a>
+                                {% endif %}
                         
                             </div>
 
