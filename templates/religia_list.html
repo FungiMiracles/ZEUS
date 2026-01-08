@@ -1,0 +1,255 @@
+{% extends "base_layout.html" %}
+{% block title %}Religie Entendy – lista{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — RELIGIE (LISTA + WYSZUKIWANIE)
+============================================================ */
+
+.religia-list-container {
+    max-width: 1150px;
+    margin: 35px auto 70px auto;
+    padding: 45px 35px 55px 35px;
+    background: radial-gradient(
+        ellipse at top,
+        #171a2c 0%,
+        #0e101f 60%,
+        #090a13 100%
+    );
+    border-radius: 18px;
+    box-shadow:
+        0 0 0 1px rgba(120, 130, 200, 0.25),
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 0 70px rgba(120, 140, 255, 0.05);
+    color: #d6dbff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== NAGŁÓWEK ===== */
+
+.religia-list-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.religia-list-header h1 {
+    font-size: 2.2em;
+    letter-spacing: 1px;
+    color: #eef0ff;
+    text-shadow:
+        0 0 12px rgba(120, 140, 255, 0.6),
+        0 0 26px rgba(120, 140, 255, 0.35);
+}
+
+.religia-list-header p {
+    margin-top: 10px;
+    color: #b8beff;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* ===== FILTRY ===== */
+
+.religia-filters {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(140, 150, 220, 0.25);
+    border-radius: 14px;
+    padding: 25px 25px 28px 25px;
+    margin-bottom: 45px;
+    box-shadow:
+        inset 0 0 25px rgba(120, 140, 255, 0.08);
+}
+
+.religia-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+}
+
+.religia-filters label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9em;
+    color: #cfd3ff;
+    margin-bottom: 6px;
+}
+
+.religia-filters select {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.4);
+    background: rgba(15, 18, 40, 0.85);
+    color: #eef0ff;
+    font-weight: 600;
+    outline: none;
+}
+
+.religia-filters select:focus {
+    border-color: #8ea0ff;
+    box-shadow: 0 0 10px rgba(140, 160, 255, 0.6);
+}
+
+/* ===== TABELA ===== */
+
+.religia-results {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.religia-results thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.95em;
+    color: #cfd3ff;
+}
+
+.religia-results tbody tr {
+    background: linear-gradient(
+        135deg,
+        rgba(30, 35, 80, 0.85),
+        rgba(15, 18, 45, 0.95)
+    );
+    box-shadow:
+        0 0 18px rgba(120, 140, 255, 0.25);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.religia-results tbody tr:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 0 28px rgba(160, 180, 255, 0.55);
+}
+
+.religia-results tbody td {
+    padding: 14px 14px;
+    font-weight: 600;
+    color: #eef0ff;
+}
+
+.religia-results tbody td.sub {
+    font-weight: 500;
+    font-size: 0.85em;
+    color: #b6bbff;
+}
+
+/* ===== PRZYCISK ===== */
+
+.religia-view-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    background: linear-gradient(
+        135deg,
+        #5f6fff,
+        #9a7cff
+    );
+    color: white !important;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow:
+        0 0 15px rgba(140, 160, 255, 0.9),
+        0 0 28px rgba(140, 160, 255, 0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.religia-view-btn:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 0 28px rgba(180, 200, 255, 1),
+        0 0 50px rgba(180, 200, 255, 0.7);
+}
+
+/* ===== BRAK WYNIKÓW ===== */
+
+.religia-empty {
+    text-align: center;
+    margin-top: 40px;
+    color: #b8beff;
+    font-weight: 700;
+}
+</style>
+
+<div class="religia-list-container">
+
+    <div class="religia-list-header">
+        <h1>Kroniki religii Entendy</h1>
+        <p>
+            Przeszukuj zapisy wierzeń, kultów i systemów duchowych,
+            które odcisnęły swe piętno na dziejach świata.
+        </p>
+    </div>
+
+    <!-- ================== FILTRY ================== -->
+    <form method="GET" class="religia-filters">
+
+        <div class="religia-filters-grid">
+
+            <div>
+                <label>Kontynent</label>
+                <select name="kontynent">
+                    <option value="">— Wszystkie —</option>
+                    <!-- dynamicznie -->
+                </select>
+            </div>
+
+            <div>
+                <label>Państwo</label>
+                <select name="panstwo">
+                    <option value="">— Wszystkie —</option>
+                    <!-- dynamicznie -->
+                </select>
+            </div>
+
+            <div>
+                <label>Religia</label>
+                <select name="religia">
+                    <option value="">— Wszystkie —</option>
+                    <!-- dynamicznie -->
+                </select>
+            </div>
+
+        </div>
+
+    </form>
+
+    <!-- ================== WYNIKI ================== -->
+
+    {% if results and results|length > 0 %}
+    <table class="religia-results">
+        <thead>
+            <tr>
+                <th>Religia</th>
+                <th>Typ</th>
+                <th>Państwo</th>
+                <th>Kontynent</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in results %}
+            <tr>
+                <td>{{ r.religia_nazwa }}</td>
+                <td class="sub">{{ r.religia_typ }}</td>
+                <td>{{ r.panstwo_nazwa }}</td>
+                <td class="sub">{{ r.kontynent }}</td>
+                <td style="text-align:right;">
+                    <a href="#" class="religia-view-btn">Wyświetl</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="religia-empty">
+            Brak religii spełniających wybrane kryteria.
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
