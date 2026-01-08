@@ -434,3 +434,93 @@ class JezykiPerPanstwo(db.Model):
 
     def __repr__(self):
         return f"<JezykiPerPanstwo panstwo_id={self.panstwo_id}>"
+
+class Religia(db.Model):
+    __tablename__ = "religia"
+
+    religia_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    religia_nazwa = db.Column(db.String(255), unique=True, nullable=False)
+
+    religia_typ = db.Column(
+        db.Enum(
+            "monoteistyczna",
+            "politeistyczna",
+            "henoteistyczna",
+            "panteistyczna",
+            "nonteistyczna",
+            name="religia_typ_enum"
+        ),
+        nullable=False
+    )
+
+    opis = db.Column(db.Text)
+
+    religia_obraz = db.Column(db.LargeBinary)
+    religia_obraz_mime = db.Column(db.String(100))
+
+    # Self-FK: religia nadrzędna (NULL = religia główna)
+    religia_nadrzedna_id = db.Column(
+        db.Integer,
+        db.ForeignKey("religia.religia_id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True
+    )
+
+    # Relacja do religii nadrzędnej
+    religia_nadrzedna = db.relationship(
+        "Religia",
+        remote_side=[religia_id],
+        backref=db.backref("odlamy", lazy=True)
+    )
+
+    def __repr__(self):
+        return f"<Religia {self.religia_nazwa}>"
+
+class ReligiaPerPanstwo(db.Model):
+    __tablename__ = "religia_per_panstwo"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    panstwo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False
+    )
+
+    religia_id = db.Column(
+        db.Integer,
+        db.ForeignKey("religia.religia_id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False
+    )
+
+    udzial_proc = db.Column(db.Float, nullable=False)
+
+    status = db.Column(
+        db.Enum(
+            "dominujaca",
+            "oficjalna",
+            "mniejszosciowa",
+            "historyczna",
+            name="religia_status_enum"
+        ),
+        nullable=False
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "panstwo_id",
+            "religia_id",
+            name="uq_religia_per_panstwo"
+        ),
+    )
+
+    # Relacje ORM
+    panstwo = db.relationship("Panstwo", backref=db.backref("religie", lazy=True))
+    religia = db.relationship("Religia", backref=db.backref("panstwa", lazy=True))
+
+    def __repr__(self):
+        return (
+            f"<ReligiaPerPanstwo panstwo_id={self.panstwo_id}, "
+            f"religia_id={self.religia_id}, udzial={self.udzial_proc}%>"
+        )
+
