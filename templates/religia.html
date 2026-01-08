@@ -1,0 +1,221 @@
+{% extends "base_layout.html" %}
+{% block title %}Religia{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — MODUŁ RELIGIJNY
+   Styl: sakralny, mistyczny, stonowany
+============================================================ */
+
+.religia-container {
+    max-width: 900px;
+    margin: 40px auto 60px auto;
+    padding: 40px 30px;
+    background: radial-gradient(
+        circle at top,
+        rgba(245, 245, 255, 0.95),
+        rgba(230, 232, 240, 0.95)
+    );
+    border-radius: 14px;
+    box-shadow:
+        0 0 0 1px rgba(180, 180, 200, 0.6),
+        0 10px 30px rgba(0, 0, 0, 0.18);
+    text-align: center;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.religia-header {
+    margin-bottom: 45px;
+}
+
+.religia-header h1 {
+    font-size: 2.1em;
+    font-weight: 700;
+    color: #2f354d;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.religia-header p {
+    font-size: 1.05em;
+    color: #555b78;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ===== KAFELKI ===== */
+
+.religia-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+    margin-bottom: 45px;
+}
+
+.religia-tile {
+    position: relative;
+    padding: 30px 25px 34px 25px;
+    border-radius: 14px;
+    background: linear-gradient(
+        160deg,
+        #ffffff,
+        #eef0f8
+    );
+    border: 1px solid rgba(160, 165, 190, 0.7);
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+}
+
+.religia-tile::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 16px;
+    background: radial-gradient(
+        circle,
+        rgba(200, 210, 255, 0.35),
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.religia-tile:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 12px 26px rgba(0, 0, 0, 0.2);
+}
+
+.religia-tile:hover::before {
+    opacity: 1;
+}
+
+/* ===== IKONY SYMBOLICZNE ===== */
+
+.religia-symbol {
+    font-size: 34px;
+    margin-bottom: 16px;
+    color: #4a5cc2;
+    text-shadow:
+        0 0 6px rgba(90, 110, 255, 0.35);
+}
+
+.religia-tile h3 {
+    font-size: 1.25em;
+    font-weight: 700;
+    color: #2f354d;
+    margin-bottom: 10px;
+}
+
+.religia-tile p {
+    font-size: 0.95em;
+    color: #5a607d;
+    margin-bottom: 22px;
+    line-height: 1.5;
+}
+
+/* ===== PRZYCISKI ===== */
+
+.religia-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: linear-gradient(
+        135deg,
+        #4f66d8,
+        #7c8cff
+    );
+    color: white !important;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    box-shadow:
+        0 0 10px rgba(110, 130, 255, 0.6);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.religia-btn:hover {
+    box-shadow:
+        0 0 18px rgba(140, 160, 255, 0.9),
+        0 0 32px rgba(140, 160, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+/* ===== POWRÓT ===== */
+
+.religia-back {
+    margin-top:while: 30px;
+}
+
+.religia-back a {
+    display: inline-block;
+    padding: 9px 22px;
+    border-radius: 7px;
+    background: #eceef6;
+    border: 1px solid #bfc5dd;
+    color: #3b3f55;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.religia-back a:hover {
+    background: #4f66d8;
+    color: white;
+}
+</style>
+
+<div class="religia-container">
+
+    <div class="religia-header">
+        <h1>Religie Entendy</h1>
+        <p>
+            W tym module zgromadzono wierzenia, kulty oraz systemy duchowe,
+            które przez wieki kształtowały cywilizacje Entendy, ich prawa,
+            konflikty i tożsamość.
+        </p>
+    </div>
+
+    <div class="religia-tiles">
+
+        <!-- KAFEL 1 -->
+        <div class="religia-tile">
+            <div class="religia-symbol">✧</div>
+            <h3>Odkrywaj religie Entendy</h3>
+            <p>
+                Poznaj systemy wierzeń, ich hierarchie, odłamy oraz wpływ
+                na państwa i społeczeństwa świata.
+            </p>
+            <a href="/religia/list" class="religia-btn">
+                Wejdź
+            </a>
+        </div>
+
+        <!-- KAFEL 2 -->
+        <div class="religia-tile">
+            <div class="religia-symbol">✦</div>
+            <h3>Edytuj lub dodaj religię</h3>
+            <p>
+                Zarządzaj religiami, ich opisami, symboliką oraz strukturą
+                odłamów w systemie Zeus.
+            </p>
+            <a href="/religia/add" class="religia-btn">
+                Wejdź
+            </a>
+        </div>
+
+    </div>
+
+    <div class="religia-back">
+        <a href="{{ url_for('home_page') }}">⟵ Powrót</a>
+    </div>
+
+</div>
+
+{% endblock %}
