@@ -116,10 +116,24 @@
     background: #1e8749;
 }
 
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
 .btn-cancel {
-    background: #ecf0f1;
-    color: #2c3e50;
-    border: 1px solid #bdc3c7;
+    background-color: #eaeaea;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-cancel:hover {
+    background-color: #999999;
 }
 
 /* ===== MOBILE ===== */
@@ -206,8 +220,8 @@
 
             <!-- AKCJE -->
             <div class="dyp-actions">
-                <button type="submit" class="btn-save">Zapisz relacje</button>
-                <a href="{{ url_for('dyplomacja_list') }}" class="btn-cancel">Anuluj</a>
+                <button type="submit" class="btn-zeus btn-save">Zapisz relacje</button>
+                <a href="{{ url_for('dyplomacja_list') }}" class="btn-zeus btn-cancel">Anuluj</a>
             </div>
 
         </form>
