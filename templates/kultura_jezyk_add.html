@@ -65,6 +65,26 @@ Kultura — Dodaj język
     text-align: center;
 }
 
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel {
+    background-color: #eaeaea;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+.btn-cancel:hover {
+    background-color: #999999;
+}
+
 /* ============================================================
    ZEUS — KULTURA: DODAJ JĘZYK (MOBILE)
 ============================================================ */
@@ -181,7 +201,7 @@ Kultura — Dodaj język
                 <button type="submit" class="btn btn-success">
                     Zapisz język
                 </button>
-                <a href="{{ url_for('kultura_jezyki') }}" class="btn btn-secondary">
+                <a href="{{ url_for('kultura_jezyki') }}" class="btn-zeus btn-cancel">
                     Anuluj
                 </a>
             </div>
