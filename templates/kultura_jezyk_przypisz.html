@@ -41,6 +41,27 @@ label {
     display: block;
 }
 
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel {
+    background-color: #eaeaea;
+    color: #34495e;
+    border: 1.5px solid #bdc3c7;
+}
+
+.btn-cancel:hover {
+    background-color: #999999;
+}
+
 /* ============================================================
    ZEUS — KULTURA: PRZYPISANIE JĘZYKÓW (MOBILE)
 ============================================================ */
@@ -169,7 +190,7 @@ label {
 
         <div style="text-align:center;margin-top:30px;">
             <button class="btn btn-success">Zapisz</button>
-            <a href="{{ url_for('kultura_jezyki') }}" class="btn btn-secondary">Anuluj</a>
+            <a href="{{ url_for('kultura_jezyki') }}" class="btn-zeus btn-cancel">Anuluj</a>
         </div>
 
     </form>
