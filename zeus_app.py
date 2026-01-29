@@ -63,9 +63,9 @@ def create_app():
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key")
 
-    db_url = os.environ.get("DATABASE_URL") or os.environ.get("MYSQL_URL")
+    db_url = os.environ.get("DATABASE_URL")
     if not db_url:
-        raise RuntimeError("Brak DATABASE_URL / MYSQL_URL w zmiennych środowiskowych")
+        raise RuntimeError("Brak DATABASE_URL w zmiennych środowiskowych")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
