@@ -105,6 +105,10 @@ def create_app():
     init_kultura_routes(app)
     init_religia_routes(app)
 
+    @app.route("/health")
+    def health():
+        return "OK", 200
+    
     # ───── BEFORE REQUEST ─────
     @app.before_request
     def wymus_wejscie():
