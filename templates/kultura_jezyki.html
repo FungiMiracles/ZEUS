@@ -443,19 +443,6 @@ Kultura — Języki
                                 {% endif %}
 
                                 {% if session.rola == "wszechmocny" %}
-                                <a href="#"
-                                   class="btn-zeus btn-edit">
-                                    Edytuj przypisanie
-                                </a>
-                                {% else %}
-                                <a href="#"
-                                   class="btn-zeus btn-edit"
-                                   onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-                                    Edytuj przypisanie
-                                </a>
-                                {% endif %}
-
-                                {% if session.rola == "wszechmocny" %}
                                 <a href="{{ url_for('kultura_jezyk_usun', jezyk_id=j.jezyk_id) }}"
                                    class="btn-zeus btn-danger"
                                    onclick="return confirm('Czy na pewno chcesz usunąć ten język?');">
