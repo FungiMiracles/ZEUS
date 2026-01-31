@@ -384,7 +384,9 @@
                             ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
                             ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
                             ('Waluta:', p.panstwo_waluta),
-                            ('Język urzędowy:', p.panstwo_jezyk),
+                            ('Język urzędowy:', profil_jezykowy.jezyk_urzedowy1
+                            if profil_jezykowy and profil_jezykowy.jezyk_urzedowy1
+                            else 'Brak przypisanego języka urzędowego'),
                             ('Religia dominująca:', p.panstwo_religia),
                             ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
                             ('PKB per capita:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI"),

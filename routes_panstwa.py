@@ -102,6 +102,8 @@ def init_panstwa_routes(app):
             .order_by(Miasto.miasto_populacja.desc())
             .all()
         )
+
+        profil_jezykowy = p.profil_jezykowy  # może być None
     
         return render_template(
             "panstwo_form.html",
@@ -126,7 +128,6 @@ def init_panstwa_routes(app):
             pkb = request.form.get("PKB")
             pkb_pc = request.form.get("PKB_per_capita")
             waluta = request.form.get("panstwo_waluta")
-            jezyk = request.form.get("panstwo_jezyk")
             religia = request.form.get("panstwo_religia")
             kontynent = request.form.get("kontynent")
             powierzchnia = request.form.get("panstwo_powierzchnia")
@@ -134,7 +135,7 @@ def init_panstwa_routes(app):
             required_fields = [
                 nazwa, pelna, kod, ustroj, stolica,
                 populacja, pkb, pkb_pc,
-                waluta, jezyk, religia,
+                waluta, religia,
                 kontynent, powierzchnia
             ]
 
@@ -178,7 +179,6 @@ def init_panstwa_routes(app):
                     panstwo_PKB=pkb,
                     panstwo_PKB_per_capita=pkb_pc,
                     panstwo_waluta=waluta,
-                    panstwo_jezyk=jezyk,
                     panstwo_religia=religia,
                     kontynent=kontynent,
                     panstwo_powierzchnia=powierzchnia,
