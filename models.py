@@ -24,6 +24,7 @@ class Panstwo(db.Model):
     panstwo_opis = db.Column(db.Text)
     opis_updated_at = db.Column(db.DateTime)
     panstwo_populacja_audit = db.Column(DateTime)
+    panstwo_opis_audit = db.Column(DateTime)
     czy_suwerenny = db.Column(
         db.String(3),
         nullable=False,

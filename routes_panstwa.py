@@ -23,7 +23,7 @@ from paths import (
 
 from permissions import wymaga_roli
 from sqlalchemy import inspect
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # ============================================================
@@ -329,6 +329,10 @@ def init_panstwa_routes(app):
 
         print("DIRTY:", insp.attrs.panstwo_opis.history.has_changes())
         print("VALUE:", panstwo.panstwo_opis)
+
+        if panstwo.panstwo_opis != nowy_opis:
+            panstwo.panstwo_opis = nowy_opis
+            panstwo.panstwo_opis_audit = datetime.now(timezone.utc)
         
         db.session.commit()
     
