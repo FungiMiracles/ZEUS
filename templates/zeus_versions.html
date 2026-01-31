@@ -1,0 +1,25 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Informacje o wersjach — ZEUS{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:30px auto;">
+
+    <h2 style="text-align:center; margin-bottom:20px;">
+        Informacje o wersjach ZEUS
+    </h2>
+
+    <div style="
+        background:#ffffff;
+        padding:25px;
+        border-radius:12px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.12);
+        line-height:1.6;
+    ">
+        {{ changelog_html | safe }}
+    </div>
+
+</div>
+
+{% endblock %}
