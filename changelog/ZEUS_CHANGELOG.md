@@ -1,4 +1,19 @@
-Wydanie W2.STY.26 (31.01.2026)
+__Wydanie W1.LUT.26 (dodaj datę wdrożenia produkcyjnego)__
+
+Zmiany:
+
+Z1.W1.LUT.26 [Audytowalność] 
+ZEUS zapisuje datę ostatniej zmiany populacji danego kraju w kalkulatorze demograficznym w kolumnie panstwo_populacja_audit i wyświetla tę datę w kalkulatorze demograficznym.
+
+Z2.W1.LUT.26 [Audytowalność] 
+ZEUS zapisuje datę ostatniej zmiany szczegółowego opisu państwa na formularzu państwa w kolumnie panstwo_opis_audit i wyświetla tę datę na formularzu państwa.
+
+Z3.W1.LUT.26 [Changelog] 
+ZEUS informuje o zmianach jakie zostały wdrożone w systemie z poziomu przycisku "Informacje o wersjach".
+
+(...) Wydanie niewdrożone na produkcję (...)
+
+__Wydanie W2.STY.26 (31.01.2026)__
 
 Zmiany:
 
