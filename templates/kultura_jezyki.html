@@ -97,15 +97,19 @@ Kultura — Języki
 
 .lang-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     margin-top: 12px;
 }
 
 .lang-table th,
 .lang-table td {
+    width: 50%;
     border: 1px solid #d3d7dc;
     padding: 10px 12px;
     vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ===== PRZYCISKI — ZEUS ===== */
@@ -118,7 +122,8 @@ Kultura — Języki
     border: none;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.2s ease;
+    outline: none;
+    transition: background 0.2s ease, filter 0.2s ease;
     display: inline-block;
 }
 
@@ -130,8 +135,9 @@ Kultura — Języki
 }
 
 .btn-zeus:hover {
-    background: #4a6bb8;
+    filter: brightness(0.92);
     color: #ffffff;
+    text-decoration: none;
 }
 
 /* Zeus — ciemny (szczegóły) */
@@ -193,6 +199,7 @@ Kultura — Języki
     gap: 10px;
     margin-top: 16px;
 }
+
 
 /* ============================================================
    MOBILE
@@ -327,12 +334,12 @@ Kultura — Języki
                     <label><strong>Kontynent</strong></label>
                     <select id="filter-kontynent" name="kontynent" class="form-control">
                         <option value="">— wszystkie kontynenty —</option>
-                        <option value="Kao">Kao</option>
-                        <option value="Beifa">Beifa</option>
-                        <option value="Anzinia">Anzinia</option>
-                        <option value="Peryfa">Peryfa</option>
-                        <option value="Wyspy Większe">Wyspy Większe</option>
-                        <option value="Wyspy Mniejsze">Wyspy Mniejsze</option>
+                        <option value="Kao" {% if selected_kontynent == "Kao" %}selected{% endif %}>Kao</option>
+                        <option value="Beifa" {% if selected_kontynent == "Beifa" %}selected{% endif %}>Beifa</option>
+                        <option value="Anzinia" {% if selected_kontynent == "Anzinia" %}selected{% endif %}>Anzinia</option>
+                        <option value="Peryfa" {% if selected_kontynent == "Peryfa" %}selected{% endif %}>Peryfa</option>
+                        <option value="Wyspy Większe" {% if selected_kontynent == "Wyspy Większe" %}selected{% endif %}>Wyspy Większe</option>
+                        <option value="Wyspy Mniejsze" {% if selected_kontynent == "Wyspy Mniejsze" %}selected{% endif %}>Wyspy Mniejsze</option>
                     </select>
                 </div>
 
@@ -403,10 +410,6 @@ Kultura — Języki
                                 </span>
                             {% endif %}
                         </h3>
-
-                        {% if j.opis %}
-                            <p>{{ j.opis }}</p>
-                        {% endif %}
 
                         <table class="lang-table">
                             <tr>
@@ -483,6 +486,9 @@ Kultura — Języki
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    const selectedKontynent = "{{ selected_kontynent or '' }}";
+    const selectedPanstwo = "{{ selected_panstwo or '' }}";
+    const selectedJezyk = "{{ selected_jezyk or '' }}";
     const kontynentSelect = document.getElementById("filter-kontynent");
     const panstwoSelect   = document.getElementById("filter-panstwo");
     const jezykSelect     = document.getElementById("filter-jezyk");
@@ -520,6 +526,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     const opt = document.createElement("option");
                     opt.value = p.id;
                     opt.textContent = p.nazwa;
+
+                    if (selectedPanstwo && String(p.id) === String(selectedPanstwo)) {
+                        opt.selected = true;
+                    }
+
                     panstwoSelect.appendChild(opt);
                 });
             })
@@ -528,6 +539,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 panstwoSelect.innerHTML = "<option value=''>Błąd ładowania</option>";
             });
     });
+
+    // ⬇⬇⬇ JASNO POZA LISTENEREM ⬇⬇⬇
+    if (selectedKontynent) {
+        kontynentSelect.value = selectedKontynent;
+        kontynentSelect.dispatchEvent(new Event("change"));
+    }
+
 
     // ===============================
     // LISTA JĘZYKÓW (ON LOAD)
@@ -545,6 +563,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const opt = document.createElement("option");
                 opt.value = j.id;
                 opt.textContent = j.nazwa;
+
+                if (selectedJezyk && String(j.id) === String(selectedJezyk)) {
+                    opt.selected = true;
+                }
+
                 jezykSelect.appendChild(opt);
             });
         })

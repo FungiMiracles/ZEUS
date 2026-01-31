@@ -198,6 +198,69 @@ def init_panstwa_routes(app):
 
         return render_template("panstwo_form_add.html")
 
+    @app.route("/panstwo/<int:panstwo_id>/edit", methods=["GET", "POST"])
+    def panstwo_form_edit(panstwo_id):
+        p = Panstwo.query.get_or_404(panstwo_id)
+
+        if request.method == "POST":
+            form = request.form
+            errors = []
+
+            required_fields = [
+                "panstwo_nazwa",
+                "panstwo_pelna_nazwa",
+                "panstwo_kod",
+                "kontynent",
+                "panstwo_ustroj",
+                "panstwo_stolica",
+                "panstwo_powierzchnia",
+                "panstwo_waluta",
+                "panstwo_religia",
+                "panstwo_PKB",
+                "panstwo_PKB_per_capita",
+            ]
+
+            for f in required_fields:
+                if not form.get(f):
+                    errors.append("Wszystkie pola formularza są wymagane.")
+
+            if errors:
+                return render_template(
+                    "panstwo_form_edit.html",
+                    p=p,
+                    error=" ".join(set(errors)),
+                    form_data=form
+                )
+
+            try:
+                p.panstwo_nazwa = form.get("panstwo_nazwa")
+                p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
+                p.panstwo_kod = form.get("panstwo_kod")
+                p.kontynent = form.get("kontynent")
+                p.panstwo_ustroj = form.get("panstwo_ustroj")
+                p.panstwo_stolica = form.get("panstwo_stolica")
+                p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
+                p.panstwo_waluta = form.get("panstwo_waluta")
+                p.panstwo_religia = form.get("panstwo_religia")
+                p.panstwo_PKB = int(form.get("panstwo_PKB"))
+                p.panstwo_PKB_per_capita = int(form.get("panstwo_PKB_per_capita"))
+
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                return render_template(
+                    "panstwo_form_edit.html",
+                    p=p,
+                    error=f"Błąd zapisu danych: {e}",
+                    form_data=form
+                )
+
+            return redirect(url_for("panstwo_form", panstwo_id=p.PANSTWO_ID))
+
+        return render_template("panstwo_form_edit.html", p=p)
+
+
     # ================= USUWANIE PAŃSTWA =================
 
     @app.route("/usun_panstwo/<int:panstwo_id>", methods=["POST"])

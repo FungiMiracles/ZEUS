@@ -232,7 +232,10 @@ def init_kultura_routes(app):
     
         return render_template(
             "kultura_jezyki.html",
-            wyniki=wyniki
+            wyniki=wyniki,
+            selected_kontynent=kontynent,
+            selected_panstwo=panstwo_id,
+            selected_jezyk=jezyk_id
         )
 
     @app.route("/kultura/jezyki/usun/<int:jezyk_id>")
@@ -356,5 +359,61 @@ def init_kultura_routes(app):
             jezyk=jezyk,
             tryb="edit"
         )
+    
+    @app.route(
+    "/kultura/jezyk/przypisz/<int:panstwo_id>/edit",
+    methods=["GET", "POST"]
+    )
+    def kultura_jezyk_przypisz_edit(panstwo_id):
+
+        panstwo = Panstwo.query.get_or_404(panstwo_id)
+        profil = JezykiPerPanstwo.query.filter_by(panstwo_id=panstwo_id).first()
+        jezyki = Jezyk.query.order_by(Jezyk.jezyk_nazwa).all()
+
+        if request.method == "POST":
+            try:
+                if not profil:
+                    profil = JezykiPerPanstwo(panstwo_id=panstwo_id)
+                    db.session.add(profil)
+
+                # Języki urzędowe
+                for i in range(1,4):
+                    val = request.form.get(f"jezyk_urzedowy{i}")
+                    setattr(
+                        profil,
+                        f"jezyk_urzedowy{i}",
+                        int(val) if val else None
+                    )
+
+                # Języki mniejszościowe
+                for i in range(1,6):
+                    val = request.form.get(f"jezyk_mniejszosciowy{i}")
+                    setattr(
+                        profil,
+                        f"jezyk_mniejszosciowy{i}",
+                        int(val) if val else None
+                    )
+
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                return render_template(
+                    "kultura_jezyk_przypisz_edit.html",
+                    panstwo=panstwo,
+                    profil=profil,
+                    jezyki=jezyki,
+                    error=f"Błąd zapisu: {e}"
+                )
+
+            return redirect(url_for("kultura_jezyk_list"))
+
+        return render_template(
+            "kultura_jezyk_przypisz_edit.html",
+            panstwo=panstwo,
+            profil=profil,
+            jezyki=jezyki
+        )
+
 
 

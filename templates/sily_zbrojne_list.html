@@ -14,6 +14,8 @@
         display: flex;
         gap: 20px;
         align-items: flex-end;
+        flex-wrap: nowrap;
+        box-sizing: border-box; /* 🔥 TO JEST FIX */
     }
 
     .filter-box label {
@@ -38,6 +40,7 @@
         border: none;
         border-radius: 6px;
         cursor: pointer;
+        max-width: 100%;
     }
 
     .filter-btn:hover {
@@ -69,6 +72,11 @@
             align-items: stretch;
             gap: 12px;
             padding: 12px;
+        }
+
+        .filter-box > div {
+            flex: 1;
+            min-width: 0; /* 🔥 zapobiega overflow w flex */
         }
 
         .filter-box select,

@@ -217,7 +217,7 @@
                         </a>
                         
                         {% if session.rola == "wszechmocny" %}
-                        <a href="#"
+                        <a href="{{ url_for('panstwo_form_edit', panstwo_id=row.PANSTWO_ID) }}"
                            class="btn-edit">
                             Edytuj
                         </a>
