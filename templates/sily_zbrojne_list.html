@@ -74,6 +74,11 @@
             padding: 12px;
         }
 
+        .filter-box > div {
+            flex: 1;
+            min-width: 0; /* 🔥 zapobiega overflow w flex */
+        }
+
         .filter-box select,
         .filter-box input {
             width: 100%;
