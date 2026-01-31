@@ -249,7 +249,6 @@ main.container {
         padding: 12px 20px;
     }
 }
-}
 /* =====================================================
    MOBILE (MAŁE EKRANY)
 ===================================================== */
@@ -297,7 +296,7 @@ main.container {
 
         {% if session.rola %}
         <div class="zeus-role">
-            Rola [TEST]: <strong>{{ session.rola|capitalize }}</strong> |
+            Rola: <strong>{{ session.rola|capitalize }}</strong> |
             <a href="{{ url_for('wejscie') }}">Zmień</a>
         </div>
         {% endif %}

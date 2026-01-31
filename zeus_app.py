@@ -1,5 +1,3 @@
-# GIT_TEST
-
 import os
 from datetime import datetime
 
