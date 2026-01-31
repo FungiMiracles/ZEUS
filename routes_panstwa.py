@@ -109,6 +109,7 @@ def init_panstwa_routes(app):
             "panstwo_form.html",
             p=p,
             miasta=miasta,
+            profil_jezykowy=profil_jezykowy,
             ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
         )
 
