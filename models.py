@@ -2,6 +2,7 @@
 from sqlalchemy import BigInteger
 from extensions import db
 from datetime import datetime
+from sqlalchemy import DateTime
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
@@ -22,8 +23,7 @@ class Panstwo(db.Model):
     panstwo_powierzchnia = db.Column(BigInteger)
     panstwo_opis = db.Column(db.Text)
     opis_updated_at = db.Column(db.DateTime)
-
-    # 🆕 STATUS SUWERENNOŚCI
+    panstwo_populacja_audit = db.Column(DateTime)
     czy_suwerenny = db.Column(
         db.String(3),
         nullable=False,

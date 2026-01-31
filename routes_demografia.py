@@ -16,6 +16,7 @@ from sqlalchemy import func
 from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
 import random
 from flask import jsonify
+from datetime import datetime
 
 
 def init_demografia_routes(app):
@@ -323,55 +324,61 @@ def init_demografia_routes(app):
             tryb=tryb
         )
 
+    from datetime import datetime
+
     @app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
     def demografia_kalkulator_zapisz(panstwo_id):
         data = request.get_json()
-    
+
         if not data or "regions" not in data:
             return jsonify(success=False, error="Brak danych regionów"), 400
-    
+
         try:
             total_population = 0
-    
+
             for r in data["regions"]:
                 region_id = r.get("region_id")
                 if not region_id:
                     raise ValueError("Brak region_id w payloadzie")
-    
+
                 region = Region.query.get(region_id)
                 if not region:
                     raise ValueError(f"Region ID {region_id} nie istnieje")
-    
+
                 # ─── ODCZYT + WALIDACJA ───
                 pop_region = int(r.get("region_populacja", 0))
                 pop_pozam = int(r.get("region_ludnosc_pozamiejska", 0))
-    
+
                 if pop_region < 0:
                     raise ValueError(
                         f"Populacja regionu (ID {region_id}) nie może być ujemna"
                     )
-    
+
                 if pop_pozam < 0:
                     raise ValueError(
                         f"Ludność pozamiejska regionu (ID {region_id}) nie może być ujemna"
                     )
-    
+
                 # ─── ZAPIS DO MODELU ───
                 region.region_populacja = pop_region
                 region.region_ludnosc_pozamiejska = pop_pozam
-    
+
                 total_population += pop_region
-    
+
+            # ─── PAŃSTWO + AUDYT POPULACJI ───
             panstwo = Panstwo.query.get_or_404(panstwo_id)
-            panstwo.panstwo_populacja = total_population
-    
+
+            if panstwo.panstwo_populacja != total_population:
+                panstwo.panstwo_populacja = total_population
+                panstwo.panstwo_populacja_audit = datetime.utcnow()
+
             db.session.commit()
-    
+
             return jsonify(
                 success=True,
                 panstwo_populacja=total_population
             )
-    
+
         except Exception as e:
             db.session.rollback()
             return jsonify(
@@ -379,9 +386,10 @@ def init_demografia_routes(app):
                 error=str(e)
             ), 500
 
+
     def licz_dane_panstwa(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
-    
+
         regiony = (
             db.session.query(
                 Region.region_nazwa,
@@ -390,24 +398,24 @@ def init_demografia_routes(app):
             .filter(Region.panstwo_id == panstwo_id)
             .all()
         )
-    
+
         liczba_regionow = len(regiony)
         populacja = p.panstwo_populacja or 0
         powierzchnia = p.panstwo_powierzchnia or 0
-    
+
         gestosc = round(populacja / powierzchnia, 2) if powierzchnia else 0
-    
+
         liczba_miast = Miasto.query.filter_by(panstwo_id=panstwo_id).count()
-    
+
         ludnosc_miejska = (
             db.session.query(func.coalesce(func.sum(Miasto.miasto_populacja), 0))
             .filter(Miasto.panstwo_id == panstwo_id)
             .scalar()
         )
-    
+
         urbanizacja = round((ludnosc_miejska / populacja) * 100, 2) if populacja else 0
         srednia_region = round(populacja / liczba_regionow) if liczba_regionow else 0
-    
+
         top_miasta = (
             Miasto.query
             .filter_by(panstwo_id=panstwo_id)
@@ -415,7 +423,7 @@ def init_demografia_routes(app):
             .limit(3)
             .all()
         )
-    
+
         return {
             "nazwa": p.panstwo_nazwa,
             "populacja": populacja,
@@ -437,4 +445,5 @@ def init_demografia_routes(app):
                 for m in top_miasta
             ]
         }
+
 
