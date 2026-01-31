@@ -3,13 +3,36 @@ __Wydanie W1.LUT.26 (dodaj datę wdrożenia produkcyjnego)__
 Zmiany:
 
 Z1.W1.LUT.26 [Audytowalność] 
-ZEUS zapisuje datę ostatniej zmiany populacji danego kraju w kalkulatorze demograficznym w kolumnie panstwo_populacja_audit i wyświetla tę datę w kalkulatorze demograficznym.
+ZEUS zapisuje datę ostatniej zmiany populacji danego kraju w kalkulatorze demograficznym w kolumnie panstwo_populacja_audit.
 
 Z2.W1.LUT.26 [Audytowalność] 
-ZEUS zapisuje datę ostatniej zmiany szczegółowego opisu państwa na formularzu państwa w kolumnie panstwo_opis_audit i wyświetla tę datę na formularzu państwa.
+ZEUS zapisuje datę ostatniej zmiany szczegółowego opisu państwa na formularzu państwa w kolumnie panstwo_opis_audit.
 
-Z3.W1.LUT.26 [Changelog] 
+Z3.W1.LUT.26 [Audytowalność]
+Kalkulator demograficzny wyświetla datę ostatniej zmiany populacji państwa.
+
+Z4.W1.LUT.26 [Audytowalność]
+Na formularzu państwa wyświetlana jest teraz data ostatniej zmiany opisu państwa.
+
+Z5.W1.LUT.26 [Changelog] 
 ZEUS informuje o zmianach jakie zostały wdrożone w systemie z poziomu przycisku "Informacje o wersjach".
+
+Z6.W1.LUT.26 [Moduł językowy]
+Usunięty został przycisk "Edytuj przypisanie języka" z listy wyników wyszukiwania języków.
+
+Poprawki błędów:
+
+P1.W1.LUT.26 [Moduł wojskowy]
+Naprawiony został wygląd filtra danych wojskowych.
+
+P2.W1.LUT.26 [Formularz państwa]
+Naprawione zostało wyświetlanie opisu szczegółówego państwa.
+
+P3.W1.LUT.26 [Moduł historyczny]
+Naprawione zostały wszystkie przyciski w module historycznym, by tekst na przyciskach nie podświetlał się przy najeżdżaniu na niego.
+
+P4.W1.LUT.26 [Moduł wojskowy]
+Dodano brakujące powiadomienie podczas edycji danych o siłach zbrojnych.
 
 (...) Wydanie niewdrożone na produkcję (...)
 
