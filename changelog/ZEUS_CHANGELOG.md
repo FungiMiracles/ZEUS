@@ -1,4 +1,4 @@
-W2.STY.26
+Wydanie W2.STY.26 (31.01.2026)
 
 Zmiany:
 
