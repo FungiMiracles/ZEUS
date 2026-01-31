@@ -405,6 +405,12 @@ class JezykiPerPanstwo(db.Model):
     jezyk_urzedowy2 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
     jezyk_urzedowy3 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
 
+    jezyk_urzedowy1_rel = db.relationship(
+        "Jezyk",
+        foreign_keys=[jezyk_urzedowy1],
+        lazy="joined"
+    )
+
     jezyk_mniejszosciowy1 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
     jezyk_mniejszosciowy2 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
     jezyk_mniejszosciowy3 = db.Column(db.Integer, db.ForeignKey("jezyki.jezyk_id"))
