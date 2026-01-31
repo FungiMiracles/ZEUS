@@ -404,10 +404,6 @@ Kultura — Języki
                             {% endif %}
                         </h3>
 
-                        {% if j.opis %}
-                            <p>{{ j.opis }}</p>
-                        {% endif %}
-
                         <table class="lang-table">
                             <tr>
                                 <th>Polski</th>
@@ -440,7 +436,7 @@ Kultura — Języki
                                 {% endif %}
 
                                 {% if session.rola == "wszechmocny" %}
-                                <a href="#"
+                                <a href="{{ url_for('kultura_jezyk_przypisz_edit', panstwo_id=p.PANSTWO_ID) }}"
                                    class="btn-zeus btn-edit">
                                     Edytuj przypisanie
                                 </a>

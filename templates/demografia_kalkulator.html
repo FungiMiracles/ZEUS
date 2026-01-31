@@ -328,6 +328,17 @@
        <p style="color:#27ae60; font-weight:600; margin-top:8px;">
           ✓ Populacja liczona na bieżąco
       </p>
+
+      {% if panstwo and panstwo.panstwo_populacja %}
+        <p style="margin-top:6px; font-weight:600; color:#353535;">
+            Bieżąca populacja:
+            {{ "{:,}".format(panstwo.panstwo_populacja).replace(",", " ") }}
+        </p>
+        {% else %}
+        <p style="margin-top:6px; font-weight:600; color:#999;">
+            Bieżąca populacja: —
+        </p>
+        {% endif %}
        
         <br><br>
        {% if session.rola == "wszechmocny" %}

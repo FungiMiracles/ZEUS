@@ -1,0 +1,168 @@
+{% extends 'base_layout.html' %}
+{% block title %}Edytuj państwo{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:30px auto;">
+    <h2 style="text-align:center; font-weight:700; margin-bottom:20px;">
+        Edycja państwa: {{ p.panstwo_nazwa }} (ID {{ p.PANSTWO_ID }})
+    </h2>
+
+    {% if error %}
+    <div style="background:#f8d7da; color:#721c24; padding:12px; border-radius:6px; margin-bottom:20px; text-align:center;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+            background:#fff;
+            box-shadow:0 4px 12px rgba(0,0,0,0.12);
+            border-radius:12px;
+            overflow:hidden;
+        ">
+            <thead>
+                <tr style="background:#5d7dce; color:white;">
+                    <th style="padding:12px;">Pole</th>
+                    <th style="padding:12px;">Wartość</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td style="padding:10px;">Nazwa państwa</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_nazwa"
+                               value="{{ form_data.panstwo_nazwa if form_data else p.panstwo_nazwa }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Pełna nazwa</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_pelna_nazwa"
+                               value="{{ form_data.panstwo_pelna_nazwa if form_data else p.panstwo_pelna_nazwa }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Kod państwa</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_kod"
+                               value="{{ form_data.panstwo_kod if form_data else p.panstwo_kod }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Kontynent</td>
+                    <td style="padding:10px;">
+                        <select name="kontynent" style="width:100%; padding:6px;">
+                            {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
+                                <option value="{{ k }}"
+                                    {% if (form_data and form_data.kontynent == k)
+                                          or (not form_data and p.kontynent == k) %}
+                                        selected
+                                    {% endif %}
+                                >{{ k }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Ustrój polityczny</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_ustroj"
+                               value="{{ form_data.panstwo_ustroj if form_data else p.panstwo_ustroj }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Stolica</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_stolica"
+                               value="{{ form_data.panstwo_stolica if form_data else p.panstwo_stolica }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Powierzchnia (km²)</td>
+                    <td style="padding:10px;">
+                        <input type="number" name="panstwo_powierzchnia"
+                               value="{{ form_data.panstwo_powierzchnia if form_data else p.panstwo_powierzchnia }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Waluta</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_waluta"
+                               value="{{ form_data.panstwo_waluta if form_data else p.panstwo_waluta }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Religia dominująca</td>
+                    <td style="padding:10px;">
+                        <input type="text" name="panstwo_religia"
+                               value="{{ form_data.panstwo_religia if form_data else p.panstwo_religia }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">PKB</td>
+                    <td style="padding:10px;">
+                        <input type="number" name="panstwo_PKB"
+                               value="{{ form_data.panstwo_PKB if form_data else p.panstwo_PKB }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">PKB per capita</td>
+                    <td style="padding:10px;">
+                        <input type="number" name="panstwo_PKB_per_capita"
+                               value="{{ form_data.panstwo_PKB_per_capita if form_data else p.panstwo_PKB_per_capita }}"
+                               style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+
+                <!-- BLOK INFORMACYJNY -->
+                <tr>
+                    <td style="padding:10px; font-weight:600;">Dane zablokowane</td>
+                    <td style="padding:10px; color:#555;">
+                        Populacja – edycja w module demografii<br>
+                        Języki urzędowe – edycja w module językowym
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button style="padding:10px 20px; background:#27ae60; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;">
+                Zatwierdź zmiany
+            </button>
+
+            <a href="{{ url_for('panstwo_form', panstwo_id=p.PANSTWO_ID) }}"
+               style="padding:10px 20px; background:#c0392b; color:white; border-radius:6px; text-decoration:none; font-weight:600; margin-left:10px;">
+               Anuluj
+            </a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}
