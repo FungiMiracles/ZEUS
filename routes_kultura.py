@@ -232,7 +232,10 @@ def init_kultura_routes(app):
     
         return render_template(
             "kultura_jezyki.html",
-            wyniki=wyniki
+            wyniki=wyniki,
+            selected_kontynent=kontynent,
+            selected_panstwo=panstwo_id,
+            selected_jezyk=jezyk_id
         )
 
     @app.route("/kultura/jezyki/usun/<int:jezyk_id>")
