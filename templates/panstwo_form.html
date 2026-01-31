@@ -500,9 +500,7 @@
                             <!-- PODGLĄD -->
                             <div id="opis-view">
                                 {% if p.panstwo_opis %}
-                                    <div class="country-description">
-                                        {{ p.panstwo_opis | trim | safe }}
-                                    </div>
+                                    <div class="country-description">{{ p.panstwo_opis | trim | safe }}</div>
                                 {% else %}
                                     <p class="no-desc">Brak informacji szczegółowych.</p>
                                 {% endif %}
