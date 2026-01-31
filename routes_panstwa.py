@@ -316,26 +316,20 @@ def init_panstwa_routes(app):
     @wymaga_roli("wszechmocny")
     def panstwo_opis_edit(panstwo_id):
         panstwo = Panstwo.query.get_or_404(panstwo_id)
-    
+
         nowy_opis = request.form.get("opis_html", "").strip()
-    
+
         if not nowy_opis:
             flash("Opis nie może być pusty.", "error")
             return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
-    
-        panstwo.panstwo_opis = nowy_opis
 
-        insp = inspect(panstwo)
-
-        print("DIRTY:", insp.attrs.panstwo_opis.history.has_changes())
-        print("VALUE:", panstwo.panstwo_opis)
-
+        # ─── AUDYT OPISU (POPRAWNA KOLEJNOŚĆ) ───
         if panstwo.panstwo_opis != nowy_opis:
             panstwo.panstwo_opis = nowy_opis
             panstwo.panstwo_opis_audit = datetime.now(timezone.utc)
-        
+
         db.session.commit()
-    
+
         flash("Informacje szczegółowe zostały zapisane.", "success")
         return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
 
