@@ -73,25 +73,31 @@
                                style="width:100%; padding:6px;">
                     </td>
                 </tr>
-                <div class="region-form-group">
-                    <label>Ukształtowanie terenu</label>
-                    <select name="region_teren">
-                        <option value="">— brak danych —</option>
-                        {% for t in [
-                            "wysokogorski",
-                            "gorski",
-                            "wyzynny",
-                            "pogorski",
-                            "nizinny",
-                            "depresyjny"
-                        ] %}
-                            <option value="{{ t }}"
-                                {% if region.region_teren == t %}selected{% endif %}>
-                                {{ t }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <tr>
+                    <td style="padding:10px;">Ukształtowanie terenu</td>
+                    <td style="padding:10px;">
+                        <select name="region_teren" style="width:100%; padding:6px;">
+                            <option value="">— brak danych —</option>
+
+                            {% for t in [
+                                "wysokogorski",
+                                "gorski",
+                                "wyzynny",
+                                "pogorski",
+                                "nizinny",
+                                "depresyjny"
+                            ] %}
+                                <option value="{{ t }}"
+                                    {% if (form_data and form_data.region_teren == t)
+                                        or (not form_data and region.region_teren == t) %}
+                                        selected
+                                    {% endif %}>
+                                    {{ t }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
                 <tr>
                     <td style="padding:10px;">Mapa regionu (.jpg)</td>
                     <td style="padding:10px;">
