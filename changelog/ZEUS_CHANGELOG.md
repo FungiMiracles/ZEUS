@@ -1,4 +1,4 @@
-__Wydanie W1.LUT.26 (dodaj datę wdrożenia produkcyjnego)__
+__Wydanie W1.LUT.26 (01.02.2026)__
 
 Zmiany:
 
@@ -60,8 +60,6 @@ Dodano brakujące powiadomienie podczas edycji danych o siłach zbrojnych.
 
 P5.W1.LUT.26 [Moduł kulturowy]
 Został zmieniony tekst na prawym kafelku sekcji religijnej z "Edytuj lub dodaj religię" na "Dodaj religię" oraz przycisk "Wejdź" na "Dodaj".
-
-(...) Wydanie niewdrożone na produkcję (...)
 
 __Wydanie W2.STY.26 (31.01.2026)__
 
