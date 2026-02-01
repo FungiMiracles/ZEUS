@@ -182,7 +182,9 @@ def init_religia_routes(app):
                     form_data=request.form
                 )
 
-            return redirect(url_for("religia_form_add"))
+            return redirect(
+                    url_for("religia_form", religia_id=religia.religia_id)
+                )
 
         return render_template(
             "religia_form_add.html",
