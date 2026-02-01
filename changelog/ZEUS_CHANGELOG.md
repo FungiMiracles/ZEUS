@@ -38,6 +38,12 @@ Został dodany formularz edycji religii.
 Z12.W1.LUT.26 [Moduł kulturowy]
 Został dodanny formularz religii.
 
+Z13.W1.LUT.26 [Region]
+Została dodana kolumna region_teren do tabeli "regiony".
+
+Z14.W1.LUT.26 [Region]
+Do formularza regionu została dodana zmienna "region_teren".
+
 Poprawki błędów:
 
 P1.W1.LUT.26 [Moduł wojskowy]

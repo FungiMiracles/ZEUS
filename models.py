@@ -40,9 +40,30 @@ class Region(db.Model):
 
     region_id = db.Column(db.Integer, primary_key=True)
     panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"))
+
     region_nazwa = db.Column(db.String(255))
-    region_populacja = db.Column(BigInteger)
-    region_ludnosc_pozamiejska = db.Column(BigInteger, nullable=False, default=0)
+
+    region_populacja = db.Column(db.BigInteger)
+
+    region_ludnosc_pozamiejska = db.Column(
+        db.BigInteger,
+        nullable=False,
+        default=0
+    )
+
+    region_teren = db.Column(
+        db.Enum(
+            "wysokogorski",
+            "gorski",
+            "wyzynny",
+            "pogorski",
+            "nizinny",
+            "depresyjny",
+            name="region_teren_enum"
+        ),
+        nullable=True
+    )
+
     region_mapa = db.Column(db.LargeBinary, nullable=True)
     region_mapa_mime = db.Column(db.String(50), nullable=True)
 

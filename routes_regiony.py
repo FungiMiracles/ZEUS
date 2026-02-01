@@ -61,6 +61,7 @@ def init_regiony_routes(app):
             nazwa = request.form.get("region_nazwa")
             populacja = request.form.get("region_populacja")
             panstwo_id = request.form.get("panstwo_id")
+            region_teren = request.form.get("region_teren")
     
             if not nazwa:
                 errors.append("Pole 'Nazwa regionu' jest wymagane.")
@@ -74,6 +75,18 @@ def init_regiony_routes(app):
                 errors.append("Pole 'ID państwa' jest wymagane.")
             elif not panstwo_id.isdigit():
                 errors.append("Pole 'ID państwa' musi być liczbą.")
+
+            DOZWOLONE_TERENY = {
+                "wysokogorski",
+                "gorski",
+                "wyzynny",
+                "pogorski",
+                "nizinny",
+                "depresyjny"
+            }
+
+            if region_teren and region_teren not in DOZWOLONE_TERENY:
+                errors.append("Nieprawidłowe ukształtowanie terenu.")
     
             if errors:
                 return render_template(
@@ -111,6 +124,7 @@ def init_regiony_routes(app):
                 region_nazwa=nazwa,
                 region_populacja=populacja,
                 panstwo_id=panstwo_id,
+                region_teren=region_teren or None
             )
     
             # ───── OPCJONALNA MAPA ─────
@@ -203,6 +217,7 @@ def init_regiony_routes(app):
             nazwa = request.form.get("region_nazwa")
             panstwo_id = request.form.get("panstwo_id")
             ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
+            region_teren = request.form.get("region_teren")
 
             # ───── WALIDACJA ─────
             errors = []
@@ -215,6 +230,18 @@ def init_regiony_routes(app):
 
             if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
                 errors.append("Ludność pozamiejska musi być liczbą.")
+
+            DOZWOLONE_TERENY = {
+                "wysokogorski",
+                "gorski",
+                "wyzynny",
+                "pogorski",
+                "nizinny",
+                "depresyjny"
+            }
+
+            if region_teren and region_teren not in DOZWOLONE_TERENY:
+                errors.append("Nieprawidłowe ukształtowanie terenu.")
 
             if errors:
                 return render_template(
@@ -241,6 +268,7 @@ def init_regiony_routes(app):
             region.region_nazwa = nazwa
             region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
             region.panstwo_id = panstwo_id
+            region.region_teren = region_teren or None
 
             file = request.files.get("region_map")
 
