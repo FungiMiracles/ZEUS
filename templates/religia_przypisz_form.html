@@ -1,3 +1,117 @@
+<style>
+/* ============================================================
+   ZEUS — RELIGIA → PRZYPISANIE DO PAŃSTWA
+============================================================ */
+
+.religia-form-container {
+    max-width: 780px;
+    margin: 40px auto 70px auto;
+    padding: 45px 40px;
+    background: radial-gradient(
+        ellipse at top,
+        #181b30 0%,
+        #0f1224 65%,
+        #090a14 100%
+    );
+    border-radius: 18px;
+    box-shadow:
+        0 0 0 1px rgba(130, 150, 255, 0.25),
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 0 60px rgba(120, 140, 255, 0.06);
+    color: #d6dbff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== NAGŁÓWEK ===== */
+
+.religia-form-container h1 {
+    text-align: center;
+    font-size: 2em;
+    color: #eef0ff;
+    margin-bottom: 35px;
+    text-shadow:
+        0 0 12px rgba(140, 160, 255, 0.6),
+        0 0 24px rgba(140, 160, 255, 0.35);
+}
+
+/* ===== POLA FORMULARZA ===== */
+
+.religia-form-group {
+    margin-bottom: 22px;
+}
+
+.religia-form-group label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #cfd3ff;
+}
+
+.religia-form-group select,
+.religia-form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.45);
+    background: rgba(15, 18, 45, 0.9);
+    color: #eef0ff;
+    font-weight: 600;
+    outline: none;
+}
+
+.religia-form-group select:focus,
+.religia-form-group input:focus {
+    border-color: #8ea0ff;
+    box-shadow: 0 0 10px rgba(140, 160, 255, 0.6);
+}
+
+/* ===== AKCJE ===== */
+
+.religia-form-actions {
+    text-align: center;
+    margin-top: 35px;
+}
+
+.religia-submit-btn {
+    padding: 12px 30px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(
+        135deg,
+        #5f6fff,
+        #9a7cff
+    );
+    cursor: pointer;
+    box-shadow:
+        0 0 18px rgba(150, 170, 255, 0.9),
+        0 0 35px rgba(150, 170, 255, 0.55);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.religia-submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 0 28px rgba(180, 200, 255, 1),
+        0 0 50px rgba(180, 200, 255, 0.7);
+}
+
+/* ===== BŁĄD ===== */
+
+.religia-error {
+    background: rgba(160, 50, 50, 0.25);
+    border: 1px solid rgba(255, 120, 120, 0.6);
+    padding: 12px;
+    border-radius: 10px;
+    color: #ffd6d6;
+    font-weight: 700;
+    margin-bottom: 25px;
+    text-align: center;
+}
+</style>
+
 <form method="POST">
 
     <div class="religia-form-group">
