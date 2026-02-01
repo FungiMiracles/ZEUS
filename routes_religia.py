@@ -325,14 +325,6 @@ def init_religia_routes(app):
 
         religia = Religia.query.get_or_404(religia_id)
 
-        # blokada, jeśli religia jest używana
-        powiazania = ReligiaPerPanstwo.query.filter_by(
-            religia_id=religia_id
-        ).count()
-
-        if powiazania > 0:
-            abort(409, description="Nie można usunąć religii przypisanej do państw.")
-
         db.session.delete(religia)
         db.session.commit()
 

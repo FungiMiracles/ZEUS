@@ -480,6 +480,13 @@ class Religia(db.Model):
         backref=db.backref("odlamy", lazy=True)
     )
 
+    przypisania = db.relationship(
+        "ReligiaPerPanstwo",
+        backref="religia_ref",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
     def __repr__(self):
         return f"<Religia {self.religia_nazwa}>"
 

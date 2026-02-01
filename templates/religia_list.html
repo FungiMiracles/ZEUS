@@ -177,6 +177,47 @@
     color: #b8beff;
     font-weight: 700;
 }
+
+/* ===== UKŁAD FILTRÓW ===== */
+
+.religia-filters-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(200px, 1fr));
+    gap: 22px;
+    align-items: end;
+}
+
+.religia-filter label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9em;
+    color: #cfd3ff;
+    margin-bottom: 6px;
+}
+
+.religia-filter select {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.4);
+    background: rgba(15, 18, 40, 0.85);
+    color: #eef0ff;
+    font-weight: 600;
+}
+
+.religion-search {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* ===== LINIA AKCJI ===== */
+
+.religia-filters-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+}
+
 </style>
 
 <div class="religia-list-container">
@@ -192,25 +233,25 @@
     <!-- ================== FILTRY ================== -->
     <form method="GET" class="religia-filters">
 
-        <div class="religia-filters-grid">
+        <!-- ===== LINIA FILTRÓW + SZUKAJ ===== -->
+        <div class="religia-filters-row">
 
-            <div>
+            <div class="religia-filter">
                 <label>Kontynent</label>
                 <select name="kontynent">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
                 </select>
             </div>
 
-            <div>
+            <div class="religia-filter">
                 <label>Państwo</label>
                 <select name="panstwo">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
                 </select>
             </div>
 
-            <div>
+            <div class="religia-filter">
+                <label>Religia</label>
                 <select name="religia">
                     <option value="">— Wszystkie —</option>
                     {% for r in religie %}
@@ -222,19 +263,24 @@
                 </select>
             </div>
 
-            <div style="text-align:center; margin-top:28px;">
+            <div class="religia-filter religion-search">
                 <button type="submit" class="religia-view-btn">
                     Szukaj
                 </button>
             </div>
 
-            <a href="{{ url_for('religia_przypisz_form') }}" class="religia-view-btn" style="margin-left:14px;">
+        </div>
+
+        <!-- ===== LINIA AKCJI ===== -->
+        <div class="religia-filters-actions">
+            <a href="{{ url_for('religia_przypisz_form') }}"
+            class="religia-view-btn">
                 Przypisz religię do państwa
             </a>
-
         </div>
 
     </form>
+
 
     <!-- ================== WYNIKI ================== -->
 
