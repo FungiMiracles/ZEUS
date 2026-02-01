@@ -211,10 +211,14 @@
             </div>
 
             <div>
-                <label>Religia</label>
                 <select name="religia">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
+                    {% for r in religie %}
+                        <option value="{{ r.religia_id }}"
+                            {% if request.args.get('religia') == r.religia_id|string %}selected{% endif %}>
+                            {{ r.religia_nazwa }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
 

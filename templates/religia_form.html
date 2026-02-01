@@ -187,7 +187,9 @@
                 <tbody>
                 {% for p in przypisania %}
                     <tr>
-                        <td>{{ p.panstwo.panstwo_nazwa }}</td>
+                        <td>
+                            {{ p.panstwo.panstwo_nazwa if p.panstwo else "—" }}
+                        </td>
                         <td>{{ p.status }}</td>
                         <td>{{ p.udzial_proc if p.udzial_proc is not none else "—" }}</td>
                     </tr>

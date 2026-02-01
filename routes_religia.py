@@ -69,10 +69,17 @@ def init_religia_routes(app):
             .all()
         )
 
+        religie = (
+            db.session.query(Religia.religia_id, Religia.religia_nazwa)
+            .order_by(Religia.religia_nazwa)
+            .all()
+        )
+
         return render_template(
             "religia_list.html",
             results=results,
             kontynenty=[k[0] for k in kontynenty],
+            religie=religie
         )
 
     # ============================================================
