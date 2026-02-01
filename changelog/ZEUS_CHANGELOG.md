@@ -20,6 +20,24 @@ ZEUS informuje o zmianach jakie zostały wdrożone w systemie z poziomu przycisk
 Z6.W1.LUT.26 [Moduł językowy]
 Usunięty został przycisk "Edytuj przypisanie języka" z listy wyników wyszukiwania języków.
 
+Z7.W1.LUT.26 [Moduł kulturowy]
+Został stworzony formularz dodawania nowej religii.
+
+Z08.W1.LUT.26 [Moduł kulturowy]
+Została dodana możliwość filtrowania wyników wyszukiwania religii po nazwie religii.
+
+Z09.W1.LUT.26 [Moduł kulturowy]
+Został dodany przycisk "Przypisz religię do państwa".
+
+Z10.W1.LUT.26 [Moduł kulturowy]
+Zostały dodane przyciski akcji do wyników wyszukiwania religii.
+
+Z11.W1.LUT.26 [Moduł kulturowy]
+Został dodany formularz edycji religii.
+
+Z12.W1.LUT.26 [Moduł kulturowy]
+Został dodanny formularz religii.
+
 Poprawki błędów:
 
 P1.W1.LUT.26 [Moduł wojskowy]
@@ -33,6 +51,9 @@ Naprawione zostały wszystkie przyciski w module historycznym, by tekst na przyc
 
 P4.W1.LUT.26 [Moduł wojskowy]
 Dodano brakujące powiadomienie podczas edycji danych o siłach zbrojnych.
+
+P5.W1.LUT.26 [Moduł kulturowy]
+Został zmieniony tekst na prawym kafelku sekcji religijnej z "Edytuj lub dodaj religię" na "Dodaj religię" oraz przycisk "Wejdź" na "Dodaj".
 
 (...) Wydanie niewdrożone na produkcję (...)
 

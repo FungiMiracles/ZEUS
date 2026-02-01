@@ -94,6 +94,11 @@
     box-shadow: 0 0 10px rgba(140, 160, 255, 0.6);
 }
 
+.religia-filters-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
 /* ===== TABELA ===== */
 
 .religia-results {
@@ -213,6 +218,16 @@
                 </select>
             </div>
 
+            <div style="text-align:center; margin-top:28px;">
+                <button type="submit" class="religia-view-btn">
+                    Szukaj
+                </button>
+            </div>
+
+            <a href="{{ url_for('religia_przypisz_form') }}" class="religia-view-btn" style="margin-left:14px;">
+                Przypisz religię do państwa
+            </a>
+
         </div>
 
     </form>
@@ -227,7 +242,7 @@
                 <th>Typ</th>
                 <th>Państwo</th>
                 <th>Kontynent</th>
-                <th></th>
+                <th style="text-align:right;">Akcje</th>
             </tr>
         </thead>
         <tbody>
@@ -237,8 +252,31 @@
                 <td class="sub">{{ r.religia_typ }}</td>
                 <td>{{ r.panstwo_nazwa }}</td>
                 <td class="sub">{{ r.kontynent }}</td>
-                <td style="text-align:right;">
-                    <a href="#" class="religia-view-btn">Wyświetl</a>
+                <td style="text-align:right; white-space:nowrap;">
+
+                    <a href="{{ url_for('religia_view', religia_id=r.religia_id) }}"
+                    class="religia-view-btn">
+                        Wyświetl
+                    </a>
+
+                    <a href="{{ url_for('religia_edit', religia_id=r.religia_id) }}"
+                    class="religia-view-btn"
+                    style="margin-left:8px;">
+                        Edytuj
+                    </a>
+
+                    <form method="POST"
+                        action="{{ url_for('religia_delete', religia_id=r.religia_id) }}"
+                        style="display:inline; margin-left:8px;"
+                        onsubmit="return confirm('Czy na pewno chcesz usunąć tę religię?');">
+
+                        <button type="submit" class="religia-view-btn"
+                                style="background:linear-gradient(135deg,#a34a4a,#ff6a6a);">
+                            Usuń
+                        </button>
+
+                    </form>
+
                 </td>
             </tr>
         {% endfor %}

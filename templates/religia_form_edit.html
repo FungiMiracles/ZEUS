@@ -1,0 +1,181 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj religię – {{ religia.religia_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — RELIGIA (EDYCJA)
+============================================================ */
+
+.religia-form-container {
+    max-width: 900px;
+    margin: 40px auto 70px auto;
+    padding: 45px;
+    background: radial-gradient(
+        ellipse at top,
+        #181b30 0%,
+        #0f1224 65%,
+        #090a14 100%
+    );
+    border-radius: 18px;
+    box-shadow:
+        0 0 0 1px rgba(130, 150, 255, 0.25),
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 0 60px rgba(120, 140, 255, 0.06);
+    color: #d6dbff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.religia-form-container h1 {
+    text-align: center;
+    font-size: 2em;
+    color: #eef0ff;
+    margin-bottom: 35px;
+    text-shadow:
+        0 0 12px rgba(140, 160, 255, 0.6),
+        0 0 24px rgba(140, 160, 255, 0.35);
+}
+
+.religia-form-group {
+    margin-bottom: 22px;
+}
+
+.religia-form-group label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #cfd3ff;
+}
+
+.religia-form-group input,
+.religia-form-group select,
+.religia-form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.45);
+    background: rgba(15, 18, 45, 0.9);
+    color: #eef0ff;
+    font-weight: 600;
+}
+
+.religia-form-group textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.religia-form-actions {
+    text-align: center;
+    margin-top: 35px;
+}
+
+.religia-submit-btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(135deg, #5f6fff, #9a7cff);
+    cursor: pointer;
+    box-shadow:
+        0 0 18px rgba(150, 170, 255, 0.9),
+        0 0 35px rgba(150, 170, 255, 0.55);
+}
+
+.religia-submit-btn:hover {
+    transform: scale(1.05);
+}
+
+.religia-current-image {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.religia-current-image img {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 14px;
+    box-shadow:
+        0 0 22px rgba(120, 140, 255, 0.6);
+}
+</style>
+
+<div class="religia-form-container">
+
+    <h1>Edytuj religię</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <!-- NAZWA -->
+        <div class="religia-form-group">
+            <label>Nazwa religii</label>
+            <input name="religia_nazwa" value="{{ religia.religia_nazwa }}">
+        </div>
+
+        <!-- TYP -->
+        <div class="religia-form-group">
+            <label>Typ religii</label>
+            <select name="religia_typ">
+                {% for t in ["monoteistyczna","politeistyczna","henoteistyczna","panteistyczna","nonteistyczna"] %}
+                    <option value="{{ t }}"
+                        {% if religia.religia_typ == t %}selected{% endif %}>
+                        {{ t }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- NADRZĘDNA -->
+        <div class="religia-form-group">
+            <label>Religia nadrzędna</label>
+            <select name="religia_nadrzedna_id">
+                <option value="">— brak —</option>
+                {% for r in religie %}
+                    {% if r.religia_id != religia.religia_id %}
+                        <option value="{{ r.religia_id }}"
+                            {% if religia.religia_nadrzedna_id == r.religia_id %}selected{% endif %}>
+                            {{ r.religia_nazwa }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- OPIS -->
+        <div class="religia-form-group">
+            <label>Opis religii</label>
+            <textarea name="opis">{{ religia.opis or "" }}</textarea>
+        </div>
+
+        <!-- OBRAZ -->
+        <div class="religia-form-group">
+            <label>Nowy obraz (opcjonalnie)</label>
+            <input type="file" name="religia_obraz" accept="image/*">
+        </div>
+
+        {% if religia.religia_obraz %}
+        <div class="religia-current-image">
+            <p style="color:#b8beff; font-weight:700;">Aktualny obraz:</p>
+            <img src="{{ url_for('religia_image', religia_id=religia.religia_id) }}">
+        </div>
+        {% endif %}
+
+        <!-- AKCJE -->
+        <div class="religia-form-actions">
+            <button type="submit" class="religia-submit-btn">
+                Zapisz zmiany
+            </button>
+            <a href="{{ url_for('religia_form', religia_id=religia.religia_id) }}"
+               class="religia-submit-btn"
+               style="text-decoration:none; margin-left:12px;">
+                Anuluj
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+<form method="POST">
+
+    <div class="religia-form-group">
+        <label>Państwo</label>
+        <select name="panstwo_id">
+            <option value="">— wybierz —</option>
+            {% for p in panstwa %}
+                <option value="{{ p.PANSTWO_ID }}"
+                    {% if form_data.panstwo_id == p.PANSTWO_ID|string %}selected{% endif %}>
+                    {{ p.panstwo_nazwa }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="religia-form-group">
+        <label>Religia</label>
+        <select name="religia_id">
+            <option value="">— wybierz —</option>
+            {% for r in religie %}
+                <option value="{{ r.religia_id }}"
+                    {% if form_data.religia_id == r.religia_id|string %}selected{% endif %}>
+                    {{ r.religia_nazwa }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="religia-form-group">
+        <label>Status religii</label>
+        <select name="status">
+            <option value="">— wybierz —</option>
+            {% for s in ["dominujaca","oficjalna","mniejszosciowa","historyczna"] %}
+                <option value="{{ s }}"
+                    {% if form_data.status == s %}selected{% endif %}>
+                    {{ s }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="religia-form-group">
+        <label>Udział procentowy (opcjonalnie)</label>
+        <input name="udzial_proc" placeholder="np. 62.5"
+               value="{{ form_data.udzial_proc or '' }}">
+    </div>
+
+    <div class="religia-form-actions">
+        <button class="religia-submit-btn">
+            Przypisz religię
+        </button>
+    </div>
+
+</form>
