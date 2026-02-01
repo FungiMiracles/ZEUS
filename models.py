@@ -482,9 +482,9 @@ class Religia(db.Model):
 
     przypisania = db.relationship(
         "ReligiaPerPanstwo",
-        backref="religia_ref",
         cascade="all, delete-orphan",
-        passive_deletes=True
+        passive_deletes=True,
+        back_populates="religia"
     )
 
     def __repr__(self):
@@ -507,7 +507,7 @@ class ReligiaPerPanstwo(db.Model):
         nullable=False
     )
 
-    udzial_proc = db.Column(db.Float, nullable=False)
+    udzial_proc = db.Column(db.Float, nullable=True)
 
     status = db.Column(
         db.Enum(
@@ -530,7 +530,10 @@ class ReligiaPerPanstwo(db.Model):
 
     # Relacje ORM
     panstwo = db.relationship("Panstwo", backref=db.backref("religie", lazy=True))
-    religia = db.relationship("Religia", backref=db.backref("panstwa", lazy=True))
+    religia = db.relationship(
+        "Religia",
+        back_populates="przypisania"
+    )
 
     def __repr__(self):
         return (

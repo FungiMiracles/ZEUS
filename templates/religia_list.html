@@ -218,6 +218,13 @@
     justify-content: flex-end;
 }
 
+.religia-view-btn,
+.religia-view-btn:hover,
+.religia-view-btn:focus,
+.religia-view-btn:active {
+    text-decoration: none !important;
+}
+
 </style>
 
 <div class="religia-list-container">
@@ -263,21 +270,18 @@
                 </select>
             </div>
 
-            <div class="religia-filter religion-search">
+            <div class="religia-filter religion-actions-col">
+
                 <button type="submit" class="religia-view-btn">
                     Szukaj
                 </button>
+
+                <a href="{{ url_for('religia_przypisz_form') }}"
+                class="religia-view-btn religion-assign-btn">
+                    Przypisz religię do państwa
+                </a>
+
             </div>
-
-        </div>
-
-        <!-- ===== LINIA AKCJI ===== -->
-        <div class="religia-filters-actions">
-            <a href="{{ url_for('religia_przypisz_form') }}"
-            class="religia-view-btn">
-                Przypisz religię do państwa
-            </a>
-        </div>
 
     </form>
 
