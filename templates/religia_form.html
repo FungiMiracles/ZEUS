@@ -159,6 +159,13 @@
         </div>
     </div>
 
+    <!-- ===== OBRAZ ===== -->
+    {% if religia.religia_obraz %}
+    <div class="religia-section religia-image">
+        <img src="{{ url_for('religia_image', religia_id=religia.religia_id) }}">
+    </div>
+    {% endif %}
+
     <!-- ===== OPIS ===== -->
     <div class="religia-section">
         <h2>Opis</h2>
@@ -170,13 +177,6 @@
             </div>
         {% endif %}
     </div>
-
-    <!-- ===== OBRAZ ===== -->
-    {% if religia.religia_obraz %}
-    <div class="religia-section religia-image">
-        <img src="{{ url_for('religia_image', religia_id=religia.religia_id) }}">
-    </div>
-    {% endif %}
 
     <!-- ===== POWIĄZANIA Z PAŃSTWAMI ===== -->
     <div class="religia-section">

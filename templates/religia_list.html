@@ -193,9 +193,9 @@
 
 .religia-filters-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
     gap: 22px;
-    align-items: end;
+    margin-bottom: 20px;
 }
 
 .religia-filter label {
@@ -204,6 +204,17 @@
     font-size: 0.9em;
     color: #cfd3ff;
     margin-bottom: 6px;
+}
+
+.religia-filters-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+/* brak łamania tekstu w przyciskach */
+.religia-view-btn {
+    white-space: nowrap;
 }
 
 .religia-filter select {
@@ -251,7 +262,7 @@
     <!-- ================== FILTRY ================== -->
     <form method="GET" class="religia-filters">
 
-        <!-- ===== LINIA FILTRÓW + SZUKAJ ===== -->
+        <!-- ===== FILTRY ===== -->
         <div class="religia-filters-row">
 
             <div class="religia-filter">
@@ -281,21 +292,23 @@
                 </select>
             </div>
 
-            <div class="religia-filter religion-actions-col">
+        </div>
 
-                <button type="submit" class="religia-view-btn">
-                    Szukaj
-                </button>
+        <!-- ===== PRZYCISKI ===== -->
+        <div class="religia-filters-buttons">
 
-                <a href="{{ url_for('religia_przypisz_form') }}"
-                class="religia-view-btn religion-assign-btn">
-                    Przypisz religię do państwa
-                </a>
+            <button type="submit" class="religia-view-btn">
+                Szukaj
+            </button>
 
-            </div>
+            <a href="{{ url_for('religia_przypisz_form') }}"
+            class="religia-view-btn religion-assign-btn">
+                Przypisz religię do państwa
+            </a>
+
+        </div>
 
     </form>
-
 
     <!-- ================== WYNIKI ================== -->
 
