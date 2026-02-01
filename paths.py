@@ -12,3 +12,8 @@ DESCRIPTIONS_FOLDER = os.path.join(BASE_DIR, "static", "descriptions")
 EVENTS_DESCRIPTIONS_FOLDER = os.path.join(DESCRIPTIONS_FOLDER, "events")
 
 INFO_FILE = os.path.join(BASE_DIR, "static", "info", "info.md")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+INFO_FILE = os.path.join(BASE_DIR, "info.md")
+VERSIONS_FILE = os.path.join(BASE_DIR, "changelog", "ZEUS_CHANGELOG.md")

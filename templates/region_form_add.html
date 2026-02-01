@@ -223,6 +223,26 @@
             </div>
 
             <div class="form-group">
+                <label>Ukształtowanie terenu</label>
+                <select name="region_teren">
+                    <option value="">— brak danych —</option>
+                    {% for t in [
+                        "wysokogorski",
+                        "gorski",
+                        "wyzynny",
+                        "pogorski",
+                        "nizinny",
+                        "depresyjny"
+                    ] %}
+                        <option value="{{ t }}"
+                            {% if form_data and form_data.region_teren == t %}selected{% endif %}>
+                            {{ t }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label>Mapa regionu (opcjonalnie)</label>
                 <input
                     type="file"

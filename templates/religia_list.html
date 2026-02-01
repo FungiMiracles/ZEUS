@@ -94,6 +94,11 @@
     box-shadow: 0 0 10px rgba(140, 160, 255, 0.6);
 }
 
+.religia-filters-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
 /* ===== TABELA ===== */
 
 .religia-results {
@@ -164,6 +169,17 @@
         0 0 50px rgba(180, 200, 255, 0.7);
 }
 
+.religion-actions-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;        /* 🔑 KLUCZ */
+}
+
+.religion-actions-col .religia-view-btn {
+    max-width: 100%;
+}
+
 /* ===== BRAK WYNIKÓW ===== */
 
 .religia-empty {
@@ -172,6 +188,65 @@
     color: #b8beff;
     font-weight: 700;
 }
+
+/* ===== UKŁAD FILTRÓW ===== */
+
+.religia-filters-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 22px;
+    margin-bottom: 20px;
+}
+
+.religia-filter label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9em;
+    color: #cfd3ff;
+    margin-bottom: 6px;
+}
+
+.religia-filters-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+/* brak łamania tekstu w przyciskach */
+.religia-view-btn {
+    white-space: nowrap;
+}
+
+.religia-filter select {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.4);
+    background: rgba(15, 18, 40, 0.85);
+    color: #eef0ff;
+    font-weight: 600;
+}
+
+.religion-search {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* ===== LINIA AKCJI ===== */
+
+.religia-filters-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.religia-view-btn,
+.religia-view-btn:hover,
+.religia-view-btn:focus,
+.religia-view-btn:active {
+    text-decoration: none !important;
+}
+
 </style>
 
 <div class="religia-list-container">
@@ -187,31 +262,54 @@
     <!-- ================== FILTRY ================== -->
     <form method="GET" class="religia-filters">
 
-        <div class="religia-filters-grid">
+        <!-- ===== FILTRY ===== -->
+        <div class="religia-filters-row">
 
-            <div>
+            <div class="religia-filter">
                 <label>Kontynent</label>
                 <select name="kontynent">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
                 </select>
             </div>
 
-            <div>
+            <div class="religia-filter">
                 <label>Państwo</label>
                 <select name="panstwo">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
                 </select>
             </div>
 
-            <div>
+            <div class="religia-filter">
                 <label>Religia</label>
                 <select name="religia">
                     <option value="">— Wszystkie —</option>
-                    <!-- dynamicznie -->
+                    {% for r in religie %}
+                        <option value="{{ r.religia_id }}"
+                            {% if request.args.get('religia') == r.religia_id|string %}selected{% endif %}>
+                            {{ r.religia_nazwa }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
+
+        </div>
+
+        <!-- ===== PRZYCISKI ===== -->
+        <div class="religia-filters-buttons">
+
+            <button type="submit" class="religia-view-btn">
+                Szukaj
+            </button>
+
+            <a href="{{ url_for('religia_przypisz_form') }}"
+            class="religia-view-btn religion-assign-btn">
+                Przypisz religię do państwa
+            </a>
+
+            <a href="{{ url_for('religia_form_add') }}"
+            class="religia-view-btn religion-assign-btn">
+                Dodaj nową religię
+            </a>
 
         </div>
 
@@ -227,7 +325,7 @@
                 <th>Typ</th>
                 <th>Państwo</th>
                 <th>Kontynent</th>
-                <th></th>
+                <th style="text-align:right;">Akcje</th>
             </tr>
         </thead>
         <tbody>
@@ -237,8 +335,31 @@
                 <td class="sub">{{ r.religia_typ }}</td>
                 <td>{{ r.panstwo_nazwa }}</td>
                 <td class="sub">{{ r.kontynent }}</td>
-                <td style="text-align:right;">
-                    <a href="#" class="religia-view-btn">Wyświetl</a>
+                <td style="text-align:right; white-space:nowrap;">
+
+                    <a href="{{ url_for('religia_form', religia_id=r.religia_id) }}"
+                    class="religia-view-btn">
+                        Wyświetl
+                    </a>
+
+                    <a href="{{ url_for('religia_edit', religia_id=r.religia_id) }}"
+                    class="religia-view-btn"
+                    style="margin-left:8px;">
+                        Edytuj
+                    </a>
+
+                    <form method="POST"
+                        action="{{ url_for('religia_delete', religia_id=r.religia_id) }}"
+                        style="display:inline; margin-left:8px;"
+                        onsubmit="return confirm('Czy na pewno chcesz usunąć tę religię?');">
+
+                        <button type="submit" class="religia-view-btn"
+                                style="background:linear-gradient(135deg,#a34a4a,#ff6a6a);">
+                            Usuń
+                        </button>
+
+                    </form>
+
                 </td>
             </tr>
         {% endfor %}

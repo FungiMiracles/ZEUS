@@ -5,6 +5,8 @@ from extensions import db
 from models import Panstwo
 from paths import INFO_FILE
 from permissions import wymaga_roli
+import markdown
+from paths import VERSIONS_FILE
 
 
 def init_main_routes(app):
@@ -58,6 +60,31 @@ def init_main_routes(app):
     @app.route("/gospodarka")
     def gospodarka():
         return render_template("gospodarka.html")
+    
+    # --------------------------
+    # Informacje o wersjach – changelog (Markdown)
+    # --------------------------
+    @app.route("/zeus/versions")
+    def zeus_versions():
+        try:
+            with open(VERSIONS_FILE, "r", encoding="utf-8") as f:
+                md_text = f.read()
+
+            changelog_html = markdown.markdown(
+                md_text,
+                extensions=["extra", "tables", "sane_lists"]
+            )
+
+        except FileNotFoundError:
+            changelog_html = "<p>Brak pliku changelogu.</p>"
+        except Exception as e:
+            changelog_html = f"<p>Błąd podczas odczytu changelogu: {e}</p>"
+
+        return render_template(
+            "zeus_versions.html",
+            changelog_html=changelog_html
+        )
+
 
     # --------------------------
     # Info – odczyt info.md

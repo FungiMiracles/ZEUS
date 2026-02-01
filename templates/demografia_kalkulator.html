@@ -333,6 +333,12 @@
         <p style="margin-top:6px; font-weight:600; color:#353535;">
             Bieżąca populacja:
             {{ "{:,}".format(panstwo.panstwo_populacja).replace(",", " ") }}
+            {% if panstwo.panstwo_populacja_audit %}
+                <span style="color:#8a8a8a; font-weight:500;">
+                    (ostatnia modyfikacja:
+                    {{ panstwo.panstwo_populacja_audit.strftime("%d.%m.%Y, %H:%M") }})
+                </span>
+            {% endif %}
         </p>
         {% else %}
         <p style="margin-top:6px; font-weight:600; color:#999;">

@@ -1,0 +1,165 @@
+{% extends "base_layout.html" %}
+{% block title %}Dodaj religię{% endblock %}
+
+{% block content %}
+
+<style>
+.religia-form-container {
+    max-width: 900px;
+    margin: 40px auto 70px auto;
+    padding: 45px;
+    background: radial-gradient(
+        ellipse at top,
+        #181b30 0%,
+        #0f1224 65%,
+        #090a14 100%
+    );
+    border-radius: 18px;
+    box-shadow:
+        0 0 0 1px rgba(130, 150, 255, 0.25),
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 0 60px rgba(120, 140, 255, 0.06);
+    color: #d6dbff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.religia-form-container h1 {
+    text-align: center;
+    font-size: 2em;
+    color: #eef0ff;
+    margin-bottom: 35px;
+    text-shadow:
+        0 0 12px rgba(140, 160, 255, 0.6),
+        0 0 24px rgba(140, 160, 255, 0.35);
+}
+
+.religia-form-group {
+    margin-bottom: 22px;
+}
+
+.religia-form-group label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #cfd3ff;
+}
+
+.religia-form-group input,
+.religia-form-group select,
+.religia-form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(150, 160, 220, 0.45);
+    background: rgba(15, 18, 45, 0.9);
+    color: #eef0ff;
+    font-weight: 600;
+}
+
+.religia-form-group textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.religia-form-actions {
+    text-align: center;
+    margin-top: 35px;
+}
+
+.religia-submit-btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(135deg, #6c7cff, #a483ff);
+    cursor: pointer;
+    box-shadow:
+        0 0 18px rgba(150, 170, 255, 0.9),
+        0 0 35px rgba(150, 170, 255, 0.55);
+}
+
+.religia-submit-btn:hover {
+    transform: scale(1.05);
+}
+
+.religia-error {
+    background: rgba(160, 50, 50, 0.2);
+    border: 1px solid rgba(255, 120, 120, 0.6);
+    padding: 12px;
+    border-radius: 10px;
+    color: #ffd6d6;
+    font-weight: 700;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.religia-view-btn,
+.religia-view-btn:hover,
+.religia-view-btn:focus,
+.religia-view-btn:active {
+    text-decoration: none !important;
+}
+</style>
+
+<div class="religia-form-container">
+
+    <h1>Dodaj nową religię</h1>
+
+    {% if error %}
+        <div class="religia-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <div class="religia-form-group">
+            <label>Nazwa religii</label>
+            <input name="religia_nazwa" value="{{ form_data.religia_nazwa or '' }}">
+        </div>
+
+        <div class="religia-form-group">
+            <label>Typ religii</label>
+            <select name="religia_typ">
+                <option value="">— wybierz —</option>
+                {% for t in ["monoteistyczna","politeistyczna","henoteistyczna","panteistyczna","nonteistyczna"] %}
+                    <option value="{{ t }}" {% if form_data.religia_typ == t %}selected{% endif %}>
+                        {{ t }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="religia-form-group">
+            <label>Religia nadrzędna (opcjonalnie)</label>
+            <select name="religia_nadrzedna_id">
+                <option value="">— brak —</option>
+                {% for r in religie %}
+                    <option value="{{ r.religia_id }}">
+                        {{ r.religia_nazwa }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="religia-form-group">
+            <label>Opis religii</label>
+            <textarea name="opis">{{ form_data.opis or '' }}</textarea>
+        </div>
+
+        <div class="religia-form-group">
+            <label>Obraz religii</label>
+            <input type="file" name="religia_obraz" accept="image/*">
+        </div>
+
+        <div class="religia-form-actions">
+            <button class="religia-submit-btn" type="submit">
+                Zapisz religię
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends "base_layout.html" %}
+{% block title %}Religia – {{ religia.religia_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — RELIGIA (PODGLĄD)
+============================================================ */
+
+.religia-view-container {
+    max-width: 1000px;
+    margin: 40px auto 70px auto;
+    padding: 45px 40px 55px 40px;
+    background: radial-gradient(
+        ellipse at top,
+        #181b30 0%,
+        #0f1224 65%,
+        #090a14 100%
+    );
+    border-radius: 18px;
+    box-shadow:
+        0 0 0 1px rgba(130, 150, 255, 0.25),
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 0 70px rgba(120, 140, 255, 0.06);
+    color: #d6dbff;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ===== NAGŁÓWEK ===== */
+
+.religia-view-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.religia-view-header h1 {
+    font-size: 2.1em;
+    color: #eef0ff;
+    text-shadow:
+        0 0 12px rgba(140, 160, 255, 0.6),
+        0 0 26px rgba(140, 160, 255, 0.35);
+}
+
+.religia-view-header .sub {
+    margin-top: 8px;
+    font-size: 0.95em;
+    color: #b8beff;
+    font-weight: 600;
+}
+
+/* ===== SEKCJE ===== */
+
+.religia-section {
+    margin-bottom: 35px;
+}
+
+.religia-section h2 {
+    font-size: 1.3em;
+    margin-bottom: 14px;
+    color: #eef0ff;
+    border-bottom: 1px solid rgba(140, 160, 255, 0.35);
+    padding-bottom: 6px;
+}
+
+/* ===== OPIS ===== */
+
+.religia-opis {
+    line-height: 1.7;
+    font-size: 0.95em;
+    color: #e2e5ff;
+    white-space: pre-wrap;
+}
+
+/* ===== OBRAZ ===== */
+
+.religia-image {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.religia-image img {
+    max-width: 100%;
+    max-height: 360px;
+    border-radius: 14px;
+    box-shadow:
+        0 0 25px rgba(120, 140, 255, 0.6);
+}
+
+/* ===== TABELA POWIĄZAŃ ===== */
+
+.religia-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.religia-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: #cfd3ff;
+    font-size: 0.9em;
+}
+
+.religia-table td {
+    padding: 12px;
+    background: linear-gradient(
+        135deg,
+        rgba(30, 35, 80, 0.85),
+        rgba(15, 18, 45, 0.95)
+    );
+    font-weight: 600;
+    color: #eef0ff;
+}
+
+/* ===== AKCJE ===== */
+
+.religia-actions {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.religia-actions a {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #5f6fff, #9a7cff);
+    color: white !important;
+    font-weight: 800;
+    text-decoration: none;
+    margin: 0 8px;
+    box-shadow:
+        0 0 18px rgba(150, 170, 255, 0.9),
+        0 0 35px rgba(150, 170, 255, 0.55);
+}
+
+.religia-actions a:hover {
+    transform: scale(1.05);
+}
+
+.religia-view-btn,
+.religia-view-btn:hover,
+.religia-view-btn:focus,
+.religia-view-btn:active {
+    text-decoration: none !important;
+}
+</style>
+
+<div class="religia-view-container">
+
+    <!-- ===== NAGŁÓWEK ===== -->
+    <div class="religia-view-header">
+        <h1>{{ religia.religia_nazwa }}</h1>
+        <div class="sub">
+            Typ: {{ religia.religia_typ }}
+            {% if religia.nadrzedna %}
+                • Religia nadrzędna: {{ religia.religia_nadrzedna.religia_nazwa }}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===== OBRAZ ===== -->
+    {% if religia.religia_obraz %}
+    <div class="religia-section religia-image">
+        <img src="{{ url_for('religia_image', religia_id=religia.religia_id) }}">
+    </div>
+    {% endif %}
+
+    <!-- ===== OPIS ===== -->
+    <div class="religia-section">
+        <h2>Opis</h2>
+        {% if religia.opis %}
+            <div class="religia-opis">{{ religia.opis }}</div>
+        {% else %}
+            <div class="religia-opis" style="color:#9fa5ff;">
+                Brak opisu religii.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== POWIĄZANIA Z PAŃSTWAMI ===== -->
+    <div class="religia-section">
+        <h2>Występowanie w państwach</h2>
+
+        {% if przypisania and przypisania|length > 0 %}
+            <table class="religia-table">
+                <thead>
+                    <tr>
+                        <th>Państwo</th>
+                        <th>Status</th>
+                        <th>Udział (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for p in przypisania %}
+                    <tr>
+                        <td>
+                            {{ p.panstwo.panstwo_nazwa if p.panstwo else "—" }}
+                        </td>
+                        <td>{{ p.status }}</td>
+                        <td>{{ p.udzial_proc if p.udzial_proc is not none else "—" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div style="color:#9fa5ff;">
+                Religia nie jest przypisana do żadnego państwa.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== AKCJE ===== -->
+    <div class="religia-actions">
+        <a href="{{ url_for('religia_edit', religia_id=religia.religia_id) }}">Edytuj</a>
+        <a href="{{ url_for('religia_list') }}">Powrót do listy</a>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -23,6 +23,7 @@ from paths import (
 
 from permissions import wymaga_roli
 from sqlalchemy import inspect
+from datetime import datetime, timezone
 
 
 # ============================================================
@@ -30,6 +31,26 @@ from sqlalchemy import inspect
 # ============================================================
 
 def init_panstwa_api(app):
+
+    @app.route("/api/panstwo_populacja")
+    def panstwo_populacja():
+        pid = request.args.get("id")
+        p = Panstwo.query.get(pid)
+
+        if not p:
+            return jsonify({
+                "populacja": None,
+                "audit": None
+            })
+
+        return jsonify({
+            "populacja": p.panstwo_populacja,
+            "audit": (
+                p.panstwo_populacja_audit.isoformat()
+                if p.panstwo_populacja_audit
+                else None
+            )
+        })
 
     @app.route("/api/panstwo_suggest")
     def panstwo_suggest():
@@ -218,6 +239,7 @@ def init_panstwa_routes(app):
                 "panstwo_religia",
                 "panstwo_PKB",
                 "panstwo_PKB_per_capita",
+                "panstwo_populacja",   # ← WAŻNE
             ]
 
             for f in required_fields:
@@ -233,6 +255,10 @@ def init_panstwa_routes(app):
                 )
 
             try:
+                # --- NOWA POPULACJA (najpierw) ---
+                nowa_populacja = int(form.get("panstwo_populacja"))
+
+                # --- POLA TEKSTOWE / STAŁE ---
                 p.panstwo_nazwa = form.get("panstwo_nazwa")
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
@@ -242,6 +268,8 @@ def init_panstwa_routes(app):
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
                 p.panstwo_waluta = form.get("panstwo_waluta")
                 p.panstwo_religia = form.get("panstwo_religia")
+
+                # --- EKONOMIA ---
                 p.panstwo_PKB = int(form.get("panstwo_PKB"))
                 p.panstwo_PKB_per_capita = int(form.get("panstwo_PKB_per_capita"))
 
@@ -259,6 +287,7 @@ def init_panstwa_routes(app):
             return redirect(url_for("panstwo_form", panstwo_id=p.PANSTWO_ID))
 
         return render_template("panstwo_form_edit.html", p=p)
+
 
 
     # ================= USUWANIE PAŃSTWA =================
@@ -287,22 +316,20 @@ def init_panstwa_routes(app):
     @wymaga_roli("wszechmocny")
     def panstwo_opis_edit(panstwo_id):
         panstwo = Panstwo.query.get_or_404(panstwo_id)
-    
+
         nowy_opis = request.form.get("opis_html", "").strip()
-    
+
         if not nowy_opis:
             flash("Opis nie może być pusty.", "error")
             return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
-    
-        panstwo.panstwo_opis = nowy_opis
 
-        insp = inspect(panstwo)
+        # ─── AUDYT OPISU (POPRAWNA KOLEJNOŚĆ) ───
+        if panstwo.panstwo_opis != nowy_opis:
+            panstwo.panstwo_opis = nowy_opis
+            panstwo.panstwo_opis_audit = datetime.now(timezone.utc)
 
-        print("DIRTY:", insp.attrs.panstwo_opis.history.has_changes())
-        print("VALUE:", panstwo.panstwo_opis)
-        
         db.session.commit()
-    
+
         flash("Informacje szczegółowe zostały zapisane.", "success")
         return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
 

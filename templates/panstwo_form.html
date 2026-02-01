@@ -167,6 +167,20 @@
       padding-right: 2px;
 }
 
+   .country-description {
+    text-indent: 0;
+}
+
+.country-description p {
+    margin-top: 0;
+    margin-bottom: 0.8em;
+    text-indent: 0;
+}
+
+.country-description p:first-child {
+    margin-top: 0;
+}
+
 .no-desc {
     text-align: center;
     padding: 40px 10px;
@@ -470,10 +484,10 @@
                                
                             </div>
 
-                            {% if p.opis_updated_at %}
+                            {% if p.panstwo_opis_audit %}
                             <div class="opis-meta">
                                 Ostatnio edytowany:
-                                {{ p.opis_updated_at.strftime("%d.%m.%Y, %H:%M") }}
+                                {{ p.panstwo_opis_audit.strftime("%d.%m.%Y, %H:%M") }}
                             </div>
                             {% endif %}
                         </th>
@@ -486,9 +500,7 @@
                             <!-- PODGLĄD -->
                             <div id="opis-view">
                                 {% if p.panstwo_opis %}
-                                    <div class="country-description">
-                                        {{ p.panstwo_opis | trim | safe }}
-                                    </div>
+                                    <div class="country-description">{{ p.panstwo_opis | trim | safe }}</div>
                                 {% else %}
                                     <p class="no-desc">Brak informacji szczegółowych.</p>
                                 {% endif %}

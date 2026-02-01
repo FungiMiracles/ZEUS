@@ -211,6 +211,13 @@
 .religia-back a:hover {
     background: rgba(120,140,255,0.25);
 }
+
+.religia-view-btn,
+.religia-view-btn:hover,
+.religia-view-btn:focus,
+.religia-view-btn:active {
+    text-decoration: none !important;
+}
 </style>
 
 <div class="religia-container">
@@ -237,12 +244,12 @@
 
         <div class="religia-tile">
             <div class="religia-symbol">✦</div>
-            <h3>Edytuj lub dodaj religię</h3>
+            <h3>Dodaj religię</h3>
             <p>
                 Twórz nowe kulty, odłamy i systemy wierzeń,
                 zapisując je w kronikach Zeusa.
             </p>
-            <a href="#" class="religia-btn">Wejdź</a>
+            <a href="{{ url_for('religia_form_add') }}" class="religia-btn">Dodaj</a>
         </div>
 
     </div>

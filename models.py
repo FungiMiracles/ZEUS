@@ -2,6 +2,7 @@
 from sqlalchemy import BigInteger
 from extensions import db
 from datetime import datetime
+from sqlalchemy import DateTime
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
@@ -22,8 +23,8 @@ class Panstwo(db.Model):
     panstwo_powierzchnia = db.Column(BigInteger)
     panstwo_opis = db.Column(db.Text)
     opis_updated_at = db.Column(db.DateTime)
-
-    # 🆕 STATUS SUWERENNOŚCI
+    panstwo_populacja_audit = db.Column(DateTime)
+    panstwo_opis_audit = db.Column(DateTime)
     czy_suwerenny = db.Column(
         db.String(3),
         nullable=False,
@@ -39,9 +40,30 @@ class Region(db.Model):
 
     region_id = db.Column(db.Integer, primary_key=True)
     panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"))
+
     region_nazwa = db.Column(db.String(255))
-    region_populacja = db.Column(BigInteger)
-    region_ludnosc_pozamiejska = db.Column(BigInteger, nullable=False, default=0)
+
+    region_populacja = db.Column(db.BigInteger)
+
+    region_ludnosc_pozamiejska = db.Column(
+        db.BigInteger,
+        nullable=False,
+        default=0
+    )
+
+    region_teren = db.Column(
+        db.Enum(
+            "wysokogorski",
+            "gorski",
+            "wyzynny",
+            "pogorski",
+            "nizinny",
+            "depresyjny",
+            name="region_teren_enum"
+        ),
+        nullable=True
+    )
+
     region_mapa = db.Column(db.LargeBinary, nullable=True)
     region_mapa_mime = db.Column(db.String(50), nullable=True)
 
@@ -479,6 +501,13 @@ class Religia(db.Model):
         backref=db.backref("odlamy", lazy=True)
     )
 
+    przypisania = db.relationship(
+        "ReligiaPerPanstwo",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        back_populates="religia"
+    )
+
     def __repr__(self):
         return f"<Religia {self.religia_nazwa}>"
 
@@ -499,7 +528,7 @@ class ReligiaPerPanstwo(db.Model):
         nullable=False
     )
 
-    udzial_proc = db.Column(db.Float, nullable=False)
+    udzial_proc = db.Column(db.Float, nullable=True)
 
     status = db.Column(
         db.Enum(
@@ -522,7 +551,10 @@ class ReligiaPerPanstwo(db.Model):
 
     # Relacje ORM
     panstwo = db.relationship("Panstwo", backref=db.backref("religie", lazy=True))
-    religia = db.relationship("Religia", backref=db.backref("panstwa", lazy=True))
+    religia = db.relationship(
+        "Religia",
+        back_populates="przypisania"
+    )
 
     def __repr__(self):
         return (

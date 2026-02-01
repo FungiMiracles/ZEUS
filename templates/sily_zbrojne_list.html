@@ -5,7 +5,7 @@
 
 <style>
     .filter-box {
-        width: 35%;
+        width: 40%;
         margin: 20px auto;
         padding: 15px;
         background: #f8faff;
@@ -15,7 +15,7 @@
         gap: 20px;
         align-items: flex-end;
         flex-wrap: nowrap;
-        box-sizing: border-box; /* 🔥 TO JEST FIX */
+        box-sizing: border-box;
     }
 
     .filter-box label {
@@ -257,6 +257,21 @@
 </style>
 
 <div class="results-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom:15px;">
+                {% for category, message in messages %}
+                    <div style="padding:10px; border-radius:6px;
+                        {% if category == 'success' %}background:#d4edda; color:#155724;
+                        {% elif category == 'error' %}background:#f8d7da; color:#721c24;
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
 
     <div class="results-header">
         <h2>Siły zbrojne państw</h2>
