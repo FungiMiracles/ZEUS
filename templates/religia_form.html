@@ -212,7 +212,11 @@
 
     <!-- ===== AKCJE ===== -->
     <div class="religia-actions">
+        {% if session.rola == "wszechmocny" %}
         <a href="{{ url_for('religia_edit', religia_id=religia.religia_id) }}">Edytuj</a>
+        {% else %}
+        <a href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj</a>
+        {% endif %}
         <a href="{{ url_for('religia_list') }}">Powrót do listy</a>
     </div>
 

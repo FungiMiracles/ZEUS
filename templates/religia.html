@@ -242,6 +242,7 @@
             <a href="{{ url_for('religia_list') }}" class="religia-btn">Wejdź</a>
         </div>
 
+        {% if session.rola in ["tworzyciel", "wszechmocny"] %}
         <div class="religia-tile">
             <div class="religia-symbol">✦</div>
             <h3>Dodaj religię</h3>
@@ -251,6 +252,17 @@
             </p>
             <a href="{{ url_for('religia_form_add') }}" class="religia-btn">Dodaj</a>
         </div>
+        {% else %}
+        <div class="religia-tile">
+            <div class="religia-symbol">✦</div>
+            <h3>Dodaj religię</h3>
+            <p>
+                Twórz nowe kulty, odłamy i systemy wierzeń,
+                zapisując je w kronikach Zeusa.
+            </p>
+            <a href="#" class="religia-btn" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Dodaj</a>
+        </div>
+        {% endif %}
 
     </div>
 

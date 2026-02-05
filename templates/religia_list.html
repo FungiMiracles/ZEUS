@@ -301,6 +301,7 @@
                 Szukaj
             </button>
 
+            {% if session.rola in ["tworzyciel", "wszechmocny"] %}
             <a href="{{ url_for('religia_przypisz_form') }}"
             class="religia-view-btn religion-assign-btn">
                 Przypisz religię do państwa
@@ -310,6 +311,19 @@
             class="religia-view-btn religion-assign-btn">
                 Dodaj nową religię
             </a>
+            {% else %}
+            <a href="#"
+            class="religia-view-btn religion-assign-btn"
+            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Przypisz religię do państwa
+            </a>
+
+            <a href="#"
+            class="religia-view-btn religion-assign-btn"
+            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                Dodaj nową religię
+            </a>
+            {% endif %}
 
         </div>
 
@@ -341,7 +355,8 @@
                     class="religia-view-btn">
                         Wyświetl
                     </a>
-
+                    
+                    {% if session.rola == "wszechmocny" %}
                     <a href="{{ url_for('religia_edit', religia_id=r.religia_id) }}"
                     class="religia-view-btn"
                     style="margin-left:8px;">
@@ -359,6 +374,27 @@
                         </button>
 
                     </form>
+                    {% else %}
+                    <a href="#"
+                    class="religia-view-btn"
+                    style="margin-left:8px;"
+                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                        Edytuj
+                    </a>
+
+                    <form method="POST"
+                        action="#"
+                        style="display:inline; margin-left:8px;"
+                        onsubmit="return confirm('Czy na pewno chcesz usunąć tę religię?');">
+
+                        <button type="submit" class="religia-view-btn"
+                                style="background:linear-gradient(135deg,#a34a4a,#ff6a6a);"
+                                onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                            Usuń
+                        </button>
+
+                    </form>
+                    {% endif %}
 
                 </td>
             </tr>
