@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify, url_for, redirect, abort, Response
 from extensions import db
 from models import Religia, ReligiaPerPanstwo, Panstwo
+from permissions import wymaga_roli
 
 def init_religia_routes(app):
 
@@ -132,6 +133,7 @@ def init_religia_routes(app):
         ])
 
     @app.route("/religia_form_add", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
     def religia_form_add():
 
         religie = Religia.query.order_by(Religia.religia_nazwa).all()
@@ -193,6 +195,7 @@ def init_religia_routes(app):
         )
 
     @app.route("/religia_przypisz", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
     def religia_przypisz_form():
 
         religie = Religia.query.order_by(Religia.religia_nazwa).all()
@@ -291,6 +294,7 @@ def init_religia_routes(app):
         )
     
     @app.route("/religia/<int:religia_id>/edit", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
     def religia_edit(religia_id):
 
         religia = Religia.query.get_or_404(religia_id)
@@ -323,6 +327,7 @@ def init_religia_routes(app):
         )
     
     @app.route("/religia/<int:religia_id>/delete", methods=["POST"])
+    @wymaga_roli("wszechmocny")
     def religia_delete(religia_id):
 
         religia = Religia.query.get_or_404(religia_id)
