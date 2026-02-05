@@ -247,6 +247,113 @@
     text-decoration: none !important;
 }
 
+/* ============================================================
+   ZEUS — RESPONSIVE (MOBILE)
+============================================================ */
+
+@media (max-width: 768px) {
+
+    /* ===== KONTAINER ===== */
+
+    .religia-list-container {
+        margin: 20px 10px 40px 10px;
+        padding: 28px 18px 35px 18px;
+        border-radius: 14px;
+    }
+
+    /* ===== HEADER ===== */
+
+    .religia-list-header h1 {
+        font-size: 1.6em;
+    }
+
+    .religia-list-header p {
+        font-size: 0.95em;
+        line-height: 1.5;
+    }
+
+    /* ===== FILTRY ===== */
+
+    .religia-filters {
+        padding: 18px 16px 22px 16px;
+    }
+
+    .religia-filters-row {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .religia-filters-buttons {
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 12px;
+    }
+
+    .religia-filters-buttons .religia-view-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* ===== TABELA → KARTY ===== */
+
+    .religia-results,
+    .religia-results thead,
+    .religia-results tbody,
+    .religia-results th,
+    .religia-results td,
+    .religia-results tr {
+        display: block;
+        width: 100%;
+    }
+
+    .religia-results thead {
+        display: none;
+    }
+
+    .religia-results tbody tr {
+        margin-bottom: 18px;
+        border-radius: 14px;
+        padding: 14px 14px 18px 14px;
+    }
+
+    .religia-results tbody td {
+        padding: 6px 0;
+        font-size: 0.95em;
+    }
+
+    .religia-results tbody td.sub {
+        font-size: 0.85em;
+    }
+
+    /* ===== LABELKI DLA POL ===== */
+
+    .religia-results tbody td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.75em;
+        font-weight: 700;
+        color: #9fa6ff;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===== AKCJE ===== */
+
+    .religia-results tbody td:last-child {
+        margin-top: 12px;
+        text-align: left !important;
+    }
+
+    .religia-results tbody td:last-child .religia-view-btn,
+    .religia-results tbody td:last-child button {
+        width: 100%;
+        margin: 6px 0 0 0 !important;
+        text-align: center;
+    }
+}
+
+
 </style>
 
 <div class="religia-list-container">
