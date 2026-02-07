@@ -329,5 +329,84 @@ def init_regiony_routes(app):
                 "Cache-Control": "public, max-age=86400"
             }
         )
+
+    @app.route("/api/panstwa_by_kontynent")
+    def api_panstwa_by_kontynent():
+        kontynent = request.args.get("kontynent")
+
+        if not kontynent:
+            return jsonify([])
+
+        panstwa = (
+            db.session.query(Panstwo.PANSTWO_ID, Panstwo.panstwo_nazwa)
+            .filter(Panstwo.kontynent == kontynent)
+            .order_by(Panstwo.panstwo_nazwa)
+            .all()
+        )
+
+        return jsonify([
+            {"id": p.PANSTWO_ID, "nazwa": p.panstwo_nazwa}
+            for p in panstwa
+        ])
+    
+    @app.route("/wyniki_wyszukiwania_region", methods=["GET"])
+    def wyniki_wyszukiwania_region():
+
+        kontynent = request.args.get("kontynent")
+        panstwo_id = request.args.get("panstwo_id")
+        populacja_od = request.args.get("populacja_od")
+        populacja_do = request.args.get("populacja_do")
+        uksztaltowanie = request.args.get("ukszaltowanie")
+
+        # ===== LISTY DO FILTRA =====
+        kontynenty = [k[0] for k in db.session.query(Panstwo.kontynent).distinct().all()]
+        uksztaltowania = [
+            u[0] for u in db.session.query(Region.region_ukszaltowanie).distinct().all()
+            if u[0]
+        ]
+
+        # ===== BAZOWE ZAPYTANIE =====
+        query = (
+            db.session.query(Region, Panstwo)
+            .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
+        )
+
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
+
+        if panstwo_id and panstwo_id.isdigit():
+            query = query.filter(Region.panstwo_id == int(panstwo_id))
+
+        if populacja_od and populacja_od.isdigit():
+            query = query.filter(Region.region_populacja >= int(populacja_od))
+
+        if populacja_do and populacja_do.isdigit():
+            query = query.filter(Region.region_populacja <= int(populacja_do))
+
+        if uksztaltowanie:
+            query = query.filter(Region.region_ukszaltowanie == uksztaltowanie)
+
+        rows = query.order_by(Region.region_populacja.desc()).all()
+
+        results = [
+            {
+                "region_id": r.region_id,
+                "region_nazwa": r.region_nazwa,
+                "region_populacja": r.region_populacja or 0,
+                "region_ludnosc_pozamiejska": getattr(r, "region_ludnosc_pozamiejska", 0),
+                "panstwo_nazwa": p.panstwo_nazwa,
+            }
+            for r, p in rows
+        ]
+
+        return render_template(
+            "wyniki_wyszukiwania_region.html",
+            results=results,
+            empty=len(results) == 0,
+            kontynenty=kontynenty,
+            uksztaltowania=uksztaltowania
+        )
+
+
             
 

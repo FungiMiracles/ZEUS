@@ -179,6 +179,68 @@
    
 </style>
 
+<form method="GET" action="{{ url_for('wyniki_wyszukiwania_region') }}">
+<div class="zeus-filter-box">
+
+    <!-- ===== KONTYNENT ===== -->
+    <div class="filter-group">
+        <label>Kontynent</label>
+        <select name="kontynent" id="kontynent-select">
+            <option value="">— wszystkie —</option>
+            {% for k in kontynenty %}
+                <option value="{{ k }}"
+                    {% if request.args.get('kontynent') == k %}selected{% endif %}>
+                    {{ k }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- ===== PAŃSTWO (DYNAMICZNE) ===== -->
+    <div class="filter-group">
+        <label>Państwo</label>
+        <select name="panstwo_id" id="panstwo-select">
+            <option value="">— wszystkie —</option>
+        </select>
+    </div>
+
+    <!-- ===== POPULACJA OD ===== -->
+    <div class="filter-group">
+        <label>Ludność od</label>
+        <input type="number" name="populacja_od"
+               value="{{ request.args.get('populacja_od','') }}">
+    </div>
+
+    <!-- ===== POPULACJA DO ===== -->
+    <div class="filter-group">
+        <label>Ludność do</label>
+        <input type="number" name="populacja_do"
+               value="{{ request.args.get('populacja_do','') }}">
+    </div>
+
+    <!-- ===== UKSZTAŁTOWANIE TERENU ===== -->
+    <div class="filter-group">
+        <label>Ukształtowanie terenu</label>
+        <select name="ukszaltowanie">
+            <option value="">— wszystkie —</option>
+            {% for u in uksztaltowania %}
+                <option value="{{ u }}"
+                    {% if request.args.get('ukszaltowanie') == u %}selected{% endif %}>
+                    {{ u }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- ===== AKCJA ===== -->
+    <div class="filter-actions">
+        <button type="submit">Filtruj</button>
+    </div>
+
+</div>
+</form>
+
+
 <div class="wyniki-regionow">
 
     <h1>Wyniki wyszukiwania regionów</h1>
@@ -269,5 +331,31 @@
 
     {% endif %}
 </div>
+
+<script>
+document.getElementById("kontynent-select").addEventListener("change", function () {
+    const kontynent = this.value;
+    const panstwoSelect = document.getElementById("panstwo-select");
+
+    panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
+
+    if (!kontynent) return;
+
+    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.nazwa;
+                if ("{{ request.args.get('panstwo_id') }}" == p.id) {
+                    opt.selected = true;
+                }
+                panstwoSelect.appendChild(opt);
+            });
+        });
+});
+</script>
+
 
 {% endblock %}
