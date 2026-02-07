@@ -2,6 +2,8 @@
 {% block title %}Dodaj państwo{% endblock %}
 
 {% block content %}
+{% set fd = form_data if form_data is defined else {} %}
+
 
 <style>
 /* ============================================================
@@ -309,11 +311,16 @@
                     <select name="czy_suwerenny" id="czy_suwerenny" required>
                         <option value="">— Wybierz —</option>
                         <option value="TAK"
-                            {% if form_data.get('czy_suwerenny', panstwo.czy_suwerenny) == 'TAK' %}selected{% endif %}>
+                        {% if fd.get('czy_suwerenny') == 'TAK' %}
+                            selected
+                        {% endif %}>
                             TAK
                         </option>
+
                         <option value="NIE"
-                            {% if form_data.get('czy_suwerenny', panstwo.czy_suwerenny) == 'NIE' %}selected{% endif %}>
+                        {% if fd.get('czy_suwerenny') == 'NIE' %}
+                            selected
+                        {% endif %}>
                             NIE
                         </option>
                     </select>
