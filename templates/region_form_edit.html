@@ -1,5 +1,5 @@
 {% extends "base_layout.html" %}
-{% block title %}Edytuj region – {{ region.region_nazwa }}{% endblock %}
+{% block title %}Edytuj region{% endblock %}
 
 {% block content %}
 
@@ -85,7 +85,65 @@
     <form method="POST" enctype="multipart/form-data">
 
         <!-- ================================================= -->
-        <!-- PODSTAWOWA KLASYFIKACJA -->
+        <!-- PODSTAWOWE DANE -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Podstawowe informacje</h2>
+
+            <div class="region-form-group">
+                <label>Nazwa regionu</label>
+                <input type="text"
+                       name="region_nazwa"
+                       value="{{ region.region_nazwa }}"
+                       required>
+            </div>
+
+            <div class="region-form-group">
+                <label>ID państwa</label>
+                <input type="number"
+                       name="panstwo_id"
+                       value="{{ region.panstwo_id }}"
+                       required>
+            </div>
+
+            <div class="region-form-group">
+                <label>Ukształtowanie terenu</label>
+                <select name="region_teren">
+                    <option value="">— brak danych —</option>
+                    {% for t in ["wysokogorski","gorski","wyzynny","pogorski","nizinny","depresyjny"] %}
+                        <option value="{{ t }}"
+                            {% if region.region_teren == t %}selected{% endif %}>
+                            {{ t }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- MAPA REGIONU -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Mapa regionu</h2>
+
+            <div class="region-form-group">
+                <label>Nowa mapa (opcjonalnie)</label>
+                <input type="file"
+                       name="region_map"
+                       accept=".jpg,.jpeg,.png">
+            </div>
+
+            {% if region.region_mapa %}
+                <div style="margin-top:12px; text-align:center;">
+                    <strong>Aktualna mapa:</strong><br>
+                    <img src="{{ url_for('region_mapa', region_id=region.region_id) }}"
+                         style="max-width:100%; max-height:260px; border-radius:10px;">
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ================================================= -->
+        <!-- KLASYFIKACJA -->
         <!-- ================================================= -->
         <div class="region-section">
             <h2>Klasyfikacja regionu</h2>
@@ -131,7 +189,7 @@
         </div>
 
         <!-- ================================================= -->
-        <!-- RYZYKA -->
+        <!-- RYZYKA NATURALNE -->
         <!-- ================================================= -->
         <div class="region-section">
             <h2>Ryzyka naturalne (0–100)</h2>
@@ -148,8 +206,7 @@
                 <label>{{ label }}</label>
                 <input type="number" min="0" max="100"
                        name="{{ field }}"
-                       value="{{ region | attr(field) if (region | attr(field)) is not none else '' }}">
-                       
+                       value="{{ region|attr(field) if region|attr(field) is not none else '' }}">
             </div>
             {% endfor %}
         </div>
@@ -172,7 +229,7 @@
                 <label>{{ label }}</label>
                 <input type="number" min="0" max="100"
                        name="{{ field }}"
-                       value="{{ region | attr(field) if region | attr(field) is not none else '' }}">
+                       value="{{ region|attr(field) if region|attr(field) is not none else '' }}">
             </div>
             {% endfor %}
         </div>
