@@ -335,8 +335,8 @@ kontynentSelect.addEventListener("change", () => {
         .then(data => {
             data.forEach(p => {
                 const opt = document.createElement("option");
-                opt.value = p.PANSTWO_ID;
-                opt.textContent = p.panstwo_nazwa;
+                opt.value = p.id;
+                opt.textContent = p.nazwa;
                 panstwoSelect.appendChild(opt);
             });
         })
