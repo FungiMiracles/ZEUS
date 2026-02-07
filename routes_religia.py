@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify, url_for, redirect, abort, R
 from extensions import db
 from models import Religia, ReligiaPerPanstwo, Panstwo
 from permissions import wymaga_roli
+from sqlalchemy.orm import aliased
 
 def init_religia_routes(app):
 
