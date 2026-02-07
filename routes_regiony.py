@@ -75,7 +75,7 @@ def init_regiony_routes(app):
             results=results,
             empty=len(results) == 0,
             kontynenty=kontynenty,
-            uksztaltowania=ukszaltowania
+            uksztaltowania=uksztaltowania
         )
 
 

@@ -1,7 +1,6 @@
-# routes_api.py
-from flask import jsonify, request
+from flask import request, jsonify
 from extensions import db
-from models import Panstwo, Region
+from models import Panstwo, Region, Miasto
 
 
 
@@ -26,20 +25,4 @@ def init_api_routes(app):
             for p in panstwa
         ])
 
-    @app.route("/api/regiony_by_panstwo")
-    def api_regiony_by_panstwo():
-        panstwo_id = request.args.get("panstwo_id")
-        if not panstwo_id or not panstwo_id.isdigit():
-            return jsonify([])
-
-        regiony = (
-            Region.query
-            .filter_by(panstwo_id=int(panstwo_id))
-            .order_by(Region.region_nazwa)
-            .all()
-        )
-
-        return jsonify([
-            {"region_id": r.region_id, "region_nazwa": r.region_nazwa}
-            for r in regiony
-        ])
+    
