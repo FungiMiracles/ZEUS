@@ -29,7 +29,7 @@ from routes_demografia import init_demografia_routes
 from routes_dyplomacja import init_dyplomacja_routes
 from routes_kultura import init_kultura_routes
 from routes_religia import init_religia_routes
-
+from routes_api import init_api_routes
 
 # ─────────────────────────────────────────
 #  STAŁE KALENDARZA ENTENDY
@@ -104,6 +104,7 @@ def create_app():
     init_dyplomacja_routes(app)
     init_kultura_routes(app)
     init_religia_routes(app)
+    init_api_routes(app)
 
     @app.route("/health")
     def health():

@@ -233,46 +233,6 @@ def init_demografia_routes(app):
             "demografia_generator.html",
             kontynenty=kontynenty
         )
-
-    # ============================================================
-    # API – DYNAMICZNE SELECTY (GENERATOR)
-    # ============================================================
-
-    @app.route("/api/panstwa_by_kontynent")
-    def api_panstwa_by_kontynent():
-        kontynent = request.args.get("kontynent")
-        if not kontynent:
-            return jsonify([])
-
-        panstwa = (
-            Panstwo.query
-            .filter_by(kontynent=kontynent)
-            .order_by(Panstwo.panstwo_nazwa)
-            .all()
-        )
-
-        return jsonify([
-            {"PANSTWO_ID": p.PANSTWO_ID, "panstwo_nazwa": p.panstwo_nazwa}
-            for p in panstwa
-        ])
-
-    @app.route("/api/regiony_by_panstwo")
-    def api_regiony_by_panstwo():
-        panstwo_id = request.args.get("panstwo_id")
-        if not panstwo_id or not panstwo_id.isdigit():
-            return jsonify([])
-
-        regiony = (
-            Region.query
-            .filter_by(panstwo_id=int(panstwo_id))
-            .order_by(Region.region_nazwa)
-            .all()
-        )
-
-        return jsonify([
-            {"region_id": r.region_id, "region_nazwa": r.region_nazwa}
-            for r in regiony
-        ])
     
         # ============================================================
     # PODSUMOWANIE LUDNOŚCI (KONTYNENT / PAŃSTWO)
