@@ -32,7 +32,7 @@ def init_regiony_routes(app):
         ]
 
         uksztaltowania = [
-            u[0] for u in db.session.query(Region.region_ukszaltowanie).distinct().all()
+            u[0] for u in db.session.query(Region.region_teren).distinct().all()
             if u[0]
         ]
 
@@ -55,7 +55,7 @@ def init_regiony_routes(app):
             query = query.filter(Region.region_populacja <= int(populacja_do))
 
         if uksztaltowanie:
-            query = query.filter(Region.region_ukszaltowanie == uksztaltowanie)
+            query = query.filter(Region.region_teren == uksztaltowanie)
 
         rows = query.order_by(Region.region_populacja.desc()).all()
 

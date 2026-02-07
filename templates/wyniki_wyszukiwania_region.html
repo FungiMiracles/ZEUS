@@ -333,10 +333,10 @@
 </div>
 
 <script>
-document.getElementById("kontynent-select").addEventListener("change", function () {
-    const kontynent = this.value;
-    const panstwoSelect = document.getElementById("panstwo-select");
+const kontynentSelect = document.getElementById("kontynent-select");
+const panstwoSelect = document.getElementById("panstwo-select");
 
+function zaladujPanstwa(kontynent) {
     panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
 
     if (!kontynent) return;
@@ -354,8 +354,16 @@ document.getElementById("kontynent-select").addEventListener("change", function 
                 panstwoSelect.appendChild(opt);
             });
         });
-});
-</script>
+}
 
+kontynentSelect.addEventListener("change", function () {
+    zaladujPanstwa(this.value);
+});
+
+// 🔥 KLUCZOWE
+if (kontynentSelect.value) {
+    zaladujPanstwa(kontynentSelect.value);
+}
+</script>
 
 {% endblock %}
