@@ -203,16 +203,6 @@
             </div>
 
             <div class="form-group">
-                <label>Populacja regionu</label>
-                <input
-                    type="number"
-                    name="region_populacja"
-                    value="{{ form_data.region_populacja if form_data }}"
-                    required
-                >
-            </div>
-
-            <div class="form-group">
                 <label>ID państwa</label>
                 <input
                     type="number"
@@ -255,6 +245,99 @@
             </div>
 
         </div>
+
+        <div class="form-card">
+
+    <h3 style="margin-bottom:14px;">Klasyfikacja regionu</h3>
+
+    <div class="form-group">
+        <label>Położenie regionu</label>
+        <select name="region_polozenie">
+            <option value="">— brak —</option>
+            {% for v in ["wewnetrzny","nadmorski"] %}
+                <option value="{{ v }}"
+                    {% if form_data and form_data.region_polozenie == v %}selected{% endif %}>
+                    {{ v }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+            <div class="form-group">
+                <label>Typ nadrzędny</label>
+                <select name="region_typ_nadrz">
+                    <option value="">— brak —</option>
+                    {% for v in ["rolniczy","przemyslowy","miejski","wydobywczy","turystyczny","handlowy","administracyjny","lesny"] %}
+                        <option value="{{ v }}"
+                            {% if form_data and form_data.region_typ_nadrz == v %}selected{% endif %}>
+                            {{ v }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Typ podrzędny</label>
+                <select name="region_typ_podrz">
+                    <option value="">— brak —</option>
+                    {% for v in ["rolniczy","przemyslowy","miejski","wydobywczy","turystyczny","handlowy","administracyjny","lesny"] %}
+                        <option value="{{ v }}"
+                            {% if form_data and form_data.region_typ_podrz == v %}selected{% endif %}>
+                            {{ v }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="form-card">
+
+            <h3 style="margin-bottom:14px;">Ryzyka naturalne (0–100)</h3>
+
+            {% for name, label in [
+                ("region_sejsmicznosc","Sejsmiczność"),
+                ("region_ryzyko_powodzi","Ryzyko powodzi"),
+                ("region_ryzyko_lawin","Ryzyko lawin"),
+                ("region_ryzyko_upalu","Ryzyko upałów"),
+                ("region_ryzyko_mrozu","Ryzyko mrozów"),
+                ("region_aktywny_wulkan","Aktywność wulkaniczna")
+            ] %}
+            <div class="form-group">
+                <label>{{ label }}</label>
+                <input type="number"
+                    name="{{ name }}"
+                    min="0" max="100"
+                    value="{{ form_data.get(name) if form_data }}">
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="form-card">
+
+            <h3 style="margin-bottom:14px;">Infrastruktura i skomunikowanie (0–100)</h3>
+
+            {% for name, label in [
+                ("region_poziom_skomunikowania","Poziom skomunikowania"),
+                ("region_stan_infra_kolejowej","Infrastruktura kolejowa"),
+                ("region_stan_infra_drogowej","Infrastruktura drogowa"),
+                ("region_stan_infra_energetycznej","Infrastruktura energetyczna"),
+                ("region_stan_infra_mieszkalnej","Infrastruktura mieszkaniowa"),
+                ("region_stan_infra_portowej","Infrastruktura portowa")
+            ] %}
+            <div class="form-group">
+                <label>{{ label }}</label>
+                <input type="number"
+                    name="{{ name }}"
+                    min="0" max="100"
+                    value="{{ form_data.get(name) if form_data }}">
+            </div>
+            {% endfor %}
+
+        </div>
+
+
 
         <div class="form-actions">
             <button type="submit">Zapisz region</button>

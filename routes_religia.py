@@ -22,22 +22,36 @@ def init_religia_routes(app):
         panstwo_id = request.args.get("panstwo")
         religia_id = request.args.get("religia")
 
+        ReligiaNadrzedna = aliased(Religia)
+
         query = (
             db.session.query(
                 Religia.religia_id,
                 Religia.religia_nazwa,
                 Religia.religia_typ,
+
+                ReligiaNadrzedna.religia_nazwa.label("religia_nadrzedna_nazwa"),
+
                 db.func.min(Panstwo.panstwo_nazwa).label("panstwo_nazwa"),
-                db.func.min(Panstwo.kontynent).label("kontynent")
+                db.func.min(Panstwo.kontynent).label("kontynent"),
             )
-            .outerjoin(ReligiaPerPanstwo,
-                    Religia.religia_id == ReligiaPerPanstwo.religia_id)
-            .outerjoin(Panstwo,
-                    Panstwo.PANSTWO_ID == ReligiaPerPanstwo.panstwo_id)
+            .outerjoin(
+                ReligiaNadrzedna,
+                Religia.religia_nadrzedna_id == ReligiaNadrzedna.religia_id
+            )
+            .outerjoin(
+                ReligiaPerPanstwo,
+                Religia.religia_id == ReligiaPerPanstwo.religia_id
+            )
+            .outerjoin(
+                Panstwo,
+                Panstwo.PANSTWO_ID == ReligiaPerPanstwo.panstwo_id
+            )
             .group_by(
                 Religia.religia_id,
                 Religia.religia_nazwa,
-                Religia.religia_typ
+                Religia.religia_typ,
+                ReligiaNadrzedna.religia_nazwa
             )
         )
 
@@ -57,6 +71,7 @@ def init_religia_routes(app):
                 "religia_id": r.religia_id,
                 "religia_nazwa": r.religia_nazwa,
                 "religia_typ": r.religia_typ,
+                "religia_nadrzedna": r.religia_nadrzedna_nazwa,
                 "panstwo_nazwa": r.panstwo_nazwa,
                 "kontynent": r.kontynent,
             }

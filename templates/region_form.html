@@ -394,6 +394,129 @@
         </tbody>
     </table>
 
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th colspan="2">Klasyfikacja regionu</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td style="font-weight:700;">Położenie regionu:</td>
+                <td>
+                    {{ region.region_polozenie if region.region_polozenie else "Brak danych" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Typ nadrzędny:</td>
+                <td>
+                    {{ region.region_typ_nadrz if region.region_typ_nadrz else "Brak danych" }}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Typ podrzędny:</td>
+                <td>
+                    {{ region.region_typ_podrz if region.region_typ_podrz else "Brak danych" }}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th colspan="2">Ryzyka naturalne i środowiskowe</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td style="font-weight:700;">Sejsmiczność:</td>
+                <td>{{ region.region_sejsmicznosc if region.region_sejsmicznosc is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ryzyko powodzi:</td>
+                <td>{{ region.region_ryzyko_powodzi if region.region_ryzyko_powodzi is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ryzyko lawin:</td>
+                <td>{{ region.region_ryzyko_lawin if region.region_ryzyko_lawin is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ryzyko upałów:</td>
+                <td>{{ region.region_ryzyko_upalu if region.region_ryzyko_upalu is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Ryzyko mrozów:</td>
+                <td>{{ region.region_ryzyko_mrozu if region.region_ryzyko_mrozu is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Aktywność wulkaniczna:</td>
+                <td>{{ region.region_aktywny_wulkan if region.region_aktywny_wulkan is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <table class="info-table">
+        <thead>
+            <tr>
+                <th colspan="2">Infrastruktura i skomunikowanie</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td style="font-weight:700;">Poziom skomunikowania:</td>
+                <td>{{ region.region_poziom_skomunikowania if region.region_poziom_skomunikowania is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Infrastruktura kolejowa:</td>
+                <td>{{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Infrastruktura drogowa:</td>
+                <td>{{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Infrastruktura energetyczna:</td>
+                <td>{{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Infrastruktura mieszkaniowa:</td>
+                <td>{{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100</td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Infrastruktura portowa:</td>
+                <td>
+                    {% if region.region_polozenie == "nadmorski" %}
+                        {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
+                    {% else %}
+                        Nie dotyczy
+                    {% endif %}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+
+
+
     <!-- Miasta w regionie -->
     <h2 style="font-size:1.4em; color:#2c3e50; margin-bottom:15px;">
         Miasta w tym regionie

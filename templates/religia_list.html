@@ -457,8 +457,7 @@
             <tr>
                 <th>Religia</th>
                 <th>Typ</th>
-                <th>Państwo</th>
-                <th>Kontynent</th>
+                <th>Religia nadrzędna</th>
                 <th style="text-align:right;">Akcje</th>
             </tr>
         </thead>
@@ -467,8 +466,7 @@
             <tr>
                 <td>{{ r.religia_nazwa }}</td>
                 <td class="sub">{{ r.religia_typ }}</td>
-                <td>{{ r.panstwo_nazwa }}</td>
-                <td class="sub">{{ r.kontynent }}</td>
+                <td class="sub" data-label="Religia nadrzędna">{{ r.religia_nadrzedna if r.religia_nadrzedna else "—" }}</td>
                 <td style="text-align:right; white-space:nowrap;">
 
                     <a href="{{ url_for('religia_form', religia_id=r.religia_id) }}"
