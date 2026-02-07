@@ -1,79 +1,82 @@
-{% extends 'base_layout.html' %}
+{% extends "base_layout.html" %}
 {% block title %}Dodaj region{% endblock %}
 
 {% block content %}
 
 <style>
 /* ============================================================
-   ZEUS — DODAWANIE REGIONU (RESPONSYWNY FORMULARZ)
+   ZEUS — REGION (DODAWANIE)
+   Styl IDENTYCZNY jak region_form_edit
 ============================================================ */
 
-.region-add {
-    max-width: 900px;
-    margin: 30px auto;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+.region-form-container {
+    max-width: 1000px;
+    margin: 35px auto 70px auto;
+    padding: 35px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.region-form-container h1 {
+    text-align: center;
+    font-size: 1.8em;
+    margin-bottom: 30px;
     color: #2c3e50;
 }
 
-.region-add h1 {
-    text-align: center;
-    font-size: 1.9em;
-    font-weight: 700;
-    margin-bottom: 8px;
+.region-section {
+    margin-bottom: 35px;
 }
 
-.region-add .subtitle {
-    text-align: center;
-    font-size: 1.1em;
-    color: #179048;
-    margin-bottom: 25px;
+.region-section h2 {
+    font-size: 1.25em;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #5d7dce;
+    padding-bottom: 6px;
+    color: #2c3e50;
 }
 
-/* ===================== KARTA ===================== */
-
-.form-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 22px 26px;
+.region-form-group {
     margin-bottom: 18px;
-    border: 1px solid #d3d7dc;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* ===================== POLA ===================== */
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label {
+.region-form-group label {
     display: block;
     font-weight: 700;
     margin-bottom: 6px;
-    font-size: 0.9em;
+    color: #2c3e50;
 }
 
-.form-group input,
-.form-group select {
+.region-form-group input,
+.region-form-group select {
     width: 100%;
     padding: 9px 12px;
     border-radius: 8px;
-    border: 1px solid #b4b9be;
-    font-size: 15px;
+    border: 1px solid #bdc3c7;
+    font-weight: 600;
 }
 
-.form-group input[type="file"] {
-    padding: 6px 0;
-    font-size: 14px;
+.region-form-actions {
+    text-align: center;
+    margin-top: 40px;
 }
 
-.form-hint {
-    font-size: 0.8em;
-    color: #666;
-    margin-top: 4px;
+.region-submit-btn {
+    padding: 12px 26px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    font-size: 1em;
+    color: white;
+    background: linear-gradient(135deg, #5d7dce, #8fb3ff);
+    cursor: pointer;
 }
 
-/* ===================== BŁĘDY ===================== */
+.region-submit-btn:hover {
+    transform: scale(1.04);
+}
 
 .form-error {
     background: #ffe5e5;
@@ -81,149 +84,50 @@
     color: #900;
     padding: 12px 15px;
     border-radius: 8px;
-    margin-bottom: 18px;
+    margin-bottom: 25px;
     font-weight: 600;
-}
-
-/* ===================== AKCJE ===================== */
-
-.form-actions {
-    text-align: center;
-    margin-top: 25px;
-}
-
-.form-actions button,
-.form-actions a {
-    padding: 10px 26px;
-    font-weight: 600;
-    border-radius: 8px;
-    text-decoration: none;
-    cursor: pointer;
-    display: inline-block;
-    transition: background-color 0.25s;
-}
-
-.form-actions button {
-    background: #5d7dce;
-    color: #fff;
-    border: none;
-}
-
-.form-actions button:hover {
-    background: #4171d1;
-}
-
-.form-actions a {
-    background: #c0392b;
-    color: #fff;
-    margin-left: 10px;
-}
-
-.form-actions a:hover {
-    background: #96281b;
-}
-
-/* ===================== MOBILE ===================== */
-
-@media (max-width: 767px) {
-
-    .region-add {
-        margin: 18px 10px;
-    }
-
-    .region-add h1 {
-        font-size: 1.6em;
-    }
-
-    .region-add .subtitle {
-        font-size: 1em;
-        margin-bottom: 20px;
-    }
-
-    .form-card {
-        padding: 18px 16px;
-    }
-
-    .form-group label {
-        font-size: 0.85em;
-    }
-
-    .form-group input,
-    .form-group select {
-        font-size: 16px; /* anti-zoom iOS */
-        padding: 10px 12px;
-    }
-
-    .form-actions button,
-    .form-actions a {
-        display: block;
-        width: 100%;
-        margin: 8px 0;
-        font-size: 15px;
-    }
-
-    .form-actions a {
-        margin-left: 0;
-    }
 }
 </style>
 
-<div class="region-add">
+<div class="region-form-container">
 
     <h1>Dodaj nowy region</h1>
-    <div class="subtitle">
-        Uzupełnij wszystkie pola. Mapa regionu jest opcjonalna.
-    </div>
 
     {% if error %}
         <div class="form-error">
             {{ error }}
-            {% if duplicates %}
-                <ul style="margin-top:8px;">
-                {% for d in duplicates %}
-                    <li>{{ d }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
         </div>
     {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
 
-        <div class="form-card">
+        <!-- ================================================= -->
+        <!-- PODSTAWOWE INFORMACJE -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Podstawowe informacje</h2>
 
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>Nazwa regionu</label>
-                <input
-                    type="text"
-                    name="region_nazwa"
-                    value="{{ form_data.region_nazwa if form_data }}"
-                    required
-                >
+                <input type="text"
+                       name="region_nazwa"
+                       value="{{ form_data.region_nazwa if form_data }}"
+                       required>
             </div>
 
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>ID państwa</label>
-                <input
-                    type="number"
-                    name="panstwo_id"
-                    value="{{ form_data.panstwo_id if form_data }}"
-                    required
-                >
+                <input type="number"
+                       name="panstwo_id"
+                       value="{{ form_data.panstwo_id if form_data }}"
+                       required>
             </div>
 
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>Ukształtowanie terenu</label>
                 <select name="region_teren">
                     <option value="">— brak danych —</option>
-                    {% for t in [
-                        "wysokogorski",
-                        "gorski",
-                        "wyzynny",
-                        "pogorski",
-                        "nizinny",
-                        "depresyjny"
-                    ] %}
+                    {% for t in ["wysokogorski","gorski","wyzynny","pogorski","nizinny","depresyjny"] %}
                         <option value="{{ t }}"
                             {% if form_data and form_data.region_teren == t %}selected{% endif %}>
                             {{ t }}
@@ -231,39 +135,42 @@
                     {% endfor %}
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>Mapa regionu (opcjonalnie)</label>
-                <input
-                    type="file"
-                    name="region_map"
-                    accept=".jpg,.jpeg,.png"
-                >
-                <div class="form-hint">
-                    JPG / PNG, maksymalnie 2 MB
-                </div>
-            </div>
-
         </div>
 
-        <div class="form-card">
+        <!-- ================================================= -->
+        <!-- MAPA REGIONU -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Mapa regionu</h2>
 
-    <h3 style="margin-bottom:14px;">Klasyfikacja regionu</h3>
+            <div class="region-form-group">
+                <label>Mapa (opcjonalnie)</label>
+                <input type="file"
+                       name="region_map"
+                       accept=".jpg,.jpeg,.png">
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label>Położenie regionu</label>
-        <select name="region_polozenie">
-            <option value="">— brak —</option>
-            {% for v in ["wewnetrzny","nadmorski"] %}
-                <option value="{{ v }}"
-                    {% if form_data and form_data.region_polozenie == v %}selected{% endif %}>
-                    {{ v }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <!-- ================================================= -->
+        <!-- KLASYFIKACJA -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Klasyfikacja regionu</h2>
 
-            <div class="form-group">
+            <div class="region-form-group">
+                <label>Położenie regionu</label>
+                <select name="region_polozenie">
+                    <option value="">— brak —</option>
+                    {% for v in ["wewnetrzny","nadmorski"] %}
+                        <option value="{{ v }}"
+                            {% if form_data and form_data.region_polozenie == v %}selected{% endif %}>
+                            {{ v }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="region-form-group">
                 <label>Typ nadrzędny</label>
                 <select name="region_typ_nadrz">
                     <option value="">— brak —</option>
@@ -276,7 +183,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>Typ podrzędny</label>
                 <select name="region_typ_podrz">
                     <option value="">— brak —</option>
@@ -288,12 +195,13 @@
                     {% endfor %}
                 </select>
             </div>
-
         </div>
 
-        <div class="form-card">
-
-            <h3 style="margin-bottom:14px;">Ryzyka naturalne (0–100)</h3>
+        <!-- ================================================= -->
+        <!-- RYZYKA -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Ryzyka naturalne (0–100)</h2>
 
             {% for name, label in [
                 ("region_sejsmicznosc","Sejsmiczność"),
@@ -303,20 +211,21 @@
                 ("region_ryzyko_mrozu","Ryzyko mrozów"),
                 ("region_aktywny_wulkan","Aktywność wulkaniczna")
             ] %}
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>{{ label }}</label>
                 <input type="number"
-                    name="{{ name }}"
-                    min="0" max="100"
-                    value="{{ form_data.get(name) if form_data }}">
+                       name="{{ name }}"
+                       min="0" max="100"
+                       value="{{ form_data.get(name) if form_data }}">
             </div>
             {% endfor %}
-
         </div>
 
-        <div class="form-card">
-
-            <h3 style="margin-bottom:14px;">Infrastruktura i skomunikowanie (0–100)</h3>
+        <!-- ================================================= -->
+        <!-- INFRASTRUKTURA -->
+        <!-- ================================================= -->
+        <div class="region-section">
+            <h2>Infrastruktura (0–100)</h2>
 
             {% for name, label in [
                 ("region_poziom_skomunikowania","Poziom skomunikowania"),
@@ -326,22 +235,28 @@
                 ("region_stan_infra_mieszkalnej","Infrastruktura mieszkaniowa"),
                 ("region_stan_infra_portowej","Infrastruktura portowa")
             ] %}
-            <div class="form-group">
+            <div class="region-form-group">
                 <label>{{ label }}</label>
                 <input type="number"
-                    name="{{ name }}"
-                    min="0" max="100"
-                    value="{{ form_data.get(name) if form_data }}">
+                       name="{{ name }}"
+                       min="0" max="100"
+                       value="{{ form_data.get(name) if form_data }}">
             </div>
             {% endfor %}
-
         </div>
 
-
-
-        <div class="form-actions">
-            <button type="submit">Zapisz region</button>
-            <a href="{{ url_for('home_page') }}">Anuluj</a>
+        <!-- ================================================= -->
+        <!-- AKCJE -->
+        <!-- ================================================= -->
+        <div class="region-form-actions">
+            <button type="submit" class="region-submit-btn">
+                Zapisz region
+            </button>
+            <a href="{{ url_for('home_page') }}"
+               class="region-submit-btn"
+               style="text-decoration:none; margin-left:12px;">
+                Anuluj
+            </a>
         </div>
 
     </form>
