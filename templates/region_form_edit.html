@@ -148,7 +148,7 @@
                 <label>{{ label }}</label>
                 <input type="number" min="0" max="100"
                        name="{{ field }}"
-                       value="{{ attribute(region, field) if attribute(region, field) is not none else '' }}">
+                       value="{{ region | attr(field) if (region | attr(field)) is not none else '' }}">
                        
             </div>
             {% endfor %}
