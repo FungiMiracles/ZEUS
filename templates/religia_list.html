@@ -123,6 +123,9 @@
     box-shadow:
         0 0 18px rgba(120, 140, 255, 0.25);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+    border-radius: 14px;      /* ← P1.W2.LUT.26 */
+    overflow: hidden;         /* ← WAŻNE */
 }
 
 .religia-results tbody tr:hover {
@@ -526,5 +529,60 @@
     {% endif %}
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const kontynentSelect = document.querySelector('select[name="kontynent"]');
+    const panstwoSelect   = document.querySelector('select[name="panstwo"]');
+
+    // --- wczytaj kontynenty ---
+    fetch("/api/kontynenty")
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(k => {
+                const opt = document.createElement("option");
+                opt.value = k;
+                opt.textContent = k;
+                if ("{{ request.args.get('kontynent','') }}" === k) {
+                    opt.selected = true;
+                }
+                kontynentSelect.appendChild(opt);
+            });
+
+            // jeżeli był wybrany kontynent → dociągnij państwa
+            if (kontynentSelect.value) {
+                loadPanstwa(kontynentSelect.value);
+            }
+        });
+
+    // --- reakcja na zmianę kontynentu ---
+    kontynentSelect.addEventListener("change", () => {
+        panstwoSelect.innerHTML = '<option value="">— Wszystkie —</option>';
+        if (kontynentSelect.value) {
+            loadPanstwa(kontynentSelect.value);
+        }
+    });
+
+    function loadPanstwa(kontynent) {
+        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+
+                    if ("{{ request.args.get('panstwo','') }}" === String(p.id)) {
+                        opt.selected = true;
+                    }
+
+                    panstwoSelect.appendChild(opt);
+                });
+            });
+    }
+});
+</script>
+
 
 {% endblock %}

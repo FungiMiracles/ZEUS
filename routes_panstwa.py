@@ -14,7 +14,6 @@ from werkzeug.utils import secure_filename
 
 from extensions import db
 from models import Panstwo, Miasto
-from datetime import datetime
 
 from paths import (
     FLAGI_DIR,
@@ -66,16 +65,6 @@ def init_panstwa_api(app):
             {"PANSTWO_ID": p.PANSTWO_ID, "panstwo_nazwa": p.panstwo_nazwa}
             for p in rows
         ])
-
-    @app.route("/api/panstwo_populacja")
-    def panstwo_populacja():
-        pid = request.args.get("id")
-        p = Panstwo.query.get(pid)
-        if not p:
-            return jsonify({"populacja": None})
-
-        return jsonify({"populacja": p.panstwo_populacja})
-
 
 # ============================================================
 # ROUTES
@@ -153,12 +142,13 @@ def init_panstwa_routes(app):
             religia = request.form.get("panstwo_religia")
             kontynent = request.form.get("kontynent")
             powierzchnia = request.form.get("panstwo_powierzchnia")
+            czy_suwerenny = request.form.get("czy_suwerenny")
 
             required_fields = [
                 nazwa, pelna, kod, ustroj, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
-                kontynent, powierzchnia
+                kontynent, powierzchnia, czy_suwerenny
             ]
 
             if any(not field for field in required_fields):
@@ -170,6 +160,13 @@ def init_panstwa_routes(app):
 
             flaga = request.files.get("flaga")
             mapa = request.files.get("mapa")
+
+            if czy_suwerenny not in ("TAK", "NIE"):
+                return render_template(
+                    "panstwo_form_add.html",
+                    error="Musisz określić, czy państwo jest suwerenne.",
+                    form_data=request.form
+                )
 
             if not flaga or not mapa or flaga.filename == "" or mapa.filename == "":
                 return render_template(
@@ -204,6 +201,7 @@ def init_panstwa_routes(app):
                     panstwo_religia=religia,
                     kontynent=kontynent,
                     panstwo_powierzchnia=powierzchnia,
+                    czy_suwerenny=czy_suwerenny,
                 )
                 db.session.add(panstwo)
                 db.session.commit()
@@ -225,6 +223,7 @@ def init_panstwa_routes(app):
 
         if request.method == "POST":
             form = request.form
+            czy_suwerenny = form.get("czy_suwerenny")
             errors = []
 
             required_fields = [
@@ -239,7 +238,8 @@ def init_panstwa_routes(app):
                 "panstwo_religia",
                 "panstwo_PKB",
                 "panstwo_PKB_per_capita",
-                "panstwo_populacja",   # ← WAŻNE
+                "panstwo_populacja",
+                "czy_suwerenny",
             ]
 
             for f in required_fields:
@@ -251,6 +251,14 @@ def init_panstwa_routes(app):
                     "panstwo_form_edit.html",
                     p=p,
                     error=" ".join(set(errors)),
+                    form_data=form
+                )
+            
+            if czy_suwerenny not in ("TAK", "NIE"):
+                return render_template(
+                    "panstwo_form_edit.html",
+                    p=p,
+                    error="Musisz określić status suwerenności państwa.",
                     form_data=form
                 )
 
@@ -268,10 +276,11 @@ def init_panstwa_routes(app):
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
                 p.panstwo_waluta = form.get("panstwo_waluta")
                 p.panstwo_religia = form.get("panstwo_religia")
-
-                # --- EKONOMIA ---
+                czy_suwerenny = request.form.get("czy_suwerenny")
                 p.panstwo_PKB = int(form.get("panstwo_PKB"))
                 p.panstwo_PKB_per_capita = int(form.get("panstwo_PKB_per_capita"))
+
+                p.czy_suwerenny = czy_suwerenny
 
                 db.session.commit()
 
@@ -283,6 +292,7 @@ def init_panstwa_routes(app):
                     error=f"Błąd zapisu danych: {e}",
                     form_data=form
                 )
+        
 
             return redirect(url_for("panstwo_form", panstwo_id=p.PANSTWO_ID))
 

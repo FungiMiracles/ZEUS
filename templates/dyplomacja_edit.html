@@ -119,15 +119,23 @@
     background-color: #999999;
 }
 
+.dyp-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 22px;
+}
 /* ===== MOBILE ===== */
 
 @media (max-width: 768px) {
+
     .dyp-grid {
         grid-template-columns: 1fr;
     }
 
     .dyp-actions {
         flex-direction: column;
+        gap: 12px;
     }
 
     .dyp-actions button,
@@ -154,8 +162,7 @@
                         <option value="">— wybierz —</option>
                         {% for p in panstwa %}
                             <option value="{{ p.PANSTWO_ID }}"
-                                    data-flag="{{ p.panstwo_nazwa|replace(' ', '_') }}"
-                                    {% if request.args.get('panstwo_id') == p.PANSTWO_ID|string %}selected{% endif %}>
+                                {% if form_data.panstwo_id == p.PANSTWO_ID|string %}selected{% endif %}>
                                 {{ p.panstwo_nazwa }}
                             </option>
                         {% endfor %}
@@ -170,8 +177,7 @@
                         <option value="">— wybierz —</option>
                         {% for p in panstwa %}
                             <option value="{{ p.PANSTWO_ID }}"
-                                    data-flag="{{ p.panstwo_nazwa|replace(' ', '_') }}"
-                                    {% if request.args.get('panstwo_id2') == p.PANSTWO_ID|string %}selected{% endif %}>
+                                {% if form_data.panstwo_id2 == p.PANSTWO_ID|string %}selected{% endif %}>
                                 {{ p.panstwo_nazwa }}
                             </option>
                         {% endfor %}
@@ -186,9 +192,13 @@
                 <label>Relacja</label>
                 <select name="relacja" required>
                     {% for r in relacje %}
-                        <option value="{{ r }}">{{ r }}</option>
+                        <option value="{{ r }}"
+                            {% if form_data.relacja == r %}selected{% endif %}>
+                            {{ r }}
+                        </option>
                     {% endfor %}
                 </select>
+
             </div>
 
             <!-- STAN -->
@@ -196,9 +206,13 @@
                 <label>Stan</label>
                 <select name="stan" required>
                     {% for s in stany %}
-                        <option value="{{ s }}">{{ s }}</option>
+                        <option value="{{ s }}"
+                            {% if form_data.stan == s %}selected{% endif %}>
+                            {{ s }}
+                        </option>
                     {% endfor %}
                 </select>
+
             </div>
 
             <!-- AKCJE -->

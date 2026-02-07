@@ -42,38 +42,71 @@ def init_dyplomacja_routes(app):
 
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
 
+        relacje = [
+            "sojusznicze",
+            "partnerskie_strategiczne",
+            "partnerskie",
+            "przyjazne",
+            "dobre",
+            "neutralne",
+            "chlodne",
+            "zle",
+            "napiete",
+            "wrogie",
+            "egzystencjalnie_wrogie"
+        ]
+
+        stany = [
+            "pokoj",
+            "zawieszenie_broni",
+            "konflikt_dyplomatyczny",
+            "wojna_handlowa",
+            "wojna_informacyjna",
+            "wojna_hybrydowa",
+            "konflikt_kinetyczny_zamrozony",
+            "wojna_kinetyczna",
+            "okupacja"
+        ]
+
         if request.method == "POST":
             p1 = request.form.get("panstwo_id")
             p2 = request.form.get("panstwo_id2")
             relacja = request.form.get("relacja")
             stan = request.form.get("stan")
 
-            # ───── WALIDACJA ─────
+            # ❗ WALIDACJA → BEZ REDIRECT
             if not p1 or not p2:
                 flash("Musisz wybrać dwa państwa.", "error")
-                return redirect(url_for("dyplomacja_edit"))
+                return render_template(
+                    "dyplomacja_edit.html",
+                    panstwa=panstwa,
+                    relacje=relacje,
+                    stany=stany,
+                    form_data=request.form
+                )
 
             if p1 == p2:
                 flash("Państwo nie może mieć relacji samo ze sobą.", "error")
-                return redirect(url_for("dyplomacja_edit"))
+                return render_template(
+                    "dyplomacja_edit.html",
+                    panstwa=panstwa,
+                    relacje=relacje,
+                    stany=stany,
+                    form_data=request.form
+                )
 
+            # ↓↓↓ DALEJ BEZ ZMIAN ↓↓↓
             p1 = int(p1)
             p2 = int(p2)
-
-            # porządek kanoniczny (A < B)
             a, b = sorted([p1, p2])
 
-            # ───── SPRAWDŹ CZY ISTNIEJE ─────
             stosunek = Stosunki.query.filter_by(
                 PANSTWO_ID=a,
                 PANSTWO_ID2=b
             ).first()
 
             if not stosunek:
-                stosunek = Stosunki(
-                    PANSTWO_ID=a,
-                    PANSTWO_ID2=b
-                )
+                stosunek = Stosunki(PANSTWO_ID=a, PANSTWO_ID2=b)
                 db.session.add(stosunek)
 
             stosunek.relacja = relacja
@@ -82,40 +115,28 @@ def init_dyplomacja_routes(app):
             try:
                 db.session.commit()
                 flash("Stosunki dyplomatyczne zapisane.", "success")
+                return redirect(url_for("dyplomacja_list"))
             except Exception as e:
                 db.session.rollback()
                 flash(f"Błąd zapisu: {e}", "error")
 
-            return redirect(url_for("dyplomacja_list"))
+                return render_template(
+                    "dyplomacja_edit.html",
+                    panstwa=panstwa,
+                    relacje=relacje,
+                    stany=stany,
+                    form_data=request.form
+                )
 
+        # GET
         return render_template(
             "dyplomacja_edit.html",
             panstwa=panstwa,
-            relacje=[
-                "sojusznicze",
-                "partnerskie_strategiczne",
-                "partnerskie",
-                "przyjazne",
-                "dobre",
-                "neutralne",
-                "chlodne",
-                "zle",
-                "napiete",
-                "wrogie",
-                "egzystencjalnie_wrogie"
-            ],
-            stany=[
-                "pokoj",
-                "zawieszenie_broni",
-                "konflikt_dyplomatyczny",
-                "wojna_handlowa",
-                "wojna_informacyjna",
-                "wojna_hybrydowa",
-                "konflikt_kinetyczny_zamrozony",
-                "wojna_kinetyczna",
-                "okupacja"
-            ]
+            relacje=relacje,
+            stany=stany,
+            form_data={}
         )
+
 
     @app.route("/dyplomacja/sojusze")
     def dyplomacja_sojusze():

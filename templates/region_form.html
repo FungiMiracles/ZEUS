@@ -150,10 +150,29 @@
         color: white;
     }
 
-    /* ============================================================
-   MOBILE — FORMULARZ REGIONU
-   Układ only, desktop nietknięty
-============================================================ */
+    .region-flash {
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .region-flash-item {
+        max-width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    /* Kolory jak wcześniej */
+    .region-flash-item.success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .region-flash-item.error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
 @media (max-width: 768px) {
 
     /* ===== KONTAINER ===== */
@@ -283,22 +302,19 @@
 
 </style>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
+<div class="region-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div style="margin-bottom:15px;">
+            <div class="region-flash">
                 {% for category, message in messages %}
-                    <div style="padding:10px; border-radius:6px;
-                        {% if category == 'success' %}background:#d4edda; color:#155724;
-                        {% elif category == 'error' %}background:#f8d7da; color:#721c24;
-                        {% endif %}">
+                    <div class="region-flash-item {{ category }}">
                         {{ message }}
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
     {% endwith %}
-
-<div class="region-container">
     
     <!-- Nagłówek -->
     <div class="region-header">

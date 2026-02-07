@@ -24,5 +24,16 @@ def init_api_routes(app):
             {"id": p.PANSTWO_ID, "nazwa": p.panstwo_nazwa}
             for p in panstwa
         ])
+    
+    @app.route("/api/kontynenty")
+    def api_kontynenty():
+        rows = (
+            db.session.query(Panstwo.kontynent)
+            .distinct()
+            .order_by(Panstwo.kontynent)
+            .all()
+        )
+
+        return jsonify([k[0] for k in rows if k[0]])
 
     

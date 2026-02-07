@@ -139,6 +139,25 @@
                     </td>
                 </tr>
 
+                <div class="form-group">
+                    <label for="czy_suwerenny">
+                        Status suwerenności <span style="color:#ff6a6a;">*</span>
+                    </label>
+
+                    <select name="czy_suwerenny" id="czy_suwerenny" required>
+                        <option value="">— Wybierz —</option>
+                        <option value="TAK"
+                            {% if form_data.get('czy_suwerenny', panstwo.czy_suwerenny) == 'TAK' %}selected{% endif %}>
+                            TAK
+                        </option>
+                        <option value="NIE"
+                            {% if form_data.get('czy_suwerenny', panstwo.czy_suwerenny) == 'NIE' %}selected{% endif %}>
+                            NIE
+                        </option>
+                    </select>
+                </div>
+
+
                 <!-- BLOK INFORMACYJNY -->
                 <tr>
                     <td style="padding:10px; font-weight:600;">Dane zablokowane</td>

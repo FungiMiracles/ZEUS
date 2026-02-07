@@ -122,6 +122,30 @@ a.btn-zeus:active {
 .btn-save:hover {
     background-color: #1e8749;
 }
+
+/* ============================================================
+   ZEUS — HISTORIA: UJEDNOLICONE HOVERY PRZYCISKÓW
+============================================================ */
+
+.historia-wrapper a:hover,
+.historia-wrapper a:focus,
+.historia-wrapper a:active,
+.historia-edit-wrapper a:hover,
+.historia-edit-wrapper a:focus,
+.historia-edit-wrapper a:active,
+.historia-add-wrapper a:hover,
+.historia-add-wrapper a:focus,
+.historia-add-wrapper a:active,
+.historia-wrapper button:hover,
+.historia-wrapper button:focus,
+.historia-edit-wrapper button:hover,
+.historia-edit-wrapper button:focus,
+.historia-add-wrapper button:hover,
+.historia-add-wrapper button:focus {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
 </style>
 
 <div class="historia-add-wrapper">
@@ -208,40 +232,31 @@ a.btn-zeus:active {
              </div>
          
              <div class="historia-field">
-                 <label>Państwo</label>
-                 <select name="panstwo_id">
-                     <option value="">— brak —</option>
-                     {% for p in panstwa %}
-                         <option value="{{ p.PANSTWO_ID }}">
-                             {{ p.panstwo_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         
-             <div class="historia-field">
-                 <label>Region</label>
-                 <select name="region_id">
-                     <option value="">— brak —</option>
-                     {% for r in regiony %}
-                         <option value="{{ r.region_id }}">
-                             {{ r.region_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
-         
-             <div class="historia-field">
-                 <label>Miasto</label>
-                 <select name="miasto_id">
-                     <option value="">— brak —</option>
-                     {% for m in miasta %}
-                         <option value="{{ m.miasto_id }}">
-                             {{ m.miasto_nazwa }}
-                         </option>
-                     {% endfor %}
-                 </select>
-             </div>
+                <label>Państwo</label>
+                <select name="panstwo_id" id="panstwoSelect">
+                    <option value="">— brak —</option>
+                    {% for p in panstwa %}
+                        <option value="{{ p.PANSTWO_ID }}">
+                            {{ p.panstwo_nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="historia-field">
+                <label>Region</label>
+                <select name="region_id" id="regionSelect" disabled>
+                    <option value="">— brak —</option>
+                </select>
+            </div>
+
+            <div class="historia-field">
+                <label>Miasto</label>
+                <select name="miasto_id" id="miastoSelect" disabled>
+                    <option value="">— brak —</option>
+                </select>
+            </div>
+
          </div>
           <!-- ===== OPIS ===== -->
          <div class="historia-section">
@@ -266,5 +281,66 @@ a.btn-zeus:active {
     </form>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const panstwo = document.getElementById("panstwoSelect");
+    const region  = document.getElementById("regionSelect");
+    const miasto  = document.getElementById("miastoSelect");
+
+    function reset(select, label) {
+        select.innerHTML = `<option value="">${label}</option>`;
+        select.disabled = true;
+    }
+
+    function loadRegions(panstwoId) {
+        reset(region, "— brak —");
+        reset(miasto, "— brak —");
+
+        if (!panstwoId) return;
+
+        fetch(`/api/regiony_by_panstwo?panstwo_id=${panstwoId}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(r => {
+                    const opt = document.createElement("option");
+                    opt.value = r.id;
+                    opt.textContent = r.nazwa;
+                    region.appendChild(opt);
+                });
+                region.disabled = false;
+            });
+    }
+
+    function loadMiasta(regionId) {
+        reset(miasto, "— brak —");
+
+        if (!regionId) return;
+
+        fetch(`/api/miasta_by_region?region_id=${regionId}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m.id;
+                    opt.textContent = m.nazwa;
+                    miasto.appendChild(opt);
+                });
+                miasto.disabled = false;
+            });
+    }
+
+    panstwo.addEventListener("change", () => {
+        loadRegions(panstwo.value);
+    });
+
+    region.addEventListener("change", () => {
+        loadMiasta(region.value);
+    });
+
+});
+</script>
+
 
 {% endblock %}
