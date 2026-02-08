@@ -232,7 +232,12 @@ def init_historia_routes(app):
                     panstwa=panstwa,
                     form_data=request.form
                 )
-
+        
+        return render_template(
+            "historia_form_add.html",
+            panstwa=panstwa,
+            form_data={}
+        )
 
     # --------------------------------------------------------
     # EDYCJA WYDARZENIA

@@ -114,20 +114,6 @@
     color: #cfd3ff;
 }
 
-.religia-results tbody tr {
-    background: linear-gradient(
-        135deg,
-        rgba(30, 35, 80, 0.85),
-        rgba(15, 18, 45, 0.95)
-    );
-    box-shadow:
-        0 0 18px rgba(120, 140, 255, 0.25);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-
-    border-radius: 14px;      /* ← P1.W2.LUT.26 */
-    overflow: hidden;         /* ← WAŻNE */
-}
-
 .religia-results tbody tr:hover {
     transform: translateY(-4px);
     box-shadow:
@@ -326,6 +312,16 @@
 
     .religia-results tbody td.sub {
         font-size: 0.85em;
+    }
+
+    .religia-results tbody tr td:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+    }
+
+    .religia-results tbody tr td:last-child {
+        border-top-right-radius: 14px;
+        border-bottom-right-radius: 14px;
     }
 
     /* ===== LABELKI DLA POL ===== */
