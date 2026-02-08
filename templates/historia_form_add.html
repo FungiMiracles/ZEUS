@@ -220,7 +220,7 @@ a.btn-zeus:active {
          
              <div class="historia-field">
                  <label>Kontynent</label>
-                 <select name="kontynent">
+                 <select name="kontynent" id="kontynentSelect">
                      <option value="">— brak —</option>
                      <option>Kao</option>
                      <option>Beifa</option>
@@ -233,13 +233,8 @@ a.btn-zeus:active {
          
              <div class="historia-field">
                 <label>Państwo</label>
-                <select name="panstwo_id" id="panstwoSelect">
-                    <option value="">— brak —</option>
-                    {% for p in panstwa %}
-                        <option value="{{ p.PANSTWO_ID }}">
-                            {{ p.panstwo_nazwa }}
-                        </option>
-                    {% endfor %}
+                <select name="panstwo_id" id="panstwoSelect" disabled>
+                    <option value="">— wybierz państwo —</option>
                 </select>
             </div>
 
@@ -285,17 +280,54 @@ a.btn-zeus:active {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    const panstwo = document.getElementById("panstwoSelect");
-    const region  = document.getElementById("regionSelect");
-    const miasto  = document.getElementById("miastoSelect");
+    const kontynent = document.getElementById("kontynentSelect");
+    const panstwo   = document.getElementById("panstwoSelect");
+    const region    = document.getElementById("regionSelect");
+    const miasto    = document.getElementById("miastoSelect");
+
+    if (!kontynent || !panstwo || !region || !miasto) {
+        console.error("Błąd formularza historii: brak jednego z selectów");
+        return;
+    }
 
     function reset(select, label) {
         select.innerHTML = `<option value="">${label}</option>`;
         select.disabled = true;
     }
 
-    function loadRegions(panstwoId) {
-        reset(region, "— brak —");
+    /* STAN POCZĄTKOWY */
+    reset(panstwo, "— wybierz kontynent —");
+    reset(region,  "— brak —");
+    reset(miasto,  "— brak —");
+
+    /* KONTYNENT → PAŃSTWA */
+    kontynent.addEventListener("change", () => {
+        const kont = kontynent.value;
+
+        reset(panstwo, "— wybierz państwo —");
+        reset(region,  "— brak —");
+        reset(miasto,  "— brak —");
+
+        if (!kont) return;
+
+        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kont)}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+                    panstwo.appendChild(opt);
+                });
+                panstwo.disabled = false;
+            });
+    });
+
+    /* PAŃSTWO → REGIONY */
+    panstwo.addEventListener("change", () => {
+        const panstwoId = panstwo.value;
+
+        reset(region, "— wybierz region —");
         reset(miasto, "— brak —");
 
         if (!panstwoId) return;
@@ -305,16 +337,19 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(r => {
                     const opt = document.createElement("option");
-                    opt.value = r.id;
-                    opt.textContent = r.nazwa;
+                    opt.value = r.region_id;
+                    opt.textContent = r.region_nazwa;
                     region.appendChild(opt);
                 });
                 region.disabled = false;
             });
-    }
+    });
 
-    function loadMiasta(regionId) {
-        reset(miasto, "— brak —");
+    /* REGION → MIASTA */
+    region.addEventListener("change", () => {
+        const regionId = region.value;
+
+        reset(miasto, "— wybierz miasto —");
 
         if (!regionId) return;
 
@@ -323,24 +358,15 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(m => {
                     const opt = document.createElement("option");
-                    opt.value = m.id;
-                    opt.textContent = m.nazwa;
+                    opt.value = m.miasto_id;
+                    opt.textContent = m.miasto_nazwa;
                     miasto.appendChild(opt);
                 });
                 miasto.disabled = false;
             });
-    }
-
-    panstwo.addEventListener("change", () => {
-        loadRegions(panstwo.value);
-    });
-
-    region.addEventListener("change", () => {
-        loadMiasta(region.value);
     });
 
 });
 </script>
-
 
 {% endblock %}

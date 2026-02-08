@@ -310,13 +310,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const region  = document.getElementById("regionSelect");
     const miasto  = document.getElementById("miastoSelect");
 
+    if (!panstwo || !region || !miasto) {
+        console.error("Historia edit: brak jednego z selectów");
+        return;
+    }
+
     function reset(select, label) {
         select.innerHTML = `<option value="">${label}</option>`;
         select.disabled = true;
     }
 
+    /* =============================
+       ŁADOWANIE REGIONÓW
+    ============================= */
     function loadRegions(panstwoId, selectedRegionId = null) {
-        reset(region, "— brak —");
+        reset(region, "— wybierz region —");
         reset(miasto, "— brak —");
 
         if (!panstwoId) return;
@@ -326,19 +334,27 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(r => {
                     const opt = document.createElement("option");
-                    opt.value = r.id;
-                    opt.textContent = r.nazwa;
-                    if (String(r.id) === String(selectedRegionId)) {
+                    opt.value = r.region_id;
+                    opt.textContent = r.region_nazwa;
+                    if (String(r.region_id) === String(selectedRegionId)) {
                         opt.selected = true;
                     }
                     region.appendChild(opt);
                 });
                 region.disabled = false;
+
+                // jeżeli mamy wybrany region → załaduj miasta
+                if (selectedRegionId) {
+                    loadMiasta(selectedRegionId, "{{ h.miasto_id or '' }}");
+                }
             });
     }
 
+    /* =============================
+       ŁADOWANIE MIAST
+    ============================= */
     function loadMiasta(regionId, selectedMiastoId = null) {
-        reset(miasto, "— brak —");
+        reset(miasto, "— wybierz miasto —");
 
         if (!regionId) return;
 
@@ -347,9 +363,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(m => {
                     const opt = document.createElement("option");
-                    opt.value = m.id;
-                    opt.textContent = m.nazwa;
-                    if (String(m.id) === String(selectedMiastoId)) {
+                    opt.value = m.miasto_id;
+                    opt.textContent = m.miasto_nazwa;
+                    if (String(m.miasto_id) === String(selectedMiastoId)) {
                         opt.selected = true;
                     }
                     miasto.appendChild(opt);
@@ -358,6 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
+    /* =============================
+       EVENTY
+    ============================= */
     panstwo.addEventListener("change", () => {
         loadRegions(panstwo.value);
     });
@@ -366,7 +385,9 @@ document.addEventListener("DOMContentLoaded", () => {
         loadMiasta(region.value);
     });
 
-    // ===== TRYB EDYCJI (prefill) =====
+    /* =============================
+       PREFILL (TRYB EDYCJI)
+    ============================= */
     const initialPanstwo = "{{ h.panstwo_id or '' }}";
     const initialRegion  = "{{ h.region_id or '' }}";
     const initialMiasto  = "{{ h.miasto_id or '' }}";
@@ -374,15 +395,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (initialPanstwo) {
         panstwo.value = initialPanstwo;
         loadRegions(initialPanstwo, initialRegion);
-
-        if (initialRegion) {
-            loadMiasta(initialRegion, initialMiasto);
-            region.disabled = false;   // ← DODAJ
-        }
     }
 
 });
 </script>
-
 
 {% endblock %}
