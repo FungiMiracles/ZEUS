@@ -311,32 +311,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const region    = document.getElementById("regionSelect");
     const miasto    = document.getElementById("miastoSelect");
 
-    if (!kontynent || !panstwo || !region || !miasto) {
-        console.error("Błąd formularza historii: brak jednego z selectów");
-        return;
-    }
-
     function reset(select, label) {
         select.innerHTML = `<option value="">${label}</option>`;
         select.disabled = true;
     }
 
-    /* STAN POCZĄTKOWY */
+    /* ===== STAN POCZĄTKOWY ===== */
     reset(panstwo, "— wybierz kontynent —");
     reset(region,  "— brak —");
     reset(miasto,  "— brak —");
 
-    /* KONTYNENT → PAŃSTWA */
+    /* ===== KONTYNENT → PAŃSTWA ===== */
     kontynent.addEventListener("change", () => {
-        const kont = kontynent.value;
 
         reset(panstwo, "— wybierz państwo —");
         reset(region,  "— brak —");
         reset(miasto,  "— brak —");
 
-        if (!kont) return;
+        if (!kontynent.value) return;
 
-        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kont)}`)
+        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent.value)}`)
             .then(r => r.json())
             .then(data => {
                 data.forEach(p => {
@@ -349,16 +343,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
 
-    /* PAŃSTWO → REGIONY */
+    /* ===== PAŃSTWO → REGIONY ===== */
     panstwo.addEventListener("change", () => {
-        const panstwoId = panstwo.value;
 
         reset(region, "— wybierz region —");
         reset(miasto, "— brak —");
 
-        if (!panstwoId) return;
+        if (!panstwo.value) return;
 
-        fetch(`/api/regiony_by_panstwo?panstwo_id=${panstwoId}`)
+        fetch(`/api/regiony_by_panstwo?panstwo_id=${panstwo.value}`)
             .then(r => r.json())
             .then(data => {
                 data.forEach(r => {
@@ -371,13 +364,13 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
 
-    /* REGION → MIASTA */
+    /* ===== REGION → MIASTA ===== */
     region.addEventListener("change", () => {
         loadMiasta(region.value);
     });
 
-
     function loadMiasta(regionId, selectedMiastoId = null) {
+
         reset(miasto, "— wybierz miasto —");
 
         if (!regionId) return;
@@ -397,18 +390,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     miasto.appendChild(opt);
                 });
 
-                /* 🔴 TEJ LINII BRAKOWAŁO */
+                /* 🔑 ABSOLUTNIE KLUCZOWE */
                 miasto.disabled = false;
             });
     }
 
-    /* ===== PREFILL (TYLKO EDIT) ===== */
+    /* ===== PREFILL (EDIT) ===== */
     const initialPanstwo = "{{ h.panstwo_id or '' }}";
     const initialRegion  = "{{ h.region_id or '' }}";
     const initialMiasto  = "{{ h.miasto_id or '' }}";
 
     if (initialPanstwo) {
         panstwo.value = initialPanstwo;
+        panstwo.disabled = false;
 
         fetch(`/api/regiony_by_panstwo?panstwo_id=${initialPanstwo}`)
             .then(r => r.json())
