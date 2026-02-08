@@ -1,4 +1,4 @@
-__Wydanie W2.LUT.26 (XX.XX.XXXX)__
+__Wydanie W2.LUT.26 (08.02.2026)__
 
 Zmiany:
 
