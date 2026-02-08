@@ -1,3 +1,69 @@
+__Wydanie W2.LUT.26 (08.02.2026)__
+
+Zmiany:
+
+Z1.W2.LUT.26 [Regiony]
+Dodana została możliwość filtrowania wyników wyszukiwania regionów.
+
+Z2.W2.LUT.26 [Moduł kulturowy]
+Wszystkie ekrany sekcji religijnej zostały dostosowane do widoku mobilnego.
+
+Z3.W2.LUT.26 [Moduł kulturowy]
+Z wyników wyszukiwania religii zostały usunięte kolumny "państwo" oraz "kontynent", a zamiast tego została dodana kolumne "religia nadrzędna".
+
+Z4.W2.LUT.26 [Regiony]
+Powstały nowe kolumny w bazie danych dla tabeli z regionami.
+
+Z5.W2.LUT.26 [Regiony]
+Formularz regionu wyświetla nowe dane o regionie.
+
+Z6.W2.LUT.26 [Regiony]
+Formularz edycji regionu pozwala na edytowanie nowych danych o regionie.
+
+Z7.W2.LUT.26 [Regiony]
+Formularz dodawania regionu pozwala na dodanie regionu z nowymi danymi.
+
+Z8.W2.LUT.26 [Moduł kulturowy]
+Został dodany dynamiczny filtr do wyszukiwania religii per kontynent i państwo.
+
+Z9.W2.LUT.26 [Miasto]
+Została wdrożona reguła R7: "Każde państwo ma tylko jedną stolicę państwa."
+
+Z10.W2.LUT.26 [Miasto]
+Została wdrożona reguła R8: "Każdy region ma tylko jedną stolicę regionu."
+
+Z11.W2.LUT.26 [Państwo]
+Została wdrożona reguła R11: "Każde państwo powinno mieć status: "czy-suwerenny"=TAK/NIE".
+
+Poprawki błędów:
+
+P1.W2.LUT.26 [Moduł kulturowy]	
+Krawędzie na poszczególnych wynikach wyszukiwania zostaną zaokrąglone.
+
+P2.W2.LUT.26 [Moduł historyczny]
+Formularz edycji i formularz dodawania wyświetlają tylko regiony podlegające pod wybrane państwo i tylko miasta podlegające pod wybrany region.
+
+P3.W2.LUT.26 [Moduł historyczny]
+Zostały ujednolicone hovery na na wszystkich przyciskach w module historycznym - brak podkreślenia przycisku, brak zmiany koloru tekstu na przycisku.
+
+P4.W2.LUT.26 [Moduł kulturowy]	
+Zostały usunięte podkreślenia przycisków w sekcji religijnej modułu kulturowego na wszystkich ekranach.
+
+P5.W2.LUT.26 [Regiony]	
+Zostały zwężony pasek powiadomienia w sekcji regionów.
+
+P6.W2.LUT.26 [Moduł kulturowy]	
+Zostały nadane walidacje roli na funkcjonalnościach edycji i dodawania religii w sekcji religijnej w module kulturowym.
+
+P7.W2.LUT.26 [Moduł gospodarczy]	
+Został naprawiony widok listy w wynikach wyszukiwania danych gospodarczych państw w widoku mobilnym.
+
+P8.W2.LUT.26 [Moduł dyplomatyczny]	
+Został naprawiony formularz edycji stosunków międzynarodowych tak, by formularz zapamiętywał obecnie wprowadzone dane.
+
+P9.W2.LUT.26 [Moduł dyplomatyczny]	
+Zostało naprawione ułożenie przycisków formularza edycji stosunków międzynarodowych tak, by nie nachodziły na siebie w widoku mobilnym.
+
 __Wydanie W1.LUT.26 (01.02.2026)__
 
 Zmiany:

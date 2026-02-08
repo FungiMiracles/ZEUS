@@ -315,7 +315,7 @@ function updateRelation() {
     // ===== PRZYCISK EDYCJI =====
     const editBtn = document.getElementById("editRelationBtn");
     if (editBtn) {
-        editBtn.href = `/dyplomacja/edit?panstwo_id=${p1.value}&panstwo_id2=${p2.value}`;
+        editBtn.href = `/dyplomacja/edit/${p1.value}/${p2.value}`;
     }
 
     // ===== POBRANIE RELACJI =====

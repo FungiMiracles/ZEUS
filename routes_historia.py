@@ -144,8 +144,6 @@ def init_historia_routes(app):
         # DANE DO FORMULARZA (GET + ERROR)
         # ─────────────────────────────
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-        regiony = Region.query.order_by(Region.region_nazwa).all()
-        miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
     
         if request.method == "POST":
             try:
@@ -199,7 +197,7 @@ def init_historia_routes(app):
                     if not panstwo:
                         raise ValueError("Wybrane państwo nie istnieje.")
     
-                    if region and region.panstwo_id != panstwo.PANSTWO_ID:
+                    if region and panstwo and region.panstwo_id != panstwo.PANSTWO_ID:
                         raise ValueError("Region nie należy do wybranego państwa.")
     
                 # ───────────────
@@ -228,27 +226,18 @@ def init_historia_routes(app):
                 flash(str(e), "error")
 
                 panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-                regiony = Region.query.order_by(Region.region_nazwa).all()
-                miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
-            
+
                 return render_template(
                     "historia_form_add.html",
-                    form_data=request.form,
                     panstwa=panstwa,
-                    regiony=regiony,
-                    miasta=miasta
+                    form_data=request.form
                 )
-    
-        # ───────────────
-        # GET
-        # ───────────────
+        
         return render_template(
             "historia_form_add.html",
             panstwa=panstwa,
-            regiony=regiony,
-            miasta=miasta
+            form_data={}
         )
-
 
     # --------------------------------------------------------
     # EDYCJA WYDARZENIA
@@ -258,8 +247,6 @@ def init_historia_routes(app):
     def historia_edytuj(historia_id):
 
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-        regiony = Region.query.order_by(Region.region_nazwa).all()
-        miasta = Miasto.query.order_by(Miasto.miasto_nazwa).all()
     
         h = Historia.query.get_or_404(historia_id)
     
@@ -323,7 +310,7 @@ def init_historia_routes(app):
                     if not panstwo:
                         raise ValueError("Wybrane państwo nie istnieje.")
     
-                    if region and region.panstwo_id != panstwo.PANSTWO_ID:
+                    if region and panstwo and region.panstwo_id != panstwo.PANSTWO_ID:
                         raise ValueError("Region nie należy do wybranego państwa.")
     
                 # ───────────────
@@ -349,7 +336,7 @@ def init_historia_routes(app):
                 return render_template(
                     "historia_form_edit.html",
                     h=h,
-                    form_data=form
+                    panstwa=panstwa
                 )
     
         # ───────────────
@@ -358,13 +345,8 @@ def init_historia_routes(app):
         return render_template(
             "historia_form_edit.html",
             h=h,
-            panstwa=panstwa,
-            regiony=regiony,
-            miasta=miasta
+            panstwa=panstwa
         )
-
-
-
 
     # --------------------------------------------------------
     # USUWANIE WYDARZENIA

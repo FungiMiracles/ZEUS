@@ -18,62 +18,89 @@ def init_regiony_routes(app):
 
     @app.route("/wyniki_wyszukiwania_region", methods=["GET"])
     def wyniki_wyszukiwania_region():
-        panstwo_nazwa = request.args.get("panstwo_nazwa")
-        region_nazwa = request.args.get("region_nazwa")
 
-        query = db.session.query(Region, Panstwo).join(
-            Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID
+        kontynent = request.args.get("kontynent")
+        panstwo_id = request.args.get("panstwo_id")
+        populacja_od = request.args.get("populacja_od")
+        populacja_do = request.args.get("populacja_do")
+        uksztaltowanie = request.args.get("ukszaltowanie")
+
+        # ===== LISTY DO FILTRÓW =====
+        kontynenty = [
+            k[0] for k in db.session.query(Panstwo.kontynent).distinct().all()
+            if k[0]
+        ]
+
+        uksztaltowania = [
+            u[0] for u in db.session.query(Region.region_teren).distinct().all()
+            if u[0]
+        ]
+
+        # ===== BAZOWE ZAPYTANIE =====
+        query = (
+            db.session.query(Region, Panstwo)
+            .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
-        if panstwo_nazwa:
-            query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%"))
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
 
-        if region_nazwa:
-            query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
+        if panstwo_id and panstwo_id.isdigit():
+            query = query.filter(Region.panstwo_id == int(panstwo_id))
 
-        rows = query.all()
+        if populacja_od and populacja_od.isdigit():
+            query = query.filter(Region.region_populacja >= int(populacja_od))
+
+        if populacja_do and populacja_do.isdigit():
+            query = query.filter(Region.region_populacja <= int(populacja_do))
+
+        if uksztaltowanie:
+            query = query.filter(Region.region_teren == uksztaltowanie)
+
+        rows = query.order_by(Region.region_populacja.desc()).all()
 
         results = [
             {
                 "region_id": r.region_id,
                 "region_nazwa": r.region_nazwa,
                 "region_populacja": r.region_populacja or 0,
+                "region_ludnosc_pozamiejska": getattr(r, "region_ludnosc_pozamiejska", 0),
                 "panstwo_nazwa": p.panstwo_nazwa,
-                "region_ludnosc_pozamiejska": r.region_ludnosc_pozamiejska or 0,
             }
             for r, p in rows
         ]
 
-        empty = len(results) == 0
-
         return render_template(
-            "wyniki_wyszukiwania_region.html", results=results, empty=empty
+            "wyniki_wyszukiwania_region.html",
+            results=results,
+            empty=len(results) == 0,
+            kontynenty=kontynenty,
+            uksztaltowania=uksztaltowania
         )
 
-        ### DODAWANIE REGIONU ###
 
     @app.route("/region_form_add", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def region_add_form():
+
         if request.method == "POST":
             errors = []
-    
+
+            # ===== PODSTAWOWE POLA =====
             nazwa = request.form.get("region_nazwa")
-            populacja = request.form.get("region_populacja")
             panstwo_id = request.form.get("panstwo_id")
             region_teren = request.form.get("region_teren")
-    
+
+            # ===== NOWE POLA =====
+            region_polozenie = request.form.get("region_polozenie")
+            region_typ_nadrz = request.form.get("region_typ_nadrz")
+            region_typ_podrz = request.form.get("region_typ_podrz")
+
+            # ===== WALIDACJA PODSTAWOWA =====
             if not nazwa:
                 errors.append("Pole 'Nazwa regionu' jest wymagane.")
-    
-            if not populacja:
-                errors.append("Pole 'Populacja regionu' jest wymagane.")
-            elif not populacja.isdigit():
-                errors.append("Pole 'Populacja regionu' musi być liczbą.")
-    
-            if not panstwo_id:
-                errors.append("Pole 'ID państwa' jest wymagane.")
-            elif not panstwo_id.isdigit():
+
+            if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("Pole 'ID państwa' musi być liczbą.")
 
             DOZWOLONE_TERENY = {
@@ -87,17 +114,65 @@ def init_regiony_routes(app):
 
             if region_teren and region_teren not in DOZWOLONE_TERENY:
                 errors.append("Nieprawidłowe ukształtowanie terenu.")
-    
+
+            DOZWOLONE_POLOZENIA = {"wewnetrzny", "nadmorski"}
+            if region_polozenie and region_polozenie not in DOZWOLONE_POLOZENIA:
+                errors.append("Nieprawidłowe położenie regionu.")
+
+            DOZWOLONE_TYPY = {
+                "rolniczy",
+                "przemyslowy",
+                "miejski",
+                "wydobywczy",
+                "turystyczny",
+                "handlowy",
+                "administracyjny",
+                "lesny"
+            }
+
+            if region_typ_nadrz and region_typ_nadrz not in DOZWOLONE_TYPY:
+                errors.append("Nieprawidłowy typ nadrzędny regionu.")
+
+            if region_typ_podrz and region_typ_podrz not in DOZWOLONE_TYPY:
+                errors.append("Nieprawidłowy typ podrzędny regionu.")
+
+            # ===== WSKAŹNIKI 0–100 =====
+            INT_FIELDS = [
+                "region_poziom_skomunikowania",
+                "region_sejsmicznosc",
+                "region_ryzyko_powodzi",
+                "region_ryzyko_lawin",
+                "region_ryzyko_upalu",
+                "region_ryzyko_mrozu",
+                "region_aktywny_wulkan",
+                "region_stan_infra_kolejowej",
+                "region_stan_infra_drogowej",
+                "region_stan_infra_energetycznej",
+                "region_stan_infra_mieszkalnej",
+                "region_stan_infra_portowej",
+            ]
+
+            int_values = {}
+
+            for field in INT_FIELDS:
+                val = request.form.get(field)
+                if not val:
+                    int_values[field] = None
+                elif val.isdigit() and 0 <= int(val) <= 100:
+                    int_values[field] = int(val)
+                else:
+                    errors.append(f"Wartość pola {field} musi być liczbą 0–100.")
+
             if errors:
                 return render_template(
                     "region_form_add.html",
                     error=" ".join(errors),
                     form_data=request.form,
                 )
-    
-            populacja = int(populacja)
+
+            # ===== KONWERSJE =====
             panstwo_id = int(panstwo_id)
-    
+
             panstwo = Panstwo.query.get(panstwo_id)
             if not panstwo:
                 return render_template(
@@ -105,31 +180,36 @@ def init_regiony_routes(app):
                     error=f"Państwo o ID {panstwo_id} nie istnieje.",
                     form_data=request.form,
                 )
-    
+
             duplicates = (
                 db.session.query(Region)
                 .filter(Region.region_nazwa == nazwa)
-                .all()
+                .first()
             )
-    
+
             if duplicates:
                 return render_template(
                     "region_form_add.html",
                     error="Region o takiej nazwie już istnieje.",
                     form_data=request.form,
                 )
-    
-            # ───── UTWORZENIE REGIONU ─────
+
+            # ===== UTWORZENIE REGIONU =====
             new_region = Region(
                 region_nazwa=nazwa,
-                region_populacja=populacja,
                 panstwo_id=panstwo_id,
-                region_teren=region_teren or None
+                region_teren=region_teren or None,
+                region_polozenie=region_polozenie or None,
+                region_typ_nadrz=region_typ_nadrz or None,
+                region_typ_podrz=region_typ_podrz or None,
             )
-    
-            # ───── OPCJONALNA MAPA ─────
+
+            for field, value in int_values.items():
+                setattr(new_region, field, value)
+
+            # ===== MAPA (OPCJONALNA) =====
             file = request.files.get("region_map")
-    
+
             if file and file.filename:
                 if file.mimetype not in ("image/jpeg", "image/png"):
                     return render_template(
@@ -137,20 +217,21 @@ def init_regiony_routes(app):
                         error="Mapa regionu musi być plikiem JPG lub PNG.",
                         form_data=request.form,
                     )
-    
+
                 file_bytes = file.read()
                 MAX_SIZE = 2 * 1024 * 1024  # 2 MB
-    
+
                 if len(file_bytes) > MAX_SIZE:
                     return render_template(
                         "region_form_add.html",
                         error="Mapa regionu jest za duża (maks. 2 MB).",
                         form_data=request.form,
                     )
-    
+
                 new_region.region_mapa = file_bytes
                 new_region.region_mapa_mime = file.mimetype
-    
+
+            # ===== ZAPIS =====
             try:
                 db.session.add(new_region)
                 db.session.commit()
@@ -161,11 +242,13 @@ def init_regiony_routes(app):
                     error=f"Błąd podczas zapisu regionu: {e}",
                     form_data=request.form,
                 )
-    
+
             flash("Region został dodany.", "success")
             return redirect(url_for("region_form", region_id=new_region.region_id))
-    
+
+        # ===== GET =====
         return render_template("region_form_add.html")
+
 
 
     # --------------------------------
@@ -214,12 +297,17 @@ def init_regiony_routes(app):
 
         if request.method == "POST":
 
+            # ===== PODSTAWOWE POLA =====
             nazwa = request.form.get("region_nazwa")
             panstwo_id = request.form.get("panstwo_id")
-            ludnosc_pozamiejska = request.form.get("region_ludnosc_pozamiejska")
             region_teren = request.form.get("region_teren")
 
-            # ───── WALIDACJA ─────
+            # ===== NOWE POLA KLASYFIKACYJNE =====
+            region_polozenie = request.form.get("region_polozenie")
+            region_typ_nadrz = request.form.get("region_typ_nadrz")
+            region_typ_podrz = request.form.get("region_typ_podrz")
+
+            # ===== WALIDACJA =====
             errors = []
 
             if not nazwa:
@@ -227,9 +315,6 @@ def init_regiony_routes(app):
 
             if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("ID państwa musi być liczbą.")
-
-            if not ludnosc_pozamiejska or not ludnosc_pozamiejska.isdigit():
-                errors.append("Ludność pozamiejska musi być liczbą.")
 
             DOZWOLONE_TERENY = {
                 "wysokogorski",
@@ -243,6 +328,54 @@ def init_regiony_routes(app):
             if region_teren and region_teren not in DOZWOLONE_TERENY:
                 errors.append("Nieprawidłowe ukształtowanie terenu.")
 
+            DOZWOLONE_POLOZENIA = {"wewnetrzny", "nadmorski"}
+            if region_polozenie and region_polozenie not in DOZWOLONE_POLOZENIA:
+                errors.append("Nieprawidłowe położenie regionu.")
+
+            DOZWOLONE_TYPY = {
+                "rolniczy",
+                "przemyslowy",
+                "miejski",
+                "wydobywczy",
+                "turystyczny",
+                "handlowy",
+                "administracyjny",
+                "lesny"
+            }
+
+            if region_typ_nadrz and region_typ_nadrz not in DOZWOLONE_TYPY:
+                errors.append("Nieprawidłowy typ nadrzędny regionu.")
+
+            if region_typ_podrz and region_typ_podrz not in DOZWOLONE_TYPY:
+                errors.append("Nieprawidłowy typ podrzędny regionu.")
+
+            # ===== WALIDACJA WSKAŹNIKÓW 0–100 =====
+            INT_FIELDS = [
+                "region_poziom_skomunikowania",
+                "region_sejsmicznosc",
+                "region_ryzyko_powodzi",
+                "region_ryzyko_lawin",
+                "region_ryzyko_upalu",
+                "region_ryzyko_mrozu",
+                "region_aktywny_wulkan",
+                "region_stan_infra_kolejowej",
+                "region_stan_infra_drogowej",
+                "region_stan_infra_energetycznej",
+                "region_stan_infra_mieszkalnej",
+                "region_stan_infra_portowej",
+            ]
+
+            int_values = {}
+
+            for field in INT_FIELDS:
+                val = request.form.get(field)
+                if val == "" or val is None:
+                    int_values[field] = None
+                elif val.isdigit() and 0 <= int(val) <= 100:
+                    int_values[field] = int(val)
+                else:
+                    errors.append(f"Wartość pola {field} musi być liczbą 0–100.")
+
             if errors:
                 return render_template(
                     "region_form_edit.html",
@@ -251,43 +384,38 @@ def init_regiony_routes(app):
                     form_data=request.form
                 )
 
-            # ───── KONWERSJE ─────
+            # ===== KONWERSJE =====
             panstwo_id = int(panstwo_id)
-            ludnosc_pozamiejska = int(ludnosc_pozamiejska)
 
-            # ───── WALIDACJA LOGIKI ŚWIATA ─────
-            #if ludnosc_pozamiejska > region.region_populacja:
-                #return render_template(
-                    #"region_form_edit.html",
-                    #error="Ludność pozamiejska nie może być większa niż populacja regionu.",
-                    #region=region,
-                    #form_data=request.form
-                #)
-
-            # ───── AKTUALIZACJA ─────
+            # ===== AKTUALIZACJA PODSTAWOWA =====
             region.region_nazwa = nazwa
-            region.region_ludnosc_pozamiejska = ludnosc_pozamiejska
             region.panstwo_id = panstwo_id
             region.region_teren = region_teren or None
 
+            # ===== AKTUALIZACJA NOWYCH PÓL =====
+            region.region_polozenie = region_polozenie or None
+            region.region_typ_nadrz = region_typ_nadrz or None
+            region.region_typ_podrz = region_typ_podrz or None
+
+            for field, value in int_values.items():
+                setattr(region, field, value)
+
+            # ===== MAPA (BEZ ZMIAN) =====
             file = request.files.get("region_map")
 
             if file and file.filename:
                 if file.mimetype not in ("image/jpeg", "image/png"):
-                    db.session.rollback()
                     return render_template(
                         "region_form_edit.html",
                         error="Mapa regionu musi być plikiem JPG lub PNG.",
                         region=region,
                         form_data=request.form
                     )
-            
-                file_bytes = file.read()
 
+                file_bytes = file.read()
                 MAX_SIZE = 2 * 1024 * 1024  # 2 MB
 
                 if len(file_bytes) > MAX_SIZE:
-                    db.session.rollback()        
                     return render_template(
                         "region_form_edit.html",
                         error="Mapa regionu jest za duża (maks. 2 MB).",
@@ -297,7 +425,8 @@ def init_regiony_routes(app):
 
                 region.region_mapa = file_bytes
                 region.region_mapa_mime = file.mimetype
-                                    
+
+            # ===== COMMIT =====
             db.session.commit()
 
             flash(
@@ -306,8 +435,9 @@ def init_regiony_routes(app):
             )
             return redirect(url_for("region_form", region_id=region.region_id))
 
-        # ───── GET ─────
+        # ===== GET =====
         return render_template("region_form_edit.html", region=region)
+
 
     @app.route("/region/<int:region_id>/mapa")
     def region_mapa(region_id):
@@ -329,5 +459,7 @@ def init_regiony_routes(app):
                 "Cache-Control": "public, max-age=86400"
             }
         )
+
+
             
 

@@ -2,6 +2,8 @@
 {% block title %}Edytuj państwo{% endblock %}
 
 {% block content %}
+{% set fd = form_data if form_data is defined else {} %}
+
 
 <div style="max-width:900px; margin:30px auto;">
     <h2 style="text-align:center; font-weight:700; margin-bottom:20px;">
@@ -139,7 +141,29 @@
                     </td>
                 </tr>
 
-                <!-- BLOK INFORMACYJNY -->
+                <tr>
+                    <td style="padding:10px;">
+                        Państwo suwerenne:
+                    </td>
+                    <td style="padding:10px;">
+                        <select name="czy_suwerenny" required>
+                            <option value="">— Wybierz —</option>
+                            <option value="TAK"
+                            {% if fd.get('czy_suwerenny', p.czy_suwerenny) == 'TAK' %}
+                                selected
+                            {% endif %}>
+                                TAK
+                            </option>
+                            <option value="NIE"
+                            {% if fd.get('czy_suwerenny', p.czy_suwerenny) == 'NIE' %}
+                                selected
+                            {% endif %}>
+                                NIE
+                            </option>
+                        </select>
+                    </td>
+                </tr>
+
                 <tr>
                     <td style="padding:10px; font-weight:600;">Dane zablokowane</td>
                     <td style="padding:10px; color:#555;">

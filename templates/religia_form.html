@@ -144,6 +144,130 @@
 .religia-view-btn:active {
     text-decoration: none !important;
 }
+
+/* ============================================================
+   ZEUS — RELIGIA (MOBILE)
+============================================================ */
+
+@media (max-width: 768px) {
+
+    /* ===== KONTENER ===== */
+    .religia-view-container {
+        margin: 16px 10px 40px 10px;
+        padding: 22px 18px 26px 18px;
+        border-radius: 14px;
+        box-shadow:
+            0 0 0 1px rgba(130, 150, 255, 0.18),
+            0 12px 28px rgba(0, 0, 0, 0.55),
+            inset 0 0 40px rgba(120, 140, 255, 0.05);
+    }
+
+    /* ===== NAGŁÓWEK ===== */
+    .religia-view-header {
+        margin-bottom: 22px;
+    }
+
+    .religia-view-header h1 {
+        font-size: 1.55em;
+        line-height: 1.25;
+        text-shadow:
+            0 0 8px rgba(140, 160, 255, 0.45),
+            0 0 16px rgba(140, 160, 255, 0.25);
+    }
+
+    .religia-view-header .sub {
+        font-size: 0.85em;
+        line-height: 1.4;
+    }
+
+    /* ===== SEKCJE ===== */
+    .religia-section {
+        margin-bottom: 24px;
+    }
+
+    .religia-section h2 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+    /* ===== OPIS ===== */
+    .religia-opis {
+        font-size: 0.9em;
+        line-height: 1.65;
+    }
+
+    /* ===== OBRAZ ===== */
+    .religia-image img {
+        max-height: 240px;
+        border-radius: 10px;
+    }
+
+    /* ========================================================
+       TABELA → KARTY (NAJWAŻNIEJSZA CZĘŚĆ)
+    ======================================================== */
+
+    .religia-table {
+        display: block;
+        border-spacing: 0;
+    }
+
+    .religia-table thead {
+        display: none;
+    }
+
+    .religia-table tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .religia-table tr {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(
+            135deg,
+            rgba(30, 35, 80, 0.9),
+            rgba(15, 18, 45, 0.98)
+        );
+        border-radius: 12px;
+        padding: 12px 14px;
+        box-shadow:
+            0 0 12px rgba(120, 140, 255, 0.25);
+    }
+
+    .religia-table td {
+        background: none;
+        padding: 6px 0;
+        font-size: 0.9em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .religia-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #b8beff;
+        margin-right: 10px;
+        white-space: nowrap;
+    }
+
+    /* ===== AKCJE ===== */
+    .religia-actions {
+        margin-top: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .religia-actions a {
+        width: 100%;
+        padding: 12px 0;
+        font-size: 0.9em;
+        border-radius: 12px;
+    }
+}
+
 </style>
 
 <div class="religia-view-container">

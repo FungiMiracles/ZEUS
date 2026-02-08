@@ -27,8 +27,6 @@
     font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-/* ===== NAGŁÓWEK ===== */
-
 .religia-list-header {
     text-align: center;
     margin-bottom: 40px;
@@ -51,8 +49,6 @@
     margin-right: auto;
     line-height: 1.6;
 }
-
-/* ===== FILTRY ===== */
 
 .religia-filters {
     background: rgba(255, 255, 255, 0.04);
@@ -114,17 +110,6 @@
     color: #cfd3ff;
 }
 
-.religia-results tbody tr {
-    background: linear-gradient(
-        135deg,
-        rgba(30, 35, 80, 0.85),
-        rgba(15, 18, 45, 0.95)
-    );
-    box-shadow:
-        0 0 18px rgba(120, 140, 255, 0.25);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
 .religia-results tbody tr:hover {
     transform: translateY(-4px);
     box-shadow:
@@ -142,8 +127,6 @@
     font-size: 0.85em;
     color: #b6bbff;
 }
-
-/* ===== PRZYCISK ===== */
 
 .religia-view-btn {
     padding: 8px 18px;
@@ -180,16 +163,12 @@
     max-width: 100%;
 }
 
-/* ===== BRAK WYNIKÓW ===== */
-
 .religia-empty {
     text-align: center;
     margin-top: 40px;
     color: #b8beff;
     font-weight: 700;
 }
-
-/* ===== UKŁAD FILTRÓW ===== */
 
 .religia-filters-row {
     display: grid;
@@ -212,7 +191,6 @@
     gap: 16px;
 }
 
-/* brak łamania tekstu w przyciskach */
 .religia-view-btn {
     white-space: nowrap;
 }
@@ -232,7 +210,6 @@
     align-items: flex-end;
 }
 
-/* ===== LINIA AKCJI ===== */
 
 .religia-filters-actions {
     margin-top: 18px;
@@ -247,9 +224,34 @@
     text-decoration: none !important;
 }
 
-/* ============================================================
-   ZEUS — RESPONSIVE (MOBILE)
-============================================================ */
+.religia-results tbody tr {
+    background: linear-gradient(
+        135deg,
+        rgba(30, 35, 80, 0.9),
+        rgba(18, 22, 55, 0.95)
+    );
+    box-shadow:
+        0 0 18px rgba(120, 140, 255, 0.25);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+    overflow: hidden;
+}
+
+.religia-results tbody tr td:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.religia-results tbody tr td:last-child {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.religia-results tbody td {
+    background: transparent;
+}
+
+/* == WIDOK MOBILNY == */
 
 @media (max-width: 768px) {
 
@@ -261,8 +263,6 @@
         border-radius: 14px;
     }
 
-    /* ===== HEADER ===== */
-
     .religia-list-header h1 {
         font-size: 1.6em;
     }
@@ -271,8 +271,6 @@
         font-size: 0.95em;
         line-height: 1.5;
     }
-
-    /* ===== FILTRY ===== */
 
     .religia-filters {
         padding: 18px 16px 22px 16px;
@@ -293,8 +291,6 @@
         width: 100%;
         text-align: center;
     }
-
-    /* ===== TABELA → KARTY ===== */
 
     .religia-results,
     .religia-results thead,
@@ -325,8 +321,6 @@
         font-size: 0.85em;
     }
 
-    /* ===== LABELKI DLA POL ===== */
-
     .religia-results tbody td::before {
         content: attr(data-label);
         display: block;
@@ -337,8 +331,6 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-
-    /* ===== AKCJE ===== */
 
     .religia-results tbody td:last-child {
         margin-top: 12px;
@@ -457,8 +449,7 @@
             <tr>
                 <th>Religia</th>
                 <th>Typ</th>
-                <th>Państwo</th>
-                <th>Kontynent</th>
+                <th>Religia nadrzędna</th>
                 <th style="text-align:right;">Akcje</th>
             </tr>
         </thead>
@@ -467,8 +458,7 @@
             <tr>
                 <td>{{ r.religia_nazwa }}</td>
                 <td class="sub">{{ r.religia_typ }}</td>
-                <td>{{ r.panstwo_nazwa }}</td>
-                <td class="sub">{{ r.kontynent }}</td>
+                <td class="sub" data-label="Religia nadrzędna">{{ r.religia_nadrzedna if r.religia_nadrzedna else "—" }}</td>
                 <td style="text-align:right; white-space:nowrap;">
 
                     <a href="{{ url_for('religia_form', religia_id=r.religia_id) }}"
@@ -528,5 +518,60 @@
     {% endif %}
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const kontynentSelect = document.querySelector('select[name="kontynent"]');
+    const panstwoSelect   = document.querySelector('select[name="panstwo"]');
+
+    // --- wczytaj kontynenty ---
+    fetch("/api/kontynenty")
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(k => {
+                const opt = document.createElement("option");
+                opt.value = k;
+                opt.textContent = k;
+                if ("{{ request.args.get('kontynent','') }}" === k) {
+                    opt.selected = true;
+                }
+                kontynentSelect.appendChild(opt);
+            });
+
+            // jeżeli był wybrany kontynent → dociągnij państwa
+            if (kontynentSelect.value) {
+                loadPanstwa(kontynentSelect.value);
+            }
+        });
+
+    // --- reakcja na zmianę kontynentu ---
+    kontynentSelect.addEventListener("change", () => {
+        panstwoSelect.innerHTML = '<option value="">— Wszystkie —</option>';
+        if (kontynentSelect.value) {
+            loadPanstwa(kontynentSelect.value);
+        }
+    });
+
+    function loadPanstwa(kontynent) {
+        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+
+                    if ("{{ request.args.get('panstwo','') }}" === String(p.id)) {
+                        opt.selected = true;
+                    }
+
+                    panstwoSelect.appendChild(opt);
+                });
+            });
+    }
+});
+</script>
+
 
 {% endblock %}

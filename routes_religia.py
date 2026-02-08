@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify, url_for, redirect, abort, R
 from extensions import db
 from models import Religia, ReligiaPerPanstwo, Panstwo
 from permissions import wymaga_roli
+from sqlalchemy.orm import aliased
 
 def init_religia_routes(app):
 
@@ -22,22 +23,36 @@ def init_religia_routes(app):
         panstwo_id = request.args.get("panstwo")
         religia_id = request.args.get("religia")
 
+        ReligiaNadrzedna = aliased(Religia)
+
         query = (
             db.session.query(
                 Religia.religia_id,
                 Religia.religia_nazwa,
                 Religia.religia_typ,
+
+                ReligiaNadrzedna.religia_nazwa.label("religia_nadrzedna_nazwa"),
+
                 db.func.min(Panstwo.panstwo_nazwa).label("panstwo_nazwa"),
-                db.func.min(Panstwo.kontynent).label("kontynent")
+                db.func.min(Panstwo.kontynent).label("kontynent"),
             )
-            .outerjoin(ReligiaPerPanstwo,
-                    Religia.religia_id == ReligiaPerPanstwo.religia_id)
-            .outerjoin(Panstwo,
-                    Panstwo.PANSTWO_ID == ReligiaPerPanstwo.panstwo_id)
+            .outerjoin(
+                ReligiaNadrzedna,
+                Religia.religia_nadrzedna_id == ReligiaNadrzedna.religia_id
+            )
+            .outerjoin(
+                ReligiaPerPanstwo,
+                Religia.religia_id == ReligiaPerPanstwo.religia_id
+            )
+            .outerjoin(
+                Panstwo,
+                Panstwo.PANSTWO_ID == ReligiaPerPanstwo.panstwo_id
+            )
             .group_by(
                 Religia.religia_id,
                 Religia.religia_nazwa,
-                Religia.religia_typ
+                Religia.religia_typ,
+                ReligiaNadrzedna.religia_nazwa
             )
         )
 
@@ -57,6 +72,7 @@ def init_religia_routes(app):
                 "religia_id": r.religia_id,
                 "religia_nazwa": r.religia_nazwa,
                 "religia_typ": r.religia_typ,
+                "religia_nadrzedna": r.religia_nadrzedna_nazwa,
                 "panstwo_nazwa": r.panstwo_nazwa,
                 "kontynent": r.kontynent,
             }
@@ -203,13 +219,16 @@ def init_religia_routes(app):
 
         if request.method == "POST":
 
-            panstwo_id = request.form.get("panstwo_id")
-            religia_id = request.form.get("religia_id")
-            status = request.form.get("status")
-            udzial_proc = request.form.get("udzial_proc")
+            panstwo_id  = request.form.get("panstwo_id")
+            religia_id  = request.form.get("religia_id")
+            status      = request.form.get("status")
+            udzial_raw  = request.form.get("udzial_proc")
 
             errors = []
 
+            # ───────────────
+            # WALIDACJE PODSTAWOWE
+            # ───────────────
             if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("Wybierz poprawne państwo.")
 
@@ -224,16 +243,18 @@ def init_religia_routes(app):
             ]:
                 errors.append("Wybierz status religii.")
 
-            # udział procentowy – opcjonalny
-            if udzial_proc:
+            # ───────────────
+            # UDZIAŁ PROCENTOWY — WYMAGANY
+            # ───────────────
+            if not udzial_raw:
+                errors.append("Udział procentowy religii jest wymagany.")
+            else:
                 try:
-                    udzial_proc = float(udzial_proc)
-                    if udzial_proc < 0 or udzial_proc > 100:
+                    udzial_proc = float(udzial_raw)
+                    if not (0 <= udzial_proc <= 100):
                         errors.append("Udział procentowy musi być w zakresie 0–100.")
                 except ValueError:
                     errors.append("Udział procentowy musi być liczbą.")
-            else:
-                udzial_proc = None
 
             if errors:
                 return render_template(
@@ -244,7 +265,9 @@ def init_religia_routes(app):
                     form_data=request.form
                 )
 
-            # BLOKADA DUPLIKATU (ważne)
+            # ───────────────
+            # BLOKADA DUPLIKATU
+            # ───────────────
             istnieje = ReligiaPerPanstwo.query.filter_by(
                 panstwo_id=int(panstwo_id),
                 religia_id=int(religia_id)
@@ -259,6 +282,9 @@ def init_religia_routes(app):
                     form_data=request.form
                 )
 
+            # ───────────────
+            # ZAPIS
+            # ───────────────
             przypisanie = ReligiaPerPanstwo(
                 panstwo_id=int(panstwo_id),
                 religia_id=int(religia_id),
@@ -277,6 +303,7 @@ def init_religia_routes(app):
             panstwa=panstwa,
             form_data={}
         )
+
     
     @app.route("/religia/<int:religia_id>")
     def religia_form(religia_id):

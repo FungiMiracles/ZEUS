@@ -112,6 +112,84 @@
 }
 
 /* ============================================================
+   ZEUS — FILTR REGIONÓW
+============================================================ */
+
+.zeus-filter-box {
+    max-width: 1100px;
+    margin: 0 auto 25px auto;
+    padding: 16px 18px;
+    background-color: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 10px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 16px;
+}
+
+/* ===== GRUPA FILTRA ===== */
+
+.zeus-filter-box .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zeus-filter-box label {
+    font-size: 0.75em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #34495e;
+    text-transform: uppercase;
+}
+
+/* ===== INPUTY ===== */
+
+.zeus-filter-box select,
+.zeus-filter-box input[type="number"] {
+    padding: 7px 8px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #bfc6cd;
+    background-color: #ffffff;
+    color: #2c3e50;
+}
+
+.zeus-filter-box select:focus,
+.zeus-filter-box input:focus {
+    outline: none;
+    border-color: #5d7dce;
+    box-shadow: 0 0 0 1px rgba(93,125,206,0.35);
+}
+
+/* ===== AKCJE ===== */
+
+.zeus-filter-box .filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.zeus-filter-box .filter-actions button {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 0.85em;
+    font-weight: 800;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+
+    background-color: #5d7dce;
+    color: #ffffff;
+    transition: background-color 0.15s ease;
+}
+
+.zeus-filter-box .filter-actions button:hover {
+    background-color: #3f62b3;
+}
+
+/* ============================================================
    MOBILE — LISTA REGIONÓW (FINAL, STABILNA)
 ============================================================ */
 
@@ -175,9 +253,82 @@
   .region-actions form {
     margin: 0;
   }
+  
+      .zeus-filter-box {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .zeus-filter-box .filter-actions button {
+        font-size: 0.9em;
+        padding: 10px 0;
+    }
+
 }
    
 </style>
+
+<form method="GET" action="{{ url_for('wyniki_wyszukiwania_region') }}">
+<div class="zeus-filter-box">
+
+    <!-- ===== KONTYNENT ===== -->
+    <div class="filter-group">
+        <label>Kontynent</label>
+        <select name="kontynent" id="kontynent-select">
+            <option value="">— wszystkie —</option>
+            {% for k in kontynenty %}
+                <option value="{{ k }}"
+                    {% if request.args.get('kontynent') == k %}selected{% endif %}>
+                    {{ k }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- ===== PAŃSTWO (DYNAMICZNE) ===== -->
+    <div class="filter-group">
+        <label>Państwo</label>
+        <select name="panstwo_id" id="panstwo-select">
+            <option value="">— wszystkie —</option>
+        </select>
+    </div>
+
+    <!-- ===== POPULACJA OD ===== -->
+    <div class="filter-group">
+        <label>Ludność od</label>
+        <input type="number" name="populacja_od"
+               value="{{ request.args.get('populacja_od','') }}">
+    </div>
+
+    <!-- ===== POPULACJA DO ===== -->
+    <div class="filter-group">
+        <label>Ludność do</label>
+        <input type="number" name="populacja_do"
+               value="{{ request.args.get('populacja_do','') }}">
+    </div>
+
+    <!-- ===== UKSZTAŁTOWANIE TERENU ===== -->
+    <div class="filter-group">
+        <label>Ukształtowanie terenu</label>
+        <select name="ukszaltowanie">
+            <option value="">— wszystkie —</option>
+            {% for u in uksztaltowania %}
+                <option value="{{ u }}"
+                    {% if request.args.get('ukszaltowanie') == u %}selected{% endif %}>
+                    {{ u }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- ===== AKCJA ===== -->
+    <div class="filter-actions">
+        <button type="submit">Filtruj</button>
+    </div>
+
+</div>
+</form>
+
 
 <div class="wyniki-regionow">
 
@@ -269,5 +420,39 @@
 
     {% endif %}
 </div>
+
+<script>
+const kontynentSelect = document.getElementById("kontynent-select");
+const panstwoSelect = document.getElementById("panstwo-select");
+
+function zaladujPanstwa(kontynent) {
+    panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
+
+    if (!kontynent) return;
+
+    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.nazwa;
+                if ("{{ request.args.get('panstwo_id') }}" == p.id) {
+                    opt.selected = true;
+                }
+                panstwoSelect.appendChild(opt);
+            });
+        });
+}
+
+kontynentSelect.addEventListener("change", function () {
+    zaladujPanstwa(this.value);
+});
+
+// 🔥 KLUCZOWE
+if (kontynentSelect.value) {
+    zaladujPanstwa(kontynentSelect.value);
+}
+</script>
 
 {% endblock %}

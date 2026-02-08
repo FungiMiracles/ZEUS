@@ -130,6 +130,23 @@ def init_miasta_routes(app):
             # Aktualizacja
             miasto.miasto_nazwa = nazwa
             miasto.miasto_kod = kod
+
+            # ───── WALIDACJA STOLIC (R7 / R8) ─────
+            try:
+                waliduj_stolice(
+                    miasto_id=miasto.miasto_id,
+                    panstwo_id=panstwo_id,
+                    region_id=region_id,
+                    miasto_typ=typ
+                )
+            except ValueError as e:
+                return render_template(
+                    "miasto_form_edit.html",
+                    error=str(e),
+                    miasto=miasto,
+                    form_data=request.form
+                )
+
             miasto.miasto_populacja = populacja
             miasto.miasto_typ = typ
             miasto.panstwo_id = panstwo_id
@@ -270,10 +287,10 @@ def init_miasta_routes(app):
         regiony_query = Region.query.join(Panstwo)
 
         if kontynent:
-            region_query = regiony_query.filter(Panstwo.kontynent == kontynent)
+            regiony_query = regiony_query.filter(Panstwo.kontynent == kontynent)
 
         if panstwo_nazwa:
-            region_query = regiony_query.filter(
+            regiony_query = regiony_query.filter(
                 Panstwo.panstwo_nazwa == panstwo_nazwa
             )
 
@@ -361,6 +378,21 @@ def init_miasta_routes(app):
                 error="Miasto o takiej nazwie już istnieje.",
                 form_data=request.form,
             )
+        
+        try:
+            waliduj_stolice(
+                miasto_id=None,
+                panstwo_id=panstwo_id,
+                region_id=region_id,
+                miasto_typ=typ
+            )
+        except ValueError as e:
+            return render_template(
+                "miasto_form_add.html",
+                miasto=empty_miasto,
+                error=str(e),
+                form_data=request.form,
+            )       
 
         # zapis miasta
         miasto = Miasto(
@@ -454,4 +486,40 @@ def init_miasta_routes(app):
             flash(f"Błąd podczas usuwania miasta: {e}", "error")
     
         return redirect(request.referrer or url_for("wyniki_wyszukiwania_miasto"))
+        
+    def waliduj_stolice(miasto_id, panstwo_id, region_id, miasto_typ):
+        """
+        R7: jedno miasto typu 'stolica' na państwo
+        R8: jedno miasto typu 'stolica regionu' na region
+        """
+
+        # ───── R7: STOLICA PAŃSTWA ─────
+        if miasto_typ == "stolica":
+            q = Miasto.query.filter(
+                Miasto.panstwo_id == panstwo_id,
+                Miasto.miasto_typ == "stolica"
+            )
+
+            if miasto_id:
+                q = q.filter(Miasto.miasto_id != miasto_id)
+
+            if q.first():
+                raise ValueError(
+                    "To państwo ma już przypisaną stolicę państwa."
+                )
+
+        # ───── R8: STOLICA REGIONU ─────
+        if miasto_typ == "stolica regionu":
+            q = Miasto.query.filter(
+                Miasto.region_id == region_id,
+                Miasto.miasto_typ == "stolica regionu"
+            )
+
+            if miasto_id:
+                q = q.filter(Miasto.miasto_id != miasto_id)
+
+            if q.first():
+                raise ValueError(
+                    "Ten region ma już przypisaną stolicę regionu."
+                )
         

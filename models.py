@@ -1,8 +1,7 @@
 # models.py
-from sqlalchemy import BigInteger
+from sqlalchemy import BigInteger, DateTime
 from extensions import db
 from datetime import datetime
-from sqlalchemy import DateTime
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
@@ -38,10 +37,16 @@ class Panstwo(db.Model):
 class Region(db.Model):
     __tablename__ = "regiony"
 
+    # ===== KLUCZE =====
     region_id = db.Column(db.Integer, primary_key=True)
-    panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"))
+    panstwo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID"),
+        nullable=False
+    )
 
-    region_nazwa = db.Column(db.String(255))
+    # ===== PODSTAWOWE DANE =====
+    region_nazwa = db.Column(db.String(255), nullable=False)
 
     region_populacja = db.Column(db.BigInteger)
 
@@ -51,6 +56,7 @@ class Region(db.Model):
         default=0
     )
 
+    # ===== UKSZTAŁTOWANIE TERENU =====
     region_teren = db.Column(
         db.Enum(
             "wysokogorski",
@@ -64,11 +70,72 @@ class Region(db.Model):
         nullable=True
     )
 
+    # ===== NOWE KLASYFIKACJE STRUKTURALNE =====
+
+    region_polozenie = db.Column(
+        db.Enum(
+            "wewnetrzny",
+            "nadmorski",
+            name="region_polozenie_enum"
+        ),
+        nullable=True
+    )
+
+    region_typ_nadrz = db.Column(
+        db.Enum(
+            "rolniczy",
+            "przemyslowy",
+            "miejski",
+            "wydobywczy",
+            "turystyczny",
+            "handlowy",
+            "administracyjny",
+            "lesny",
+            name="region_typ_nadrz_enum"
+        ),
+        nullable=True
+    )
+
+    region_typ_podrz = db.Column(
+        db.Enum(
+            "rolniczy",
+            "przemyslowy",
+            "miejski",
+            "wydobywczy",
+            "turystyczny",
+            "handlowy",
+            "administracyjny",
+            "lesny",
+            name="region_typ_podrz_enum"
+        ),
+        nullable=True
+    )
+
+    # ===== WSKAŹNIKI (0–100) =====
+
+    region_poziom_skomunikowania = db.Column(db.SmallInteger)
+    region_sejsmicznosc = db.Column(db.SmallInteger)
+    region_ryzyko_powodzi = db.Column(db.SmallInteger)
+    region_ryzyko_lawin = db.Column(db.SmallInteger)
+    region_ryzyko_upalu = db.Column(db.SmallInteger)
+    region_ryzyko_mrozu = db.Column(db.SmallInteger)
+    region_aktywny_wulkan = db.Column(db.SmallInteger)
+
+    # ===== STAN INFRASTRUKTURY (0–100) =====
+
+    region_stan_infra_kolejowej = db.Column(db.SmallInteger)
+    region_stan_infra_drogowej = db.Column(db.SmallInteger)
+    region_stan_infra_energetycznej = db.Column(db.SmallInteger)
+    region_stan_infra_mieszkalnej = db.Column(db.SmallInteger)
+    region_stan_infra_portowej = db.Column(db.SmallInteger)
+
+    # ===== MAPA =====
     region_mapa = db.Column(db.LargeBinary, nullable=True)
     region_mapa_mime = db.Column(db.String(50), nullable=True)
 
-    # Relacja do miast
+    # ===== RELACJE =====
     miasta = db.relationship("Miasto", backref="region", lazy=True)
+
 
 
 class Miasto(db.Model):
