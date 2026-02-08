@@ -35,5 +35,27 @@ def init_api_routes(app):
         )
 
         return jsonify([k[0] for k in rows if k[0]])
+    
+    @app.route("/api/miasta_by_region")
+    def api_miasta_by_region():
+        region_id = request.args.get("region_id", type=int)
+
+        if not region_id:
+            return jsonify([])
+
+        miasta = (
+            Miasto.query
+            .filter(Miasto.region_id == region_id)
+            .order_by(Miasto.miasto_nazwa)
+            .all()
+        )
+
+        return jsonify([
+            {
+                "miasto_id": m.miasto_id,
+                "miasto_nazwa": m.miasto_nazwa
+            }
+            for m in miasta
+        ])
 
     

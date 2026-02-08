@@ -1,8 +1,7 @@
 # models.py
-from sqlalchemy import BigInteger
+from sqlalchemy import BigInteger, DateTime
 from extensions import db
 from datetime import datetime
-from sqlalchemy import DateTime
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
