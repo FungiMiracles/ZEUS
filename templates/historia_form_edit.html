@@ -317,9 +317,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ===== STAN POCZĄTKOWY ===== */
-    reset(panstwo, "— wybierz kontynent —");
-    reset(region,  "— brak —");
-    reset(miasto,  "— brak —");
+    reset(region, "— brak —");
+    reset(miasto, "— brak —");
 
     /* ===== KONTYNENT → PAŃSTWA ===== */
     kontynent.addEventListener("change", () => {
@@ -380,8 +379,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(m => {
                     const opt = document.createElement("option");
-                    opt.value = m.miasto_id;
-                    opt.textContent = m.miasto_nazwa;
+                    opt.value = m.miasto_id ?? m.id;
+                    opt.textContent = m.miasto_nazwa ?? m.nazwa;
 
                     if (String(m.miasto_id) === String(selectedMiastoId)) {
                         opt.selected = true;

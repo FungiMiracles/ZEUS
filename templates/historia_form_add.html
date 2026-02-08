@@ -354,8 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(m => {
                     const opt = document.createElement("option");
-                    opt.value = m.miasto_id;
-                    opt.textContent = m.miasto_nazwa;
+                    opt.value = m.miasto_id ?? m.id;
+                    opt.textContent = m.miasto_nazwa ?? m.nazwa;
 
                     if (String(m.miasto_id) === String(selectedMiastoId)) {
                         opt.selected = true;
@@ -370,9 +370,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ===== PREFILL (EDIT) ===== */
+    {% if h is defined %}
     const initialPanstwo = "{{ h.panstwo_id or '' }}";
     const initialRegion  = "{{ h.region_id or '' }}";
     const initialMiasto  = "{{ h.miasto_id or '' }}";
+    {% else %}
+    const initialPanstwo = "";
+    const initialRegion  = "";
+    const initialMiasto  = "";
+    {% endif %}
 
     if (initialPanstwo) {
         panstwo.value = initialPanstwo;
