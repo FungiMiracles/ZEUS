@@ -237,7 +237,7 @@ a.btn-zeus:active {
 
             <div class="historia-field">
                 <label>Kontynent</label>
-                <select name="kontynent">
+                <select name="kontynent" id="kontynentSelect">
                     <option value="">— brak —</option>
                     {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
                         <option value="{{ k }}" {% if h.kontynent == k %}selected{% endif %}>{{ k }}</option>
@@ -306,12 +306,13 @@ a.btn-zeus:active {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    const panstwo = document.getElementById("panstwoSelect");
-    const region  = document.getElementById("regionSelect");
-    const miasto  = document.getElementById("miastoSelect");
+    const kontynent = document.getElementById("kontynentSelect");
+    const panstwo   = document.getElementById("panstwoSelect");
+    const region    = document.getElementById("regionSelect");
+    const miasto    = document.getElementById("miastoSelect");
 
-    if (!panstwo || !region || !miasto) {
-        console.error("Historia edit: brak jednego z selectów");
+    if (!kontynent || !panstwo || !region || !miasto) {
+        console.error("Błąd formularza historii: brak jednego z selectów");
         return;
     }
 
@@ -320,10 +321,38 @@ document.addEventListener("DOMContentLoaded", () => {
         select.disabled = true;
     }
 
-    /* =============================
-       ŁADOWANIE REGIONÓW
-    ============================= */
-    function loadRegions(panstwoId, selectedRegionId = null) {
+    /* STAN POCZĄTKOWY */
+    reset(panstwo, "— wybierz kontynent —");
+    reset(region,  "— brak —");
+    reset(miasto,  "— brak —");
+
+    /* KONTYNENT → PAŃSTWA */
+    kontynent.addEventListener("change", () => {
+        const kont = kontynent.value;
+
+        reset(panstwo, "— wybierz państwo —");
+        reset(region,  "— brak —");
+        reset(miasto,  "— brak —");
+
+        if (!kont) return;
+
+        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kont)}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+                    panstwo.appendChild(opt);
+                });
+                panstwo.disabled = false;
+            });
+    });
+
+    /* PAŃSTWO → REGIONY */
+    panstwo.addEventListener("change", () => {
+        const panstwoId = panstwo.value;
+
         reset(region, "— wybierz region —");
         reset(miasto, "— brak —");
 
@@ -336,23 +365,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement("option");
                     opt.value = r.region_id;
                     opt.textContent = r.region_nazwa;
-                    if (String(r.region_id) === String(selectedRegionId)) {
-                        opt.selected = true;
-                    }
                     region.appendChild(opt);
                 });
                 region.disabled = false;
-
-                // jeżeli mamy wybrany region → załaduj miasta
-                if (selectedRegionId) {
-                    loadMiasta(selectedRegionId, "{{ h.miasto_id or '' }}");
-                }
             });
-    }
+    });
 
-    /* =============================
-       ŁADOWANIE MIAST
-    ============================= */
+    /* REGION → MIASTA */
+    region.addEventListener("change", () => {
+        loadMiasta(region.value);
+    });
+
+
     function loadMiasta(regionId, selectedMiastoId = null) {
         reset(miasto, "— wybierz miasto —");
 
@@ -365,36 +389,46 @@ document.addEventListener("DOMContentLoaded", () => {
                     const opt = document.createElement("option");
                     opt.value = m.miasto_id;
                     opt.textContent = m.miasto_nazwa;
+
                     if (String(m.miasto_id) === String(selectedMiastoId)) {
                         opt.selected = true;
                     }
+
                     miasto.appendChild(opt);
                 });
+
+                /* 🔴 TEJ LINII BRAKOWAŁO */
                 miasto.disabled = false;
             });
     }
 
-    /* =============================
-       EVENTY
-    ============================= */
-    panstwo.addEventListener("change", () => {
-        loadRegions(panstwo.value);
-    });
-
-    region.addEventListener("change", () => {
-        loadMiasta(region.value);
-    });
-
-    /* =============================
-       PREFILL (TRYB EDYCJI)
-    ============================= */
+    /* ===== PREFILL (TYLKO EDIT) ===== */
     const initialPanstwo = "{{ h.panstwo_id or '' }}";
     const initialRegion  = "{{ h.region_id or '' }}";
     const initialMiasto  = "{{ h.miasto_id or '' }}";
 
     if (initialPanstwo) {
         panstwo.value = initialPanstwo;
-        loadRegions(initialPanstwo, initialRegion);
+
+        fetch(`/api/regiony_by_panstwo?panstwo_id=${initialPanstwo}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(r => {
+                    const opt = document.createElement("option");
+                    opt.value = r.region_id;
+                    opt.textContent = r.region_nazwa;
+                    if (String(r.region_id) === String(initialRegion)) {
+                        opt.selected = true;
+                    }
+                    region.appendChild(opt);
+                });
+
+                region.disabled = false;
+
+                if (initialRegion) {
+                    loadMiasta(initialRegion, initialMiasto);
+                }
+            });
     }
 
 });

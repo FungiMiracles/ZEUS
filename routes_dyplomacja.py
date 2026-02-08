@@ -79,9 +79,15 @@ def init_dyplomacja_routes(app):
         ).first()
 
         if not stosunek:
-            flash("Nie znaleziono relacji między państwami.", "error")
-            return redirect(url_for("dyplomacja_list"))
-
+            stosunek = Stosunki(
+                PANSTWO_ID=a,
+                PANSTWO_ID2=b,
+                relacja="neutralne",
+                stan="pokoj"
+            )
+            db.session.add(stosunek)
+            db.session.flush()  # ← ważne, bez commit
+            
         # ─────────────────────────────
         # POST
         # ─────────────────────────────
