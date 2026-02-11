@@ -19,6 +19,8 @@ def init_regiony_routes(app):
     @app.route("/wyniki_wyszukiwania_region", methods=["GET"])
     def wyniki_wyszukiwania_region():
 
+        panstwo_nazwa = request.args.get("panstwo_nazwa", "").strip()
+        region_nazwa = request.args.get("region_nazwa", "").strip()
         kontynent = request.args.get("kontynent")
         panstwo_id = request.args.get("panstwo_id")
         populacja_od = request.args.get("populacja_od")
@@ -42,6 +44,16 @@ def init_regiony_routes(app):
             .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
+        if panstwo_nazwa:
+            query = query.filter(
+                Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%")
+            )
+
+        if region_nazwa:
+            query = query.filter(
+                Region.region_nazwa.like(f"%{region_nazwa}%")
+            )
+
         if kontynent:
             query = query.filter(Panstwo.kontynent == kontynent)
 
@@ -57,7 +69,22 @@ def init_regiony_routes(app):
         if uksztaltowanie:
             query = query.filter(Region.region_teren == uksztaltowanie)
 
-        rows = query.order_by(Region.region_populacja.desc()).all()
+        any_filter = any([
+            kontynent,
+            panstwo_id,
+            populacja_od,
+            populacja_do,
+            uksztaltowanie,
+            panstwo_nazwa,
+            region_nazwa
+        ])
+
+        if any_filter:
+            query = query.order_by(Region.region_populacja.desc())
+        else:
+            query = query.order_by(Region.region_id.asc())
+
+        rows = query.all()
 
         results = [
             {

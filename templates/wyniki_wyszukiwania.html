@@ -111,9 +111,43 @@
     display: inline;
 }
 
-/* ============================================================
-   MOBILE — LISTA PAŃSTW
-============================================================ */
+.region-flash {
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+.region-flash-item {
+    max-width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.region-flash-item.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.region-flash-item.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.region-flash-item.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.region-flash-item.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+
 
 /* ============================================================
    MOBILE — LISTA PAŃSTW (FINAL, STABILNA)
@@ -166,15 +200,38 @@
     border-radius: 6px;
   }
 
-  /* FORM NIE ROZJEŻDŻA GRIDU */
   .country-actions form {
     margin: 0;
   }
+
+  .region-flash {
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .region-flash-item {
+        max-width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
 }
    
 </style>
 
 <div class="wyniki-panstw">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="region-flash">
+                {% for category, message in messages %}
+                    <div class="region-flash-item {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <h1>Wyniki wyszukiwania państw</h1>
 
