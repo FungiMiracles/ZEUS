@@ -1,7 +1,14 @@
 # routes_regiony.py
 from flask import render_template, request, redirect, url_for, flash, abort, jsonify
 from extensions import db
-from models import Region, Panstwo, Miasto
+from models import (
+    Region,
+    Panstwo,
+    Miasto,
+    DictRegionTeren,
+    DictRegionPolozenie,
+    DictRegionTyp,
+)
 from permissions import wymaga_roli
 from flask import Response, send_file
 import os
@@ -33,10 +40,7 @@ def init_regiony_routes(app):
             if k[0]
         ]
 
-        uksztaltowania = [
-            u[0] for u in db.session.query(Region.region_teren).distinct().all()
-            if u[0]
-        ]
+        uksztaltowania = DictRegionTeren.query.all()
 
         # ===== BAZOWE ZAPYTANIE =====
         query = (
@@ -66,8 +70,11 @@ def init_regiony_routes(app):
         if populacja_do and populacja_do.isdigit():
             query = query.filter(Region.region_populacja <= int(populacja_do))
 
-        if uksztaltowanie:
-            query = query.filter(Region.region_teren == uksztaltowanie)
+        if uksztaltowanie and uksztaltowanie.isdigit():
+            query = query.filter(
+                Region.region_teren_id == int(uksztaltowanie)
+            )
+
 
         any_filter = any([
             kontynent,
@@ -116,12 +123,11 @@ def init_regiony_routes(app):
             # ===== PODSTAWOWE POLA =====
             nazwa = request.form.get("region_nazwa")
             panstwo_id = request.form.get("panstwo_id")
-            region_teren = request.form.get("region_teren")
 
-            # ===== NOWE POLA =====
-            region_polozenie = request.form.get("region_polozenie")
-            region_typ_nadrz = request.form.get("region_typ_nadrz")
-            region_typ_podrz = request.form.get("region_typ_podrz")
+            region_teren_id = request.form.get("region_teren_id")
+            region_polozenie_id = request.form.get("region_polozenie_id")
+            region_typ_nadrz_id = request.form.get("region_typ_nadrz_id")
+            region_typ_podrz_id = request.form.get("region_typ_podrz_id")
 
             # ===== WALIDACJA PODSTAWOWA =====
             if not nazwa:
@@ -130,39 +136,18 @@ def init_regiony_routes(app):
             if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("Pole 'ID państwa' musi być liczbą.")
 
-            DOZWOLONE_TERENY = {
-                "wysokogorski",
-                "gorski",
-                "wyzynny",
-                "pogorski",
-                "nizinny",
-                "depresyjny"
-            }
-
-            if region_teren and region_teren not in DOZWOLONE_TERENY:
+            if region_teren_id and not DictRegionTeren.query.get(region_teren_id):
                 errors.append("Nieprawidłowe ukształtowanie terenu.")
 
-            DOZWOLONE_POLOZENIA = {"wewnetrzny", "nadmorski"}
-            if region_polozenie and region_polozenie not in DOZWOLONE_POLOZENIA:
+            if region_polozenie_id and not DictRegionPolozenie.query.get(region_polozenie_id):
                 errors.append("Nieprawidłowe położenie regionu.")
 
-            DOZWOLONE_TYPY = {
-                "rolniczy",
-                "przemyslowy",
-                "miejski",
-                "wydobywczy",
-                "turystyczny",
-                "handlowy",
-                "administracyjny",
-                "lesny"
-            }
-
-            if region_typ_nadrz and region_typ_nadrz not in DOZWOLONE_TYPY:
+            if region_typ_nadrz_id and not DictRegionTyp.query.get(region_typ_nadrz_id):
                 errors.append("Nieprawidłowy typ nadrzędny regionu.")
 
-            if region_typ_podrz and region_typ_podrz not in DOZWOLONE_TYPY:
+            if region_typ_podrz_id and not DictRegionTyp.query.get(region_typ_podrz_id):
                 errors.append("Nieprawidłowy typ podrzędny regionu.")
-
+                
             # ===== WSKAŹNIKI 0–100 =====
             INT_FIELDS = [
                 "region_poziom_skomunikowania",
@@ -195,6 +180,10 @@ def init_regiony_routes(app):
                     "region_form_add.html",
                     error=" ".join(errors),
                     form_data=request.form,
+                    tereny=DictRegionTeren.query.all(),
+                    polozenia=DictRegionPolozenie.query.all(),
+                    typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                    typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                 )
 
             # ===== KONWERSJE =====
@@ -206,6 +195,10 @@ def init_regiony_routes(app):
                     "region_form_add.html",
                     error=f"Państwo o ID {panstwo_id} nie istnieje.",
                     form_data=request.form,
+                    tereny=DictRegionTeren.query.all(),
+                    polozenia=DictRegionPolozenie.query.all(),
+                    typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                    typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                 )
 
             duplicates = (
@@ -219,16 +212,20 @@ def init_regiony_routes(app):
                     "region_form_add.html",
                     error="Region o takiej nazwie już istnieje.",
                     form_data=request.form,
+                    tereny=DictRegionTeren.query.all(),
+                    polozenia=DictRegionPolozenie.query.all(),
+                    typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                    typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                 )
 
             # ===== UTWORZENIE REGIONU =====
             new_region = Region(
                 region_nazwa=nazwa,
                 panstwo_id=panstwo_id,
-                region_teren=region_teren or None,
-                region_polozenie=region_polozenie or None,
-                region_typ_nadrz=region_typ_nadrz or None,
-                region_typ_podrz=region_typ_podrz or None,
+                region_teren_id=region_teren_id or None,
+                region_polozenie_id=region_polozenie_id or None,
+                region_typ_nadrz_id=region_typ_nadrz_id or None,
+                region_typ_podrz_id=region_typ_podrz_id or None,
             )
 
             for field, value in int_values.items():
@@ -243,6 +240,10 @@ def init_regiony_routes(app):
                         "region_form_add.html",
                         error="Mapa regionu musi być plikiem JPG lub PNG.",
                         form_data=request.form,
+                        tereny=DictRegionTeren.query.all(),
+                        polozenia=DictRegionPolozenie.query.all(),
+                        typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                        typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                     )
 
                 file_bytes = file.read()
@@ -253,6 +254,10 @@ def init_regiony_routes(app):
                         "region_form_add.html",
                         error="Mapa regionu jest za duża (maks. 2 MB).",
                         form_data=request.form,
+                        tereny=DictRegionTeren.query.all(),
+                        polozenia=DictRegionPolozenie.query.all(),
+                        typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                        typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                     )
 
                 new_region.region_mapa = file_bytes
@@ -268,13 +273,23 @@ def init_regiony_routes(app):
                     "region_form_add.html",
                     error=f"Błąd podczas zapisu regionu: {e}",
                     form_data=request.form,
+                    tereny=DictRegionTeren.query.all(),
+                    polozenia=DictRegionPolozenie.query.all(),
+                    typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                    typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                 )
 
             flash("Region został dodany.", "success")
             return redirect(url_for("region_form", region_id=new_region.region_id))
 
         # ===== GET =====
-        return render_template("region_form_add.html")
+        return render_template(
+            "region_form_add.html",
+            tereny=DictRegionTeren.query.all(),
+            polozenia=DictRegionPolozenie.query.all(),
+            typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+            typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
+        )
 
 
 
@@ -327,12 +342,10 @@ def init_regiony_routes(app):
             # ===== PODSTAWOWE POLA =====
             nazwa = request.form.get("region_nazwa")
             panstwo_id = request.form.get("panstwo_id")
-            region_teren = request.form.get("region_teren")
-
-            # ===== NOWE POLA KLASYFIKACYJNE =====
-            region_polozenie = request.form.get("region_polozenie")
-            region_typ_nadrz = request.form.get("region_typ_nadrz")
-            region_typ_podrz = request.form.get("region_typ_podrz")
+            region_teren_id = request.form.get("region_teren_id")
+            region_polozenie_id = request.form.get("region_polozenie_id")
+            region_typ_nadrz_id = request.form.get("region_typ_nadrz_id")
+            region_typ_podrz_id = request.form.get("region_typ_podrz_id")
 
             # ===== WALIDACJA =====
             errors = []
@@ -343,37 +356,16 @@ def init_regiony_routes(app):
             if not panstwo_id or not panstwo_id.isdigit():
                 errors.append("ID państwa musi być liczbą.")
 
-            DOZWOLONE_TERENY = {
-                "wysokogorski",
-                "gorski",
-                "wyzynny",
-                "pogorski",
-                "nizinny",
-                "depresyjny"
-            }
-
-            if region_teren and region_teren not in DOZWOLONE_TERENY:
+            if region_teren_id and not DictRegionTeren.query.get(region_teren_id):
                 errors.append("Nieprawidłowe ukształtowanie terenu.")
 
-            DOZWOLONE_POLOZENIA = {"wewnetrzny", "nadmorski"}
-            if region_polozenie and region_polozenie not in DOZWOLONE_POLOZENIA:
+            if region_polozenie_id and not DictRegionPolozenie.query.get(region_polozenie_id):
                 errors.append("Nieprawidłowe położenie regionu.")
 
-            DOZWOLONE_TYPY = {
-                "rolniczy",
-                "przemyslowy",
-                "miejski",
-                "wydobywczy",
-                "turystyczny",
-                "handlowy",
-                "administracyjny",
-                "lesny"
-            }
-
-            if region_typ_nadrz and region_typ_nadrz not in DOZWOLONE_TYPY:
+            if region_typ_nadrz_id and not DictRegionTyp.query.get(region_typ_nadrz_id):
                 errors.append("Nieprawidłowy typ nadrzędny regionu.")
 
-            if region_typ_podrz and region_typ_podrz not in DOZWOLONE_TYPY:
+            if region_typ_podrz_id and not DictRegionTyp.query.get(region_typ_podrz_id):
                 errors.append("Nieprawidłowy typ podrzędny regionu.")
 
             # ===== WALIDACJA WSKAŹNIKÓW 0–100 =====
@@ -408,7 +400,11 @@ def init_regiony_routes(app):
                     "region_form_edit.html",
                     error=" ".join(errors),
                     region=region,
-                    form_data=request.form
+                    form_data=request.form,
+                    tereny=DictRegionTeren.query.all(),
+                    polozenia=DictRegionPolozenie.query.all(),
+                    typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                    typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                 )
 
             # ===== KONWERSJE =====
@@ -417,12 +413,10 @@ def init_regiony_routes(app):
             # ===== AKTUALIZACJA PODSTAWOWA =====
             region.region_nazwa = nazwa
             region.panstwo_id = panstwo_id
-            region.region_teren = region_teren or None
-
-            # ===== AKTUALIZACJA NOWYCH PÓL =====
-            region.region_polozenie = region_polozenie or None
-            region.region_typ_nadrz = region_typ_nadrz or None
-            region.region_typ_podrz = region_typ_podrz or None
+            region.region_teren_id = request.form.get("region_teren_id") or None
+            region.region_polozenie_id = request.form.get("region_polozenie_id") or None
+            region.region_typ_nadrz_id = request.form.get("region_typ_nadrz_id") or None
+            region.region_typ_podrz_id = request.form.get("region_typ_podrz_id") or None
 
             for field, value in int_values.items():
                 setattr(region, field, value)
@@ -436,7 +430,11 @@ def init_regiony_routes(app):
                         "region_form_edit.html",
                         error="Mapa regionu musi być plikiem JPG lub PNG.",
                         region=region,
-                        form_data=request.form
+                        form_data=request.form,
+                        tereny=DictRegionTeren.query.all(),
+                        polozenia=DictRegionPolozenie.query.all(),
+                        typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                        typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                     )
 
                 file_bytes = file.read()
@@ -447,7 +445,11 @@ def init_regiony_routes(app):
                         "region_form_edit.html",
                         error="Mapa regionu jest za duża (maks. 2 MB).",
                         region=region,
-                        form_data=request.form
+                        form_data=request.form,
+                        tereny=DictRegionTeren.query.all(),
+                        polozenia=DictRegionPolozenie.query.all(),
+                        typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+                        typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
                     )
 
                 region.region_mapa = file_bytes
@@ -463,7 +465,14 @@ def init_regiony_routes(app):
             return redirect(url_for("region_form", region_id=region.region_id))
 
         # ===== GET =====
-        return render_template("region_form_edit.html", region=region)
+        return render_template(
+            "region_form_edit.html",
+            region=region,
+            tereny=DictRegionTeren.query.all(),
+            polozenia=DictRegionPolozenie.query.all(),
+            typy_nadrz=DictRegionTyp.query.filter_by(poziom="NADRZ").all(),
+            typy_podrz=DictRegionTyp.query.filter_by(poziom="PODRZ").all(),
+        )
 
 
     @app.route("/region/<int:region_id>/mapa")
