@@ -125,12 +125,12 @@
 
             <div class="region-form-group">
                 <label>Ukształtowanie terenu</label>
-                <select name="region_teren">
+                <select name="region_teren_id">
                     <option value="">— brak danych —</option>
-                    {% for t in ["wysokogorski","gorski","wyzynny","pogorski","nizinny","depresyjny"] %}
-                        <option value="{{ t }}"
-                            {% if form_data and form_data.region_teren == t %}selected{% endif %}>
-                            {{ t }}
+                    {% for t in tereny %}
+                        <option value="{{ t.id }}"
+                            {% if form_data and form_data.get('region_teren_id')|int == t.id %}selected{% endif %}>
+                            {{ t.nazwa }}
                         </option>
                     {% endfor %}
                 </select>
@@ -159,12 +159,12 @@
 
             <div class="region-form-group">
                 <label>Położenie regionu</label>
-                <select name="region_polozenie">
+                <select name="region_polozenie_id">
                     <option value="">— brak —</option>
-                    {% for v in ["wewnetrzny","nadmorski"] %}
-                        <option value="{{ v }}"
-                            {% if form_data and form_data.region_polozenie == v %}selected{% endif %}>
-                            {{ v }}
+                    {% for p in polozenia %}
+                        <option value="{{ p.id }}"
+                            {% if form_data and form_data.get('region_polozenie_id')|int == p.id %}selected{% endif %}>
+                            {{ p.nazwa }}
                         </option>
                     {% endfor %}
                 </select>
@@ -172,12 +172,12 @@
 
             <div class="region-form-group">
                 <label>Typ nadrzędny</label>
-                <select name="region_typ_nadrz">
+                <select name="region_typ_nadrz_id">
                     <option value="">— brak —</option>
-                    {% for v in ["rolniczy","przemyslowy","miejski","wydobywczy","turystyczny","handlowy","administracyjny","lesny"] %}
-                        <option value="{{ v }}"
-                            {% if form_data and form_data.region_typ_nadrz == v %}selected{% endif %}>
-                            {{ v }}
+                    {% for t in typy_nadrz %}
+                        <option value="{{ t.id }}"
+                            {% if form_data and form_data.get('region_typ_nadrz_id')|int == t.id %}selected{% endif %}>
+                            {{ t.nazwa }}
                         </option>
                     {% endfor %}
                 </select>
@@ -185,12 +185,12 @@
 
             <div class="region-form-group">
                 <label>Typ podrzędny</label>
-                <select name="region_typ_podrz">
+                <select name="region_typ_podrz_id">
                     <option value="">— brak —</option>
-                    {% for v in ["rolniczy","przemyslowy","miejski","wydobywczy","turystyczny","handlowy","administracyjny","lesny"] %}
-                        <option value="{{ v }}"
-                            {% if form_data and form_data.region_typ_podrz == v %}selected{% endif %}>
-                            {{ v }}
+                    {% for t in typy_podrz %}
+                        <option value="{{ t.id }}"
+                            {% if form_data and form_data.get('region_typ_podrz_id')|int == t.id %}selected{% endif %}>
+                            {{ t.nazwa }}
                         </option>
                     {% endfor %}
                 </select>

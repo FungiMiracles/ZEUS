@@ -313,9 +313,9 @@
         <select name="ukszaltowanie">
             <option value="">— wszystkie —</option>
             {% for u in uksztaltowania %}
-                <option value="{{ u }}"
-                    {% if request.args.get('ukszaltowanie') == u %}selected{% endif %}>
-                    {{ u }}
+                <option value="{{ u.id }}"
+                    {% if request.args.get('ukszaltowanie') == u.id|string %}selected{% endif %}>
+                    {{ u.nazwa }}
                 </option>
             {% endfor %}
         </select>

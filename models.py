@@ -136,7 +136,17 @@ class Region(db.Model):
     # ===== RELACJE =====
     miasta = db.relationship("Miasto", backref="region", lazy=True)
 
+    region_teren_id = db.Column(db.Integer, db.ForeignKey("dict_region_tereny.id"))
+    teren = db.relationship("DictRegionTeren")
 
+    region_polozenie_id = db.Column(db.Integer, db.ForeignKey("dict_region_polozenia.id"))
+    polozenie = db.relationship("DictRegionPolozenie", foreign_keys=[region_polozenie_id])
+
+    region_typ_nadrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
+    typ_nadrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_nadrz_id])
+
+    region_typ_podrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
+    typ_podrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_podrz_id])
 
 class Miasto(db.Model):
     __tablename__ = "miasta"
@@ -629,3 +639,29 @@ class ReligiaPerPanstwo(db.Model):
             f"religia_id={self.religia_id}, udzial={self.udzial_proc}%>"
         )
 
+#------------------------------------------------#
+# SŁOWNIKI #
+#------------------------------------------------#
+
+class DictRegionTeren(db.Model):
+    __tablename__ = "dict_region_tereny"
+
+    id = db.Column(db.Integer, primary_key=True)
+    kod = db.Column(db.String(50), unique=False)
+    nazwa = db.Column(db.String(100))
+    opis = db.Column(db.Text)
+
+class DictRegionPolozenie(db.Model):
+    __tablename__ = "dict_region_polozenia"
+    id = db.Column(db.Integer, primary_key=True)
+    kod = db.Column(db.String(50))
+    nazwa = db.Column(db.String(100))
+    opis = db.Column(db.Text)
+
+class DictRegionTyp(db.Model):
+    __tablename__ = "dict_region_typy"
+    id = db.Column(db.Integer, primary_key=True)
+    kod = db.Column(db.String(50))
+    nazwa = db.Column(db.String(100))
+    poziom = db.Column(db.Enum("NADRZ", "PODRZ"))
+    opis = db.Column(db.Text)

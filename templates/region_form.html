@@ -360,11 +360,7 @@
             <tr>
                 <td style="font-weight:700;">Ukształtowanie terenu:</td>
                 <td>
-                    {% if region.region_teren %}
-                        {{ region.region_teren }}
-                    {% else %}
-                        Brak danych
-                    {% endif %}
+                        {{ region.teren.nazwa if region.teren else "Brak danych" }}
                 </td>
             </tr>
 
@@ -421,21 +417,21 @@
             <tr>
                 <td style="font-weight:700;">Położenie regionu:</td>
                 <td>
-                    {{ region.region_polozenie if region.region_polozenie else "Brak danych" }}
+                    {{ region.polozenie.nazwa if region.polozenie else "Brak danych" }}
                 </td>
             </tr>
 
             <tr>
                 <td style="font-weight:700;">Typ nadrzędny:</td>
                 <td>
-                    {{ region.region_typ_nadrz if region.region_typ_nadrz else "Brak danych" }}
+                    {{ region.typ_nadrz.nazwa if region.typ_nadrz else "Brak danych" }}
                 </td>
             </tr>
 
             <tr>
                 <td style="font-weight:700;">Typ podrzędny:</td>
                 <td>
-                    {{ region.region_typ_podrz if region.region_typ_podrz else "Brak danych" }}
+                    {{ region.typ_podrz.nazwa if region.typ_podrz else "Brak danych" }}
                 </td>
             </tr>
 
@@ -519,7 +515,7 @@
             <tr>
                 <td style="font-weight:700;">Infrastruktura portowa:</td>
                 <td>
-                    {% if region.region_polozenie == "nadmorski" %}
+                    {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
                         {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
                     {% else %}
                         Nie dotyczy
