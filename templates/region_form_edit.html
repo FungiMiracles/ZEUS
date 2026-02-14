@@ -150,21 +150,21 @@
 
             <div class="region-form-group">
                 <label>Położenie regionu</label>
-                <select name="region_teren_id">
+                <select name="region_polozenie_id">
                     <option value="">— brak danych —</option>
-                    {% for t in tereny %}
-                        <option value="{{ t.id }}"
-                            {% if region.region_teren_id == t.id %}selected{% endif %}>
-                            {{ t.nazwa }}
+                    {% for p in polozenia %}
+                        <option value="{{ p.id }}"
+                            {% if region.region_polozenie_id == p.id %}selected{% endif %}>
+                            {{ p.nazwa }}
                         </option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="region-form-group">
-                <label>Typ nadrzędny</label>
+                <label>Typ nadrzędny</label>>
                 <select name="region_typ_nadrz_id">
-                    <option value="">— brak —</option>
+                    <option value="">— brak danych —</option>
                     {% for t in typy_nadrz %}
                         <option value="{{ t.id }}"
                             {% if region.region_typ_nadrz_id == t.id %}selected{% endif %}>
@@ -177,7 +177,7 @@
             <div class="region-form-group">
                 <label>Typ podrzędny</label>
                 <select name="region_typ_podrz_id">
-                    <option value="">— brak —</option>
+                    <option value="">— brak danych —</option>
                     {% for t in typy_podrz %}
                         <option value="{{ t.id }}"
                             {% if region.region_typ_podrz_id == t.id %}selected{% endif %}>

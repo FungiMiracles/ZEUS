@@ -140,15 +140,13 @@ class Region(db.Model):
     teren = db.relationship("DictRegionTeren")
 
     region_polozenie_id = db.Column(db.Integer, db.ForeignKey("dict_region_polozenia.id"))
-    polozenie = db.relationship("DictRegionPolozenie")
+    polozenie = db.relationship("DictRegionPolozenie", foreign_keys=[region_polozenie_id])
 
     region_typ_nadrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
     typ_nadrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_nadrz_id])
 
     region_typ_podrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
     typ_podrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_podrz_id])
-
-
 
 class Miasto(db.Model):
     __tablename__ = "miasta"
