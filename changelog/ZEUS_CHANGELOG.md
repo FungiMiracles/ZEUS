@@ -1,3 +1,10 @@
+__Wydanie W3.LUT.26 (14.02.2026)__
+
+Zmiany:
+
+Z1-Z4.W3.LUT.26 [Regiony]
+Zostały wprowadzone słowniki dla regionów.
+
 __Wydanie W2.LUT.26 (08.02.2026)__
 
 Zmiany:
