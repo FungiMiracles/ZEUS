@@ -172,12 +172,12 @@
 
             <div class="region-form-group">
                 <label>Typ nadrzędny</label>
-                <select name="region_polozenie_id">
+                <select name="region_typ_nadrz_id">
                     <option value="">— brak —</option>
                     {% for t in typy_nadrz %}
-                        <option value="{{ p.id }}"
-                            {% if form_data and form_data.get('region_polozenie_id')|int == p.id %}selected{% endif %}>
-                            {{ p.nazwa }}
+                        <option value="{{ t.id }}"
+                            {% if form_data and form_data.get('region_typ_nadrz_id')|int == t.id %}selected{% endif %}>
+                            {{ t.nazwa }}
                         </option>
                     {% endfor %}
                 </select>
