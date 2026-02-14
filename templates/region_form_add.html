@@ -174,7 +174,7 @@
                 <label>Typ nadrzędny</label>
                 <select name="region_polozenie_id">
                     <option value="">— brak —</option>
-                    {% for p in polozenia %}
+                    {% for t in typy_nadrz %}
                         <option value="{{ p.id }}"
                             {% if form_data and form_data.get('region_polozenie_id')|int == p.id %}selected{% endif %}>
                             {{ p.nazwa }}
