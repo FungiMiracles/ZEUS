@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for
 from extensions import db
 from models import Zdarzenie, Panstwo, Region, Miasto
 from engine.generator import generate_events
+from sqlalchemy import extract
 
 
 def init_zdarzenia_routes(app):
@@ -20,9 +21,9 @@ def init_zdarzenia_routes(app):
         skala = request.args.get("skala")
 
         query = (
-            db.session.query(Zdarzenie)
-            .outerjoin(Panstwo, Zdarzenie.panstwo_id == Panstwo.PANSTWO_ID)
-            .outerjoin(Region, Zdarzenie.region_id == Region.region_id)
+            db.session.query(Zdarzenie, Region, Panstwo)
+            .join(Region, Zdarzenie.region_id == Region.region_id)
+            .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
         if kontynent:
@@ -35,7 +36,7 @@ def init_zdarzenia_routes(app):
             query = query.filter(Region.region_nazwa.ilike(f"%{region}%"))
 
         if miesiac:
-            query = query.filter(db.func.month(Zdarzenie.data_entenda) == miesiac)
+            query = query.filter(extract("month", Zdarzenie.data_entenda) == int(miesiac))
 
         if typ:
             query = query.filter(Zdarzenie.zdarzenie_typ == typ)

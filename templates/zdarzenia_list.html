@@ -168,7 +168,9 @@ Skala:
 
 <td>{{ z.zdarzenie_typ }}</td>
 
-<td>{{ z.panstwo_id or "-" }}</td>
+{% for z, r, p in zdarzenia %}
+<td>{{ p.PANSTWO_ID }}</td>
+{% endfor %}
 
 <td>{{ z.region_id or "-" }}</td>
 

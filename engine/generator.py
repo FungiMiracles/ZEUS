@@ -1,5 +1,6 @@
 import random
 from datetime import datetime, timedelta
+from engine.clock import get_current_entenda_date
 
 from extensions import db
 from models import Zdarzenie, Region
@@ -15,6 +16,10 @@ MAX_EVENTS_PER_MONTH = 12
 
 def generate_events():
 
+    now_real = datetime.utcnow()
+
+    entenda_date = get_current_entenda_date()
+
     events_created = 0
 
     regions = select_regions(30)
@@ -27,7 +32,10 @@ def generate_events():
         event = try_generate_earthquake(region)
 
         if event:
+            event.data_entenda = entenda_date
+
             apply_earthquake_effect(region, event.skala, event.ilosc_ofiar)
+
             db.session.add(event)
             events_created += 1
             continue
@@ -35,7 +43,10 @@ def generate_events():
         event = try_generate_train_disaster(region)
 
         if event:
+            event.data_entenda = entenda_date
+
             apply_train_disaster_effect(region, event.skala, event.ilosc_ofiar)
+
             db.session.add(event)
             events_created += 1
             continue
@@ -43,10 +54,12 @@ def generate_events():
         event = try_generate_road_disaster(region)
 
         if event:
+            event.data_entenda = entenda_date
+
             apply_road_disaster_effect(region, event.skala, event.ilosc_ofiar)
+
             db.session.add(event)
             events_created += 1
-            continue
 
     print(f"[ZEUS] wygenerowano {events_created} zdarzeń")
 
@@ -54,13 +67,15 @@ def generate_events():
 
 def cooldown_block(event_type, region_id):
 
-    six_months = datetime.utcnow() - timedelta(days=180)
+    current_entenda = get_current_entenda_date()
+
+    six_months = current_entenda - timedelta(days=180)
 
     existing = (
         Zdarzenie.query
         .filter(Zdarzenie.zdarzenie_typ == event_type)
         .filter(Zdarzenie.region_id == region_id)
-        .filter(Zdarzenie.data_rzeczywista >= six_months)
+        .filter(Zdarzenie.data_entenda >= six_months)
         .first()
     )
 
@@ -173,27 +188,27 @@ def try_generate_road_disaster(region):
         return None
 
     if infra > 80:
-        prob = 0.005
+        prob = 1
         scale = 1
         victims_range = (0,1)
 
     elif infra > 65:
-        prob = 0.003
+        prob = 1
         scale = 2
         victims_range = (2,5)
 
     elif infra > 50:
-        prob = 0.0025
+        prob = 1
         scale = 3
         victims_range = (5,10)
 
     elif infra > 30:
-        prob = 0.0015
+        prob = 1
         scale = 4
         victims_range = (11,15)
 
     else:
-        prob = 0.0005
+        prob = 1
         scale = 5
         victims_range = (16,20)
 
