@@ -44,7 +44,7 @@ def init_zdarzenia_routes(app):
         if skala and skala.isdigit():
             query = query.filter(Zdarzenie.skala == int(skala))
 
-        zdarzenia = query.order_by(Zdarzenie.data_entenda.desc()).limit(500).all()
+        zdarzenia = query.order_by(Zdarzenie.data_entenda.asc()).limit(500).all()
 
         return render_template(
             "zdarzenia_list.html",

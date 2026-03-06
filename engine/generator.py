@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
-from engine.clock import get_current_entenda_date
+from engine.clock import get_current_entenda_date, ENTENDA_START
+from sqlalchemy import extract
 
 from extensions import db
 from models import Zdarzenie, Region
@@ -16,9 +17,32 @@ MAX_EVENTS_PER_MONTH = 12
 
 def generate_events():
 
-    now_real = datetime.utcnow()
+    current_entenda = get_current_entenda_date()
 
-    entenda_date = get_current_entenda_date()
+    last_generated = get_last_generated_entenda_date()
+
+    generated_total = 0
+
+    while last_generated < current_entenda:
+
+        created = generate_events_for_day(last_generated)
+
+        generated_total += created
+
+        last_generated += timedelta(days=1)
+
+    print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
+
+    return generated_total
+
+def generate_events_for_day(target_date):
+
+    month_events = get_month_event_count(target_date)
+
+    if month_events >= MAX_EVENTS_PER_MONTH:
+        return 0
+
+    remaining = MAX_EVENTS_PER_MONTH - month_events
 
     events_created = 0
 
@@ -26,48 +50,41 @@ def generate_events():
 
     for region in regions:
 
-        if events_created >= MAX_EVENTS_PER_MONTH:
+        if events_created >= remaining:
             break
 
-        event = try_generate_earthquake(region)
+        event = try_generate_earthquake(region, target_date)
 
         if event:
-            event.data_entenda = entenda_date
-
             apply_earthquake_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
+
             events_created += 1
             continue
 
-        event = try_generate_train_disaster(region)
+        event = try_generate_train_disaster(region, target_date)
 
         if event:
-            event.data_entenda = entenda_date
-
             apply_train_disaster_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
+
             events_created += 1
             continue
 
-        event = try_generate_road_disaster(region)
+        event = try_generate_road_disaster(region, target_date)
 
         if event:
-            event.data_entenda = entenda_date
-
             apply_road_disaster_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
-            events_created += 1
 
-    print(f"[ZEUS] wygenerowano {events_created} zdarzeń")
+            events_created += 1
 
     return events_created
 
-def cooldown_block(event_type, region_id):
-
-    current_entenda = get_current_entenda_date()
+def cooldown_block(event_type, region_id, current_entenda):
 
     six_months = current_entenda - timedelta(days=180)
 
@@ -81,14 +98,14 @@ def cooldown_block(event_type, region_id):
 
     return existing is not None
 
-def try_generate_earthquake(region):
+def try_generate_earthquake(region, target_date):
 
     s = region.region_sejsmicznosc or 0
 
     if s <= 0:
         return None
 
-    if cooldown_block("trzesienie_ziemi", region.region_id):
+    if cooldown_block("trzesienie_ziemi", region.region_id, target_date):
         return None
 
     if s < 20:
@@ -126,17 +143,18 @@ def try_generate_earthquake(region):
         region_id=region.region_id,
         skala=scale,
         ilosc_ofiar=victims,
-        data_rzeczywista=datetime.utcnow()
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
     )
 
-def try_generate_train_disaster(region):
+def try_generate_train_disaster(region, target_date):
 
     infra = region.region_stan_infra_kolejowej or 100
 
     if infra >= 90:
         return None
 
-    if cooldown_block("katastrofa_kolejowa", region.region_id):
+    if cooldown_block("katastrofa_kolejowa", region.region_id, target_date):
         return None
 
     if infra > 80:
@@ -174,17 +192,18 @@ def try_generate_train_disaster(region):
         region_id=region.region_id,
         skala=scale,
         ilosc_ofiar=victims,
-        data_rzeczywista=datetime.utcnow()
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
     )
 
-def try_generate_road_disaster(region):
+def try_generate_road_disaster(region, target_date):
 
     infra = region.region_stan_infra_drogowej or 100
 
     if infra >= 90:
         return None
 
-    if cooldown_block("katastrofa_w_ruchu_ladowym", region.region_id):
+    if cooldown_block("katastrofa_w_ruchu_ladowym", region.region_id, target_date):
         return None
 
     if infra > 80:
@@ -222,7 +241,8 @@ def try_generate_road_disaster(region):
         region_id=region.region_id,
         skala=scale,
         ilosc_ofiar=victims,
-        data_rzeczywista=datetime.utcnow()
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
     )
 
 def compute_victims(region, victims_range):
@@ -236,3 +256,26 @@ def compute_victims(region, victims_range):
     victims = int(base * factor)
 
     return max(victims, 0)
+
+def get_last_generated_entenda_date():
+
+    last = (
+        db.session.query(Zdarzenie)
+        .order_by(Zdarzenie.data_entenda.desc())
+        .first()
+    )
+
+    if last and last.data_entenda:
+        return last.data_entenda
+
+    from engine.clock import ENTENDA_START
+    return ENTENDA_START
+
+def get_month_event_count(date):
+
+    return (
+        db.session.query(Zdarzenie)
+        .filter(extract("year", Zdarzenie.data_entenda) == date.year)
+        .filter(extract("month", Zdarzenie.data_entenda) == date.month)
+        .count()
+    )

@@ -1,4 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+import os
+
+# =====================================================
+# WSPÓŁCZYNNIK CZASU
+# 1 dzień Entendy = 2 godziny realne
+# =====================================================
+
+ENV = os.getenv("ZEUS_ENV", "prod")
+
+if ENV == "dev":
+    TIME_MULTIPLIER = 240
+else:
+    TIME_MULTIPLIER = 12
 
 # =====================================================
 # PUNKT STARTOWY CZASU ENTENDY
@@ -7,15 +20,7 @@ from datetime import datetime, timedelta
 ENTENDA_START = datetime(2990, 1, 1)
 
 # moment startu symulacji w czasie rzeczywistym
-REAL_START = datetime.utcnow()
-
-# =====================================================
-# WSPÓŁCZYNNIK CZASU
-# 1 dzień Entendy = 2 godziny realne
-# =====================================================
-
-TIME_MULTIPLIER = 12
-
+REAL_START = datetime(2025, 11, 28)
 
 # =====================================================
 # AKTUALNA DATA ENTENDY
