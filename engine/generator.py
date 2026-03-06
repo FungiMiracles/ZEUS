@@ -82,22 +82,22 @@ def try_generate_earthquake(region):
         victims_range = (0,5)
 
     elif s < 40:
-        prob = 0.002
+        prob = 2
         scale = 2
         victims_range = (6,30)
 
     elif s < 60:
-        prob = 0.003
+        prob = 3
         scale = 3
         victims_range = (31,100)
 
     elif s < 80:
-        prob = 0.0035
+        prob = 4
         scale = 4
         victims_range = (101,1000)
 
     else:
-        prob = 0.004
+        prob = 5
         scale = 5
         victims_range = (1001,10000)
 
@@ -125,22 +125,22 @@ def try_generate_train_disaster(region):
         return None
 
     if infra > 80:
-        prob = 0.005
+        prob = 1
         scale = 1
         victims_range = (0,1)
 
     elif infra > 65:
-        prob = 0.003
+        prob = 2
         scale = 2
         victims_range = (2,10)
 
     elif infra > 50:
-        prob = 0.0025
+        prob = 3
         scale = 3
         victims_range = (11,30)
 
     elif infra > 30:
-        prob = 0.0015
+        prob = 4
         scale = 4
         victims_range = (31,50)
 

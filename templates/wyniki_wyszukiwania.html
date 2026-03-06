@@ -147,7 +147,12 @@
     border: 1px solid #bee5eb;
 }
 
-
+.results-count {
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-size: 0.95em;
+    color: #34495e;
+}
 
 /* ============================================================
    MOBILE — LISTA PAŃSTW (FINAL, STABILNA)
@@ -235,6 +240,10 @@
 
     <h1>Wyniki wyszukiwania państw</h1>
 
+    <div class="results-count">
+        Ilość znalezionych państw: {{ total }}
+    </div>
+
     {% if empty %}
 
         <div class="no-results">
@@ -309,6 +318,57 @@
             {% endfor %}
 
         </div>
+
+        {% if pagination.pages > 1 %}
+            <div class="zeus-pagination">
+
+            {% set start = pagination.page - 3 %}
+            {% set end = pagination.page + 3 %}
+
+            {% if start < 1 %}
+            {% set start = 1 %}
+            {% endif %}
+
+            {% if end > pagination.pages %}
+            {% set end = pagination.pages %}
+            {% endif %}
+
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('wyniki_wyszukiwania', page=pagination.prev_num, **args) }}">
+            ← Poprzednia
+            </a>
+            {% endif %}
+
+            {% if start > 1 %}
+            <a href="{{ url_for('wyniki_wyszukiwania', page=1, **args) }}">1</a>
+            <span>…</span>
+            {% endif %}
+
+            {% for p in range(start, end + 1) %}
+            {% if p == pagination.page %}
+            <span class="active">{{ p }}</span>
+            {% else %}
+            <a href="{{ url_for('wyniki_wyszukiwania', page=p, **args) }}">
+            {{ p }}
+            </a>
+            {% endif %}
+            {% endfor %}
+
+            {% if end < pagination.pages %}
+            <span>…</span>
+            <a href="{{ url_for('wyniki_wyszukiwania', page=pagination.pages, **args) }}">
+            {{ pagination.pages }}
+            </a>
+            {% endif %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('wyniki_wyszukiwania', page=pagination.next_num, **args) }}">
+            Następna →
+            </a>
+            {% endif %}
+
+            </div>
+            {% endif %}
 
         <div class="footer-actions">
             <a href="{{ url_for('home_page') }}" class="btn-return">

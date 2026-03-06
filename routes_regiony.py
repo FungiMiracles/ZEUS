@@ -34,6 +34,28 @@ def init_regiony_routes(app):
         populacja_do = request.args.get("populacja_do")
         uksztaltowanie = request.args.get("ukszaltowanie")
 
+        polozenie = request.args.get("polozenie")
+        typ_nadrz = request.args.get("typ_nadrz")
+        typ_podrz = request.args.get("typ_podrz")
+
+        sejsmicznosc = request.args.get("sejsmicznosc")
+        powodz = request.args.get("powodz")
+        lawiny = request.args.get("lawiny")
+        upal = request.args.get("upal")
+        mroz = request.args.get("mroz")
+        wulkan = request.args.get("wulkan")
+
+        skomunikowanie = request.args.get("skomunikowanie")
+
+        infra_kolej = request.args.get("infra_kolej")
+        infra_drogi = request.args.get("infra_drogi")
+        infra_energia = request.args.get("infra_energia")
+        infra_mieszkania = request.args.get("infra_mieszkania")
+        infra_porty = request.args.get("infra_porty")
+
+        page = request.args.get("page", 1, type=int)
+        per_page = 25
+
         # ===== LISTY DO FILTRÓW =====
         kontynenty = [
             k[0] for k in db.session.query(Panstwo.kontynent).distinct().all()
@@ -41,6 +63,8 @@ def init_regiony_routes(app):
         ]
 
         uksztaltowania = DictRegionTeren.query.all()
+        polozenia = DictRegionPolozenie.query.all()
+        typy = DictRegionTyp.query.all()
 
         # ===== BAZOWE ZAPYTANIE =====
         query = (
@@ -83,15 +107,79 @@ def init_regiony_routes(app):
             populacja_do,
             uksztaltowanie,
             panstwo_nazwa,
-            region_nazwa
+            region_nazwa,
+            polozenie,
+            typ_nadrz,
+            typ_podrz,
+            sejsmicznosc,
+            powodz,
+            lawiny,
+            upal,
+            mroz,
+            wulkan,
+            skomunikowanie,
+            infra_kolej,
+            infra_drogi,
+            infra_energia,
+            infra_mieszkania,
+            infra_porty
         ])
+
+        if polozenie and polozenie.isdigit():
+            query = query.filter(Region.region_polozenie_id == int(polozenie))
+
+        if typ_nadrz and typ_nadrz.isdigit():
+            query = query.filter(Region.region_typ_nadrz_id == int(typ_nadrz))
+
+        if typ_podrz and typ_podrz.isdigit():
+            query = query.filter(Region.region_typ_podrz_id == int(typ_podrz))
+
+
+        if sejsmicznosc and sejsmicznosc.isdigit():
+            query = query.filter(Region.region_sejsmicznosc >= int(sejsmicznosc))
+
+        if powodz and powodz.isdigit():
+            query = query.filter(Region.region_ryzyko_powodzi >= int(powodz))
+
+        if lawiny and lawiny.isdigit():
+            query = query.filter(Region.region_ryzyko_lawin >= int(lawiny))
+
+        if upal and upal.isdigit():
+            query = query.filter(Region.region_ryzyko_upalu >= int(upal))
+
+        if mroz and mroz.isdigit():
+            query = query.filter(Region.region_ryzyko_mrozu >= int(mroz))
+
+        if wulkan and wulkan.isdigit():
+            query = query.filter(Region.region_aktywny_wulkan >= int(wulkan))
+
+
+        if skomunikowanie and skomunikowanie.isdigit():
+            query = query.filter(Region.region_poziom_skomunikowania >= int(skomunikowanie))
+
+
+        if infra_kolej and infra_kolej.isdigit():
+            query = query.filter(Region.region_stan_infra_kolejowej >= int(infra_kolej))
+
+        if infra_drogi and infra_drogi.isdigit():
+            query = query.filter(Region.region_stan_infra_drogowej >= int(infra_drogi))
+
+        if infra_energia and infra_energia.isdigit():
+            query = query.filter(Region.region_stan_infra_energetycznej >= int(infra_energia))
+
+        if infra_mieszkania and infra_mieszkania.isdigit():
+            query = query.filter(Region.region_stan_infra_mieszkalnej >= int(infra_mieszkania))
+
+        if infra_porty and infra_porty.isdigit():
+            query = query.filter(Region.region_stan_infra_portowej >= int(infra_porty))
 
         if any_filter:
             query = query.order_by(Region.region_populacja.desc())
         else:
             query = query.order_by(Region.region_id.asc())
 
-        rows = query.all()
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        rows = pagination.items
 
         results = [
             {
@@ -104,12 +192,22 @@ def init_regiony_routes(app):
             for r, p in rows
         ]
 
+        total = pagination.total
+
+        args = request.args.to_dict()
+        args.pop("page", None)
+
         return render_template(
             "wyniki_wyszukiwania_region.html",
             results=results,
+            pagination=pagination,
+            total=total,
+            args=args,
             empty=len(results) == 0,
             kontynenty=kontynenty,
-            uksztaltowania=uksztaltowania
+            uksztaltowania=uksztaltowania,
+            polozenia=polozenia,
+            typy=typy
         )
 
 
