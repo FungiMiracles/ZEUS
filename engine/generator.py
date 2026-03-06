@@ -77,7 +77,7 @@ def try_generate_earthquake(region):
         return None
 
     if s < 20:
-        prob = 0.001
+        prob = 1
         scale = 1
         victims_range = (0,5)
 
