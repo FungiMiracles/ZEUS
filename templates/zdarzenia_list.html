@@ -104,29 +104,99 @@
 
     padding: 4px 6px;
 }
+
+.zeus-filter-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 15px 0 18px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+.filter-group {
+    min-width: 160px;
+    flex: 0 0 auto;
+}
+
+.filter-group label {
+    font-size: 0.75em;
+    font-weight: 800;
+    color: #34495e;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.85em;
+}
+
+.filter-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+}
 </style>
 
 <h1>Wygenerowane zdarzenia</h1>
 
 <form method="GET">
 
-Kontynent:
-<input type="text" name="kontynent">
+<div class="zeus-filter-box">
 
-Państwo:
-<input type="text" name="panstwo">
+<div class="filter-group">
+<label>ID regionu</label>
+<input type="number" name="region_id"
+value="{{ request.args.get('region_id','') }}">
+</div>
 
-Region:
-<input type="text" name="region">
+<div class="filter-group">
+<label>ID państwa</label>
+<input type="number" name="panstwo_id"
+value="{{ request.args.get('panstwo_id','') }}">
+</div>
 
-Rodzaj zdarzenia:
-<input type="text" name="typ">
+<div class="filter-group">
+<label>Typ zdarzenia</label>
+<select name="typ">
+<option value="">— wszystkie —</option>
+{% for t in typy %}
+<option value="{{ t.id }}"
+{% if request.args.get('typ') == t.id|string %}selected{% endif %}>
+{{ t.nazwa }}
+</option>
+{% endfor %}
+</select>
+</div>
 
-Skala:
-<input type="number" name="skala">
+<div class="filter-group">
+<label>Data CE od</label>
+<input type="number" name="data_od"
+value="{{ request.args.get('data_od','') }}">
+</div>
 
+<div class="filter-group">
+<label>Data CE do</label>
+<input type="number" name="data_do"
+value="{{ request.args.get('data_do','') }}">
+</div>
+
+<div class="filter-actions">
 <button type="submit">Filtruj</button>
+</div>
 
+</div>
 </form>
 
 <div style="text-align:right; margin-bottom:10px;">

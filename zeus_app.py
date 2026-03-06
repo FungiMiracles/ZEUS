@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from engine.clock import get_current_entenda_date
 
 from flask import (
     Flask,
@@ -108,6 +109,15 @@ def create_app():
     init_api_routes(app)
     init_zdarzenia_routes(app)
 
+    @app.context_processor
+    def inject_entenda_clock():
+
+        entenda_now = get_current_entenda_date()
+
+        return {
+            "ENTENDA_DATE": entenda_now.strftime("%d.%m.%Y")
+        }
+
     @app.route("/health")
     def health():
         return "OK", 200
@@ -126,13 +136,13 @@ def create_app():
         if "rola" not in session:
             return redirect(url_for("wejscie"))
 
-    # ───── CONTEXT PROCESSOR ─────
+
     @app.context_processor
     def inject_global_entenda_data():
         try:
             from models import Panstwo, Region, Miasto
 
-            m, y = oblicz_kalendarz_entendy()
+            entenda_now = get_current_entenda_date()
 
             total_population = (
                 db.session.query(func.sum(Panstwo.panstwo_populacja))
@@ -150,14 +160,10 @@ def create_app():
             cities = Miasto.query.count()
 
             def format_int(n):
-                try:
-                    return f"{int(n):,}".replace(",", " ")
-                except Exception:
-                    return "0"
+                return f"{int(n):,}".replace(",", " ")
 
             return {
-                "ENTENDA_MONTH": f"{m:02d}",
-                "ENTENDA_YEAR": y,
+                "ENTENDA_DATE": entenda_now.strftime("%d.%m.%Y"),
                 "E_WORLD_POP": format_int(total_population),
                 "E_WORLD_CONTINENTS": continents,
                 "E_WORLD_COUNTRIES": countries,
