@@ -44,6 +44,23 @@
         font-size: 1.15em;
     }
 
+    .extra-city {
+    display: none;
+    }
+
+    .show-all .extra-city {
+        display: table-row;
+    }
+
+    .city-toggle {
+        margin-top: 10px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        color: #5d7dce;
+        user-select: none;
+    }
+
     .info-table th {
         padding: 14px 18px;
         border-bottom: 2px solid #4171d1;
@@ -546,7 +563,7 @@
         </thead>
         <tbody>
             {% for m in miasta %}
-            <tr>
+            <tr class="city-row {% if loop.index > 5 %}extra-city{% endif %}">
                 <td>{{ m.miasto_nazwa }}</td>
                 <td>{{ m.miasto_kod }}</td>
                 <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
@@ -555,6 +572,11 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if miasta|length > 5 %}
+    <div class="city-toggle" onclick="toggleCities(this)">
+        ▼ Pokaż wszystkie miasta
+    </div>
+    {% endif %}
     {% else %}
         <p style="color:#7f8c8d; font-style:italic; margin-top:10px;">
             Brak miast przypisanych do tego regionu.
@@ -601,5 +623,23 @@
     </div>
 
 </div>
+
+<script>
+function toggleCities(btn) {
+
+    const table = btn.previousElementSibling;
+    const rows = table.querySelectorAll(".extra-city");
+
+    const expanded = table.classList.toggle("show-all");
+
+    rows.forEach(r => {
+        r.style.display = expanded ? "table-row" : "none";
+    });
+
+    btn.innerHTML = expanded
+        ? "▲ Zwiń listę miast"
+        : "▼ Pokaż wszystkie miasta";
+}
+</script>
 
 {% endblock %}

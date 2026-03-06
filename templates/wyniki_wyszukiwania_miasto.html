@@ -55,6 +55,13 @@ Wyniki wyszukiwania miast
     border-top: 1px solid #d3d7dc;
 }
 
+.results-count {
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-size: 0.95em;
+    color: #34495e;
+}
+
 .miasto-row {
     display: flex;
     justify-content: space-between;
@@ -517,7 +524,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
     </form>
 
     {% if not empty %}
-        <div style="margin-bottom:14px; font-weight:600; color:#7f8c8d;">
+        <div class="results-count">
             Ilość znalezionych miast: {{ total }}
         </div>
     {% endif %}
