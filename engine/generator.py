@@ -116,7 +116,7 @@ def try_generate_earthquake(region):
 
 def try_generate_train_disaster(region):
 
-    infra = region.region_stan_infra_kolejowej
+    infra = region.region_stan_infra_kolejowej or 100
 
     if infra >= 90:
         return None
@@ -164,7 +164,7 @@ def try_generate_train_disaster(region):
 
 def try_generate_road_disaster(region):
 
-    infra = region.region_stan_infra_drogowej
+    infra = region.region_stan_infra_drogowej or 100
 
     if infra >= 90:
         return None
