@@ -220,13 +220,12 @@ Skala:
 {% for z in zdarzenia %}
 
 <tr>
-<td>{{ r.id }}</td>
-<td>{{ r.typ }}</td>
-<td>{{ r.panstwo }}</td>
-<td>{{ r.region }}</td>
-<td>{{ r.skala }}</td>
-<td>{{ r.data }}</td>
-<td>{{ r.created }}</td>
+<td>{{ z.zdarzenie_id }}</td>
+<td>{{ z.zdarzenie_typ }}</td>
+<td>{{ z.region_id }}</td>
+<td>{{ z.skala }}</td>
+<td>{{ z.data_entenda }}</td>
+<td>{{ z.created_at }}</td>
 </tr>
 
 {% endfor %}
