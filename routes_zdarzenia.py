@@ -14,7 +14,7 @@ def init_zdarzenia_routes(app):
     def zdarzenia_list():
 
         kontynent = request.args.get("kontynent")
-        panstwo = request.args.get("panstwo")
+        panstwo_id = request.args.get("panstwo_id")
         region = request.args.get("region")
         miesiac = request.args.get("miesiac")
         typ = request.args.get("typ")
@@ -29,8 +29,8 @@ def init_zdarzenia_routes(app):
         if kontynent:
             query = query.filter(Panstwo.kontynent == kontynent)
 
-        if panstwo:
-            query = query.filter(Panstwo.panstwo_nazwa.ilike(f"%{panstwo}%"))
+        if panstwo_id:
+            query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
 
         if region:
             query = query.filter(Region.region_nazwa.ilike(f"%{region}%"))
@@ -41,8 +41,8 @@ def init_zdarzenia_routes(app):
         if typ:
             query = query.filter(Zdarzenie.zdarzenie_typ == typ)
 
-        if skala:
-            query = query.filter(Zdarzenie.skala == skala)
+        if skala and skala.isdigit():
+            query = query.filter(Zdarzenie.skala == int(skala))
 
         zdarzenia = query.order_by(Zdarzenie.data_entenda.desc()).limit(500).all()
 

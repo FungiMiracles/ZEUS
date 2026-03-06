@@ -230,19 +230,16 @@ value="{{ request.args.get('data_do','') }}">
 
 <tbody>
 
-{% for z in zdarzenia %}
-
+{% for z, r, p in zdarzenia %}
 <tr>
 
 <td>{{ z.zdarzenie_id }}</td>
 
 <td>{{ z.zdarzenie_typ }}</td>
 
-{% for z, r, p in zdarzenia %}
 <td>{{ p.PANSTWO_ID }}</td>
-{% endfor %}
 
-<td>{{ z.region_id or "-" }}</td>
+<td>{{ r.region_id }}</td>
 
 <td>{{ z.miasto_id or "-" }}</td>
 
@@ -262,16 +259,11 @@ value="{{ request.args.get('data_do','') }}">
 {{ z.opis_wygenerowany or "— opis jeszcze niewygenerowany —" }}
 </td>
 
-<td>
-{{ z.data_entenda or "-" }}
-</td>
+<td>{{ z.data_entenda or "-" }}</td>
 
-<td>
-{{ z.data_rzeczywista or "-" }}
-</td>
+<td>{{ z.data_rzeczywista or "-" }}</td>
 
 </tr>
-
 {% endfor %}
 
 </tbody>
