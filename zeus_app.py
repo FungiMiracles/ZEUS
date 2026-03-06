@@ -30,18 +30,19 @@ from routes_dyplomacja import init_dyplomacja_routes
 from routes_kultura import init_kultura_routes
 from routes_religia import init_religia_routes
 from routes_api import init_api_routes
+from routes_zdarzenia import init_zdarzenia_routes
 
 # ─────────────────────────────────────────
 #  STAŁE KALENDARZA ENTENDY
 # ─────────────────────────────────────────
 START_REAL = datetime(2025, 11, 28)
-START_ENTENDA_YEAR = 3000
+START_ENTENDA_YEAR = 2990
 START_ENTENDA_MONTH = 1
 DNI_NA_MIESIAC = 2
 
 
 def oblicz_kalendarz_entendy():
-    teraz = datetime.now()
+    teraz = datetime.utcnow()
     delta_dni = (teraz - START_REAL).days
 
     miesiace_passed = delta_dni // DNI_NA_MIESIAC
@@ -105,6 +106,7 @@ def create_app():
     init_kultura_routes(app)
     init_religia_routes(app)
     init_api_routes(app)
+    init_zdarzenia_routes(app)
 
     @app.route("/health")
     def health():
