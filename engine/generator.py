@@ -14,7 +14,7 @@ from engine.effects import (
     apply_road_disaster_effect
 )
 
-MAX_EVENTS_PER_MONTH = 12
+MAX_EVENTS_PER_MONTH = 200
 
 def start_event_scheduler():
 
