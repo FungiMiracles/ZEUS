@@ -32,6 +32,7 @@ from routes_kultura import init_kultura_routes
 from routes_religia import init_religia_routes
 from routes_api import init_api_routes
 from routes_zdarzenia import init_zdarzenia_routes
+from engine.generator import start_event_scheduler
 
 # ─────────────────────────────────────────
 #  STAŁE KALENDARZA ENTENDY
@@ -179,6 +180,8 @@ def create_app():
     @app.errorhandler(403)
     def forbidden(e):
         return render_template("403.html"), 403
+    
+    start_event_scheduler()
 
     return app
 

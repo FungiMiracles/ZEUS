@@ -22,8 +22,8 @@ def init_zdarzenia_routes(app):
 
         query = (
             db.session.query(Zdarzenie, Region, Panstwo)
-            .join(Region, Zdarzenie.region_id == Region.region_id)
-            .join(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
+            .outerjoin(Region, Zdarzenie.region_id == Region.region_id)
+            .outerjoin(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
         if kontynent:
