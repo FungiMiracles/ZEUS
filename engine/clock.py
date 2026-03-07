@@ -13,6 +13,8 @@ if ENV == "dev":
 else:
     TIME_MULTIPLIER = 12
 
+print("ZEUS ENV:", ENV, "MULT:", TIME_MULTIPLIER)
+
 # =====================================================
 # PUNKT STARTOWY CZASU ENTENDY
 # =====================================================
