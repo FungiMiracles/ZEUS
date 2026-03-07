@@ -9,7 +9,7 @@ import os
 ENV = os.getenv("ZEUS_ENV", "prod")
 
 if ENV == "dev":
-    TIME_MULTIPLIER = 240
+    TIME_MULTIPLIER = 340
 else:
     TIME_MULTIPLIER = 12
 

@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timedelta
 from engine.clock import get_current_entenda_date, ENTENDA_START
 from sqlalchemy import extract
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from extensions import db
 from models import Zdarzenie, Region
@@ -14,6 +15,18 @@ from engine.effects import (
 )
 
 MAX_EVENTS_PER_MONTH = 12
+
+def start_event_scheduler():
+
+    scheduler = BackgroundScheduler()
+
+    def job():
+        generate_events()
+        db.session.commit()
+
+    scheduler.add_job(job, "interval", minutes=5)
+
+    scheduler.start()
 
 def generate_events():
 
