@@ -26,17 +26,17 @@ def region_weight(region):
 
 
 def select_regions(limit=20):
-    """
-    Zwraca listę regionów wybranych losowo według wag.
-    """
+
     regions = Region.query.all()
 
-    weights = [region_weight(r) for r in regions]
+    weighted = []
 
-    selected = random.choices(
-        regions,
-        weights=weights,
-        k=min(limit, len(regions))
-    )
+    for r in regions:
+        w = region_weight(r)
+        weighted.append((random.random() ** (1 / (w + 0.0001)), r))
+
+    weighted.sort(reverse=True)
+
+    selected = [r for _, r in weighted[:limit]]
 
     return selected
