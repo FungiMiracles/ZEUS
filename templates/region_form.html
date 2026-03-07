@@ -39,7 +39,7 @@
 
     .info-table thead tr {
         background: linear-gradient(90deg, #5d7dce, #adc8ff);
-        color: white;
+        color: rgb(41, 41, 41);
         font-weight: 700;
         font-size: 1.15em;
     }
@@ -468,12 +468,11 @@
             <div class="region-header-stats">
 
             <span>
-            <i class="fa-solid fa-city"></i>
-            {{ liczba_miast }}
+            🏙 {{ liczba_miast }}
             </span>
 
             <span>
-            <i class="fa-solid fa-users"></i>
+            👥
             {% if urbanizacja is not none %}
             {{ urbanizacja }} %
             {% else %}
