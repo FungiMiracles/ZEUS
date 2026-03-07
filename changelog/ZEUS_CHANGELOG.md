@@ -29,6 +29,9 @@ Dodanie zaawansowanych filtrów wyszukiwania regionów.
 Z15.W1.MAR.26 [Regiony]
 Ograniczenie domyślnego wyświetlania listy miast regionu do 5. Dodany przycisk umożliwiający rozwinięcie listy.
 
+Z16.W1.MAR.26 [Regiony]
+Na formularzu regionu zostały dodane informacje o ilości miast w regionie oraz procencie urbanizacji regionu.
+
 Poprawki:
 
 P1.W1.MAR.26 [Dane Gospodarcze]

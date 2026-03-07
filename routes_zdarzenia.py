@@ -13,12 +13,11 @@ def init_zdarzenia_routes(app):
     @app.route("/zdarzenia")
     def zdarzenia_list():
 
-        kontynent = request.args.get("kontynent")
+        region_id = request.args.get("region_id")
         panstwo_id = request.args.get("panstwo_id")
-        region = request.args.get("region")
-        miesiac = request.args.get("miesiac")
         typ = request.args.get("typ")
-        skala = request.args.get("skala")
+        data_od = request.args.get("data_od")
+        data_do = request.args.get("data_do")
 
         query = (
             db.session.query(Zdarzenie, Region, Panstwo)
@@ -26,25 +25,27 @@ def init_zdarzenia_routes(app):
             .outerjoin(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
-        if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+        if region_id and region_id.isdigit():
+            query = query.filter(Zdarzenie.region_id == int(region_id))
 
-        if panstwo_id:
-            query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
-
-        if region:
-            query = query.filter(Region.region_nazwa.ilike(f"%{region}%"))
-
-        if miesiac:
-            query = query.filter(extract("month", Zdarzenie.data_entenda) == int(miesiac))
+        if panstwo_id and panstwo_id.isdigit():
+            query = query.filter(Panstwo.PANSTWO_ID == int(panstwo_id))
 
         if typ:
             query = query.filter(Zdarzenie.zdarzenie_typ == typ)
 
-        if skala and skala.isdigit():
-            query = query.filter(Zdarzenie.skala == int(skala))
+        if data_od and data_od.isdigit():
+            query = query.filter(extract("year", Zdarzenie.data_entenda) >= int(data_od))
 
-        zdarzenia = query.order_by(Zdarzenie.data_entenda.asc()).limit(500).all()
+        if data_do and data_do.isdigit():
+            query = query.filter(extract("year", Zdarzenie.data_entenda) <= int(data_do))
+
+        zdarzenia = (
+            query
+            .order_by(Zdarzenie.data_entenda.asc())
+            .limit(500)
+            .all()
+        )
 
         return render_template(
             "zdarzenia_list.html",

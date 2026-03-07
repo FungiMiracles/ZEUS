@@ -170,7 +170,7 @@ value="{{ request.args.get('panstwo_id','') }}">
 <div class="filter-group">
 <label>Typ zdarzenia</label>
 <select name="typ">
-<option value="">— wszystkie —</option>
+<option value="{{ t.nazwa }}">— wszystkie —</option>
 {% for t in typy %}
 <option value="{{ t.id }}"
 {% if request.args.get('typ') == t.id|string %}selected{% endif %}>
