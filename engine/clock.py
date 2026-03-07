@@ -6,7 +6,7 @@ import os
 # 1 dzień Entendy = 2 godziny realne
 # =====================================================
 
-TIME_MULTIPLIER = 400
+TIME_MULTIPLIER = 2500
 
 # =====================================================
 # PUNKT STARTOWY CZASU ENTENDY
