@@ -47,9 +47,16 @@ def init_zdarzenia_routes(app):
             .all()
         )
 
+        typy = [
+            {"nazwa": "trzesienie_ziemi"},
+            {"nazwa": "katastrofa_kolejowa"},
+            {"nazwa": "katastrofa_w_ruchu_ladowym"}
+        ]
+
         return render_template(
             "zdarzenia_list.html",
-            zdarzenia=zdarzenia
+            zdarzenia=zdarzenia,
+            typy=typy
         )
 
     # =====================================================
