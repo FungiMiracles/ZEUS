@@ -3,7 +3,7 @@ from extensions import db
 from models import Zdarzenie, Panstwo, Region, Miasto
 from engine.generator import generate_events
 from sqlalchemy import extract
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def init_zdarzenia_routes(app):
