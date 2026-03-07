@@ -3,6 +3,7 @@ from extensions import db
 from models import Zdarzenie, Panstwo, Region, Miasto
 from engine.generator import generate_events
 from sqlalchemy import extract
+from datetime import datetime
 
 
 def init_zdarzenia_routes(app):
@@ -18,6 +19,14 @@ def init_zdarzenia_routes(app):
         typ = request.args.get("typ")
         data_od = request.args.get("data_od")
         data_do = request.args.get("data_do")
+
+        if data_od:
+            data_od = datetime.fromisoformat(data_od)
+            query = query.filter(Zdarzenie.data_entenda >= data_od)
+
+        if data_do:
+            data_do = datetime.fromisoformat(data_do)
+            query = query.filter(Zdarzenie.data_entenda <= data_do)
 
         query = (
             db.session.query(Zdarzenie, Region, Panstwo)
