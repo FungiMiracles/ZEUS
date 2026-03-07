@@ -34,17 +34,20 @@ def generate_events():
 
     current_entenda = get_current_entenda_date()
 
-    last_generated = get_last_generated_entenda_date()
+    last_generated = get_last_generated_entenda_date() + timedelta(days=1)
 
     generated_total = 0
 
-    while last_generated < current_entenda:
+    max_days = 50
+
+    while last_generated < current_entenda and max_days > 0:
 
         created = generate_events_for_day(last_generated)
 
         generated_total += created
 
         last_generated += timedelta(days=1)
+        max_days -= 1
 
     print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
 
@@ -74,7 +77,7 @@ def generate_events_for_day(target_date):
             apply_earthquake_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
-
+            db.session.commit()
             events_created += 1
             continue
 
@@ -84,7 +87,7 @@ def generate_events_for_day(target_date):
             apply_train_disaster_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
-
+            db.session.commit()
             events_created += 1
             continue
 
@@ -94,7 +97,7 @@ def generate_events_for_day(target_date):
             apply_road_disaster_effect(region, event.skala, event.ilosc_ofiar)
 
             db.session.add(event)
-
+            db.session.commit()
             events_created += 1
 
     return events_created
