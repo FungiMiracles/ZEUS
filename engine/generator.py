@@ -14,7 +14,7 @@ from engine.effects import (
     apply_road_disaster_effect
 )
 
-MAX_EVENTS_PER_MONTH = 50
+MAX_EVENTS_PER_MONTH = 200
 
 def start_event_scheduler(app):
 
@@ -26,25 +26,21 @@ def start_event_scheduler(app):
             generate_events()
             db.session.commit()
 
-    scheduler.add_job(job, "interval", seconds=30)
+    scheduler.add_job(job, "interval", minutes=15)
 
     scheduler.start()
 
-
 def generate_events():
 
-    last_generated = get_last_generated_entenda_date() + timedelta(days=1)
+    current_entenda = get_current_entenda_date()
+
+    last_generated = get_current_entenda_date() - timedelta(days=50)
 
     generated_total = 0
 
     max_days = 50
 
-    while max_days > 0:
-
-        current_entenda = get_current_entenda_date()
-
-        if last_generated > current_entenda:
-            break
+    while last_generated < current_entenda and max_days > 0:
 
         created = generate_events_for_day(last_generated)
 
