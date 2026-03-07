@@ -1,0 +1,277 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Generator zdarzeń{% endblock %}
+
+{% block content %}
+<div class="events-page">
+<style>
+/* =========================================================
+   LAYOUT STRONY
+========================================================= */
+
+.events-page {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 20px 40px 20px;
+}
+
+
+
+/* =========================================================
+   TABLE – ZEUS ADMIN STYLE
+========================================================= */
+
+.events-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #ffffff;
+}
+
+/* główna ramka */
+.events-table {
+    border: 2px solid #1c3f7a;
+    font-size: 0.85em;
+}
+
+/* komórki */
+
+.events-table th,
+.events-table td {
+
+    border: 1px solid #1c3f7a;
+
+    padding: 8px 12px;
+
+    text-align: center;
+    vertical-align: middle;
+
+    font-size: 0.9em;
+}
+
+/* nagłówek */
+
+.events-table thead th {
+
+    background: #2f5fa8;
+    color: white;
+
+    font-weight: 700;
+}
+
+/* wiersze */
+
+.events-table tbody tr:nth-child(even) {
+    background: #f2f6ff;
+}
+
+.events-table tbody tr:hover {
+    background: #e1ebff;
+}
+
+/* kolumna opis */
+
+.events-table td:nth-child(10) {
+
+    text-align: left;
+
+    max-width: 420px;
+
+    font-size: 0.85em;
+    line-height: 1.35;
+}
+
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+.events-filters {
+
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    padding: 14px 18px;
+
+    border: 1px solid #1c3f7a;
+    background: #f7f9ff;
+}
+
+.events-filters input {
+
+    margin-right: 10px;
+    margin-left: 5px;
+
+    padding: 4px 6px;
+}
+
+.zeus-filter-box {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 15px 0 18px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+.filter-group {
+    min-width: 160px;
+    flex: 0 0 auto;
+}
+
+.filter-group label {
+    font-size: 0.75em;
+    font-weight: 800;
+    color: #34495e;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.85em;
+}
+
+.filter-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+</style>
+
+<h1>Wygenerowane zdarzenia</h1>
+
+<form method="GET">
+
+<div class="zeus-filter-box">
+
+<div class="filter-group">
+<label>ID regionu</label>
+<input type="number" name="region_id"
+value="{{ request.args.get('region_id','') }}">
+</div>
+
+<div class="filter-group">
+<label>ID państwa</label>
+<input type="number" name="panstwo_id"
+value="{{ request.args.get('panstwo_id','') }}">
+</div>
+
+<div class="filter-group">
+<label>Typ zdarzenia</label>
+<select name="typ">
+
+<option value="">— wszystkie —</option>
+
+{% for t in typy %}
+<option value="{{ t.nazwa }}"
+{% if request.args.get('typ') == t.nazwa %}selected{% endif %}>
+{{ t.nazwa }}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+<div class="filter-group">
+<label>Data CE od</label>
+<input type="date" name="data_od"
+value="{{ request.args.get('data_od','') }}">
+</div>
+
+<div class="filter-group">
+<label>Data CE do</label>
+<input type="date" name="data_do"
+value="{{ request.args.get('data_do','') }}">
+</div>
+
+<div class="filter-actions">
+<button type="submit">Filtruj</button>
+</div>
+
+</div>
+</form>
+
+<div style="text-align:right; margin-bottom:10px;">
+    <form method="POST" action="/zdarzenia/generuj">
+        <button class="btn btn-success">
+        ⚡ Generuj zdarzenia
+        </button>
+    </form>
+</div>
+
+<hr>
+
+<table class="events-table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Typ</th>
+<th>Państwo</th>
+<th>Region</th>
+<th>Miasto</th>
+<th>Skala</th>
+<th>Ofiary</th>
+<th>Status</th>
+<th>Szablon</th>
+<th>Opis</th>
+<th>Data CE</th>
+<th>Data wygenerowania</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for z, r, p in zdarzenia %}
+<tr>
+
+<td>{{ z.zdarzenie_id }}</td>
+
+<td>{{ z.zdarzenie_typ }}</td>
+
+<td>{{ p.PANSTWO_ID }}</td>
+
+<td>{{ r.region_id }}</td>
+
+<td>{{ z.miasto_id or "-" }}</td>
+
+<td>
+<span class="scale-badge scale-{{ z.skala or 1 }}">
+{{ z.skala or "-" }}
+</span>
+</td>
+
+<td>{{ z.ilosc_ofiar or 0 }}</td>
+
+<td>{{ z.status or "aktywne" }}</td>
+
+<td>{{ z.opis_szablon_id or "-" }}</td>
+
+<td>
+{{ z.opis_wygenerowany or "— brak opisu —" }}
+</td>
+
+<td>{{ z.data_entenda or "-" }}</td>
+
+<td>{{ z.data_rzeczywista or "-" }}</td>
+
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+{% endblock %}

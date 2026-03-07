@@ -14,7 +14,6 @@ def init_auth_routes(app):
     @app.route("/wejscie", methods=["GET", "POST"])
     def wejscie():
 
-        # 🔥 USUWAMY TYLKO ROLĘ, NIE CAŁĄ SESJĘ
         if request.method == "GET":
             session.pop("rola", None)
 

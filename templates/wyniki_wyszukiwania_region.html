@@ -128,6 +128,13 @@
     gap: 14px 16px;
 }
 
+.advanced-filters {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 16px;
+}
+
 /* ===== GRUPA FILTRA ===== */
 
 .zeus-filter-box .filter-group {
@@ -137,7 +144,7 @@
 }
 
 .zeus-filter-box label {
-    font-size: 0.75em;
+    font-size: 0.65em;
     font-weight: 800;
     letter-spacing: 0.04em;
     color: #34495e;
@@ -187,6 +194,38 @@
 
 .zeus-filter-box .filter-actions button:hover {
     background-color: #3f62b3;
+}
+
+.zeus-pagination {
+    margin: 25px 0 10px 0;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.zeus-pagination a,
+.zeus-pagination span {
+    padding: 6px 11px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid #bdc3c7;
+    color: #34495e;
+    background: #ecf0f1;
+}
+
+.zeus-pagination .active {
+    background: #5d7dce;
+    color: white;
+}
+
+.results-count {
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-size: 0.95em;
+    color: #34495e;
 }
 
 /* ============================================================
@@ -268,8 +307,16 @@
    
 </style>
 
-<form method="GET" action="{{ url_for('wyniki_wyszukiwania_region') }}">
-<div class="zeus-filter-box">
+<form method="GET" action="{{ url_for('wyniki_wyszukiwania_region') }}"> 
+
+    <div style="max-width:1100px;margin:0 auto 10px auto;">
+        <label style="font-weight:700;font-size:0.9em;">
+            <input type="checkbox" id="toggle-advanced">
+            Filtry zaawansowane
+        </label>
+    </div>
+    
+<div class="zeus-filter-box"> 
 
     <!-- ===== KONTYNENT ===== -->
     <div class="filter-group">
@@ -321,6 +368,125 @@
         </select>
     </div>
 
+    <div id="advanced-filters" style="display:none;" class="advanced-filters">
+
+        <!-- POŁOŻENIE -->
+        <div class="filter-group">
+        <label>Położenie</label>
+        <select name="polozenie">
+        <option value="">— wszystkie —</option>
+        {% for p in polozenia %}
+        <option value="{{ p.id }}"
+        {% if request.args.get('polozenie') == p.id|string %}selected{% endif %}>
+        {{ p.nazwa }}
+        </option>
+        {% endfor %}
+        </select>
+        </div>
+
+        <!-- TYP NADRZĘDNY -->
+        <div class="filter-group">
+        <label>Typ nadrzędny</label>
+        <select name="typ_nadrz">
+        <option value="">— wszystkie —</option>
+        {% for t in typy %}
+        <option value="{{ t.id }}"
+        {% if request.args.get('typ_nadrz') == t.id|string %}selected{% endif %}>
+        {{ t.nazwa }}
+        </option>
+        {% endfor %}
+        </select>
+        </div>
+
+        <!-- TYP PODRZĘDNY -->
+        <div class="filter-group">
+        <label>Typ podrzędny</label>
+        <select name="typ_podrz">
+        <option value="">— wszystkie —</option>
+        {% for t in typy %}
+        <option value="{{ t.id }}"
+        {% if request.args.get('typ_podrz') == t.id|string %}selected{% endif %}>
+        {{ t.nazwa }}
+        </option>
+        {% endfor %}
+        </select>
+        </div>
+
+        <!-- SEJSMICZNOŚĆ -->
+        <div class="filter-group">
+        <label>Sejsmiczność ≥</label>
+        <input type="number" name="sejsmicznosc"
+        value="{{ request.args.get('sejsmicznosc','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Ryzyko powodzi ≥</label>
+        <input type="number" name="powodz"
+        value="{{ request.args.get('powodz','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Ryzyko lawin ≥</label>
+        <input type="number" name="lawiny"
+        value="{{ request.args.get('lawiny','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Ryzyko upałów ≥</label>
+        <input type="number" name="upal"
+        value="{{ request.args.get('upal','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Ryzyko mrozów ≥</label>
+        <input type="number" name="mroz"
+        value="{{ request.args.get('mroz','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Aktywność wulkaniczna ≥</label>
+        <input type="number" name="wulkan"
+        value="{{ request.args.get('wulkan','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Skomunikowanie ≥</label>
+        <input type="number" name="skomunikowanie"
+        value="{{ request.args.get('skomunikowanie','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Infr. kolejowa ≥</label>
+        <input type="number" name="infra_kolej"
+        value="{{ request.args.get('infra_kolej','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Infr. drogowa ≥</label>
+        <input type="number" name="infra_drogi"
+        value="{{ request.args.get('infra_drogi','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Infr. energetyczna ≥</label>
+        <input type="number" name="infra_energia"
+        value="{{ request.args.get('infra_energia','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Infr. mieszkaniowa ≥</label>
+        <input type="number" name="infra_mieszkania"
+        value="{{ request.args.get('infra_mieszkania','') }}">
+        </div>
+
+        <div class="filter-group">
+        <label>Infr. portowa ≥</label>
+        <input type="number" name="infra_porty"
+        value="{{ request.args.get('infra_porty','') }}">
+        </div>
+
+        </div>
+
     <!-- ===== AKCJA ===== -->
     <div class="filter-actions">
         <button type="submit">Filtruj</button>
@@ -330,7 +496,12 @@
 </form>
 
 
+
 <div class="wyniki-regionow">
+
+    <div class="results-count">
+        Ilość znalezionych regionów: {{ total }}
+    </div>
 
     <h1>Wyniki wyszukiwania regionów</h1>
 
@@ -412,6 +583,57 @@
 
         </div>
 
+        {% if pagination.pages > 1 %}
+            <div class="zeus-pagination">
+
+            {% set start = pagination.page - 3 %}
+            {% set end = pagination.page + 3 %}
+
+            {% if start < 1 %}
+            {% set start = 1 %}
+            {% endif %}
+
+            {% if end > pagination.pages %}
+            {% set end = pagination.pages %}
+            {% endif %}
+
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('wyniki_wyszukiwania_region', page=pagination.prev_num, **args) }}">
+            ← Poprzednia
+            </a>
+            {% endif %}
+
+            {% if start > 1 %}
+            <a href="{{ url_for('wyniki_wyszukiwania_region', page=1, **args) }}">1</a>
+            <span>…</span>
+            {% endif %}
+
+            {% for p in range(start, end + 1) %}
+            {% if p == pagination.page %}
+            <span class="active">{{ p }}</span>
+            {% else %}
+            <a href="{{ url_for('wyniki_wyszukiwania_region', page=p, **args) }}">
+            {{ p }}
+            </a>
+            {% endif %}
+            {% endfor %}
+
+            {% if end < pagination.pages %}
+            <span>…</span>
+            <a href="{{ url_for('wyniki_wyszukiwania_region', page=pagination.pages, **args) }}">
+            {{ pagination.pages }}
+            </a>
+            {% endif %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('wyniki_wyszukiwania_region', page=pagination.next_num, **args) }}">
+            Następna →
+            </a>
+            {% endif %}
+
+            </div>
+            {% endif %}
+
         <div class="footer-actions">
             <a href="{{ url_for('home_page') }}" class="btn-return">
                 Wróć do wyszukiwania
@@ -453,6 +675,31 @@ kontynentSelect.addEventListener("change", function () {
 if (kontynentSelect.value) {
     zaladujPanstwa(kontynentSelect.value);
 }
+</script>
+
+<script>
+const toggle = document.getElementById("toggle-advanced");
+const advanced = document.getElementById("advanced-filters");
+
+function updateAdvanced() {
+    advanced.style.display = toggle.checked ? "grid" : "none";
+}
+
+toggle.addEventListener("change", updateAdvanced);
+
+// auto-open jeśli filtry są użyte
+const advancedUsed = [
+    "{{ request.args.get('polozenie','') }}",
+    "{{ request.args.get('typ_nadrz','') }}",
+    "{{ request.args.get('typ_podrz','') }}",
+    "{{ request.args.get('sejsmicznosc','') }}"
+].some(v => v !== "");
+
+if (advancedUsed) {
+    toggle.checked = true;
+}
+
+updateAdvanced();
 </script>
 
 {% endblock %}

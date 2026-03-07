@@ -43,23 +43,6 @@ def init_miasta_routes(app):
             }
             for r in regiony
         ])
-
-    # --------------------------------
-    # Podgląd miasta – ORM
-    # --------------------------------
-    @app.route("/miasto/<int:miasto_id>")
-    def miasto_form(miasto_id):
-        miasto = Miasto.query.get_or_404(miasto_id)
-
-        panstwo = miasto.panstwo      # dzięki relacji ORM
-        region = miasto.region        # może być None
-
-        return render_template(
-            "miasto_form.html",
-            miasto=miasto,
-            panstwo=panstwo,
-            region=region,
-        )
     
     # --------------------------------
     # Edycja miasta – GET i POST
@@ -522,4 +505,21 @@ def init_miasta_routes(app):
                 raise ValueError(
                     "Ten region ma już przypisaną stolicę regionu."
                 )
+            
+    @app.route("/miasto/<int:miasto_id>")
+    def miasto_form(miasto_id):
+        miasto = Miasto.query.get_or_404(miasto_id)
+
+        panstwo = miasto.panstwo
+        region = miasto.region
+
+        back_url = request.referrer
+
+        return render_template(
+            "miasto_form.html",
+            miasto=miasto,
+            panstwo=panstwo,
+            region=region,
+            back_url=back_url
+        )
         

@@ -80,6 +80,32 @@ body {
 .ent-month { color: #0057ff; }
 .ent-year  { color: #e60000; }
 
+.entenda-clock-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.event-generator-btn {
+    background: #b09926;
+    color: white;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+
+    box-shadow: 0 0 8px rgba(240, 137, 19, 0.35);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.event-generator-btn:hover {
+    background: #93801f;
+    color: white;
+    transform: none;
+    text-decoration: none;
+}
+
 /* =====================================================
    STATS BAR  (⬅ TU MA BYĆ HAMBURGER POD SPODEN)
 ===================================================== */
@@ -325,8 +351,16 @@ main.container {
         </div>
     </div>
 
+    <div class="entenda-clock-wrapper">
+
+    <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">
+        ⚡ Generator zdarzeń
+    </a>
+
     <div class="entenda-clock">
-        <span class="ent-month">{{ ENTENDA_MONTH }}</span>.<span class="ent-year">{{ ENTENDA_YEAR }}</span> CE
+        {{ ENTENDA_DATE }} CE
+    </div>
+
     </div>
 </div>
 

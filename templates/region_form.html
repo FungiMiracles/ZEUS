@@ -44,6 +44,23 @@
         font-size: 1.15em;
     }
 
+    .extra-city {
+    display: none;
+    }
+
+    .show-all .extra-city {
+        display: table-row;
+    }
+
+    .city-toggle {
+        margin-top: 10px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        color: #5d7dce;
+        user-select: none;
+    }
+
     .info-table th {
         padding: 14px 18px;
         border-bottom: 2px solid #4171d1;
@@ -173,6 +190,41 @@
         color: #721c24;
     }
 
+    .region-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 35px;
+    }
+
+    .region-grid-3x1 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .region-grid-3x2 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .region-card {
+        border: 1px solid #2f4fa3;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #f9fbff;
+    }
+
+    .region-card-label {
+        font-size: 0.8em;
+        font-weight: 700;
+        color: #2f4fa3;
+        margin-bottom: 4px;
+    }
+
+    .region-card-value {
+        font-size: 1.05em;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+
 @media (max-width: 768px) {
 
     /* ===== KONTAINER ===== */
@@ -298,6 +350,11 @@
         padding: 12px 0;
         font-size: 0.95em;
     }
+
+    .region-grid-3x1,
+    .region-grid-3x2 {
+        grid-template-columns: 1fr;
+    }
 }
 
 </style>
@@ -336,8 +393,12 @@
                     object-fit: contain;
                 "
             >
-
     </div>
+
+    {% set liczba_miast = miasta|length if miasta else 0 %}
+    {% set ludnosc_miejska = miasta | sum(attribute='miasto_populacja') if miasta else 0 %}
+    {% set populacja = region.region_populacja or 0 %}
+    {% set urbanizacja = ((ludnosc_miejska / populacja) * 100) | round(1) if populacja > 0 else None %}
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
         <thead>
@@ -403,128 +464,157 @@
                 </td>
             </tr>
 
-        </tbody>
-    </table>
-
-    <table class="info-table">
-        <thead>
             <tr>
-                <th colspan="2">Klasyfikacja regionu</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr>
-                <td style="font-weight:700;">Położenie regionu:</td>
+                <td style="font-weight:700;">Liczba miast</td>
                 <td>
-                    {{ region.polozenie.nazwa if region.polozenie else "Brak danych" }}
-                </td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Typ nadrzędny:</td>
-                <td>
-                    {{ region.typ_nadrz.nazwa if region.typ_nadrz else "Brak danych" }}
-                </td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Typ podrzędny:</td>
-                <td>
-                    {{ region.typ_podrz.nazwa if region.typ_podrz else "Brak danych" }}
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th colspan="2">Ryzyka naturalne i środowiskowe</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr>
-                <td style="font-weight:700;">Sejsmiczność:</td>
-                <td>{{ region.region_sejsmicznosc if region.region_sejsmicznosc is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Ryzyko powodzi:</td>
-                <td>{{ region.region_ryzyko_powodzi if region.region_ryzyko_powodzi is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Ryzyko lawin:</td>
-                <td>{{ region.region_ryzyko_lawin if region.region_ryzyko_lawin is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Ryzyko upałów:</td>
-                <td>{{ region.region_ryzyko_upalu if region.region_ryzyko_upalu is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Ryzyko mrozów:</td>
-                <td>{{ region.region_ryzyko_mrozu if region.region_ryzyko_mrozu is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Aktywność wulkaniczna:</td>
-                <td>{{ region.region_aktywny_wulkan if region.region_aktywny_wulkan is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-        </tbody>
-    </table>
-
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th colspan="2">Infrastruktura i skomunikowanie</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <tr>
-                <td style="font-weight:700;">Poziom skomunikowania:</td>
-                <td>{{ region.region_poziom_skomunikowania if region.region_poziom_skomunikowania is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Infrastruktura kolejowa:</td>
-                <td>{{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Infrastruktura drogowa:</td>
-                <td>{{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Infrastruktura energetyczna:</td>
-                <td>{{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Infrastruktura mieszkaniowa:</td>
-                <td>{{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100</td>
-            </tr>
-
-            <tr>
-                <td style="font-weight:700;">Infrastruktura portowa:</td>
-                <td>
-                    {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
-                        {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
+                    {% if miasta %}
+                        {{ miasta|length }}
                     {% else %}
-                        Nie dotyczy
+                        Brak danych
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="font-weight:700;">Procent urbanizacji</td>
+                <td>
+                    {% if miasta and region.region_populacja and region.region_populacja > 0 %}
+                        {{ ((miasta | sum(attribute='miasto_populacja')) / region.region_populacja * 100) | round(1) }} %
+                    {% else %}
+                        Brak danych
                     {% endif %}
                 </td>
             </tr>
 
         </tbody>
     </table>
+
+    <h3 style="margin-top:30px;">Klasyfikacja regionu</h3>
+
+    <div class="region-grid region-grid-3x1">
+
+    <div class="region-card">
+    <div class="region-card-label">Położenie regionu</div>
+    <div class="region-card-value">
+    {{ region.polozenie.nazwa if region.polozenie else "Brak danych" }}
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Typ nadrzędny</div>
+    <div class="region-card-value">
+    {{ region.typ_nadrz.nazwa if region.typ_nadrz else "Brak danych" }}
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Typ podrzędny</div>
+    <div class="region-card-value">
+    {{ region.typ_podrz.nazwa if region.typ_podrz else "Brak danych" }}
+    </div>
+    </div>
+
+    </div>
+
+    <h3>Ryzyka naturalne i środowiskowe</h3>
+
+    <div class="region-grid region-grid-3x2">
+
+    <div class="region-card">
+    <div class="region-card-label">Sejsmiczność</div>
+    <div class="region-card-value">
+    {{ region.region_sejsmicznosc if region.region_sejsmicznosc is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko powodzi</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_powodzi if region.region_ryzyko_powodzi is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko lawin</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_lawin if region.region_ryzyko_lawin is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko upałów</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_upalu if region.region_ryzyko_upalu is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko mrozów</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_mrozu if region.region_ryzyko_mrozu is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    <div class="region-card">
+    <div class="region-card-label">Aktywność wulkaniczna</div>
+    <div class="region-card-value">
+    {{ region.region_aktywny_wulkan if region.region_aktywny_wulkan is not none else "Brak danych" }} / 100
+    </div>
+    </div>
+
+    </div>
+
+    <h3>Infrastruktura i skomunikowanie</h3>
+
+    <div class="region-grid region-grid-3x2">
+
+        <div class="region-card">
+            <div class="region-card-label">Poziom skomunikowania</div>
+            <div class="region-card-value">
+                {{ region.region_poziom_skomunikowania if region.region_poziom_skomunikowania is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura kolejowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura drogowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura energetyczna</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura mieszkaniowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura portowa</div>
+            <div class="region-card-value">
+                {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
+                    {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
+                {% else %}
+                    Nie dotyczy
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
 
 
 
@@ -546,7 +636,7 @@
         </thead>
         <tbody>
             {% for m in miasta %}
-            <tr>
+            <tr class="city-row {% if loop.index > 5 %}extra-city{% endif %}">
                 <td>{{ m.miasto_nazwa }}</td>
                 <td>{{ m.miasto_kod }}</td>
                 <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
@@ -555,6 +645,11 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if miasta|length > 5 %}
+    <div class="city-toggle" onclick="toggleCities(this)">
+        ▼ Pokaż wszystkie miasta
+    </div>
+    {% endif %}
     {% else %}
         <p style="color:#7f8c8d; font-style:italic; margin-top:10px;">
             Brak miast przypisanych do tego regionu.
@@ -586,7 +681,7 @@
     </table>
 
     <div style="text-align:center;">
-        <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
+        <a class="btn-return" href="{{ back_url or url_for('wyniki_wyszukiwania_region') }}">
             Wróć do wyszukiwania regionów
         </a>
         {% if session.rola == "wszechmocny" %}
@@ -601,5 +696,23 @@
     </div>
 
 </div>
+
+<script>
+function toggleCities(btn) {
+
+    const table = btn.previousElementSibling;
+    const rows = table.querySelectorAll(".extra-city");
+
+    const expanded = table.classList.toggle("show-all");
+
+    rows.forEach(r => {
+        r.style.display = expanded ? "table-row" : "none";
+    });
+
+    btn.innerHTML = expanded
+        ? "▲ Zwiń listę miast"
+        : "▼ Pokaż wszystkie miasta";
+}
+</script>
 
 {% endblock %}

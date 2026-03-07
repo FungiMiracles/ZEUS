@@ -56,61 +56,6 @@ class Region(db.Model):
         default=0
     )
 
-    # ===== UKSZTAŁTOWANIE TERENU =====
-    region_teren = db.Column(
-        db.Enum(
-            "wysokogorski",
-            "gorski",
-            "wyzynny",
-            "pogorski",
-            "nizinny",
-            "depresyjny",
-            name="region_teren_enum"
-        ),
-        nullable=True
-    )
-
-    # ===== NOWE KLASYFIKACJE STRUKTURALNE =====
-
-    region_polozenie = db.Column(
-        db.Enum(
-            "wewnetrzny",
-            "nadmorski",
-            name="region_polozenie_enum"
-        ),
-        nullable=True
-    )
-
-    region_typ_nadrz = db.Column(
-        db.Enum(
-            "rolniczy",
-            "przemyslowy",
-            "miejski",
-            "wydobywczy",
-            "turystyczny",
-            "handlowy",
-            "administracyjny",
-            "lesny",
-            name="region_typ_nadrz_enum"
-        ),
-        nullable=True
-    )
-
-    region_typ_podrz = db.Column(
-        db.Enum(
-            "rolniczy",
-            "przemyslowy",
-            "miejski",
-            "wydobywczy",
-            "turystyczny",
-            "handlowy",
-            "administracyjny",
-            "lesny",
-            name="region_typ_podrz_enum"
-        ),
-        nullable=True
-    )
-
     # ===== WSKAŹNIKI (0–100) =====
 
     region_poziom_skomunikowania = db.Column(db.SmallInteger)
@@ -638,6 +583,58 @@ class ReligiaPerPanstwo(db.Model):
             f"<ReligiaPerPanstwo panstwo_id={self.panstwo_id}, "
             f"religia_id={self.religia_id}, udzial={self.udzial_proc}%>"
         )
+    
+class Zdarzenie(db.Model):
+    __tablename__ = "zdarzenia"
+
+    zdarzenie_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    zdarzenie_typ = db.Column(db.String(64), nullable=False)
+    zdarzenie_kategoria = db.Column(db.String(64))
+
+    panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"))
+    region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"))
+    miasto_id = db.Column(db.Integer, db.ForeignKey("miasta.miasto_id"))
+
+    ilosc_ofiar = db.Column(db.Integer)
+    skala = db.Column(db.Integer)
+
+    opis_szablon_id = db.Column(db.Integer)
+    opis_wygenerowany = db.Column(db.Text)
+
+    data_entenda = db.Column(db.DateTime)
+    data_rzeczywista = db.Column(db.DateTime)
+
+    status = db.Column(
+        db.Enum("aktywne", "zakonczone", "archiwalne"),
+        default="aktywne"
+    )
+
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+    payload_json = db.Column(db.JSON)
+
+    # relacje
+    panstwo = db.relationship("Panstwo", backref="zdarzenia", lazy=True)
+    region = db.relationship("Region", backref="zdarzenia", lazy=True)
+    miasto = db.relationship("Miasto", backref="zdarzenia", lazy=True)
+
+class ZdarzenieSzablon(db.Model):
+    __tablename__ = "zdarzenia_szablony"
+
+    szablon_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    zdarzenie_typ = db.Column(db.String(32), nullable=False)
+
+    tresc = db.Column(db.Text, nullable=False)
+
+    aktywny = db.Column(db.Boolean, default=True)
+
+    waga = db.Column(db.Integer, default=1)
+
+    wariant = db.Column(db.String(32))
+
+    created_at = db.Column(db.DateTime, default=db.func.now())
 
 #------------------------------------------------#
 # SŁOWNIKI #

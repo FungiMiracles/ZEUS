@@ -91,13 +91,24 @@ def init_panstwa_routes(app):
         if kod:
             query = query.filter(Panstwo.panstwo_kod.like(f"%{kod}%"))
 
-        results = query.all()
-        empty = len(results) == 0
+        page = request.args.get("page", 1, type=int)
+        per_page = 25
+
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+        results = pagination.items
+        total = pagination.total
+
+        args = request.args.to_dict()
+        args.pop("page", None)
 
         return render_template(
             "wyniki_wyszukiwania.html",
             results=results,
-            empty=empty
+            pagination=pagination,
+            total=total,
+            args=args,
+            empty=len(results) == 0
         )
 
     # ================= FORMULARZ PAŃSTWA =================

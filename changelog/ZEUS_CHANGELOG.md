@@ -1,3 +1,51 @@
+__Wydanie W1.MAR.26 (XX.03.2026)__
+
+Zmiany:
+
+Z1-Z3.W1.MAR.26 [Generator Zdarzeń]
+Utworzenie nowych tabel potrzebnych do generowania zdarzeń w systemie ZEUS.
+
+Z4-Z6.W1.MAR.26 [Generator Zdarzeń]
+Powstanie ekranu Generatora Zdarzeń oraz odnoszącego się do niego przycisku obok daty w Entendzie.
+
+Z7.W1.MAR.26 [Generator Zdarzeń]
+Cofnięcie czasu w Entendzie do roku 2993 CE.
+
+Z8.W1.MAR.26 [Generator Zdarzeń]
+Implementacja trzech zdarzeń do Generatora Zdarzeń: trzęsienia ziemi, katastrofy w ruchu lądowym i katastrofy kolejowej.
+
+Z9.W1.MAR.26 [Regiony]
+Usunięcie nieużywanych kolumn w tabeli regiony po zmianach w W3.LUT.26.
+
+Z10-Z11.W1.MAR.26 [Regiony, Państwa]
+Dodanie informacji o ilości wyświetlanych wyników wyszukiwania.
+
+Z12.W1.MAR.26 [Regiony, Państwa]
+Dodanie paginacji dla wyników wyszukiwania państw i regionów.
+
+Z13.W1.MAR.26 [Regiony]
+Dodanie zaawansowanych filtrów wyszukiwania regionów.
+
+Z15.W1.MAR.26 [Regiony]
+Ograniczenie domyślnego wyświetlania listy miast regionu do 5. Dodany przycisk umożliwiający rozwinięcie listy.
+
+Z16.W1.MAR.26 [Regiony]
+Na formularzu regionu zostały dodane informacje o ilości miast w regionie oraz procencie urbanizacji regionu.
+
+Poprawki:
+
+P1.W1.MAR.26 [Dane Gospodarcze]
+Poprawione wyświetlanie procentu wzrostu PKB.
+
+P2.W1.MAR.26 [Filtry wyszukiwań]
+Uspójniono wygląd filtrów wyszukiwań miast i regionów.
+
+P3.W1.MAR.26 [Regiony]
+Naciśnięcie przycisku "Wróć do wyszukiwania" nie powoduje usunięcia kryteriów wyszukiwania.
+
+P4.W1.MAR.26 [Miasta]
+Naciśnięcie przycisku "Wróć do wyszukiwania" nie powoduje usunięcia kryteriów wyszukiwania.
+
 __Wydanie W3.LUT.26 (14.02.2026)__
 
 Zmiany:
