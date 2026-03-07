@@ -26,7 +26,7 @@ def start_event_scheduler(app):
             generate_events()
             db.session.commit()
 
-    scheduler.add_job(job, "interval", minutes=15)
+    scheduler.add_job(job, "interval", seconds=15)
 
     scheduler.start()
 
