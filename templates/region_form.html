@@ -44,6 +44,24 @@
         font-size: 1.15em;
     }
 
+    .region-header-bar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    }
+
+    .region-header-stats {
+        display:flex;
+        gap:18px;
+        font-size:0.9em;
+        font-weight:600;
+    }
+
+    .region-header-stats i {
+        color:#5d7dce;
+        margin-right:4px;
+    }
+
     .extra-city {
     display: none;
     }
@@ -224,6 +242,28 @@
         color: #2c3e50;
     }
 
+    .region-stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #2c3e50;
+    }
+
+    .region-stat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .region-stat i {
+        color: #5d7dce;
+        font-size: 1.2em;
+    }
+
 @media (max-width: 768px) {
 
     /* ===== KONTAINER ===== */
@@ -239,6 +279,22 @@
 
     .region-header p {
         font-size: 0.95em;
+    }
+
+    .region-stats-bar {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+
+     .region-header-bar {
+        flex-direction:column;
+        gap:6px;
+        align-items:flex-start;
+    }
+
+    .region-header-stats {
+        font-size:0.85em;
     }
 
     /* ========================================================
@@ -394,11 +450,42 @@
             >
 
     </div>
+
+    {% set liczba_miast = miasta|length if miasta else 0 %}
+    {% set ludnosc_miejska = miasta | sum(attribute='miasto_populacja') if miasta else 0 %}
+    {% set populacja = region.region_populacja or 0 %}
+    {% set urbanizacja = ((ludnosc_miejska / populacja) * 100) | round(1) if populacja > 0 else None %}
     <!-- Tabela informacji o regionie -->
     <table class="info-table">
         <thead>
             <tr>
-                <th colspan="2">Informacje o regionie</th>
+            <th colspan="2">
+
+            <div class="region-header-bar">
+
+            <span>Informacje o regionie</span>
+
+            <div class="region-header-stats">
+
+            <span>
+            <i class="fa-solid fa-city"></i>
+            {{ liczba_miast }}
+            </span>
+
+            <span>
+            <i class="fa-solid fa-users"></i>
+            {% if urbanizacja is not none %}
+            {{ urbanizacja }} %
+            {% else %}
+            —
+            {% endif %}
+            </span>
+
+            </div>
+
+            </div>
+
+            </th>
             </tr>
         </thead>
         <tbody>

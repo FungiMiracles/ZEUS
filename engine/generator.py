@@ -141,9 +141,18 @@ def cooldown_block(event_type, region_id, current_entenda):
 
 def random_day_in_month(month_date):
 
+    current_entenda = get_current_entenda_date()
+
+    # liczba dni w miesiącu
     days = calendar.monthrange(month_date.year, month_date.month)[1]
 
-    day = random.randint(1, days)
+    # jeżeli to bieżący miesiąc symulacji
+    if month_date.year == current_entenda.year and month_date.month == current_entenda.month:
+        max_day = current_entenda.day
+    else:
+        max_day = days
+
+    day = random.randint(1, max_day)
 
     return month_date.replace(day=day)
 

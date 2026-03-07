@@ -29,6 +29,20 @@ Dodanie zaawansowanych filtrów wyszukiwania regionów.
 Z15.W1.MAR.26 [Regiony]
 Ograniczenie domyślnego wyświetlania listy miast regionu do 5. Dodany przycisk umożliwiający rozwinięcie listy.
 
+Poprawki:
+
+P1.W1.MAR.26 [Dane Gospodarcze]
+Poprawione wyświetlanie procentu wzrostu PKB.
+
+P2.W1.MAR.26 [Filtry wyszukiwań]
+Uspójniono wygląd filtrów wyszukiwań miast i regionów.
+
+P3.W1.MAR.26 [Regiony]
+Naciśnięcie przycisku "Wróć do wyszukiwania" nie powoduje usunięcia kryteriów wyszukiwania.
+
+P4.W1.MAR.26 [Miasta]
+Naciśnięcie przycisku "Wróć do wyszukiwania" nie powoduje usunięcia kryteriów wyszukiwania.
+
 __Wydanie W3.LUT.26 (14.02.2026)__
 
 Zmiany:
