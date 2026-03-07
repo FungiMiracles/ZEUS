@@ -16,13 +16,15 @@ from engine.effects import (
 
 MAX_EVENTS_PER_MONTH = 200
 
-def start_event_scheduler():
+def start_event_scheduler(app):
 
     scheduler = BackgroundScheduler()
 
     def job():
-        generate_events()
-        db.session.commit()
+        with app.app_context():
+            print("[ZEUS] scheduler tick")
+            generate_events()
+            db.session.commit()
 
     scheduler.add_job(job, "interval", minutes=5)
 
