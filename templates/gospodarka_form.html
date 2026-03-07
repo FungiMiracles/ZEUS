@@ -107,7 +107,9 @@
         <div class="section-grid">
             <div>
                 <label>Wzrost PKB (%)</label>
-                <div class="value-box">{{ g.wzrost_pkb | spacenum if g and g.wzrost_pkb is not none else "—" }}</div>
+                <div class="value-box">
+                    {{ "%.1f"|format(g.wzrost_pkb) if g and g.wzrost_pkb is not none else "—" }}
+                </div>
             </div>
 
             <div>

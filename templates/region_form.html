@@ -608,7 +608,7 @@
     </table>
 
     <div style="text-align:center;">
-        <a class="btn-return" href="{{ url_for('wyniki_wyszukiwania_region') }}">
+        <a class="btn-return" href="{{ back_url or url_for('wyniki_wyszukiwania_region') }}">
             Wróć do wyszukiwania regionów
         </a>
         {% if session.rola == "wszechmocny" %}

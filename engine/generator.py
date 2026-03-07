@@ -32,7 +32,7 @@ def start_event_scheduler(app):
             print("[ZEUS] scheduler tick")
             generate_events()
 
-    scheduler.add_job(job, "interval", minutes=15)
+    scheduler.add_job(job, "interval", minutes=30)
 
     scheduler.start()
 
@@ -79,7 +79,7 @@ def generate_events_for_month(month_date):
 
     events_created = 0
 
-    regions = select_regions(200)
+    regions = select_regions(300)
 
     for region in regions:
 

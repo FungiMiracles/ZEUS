@@ -36,6 +36,61 @@ Wyniki wyszukiwania miast
     border-color: #4171d1;
 }
 
+.zeus-filter-box {
+    max-width: 1100px;
+    margin: 0 auto 25px auto;
+    padding: 16px 18px;
+    background-color: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 10px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 16px;
+}
+
+.zeus-filter-box .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zeus-filter-box label {
+    font-size: 0.65em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #34495e;
+    text-transform: uppercase;
+}
+
+.zeus-filter-box select,
+.zeus-filter-box input[type="number"] {
+    padding: 7px 8px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #bfc6cd;
+    background-color: #ffffff;
+}
+
+.zeus-filter-box .filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.zeus-filter-box .filter-actions button {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 0.85em;
+    font-weight: 800;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+
+    background-color: #5d7dce;
+    color: #ffffff;
+}
+
 .wyniki-miast {
     max-width: 1200px;
     margin: 25px auto;
@@ -187,59 +242,17 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
     display: inline;
 }
 
-/* ===== FILTRY ===== */
-.zeus-filter-box {
-    background: #ffffff;
-    border: 1px solid #d3d7dc;
-    border-radius: 12px;
-    padding: 16px 18px;
-    margin: 15px 0 18px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    align-items: flex-end;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-}
-
-.filter-group {
-    min-width: 160px;
-    flex: 0 0 auto;
-}
-
-.filter-group label {
-    font-size: 0.75em;
-    font-weight: 800;
-    color: #34495e;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.filter-group select,
-.filter-group input {
-    width: 100%;
-    padding: 7px 9px;
-    border-radius: 6px;
-    border: 1px solid #bdc3c7;
-    font-size: 0.85em;
-}
-
-.filter-group label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
 .checkbox-inline {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 6px;
-    white-space: nowrap;
+    margin-top: 6px;
 }
 
 .checkbox-inline label {
-    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: none;
 }
 
 /* ============================================================
@@ -332,33 +345,6 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
         width: 100%;
     }
 
-    .zeus-filter-box {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-    }
-
-    .filter-group {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .filter-group select,
-    .filter-group input {
-        width: 100%;
-    }
-
-    /* PRZYCISK FILTRUJ — NA DOLE, PEŁNA SZEROKOŚĆ */
-    .filter-actions {
-        width: 100%;
-    }
-
-    .filter-actions button {
-        width: 100%;
-        text-align: center;
-    }
-
     /* FORM JAKO KOLUMNA */
     form[action*="wyniki_wyszukiwania_miasto"] {
         display: block !important;
@@ -380,28 +366,16 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
         align-items: stretch;
         gap: 12px;
     }
-
-    .filter-group,
-    .filter-actions {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .filter-actions button {
-        width: 100%;
-    }
 }
 
 </style>
 
 
 <div class="wyniki-miast">
-    <h1>Wyniki wyszukiwania miast</h1>
 
     <!-- Zachowanie poprzednich filtrów + filtry dodatkowe -->
     <form method="GET"
-          action="{{ url_for('wyniki_wyszukiwania_miasto') }}"
-          style="margin-bottom:14px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+          action="{{ url_for('wyniki_wyszukiwania_miasto') }}">
 
         <!-- zachowanie poprzednich filtrów -->
         <input type="hidden" name="miasto_nazwa" value="{{ request.args.get('miasto_nazwa','') }}">
@@ -515,8 +489,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
 
             <!-- ===== AKCJA ===== -->
             <div class="filter-actions">
-                <button type="submit"
-                        style="width:100%; padding:7px 14px; border-radius:6px; border:none; background:#5d7dce; color:white; font-weight:700;">
+                <button type="submit">
                     Filtruj
                 </button>
             </div>
@@ -528,6 +501,8 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             Ilość znalezionych miast: {{ total }}
         </div>
     {% endif %}
+
+    <h1>Wyniki wyszukiwania miast</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -549,7 +524,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             Nie znaleziono miast spełniających podane kryteria.
         </div>
         <div class="footer-actions" style="text-align:center;">
-            <a href="{{ url_for('home_page') }}" class="btn-return">
+            <a href="{{ back_url or url_for('wyniki_wyszukiwania_miasto') }}" class="btn-return">
                 Wróć do wyszukiwania
             </a>
         </div>
@@ -724,7 +699,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
 
 
         <div class="footer-actions">
-            <a href="{{ url_for('home_page') }}" class="btn-return">
+            <a href="{{ back_url or url_for('wyniki_wyszukiwania_miasto') }}" class="btn-return">
                 Wróć do wyszukiwania
             </a>
         </div>

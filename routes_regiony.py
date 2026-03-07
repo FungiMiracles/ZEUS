@@ -408,25 +408,6 @@ def init_regiony_routes(app):
 
         return redirect(url_for("wyniki_wyszukiwania_region"))
 
-    # --------------------------------
-    # PODGLĄD REGIONU
-    # --------------------------------
-
-    @app.route("/region/<int:region_id>")
-    def region_form(region_id):
-        region = Region.query.get_or_404(region_id)
-
-        panstwo = region.panstwo
-        miasta = region.miasta  # lista obiektów Miasto
-
-        return render_template(
-            "region_form.html",
-            region=region,
-            panstwo=panstwo,
-            miasta=miasta,
-        )
-
-
 # --------------------------------
 # EDYCJA REGIONU
 # --------------------------------
@@ -593,6 +574,23 @@ def init_regiony_routes(app):
                 "Cache-Control": "public, max-age=86400"
             }
         )
+    
+    @app.route("/region/<int:region_id>")
+    def region_form(region_id):
+        region = Region.query.get_or_404(region_id)
+
+        panstwo = region.panstwo
+        miasta=region.miasta
+        back_url = request.referrer
+
+        return render_template(
+            "region_form.html",
+            region=region,
+            panstwo=panstwo,
+            miasta=miasta,
+            back_url=back_url
+        )
+    
 
 
             
