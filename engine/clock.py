@@ -6,14 +6,7 @@ import os
 # 1 dzień Entendy = 2 godziny realne
 # =====================================================
 
-ENV = os.getenv("ZEUS_ENV", "prod")
-
-if ENV == "dev":
-    TIME_MULTIPLIER = 340
-else:
-    TIME_MULTIPLIER = 12
-
-print("ZEUS ENV:", ENV, "MULT:", TIME_MULTIPLIER)
+TIME_MULTIPLIER = 400
 
 # =====================================================
 # PUNKT STARTOWY CZASU ENTENDY
