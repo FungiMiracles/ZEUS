@@ -190,6 +190,40 @@
         color: #721c24;
     }
 
+    .region-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 35px;
+    }
+
+    .region-grid-3x1 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .region-grid-3x2 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .region-card {
+        border: 1px solid #2f4fa3;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #f9fbff;
+    }
+
+    .region-card-label {
+        font-size: 0.8em;
+        font-weight: 700;
+        color: #2f4fa3;
+        margin-bottom: 4px;
+    }
+
+    .region-card-value {
+        font-size: 1.05em;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
 @media (max-width: 768px) {
 
     /* ===== KONTAINER ===== */
@@ -315,6 +349,11 @@
         padding: 12px 0;
         font-size: 0.95em;
     }
+
+    .region-grid-3x1,
+    .region-grid-3x2 {
+        grid-template-columns: 1fr;
+    }
 }
 
 </style>
@@ -423,125 +462,132 @@
         </tbody>
     </table>
 
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th colspan="2">Klasyfikacja regionu</th>
-            </tr>
-        </thead>
-        <tbody>
+    <h3 style="margin-top:30px;">Klasyfikacja regionu</h3>
 
-            <tr>
-                <td style="font-weight:700;">Położenie regionu:</td>
-                <td>
-                    {{ region.polozenie.nazwa if region.polozenie else "Brak danych" }}
-                </td>
-            </tr>
+    <div class="region-grid region-grid-3x1">
 
-            <tr>
-                <td style="font-weight:700;">Typ nadrzędny:</td>
-                <td>
-                    {{ region.typ_nadrz.nazwa if region.typ_nadrz else "Brak danych" }}
-                </td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Położenie regionu</div>
+    <div class="region-card-value">
+    {{ region.polozenie.nazwa if region.polozenie else "Brak danych" }}
+    </div>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Typ podrzędny:</td>
-                <td>
-                    {{ region.typ_podrz.nazwa if region.typ_podrz else "Brak danych" }}
-                </td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Typ nadrzędny</div>
+    <div class="region-card-value">
+    {{ region.typ_nadrz.nazwa if region.typ_nadrz else "Brak danych" }}
+    </div>
+    </div>
 
-        </tbody>
-    </table>
+    <div class="region-card">
+    <div class="region-card-label">Typ podrzędny</div>
+    <div class="region-card-value">
+    {{ region.typ_podrz.nazwa if region.typ_podrz else "Brak danych" }}
+    </div>
+    </div>
 
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th colspan="2">Ryzyka naturalne i środowiskowe</th>
-            </tr>
-        </thead>
-        <tbody>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Sejsmiczność:</td>
-                <td>{{ region.region_sejsmicznosc if region.region_sejsmicznosc is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <h3>Ryzyka naturalne i środowiskowe</h3>
 
-            <tr>
-                <td style="font-weight:700;">Ryzyko powodzi:</td>
-                <td>{{ region.region_ryzyko_powodzi if region.region_ryzyko_powodzi is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-grid region-grid-3x2">
 
-            <tr>
-                <td style="font-weight:700;">Ryzyko lawin:</td>
-                <td>{{ region.region_ryzyko_lawin if region.region_ryzyko_lawin is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Sejsmiczność</div>
+    <div class="region-card-value">
+    {{ region.region_sejsmicznosc if region.region_sejsmicznosc is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Ryzyko upałów:</td>
-                <td>{{ region.region_ryzyko_upalu if region.region_ryzyko_upalu is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko powodzi</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_powodzi if region.region_ryzyko_powodzi is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Ryzyko mrozów:</td>
-                <td>{{ region.region_ryzyko_mrozu if region.region_ryzyko_mrozu is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko lawin</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_lawin if region.region_ryzyko_lawin is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Aktywność wulkaniczna:</td>
-                <td>{{ region.region_aktywny_wulkan if region.region_aktywny_wulkan is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko upałów</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_upalu if region.region_ryzyko_upalu is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-        </tbody>
-    </table>
+    <div class="region-card">
+    <div class="region-card-label">Ryzyko mrozów</div>
+    <div class="region-card-value">
+    {{ region.region_ryzyko_mrozu if region.region_ryzyko_mrozu is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-    <table class="info-table">
-        <thead>
-            <tr>
-                <th colspan="2">Infrastruktura i skomunikowanie</th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="region-card">
+    <div class="region-card-label">Aktywność wulkaniczna</div>
+    <div class="region-card-value">
+    {{ region.region_aktywny_wulkan if region.region_aktywny_wulkan is not none else "Brak danych" }} / 100
+    </div>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Poziom skomunikowania:</td>
-                <td>{{ region.region_poziom_skomunikowania if region.region_poziom_skomunikowania is not none else "Brak danych" }} / 100</td>
-            </tr>
+    </div>
 
-            <tr>
-                <td style="font-weight:700;">Infrastruktura kolejowa:</td>
-                <td>{{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <h3>Infrastruktura i skomunikowanie</h3>
 
-            <tr>
-                <td style="font-weight:700;">Infrastruktura drogowa:</td>
-                <td>{{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100</td>
-            </tr>
+    <div class="region-grid region-grid-3x2">
 
-            <tr>
-                <td style="font-weight:700;">Infrastruktura energetyczna:</td>
-                <td>{{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100</td>
-            </tr>
+        <div class="region-card">
+            <div class="region-card-label">Poziom skomunikowania</div>
+            <div class="region-card-value">
+                {{ region.region_poziom_skomunikowania if region.region_poziom_skomunikowania is not none else "Brak danych" }} / 100
+            </div>
+        </div>
 
-            <tr>
-                <td style="font-weight:700;">Infrastruktura mieszkaniowa:</td>
-                <td>{{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100</td>
-            </tr>
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura kolejowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
 
-            <tr>
-                <td style="font-weight:700;">Infrastruktura portowa:</td>
-                <td>
-                    {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
-                        {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
-                    {% else %}
-                        Nie dotyczy
-                    {% endif %}
-                </td>
-            </tr>
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura drogowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
 
-        </tbody>
-    </table>
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura energetyczna</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura mieszkaniowa</div>
+            <div class="region-card-value">
+                {{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100
+            </div>
+        </div>
+
+        <div class="region-card">
+            <div class="region-card-label">Infrastruktura portowa</div>
+            <div class="region-card-value">
+                {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
+                    {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
+                {% else %}
+                    Nie dotyczy
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
 
 
 
