@@ -20,20 +20,14 @@ def init_zdarzenia_routes(app):
         data_od = request.args.get("data_od")
         data_do = request.args.get("data_do")
 
-        if data_od:
-            data_od = datetime.fromisoformat(data_od)
-            query = query.filter(Zdarzenie.data_entenda >= data_od)
-
-        if data_do:
-            data_do = datetime.fromisoformat(data_do)
-            query = query.filter(Zdarzenie.data_entenda <= data_do)
-
+        # NAJPIERW TWORZYMY QUERY
         query = (
             db.session.query(Zdarzenie, Region, Panstwo)
             .outerjoin(Region, Zdarzenie.region_id == Region.region_id)
             .outerjoin(Panstwo, Region.panstwo_id == Panstwo.PANSTWO_ID)
         )
 
+        # FILTRY
         if region_id and region_id.isdigit():
             query = query.filter(Zdarzenie.region_id == int(region_id))
 
@@ -43,11 +37,13 @@ def init_zdarzenia_routes(app):
         if typ:
             query = query.filter(Zdarzenie.zdarzenie_typ == typ)
 
-        if data_od and data_od.isdigit():
-            query = query.filter(extract("year", Zdarzenie.data_entenda) >= int(data_od))
+        if data_od:
+            data_od = datetime.fromisoformat(data_od)
+            query = query.filter(Zdarzenie.data_entenda >= data_od)
 
-        if data_do and data_do.isdigit():
-            query = query.filter(extract("year", Zdarzenie.data_entenda) <= int(data_do))
+        if data_do:
+            data_do = datetime.fromisoformat(data_do) + timedelta(days=1)
+            query = query.filter(Zdarzenie.data_entenda < data_do)
 
         zdarzenia = (
             query
