@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from engine.clock import get_current_entenda_date, ENTENDA_START
 from sqlalchemy import extract
 from apscheduler.schedulers.background import BackgroundScheduler
+import calendar
 
 from extensions import db
 from models import Zdarzenie, Region
@@ -14,7 +15,7 @@ from engine.effects import (
     apply_road_disaster_effect
 )
 
-MAX_EVENTS_PER_MONTH = 5
+MAX_EVENTS_PER_MONTH = 30
 
 def start_event_scheduler(app):
 
@@ -24,7 +25,6 @@ def start_event_scheduler(app):
         with app.app_context():
             print("[ZEUS] scheduler tick")
             generate_events()
-            db.session.commit()
 
     scheduler.add_job(job, "interval", minutes=15)
 
@@ -34,28 +34,33 @@ def generate_events():
 
     current_entenda = get_current_entenda_date()
 
-    last_generated = get_current_entenda_date() - timedelta(days=50)
+    last_generated = get_last_generated_entenda_date()
 
     generated_total = 0
 
-    max_days = 50
+    current_month = datetime(last_generated.year, last_generated.month, 1)
 
-    while last_generated < current_entenda and max_days > 0:
+    end_month = datetime(current_entenda.year, current_entenda.month, 1)
 
-        created = generate_events_for_day(last_generated)
+    while current_month <= end_month:
+
+        created = generate_events_for_month(current_month)
 
         generated_total += created
 
-        last_generated += timedelta(days=1)
-        max_days -= 1
+        # przejdź do następnego miesiąca
+        if current_month.month == 12:
+            current_month = datetime(current_month.year + 1, 1, 1)
+        else:
+            current_month = datetime(current_month.year, current_month.month + 1, 1)
 
     print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
 
     return generated_total
 
-def generate_events_for_day(target_date):
+def generate_events_for_month(month_date):
 
-    month_events = get_month_event_count(target_date)
+    month_events = get_month_event_count(month_date)
 
     if month_events >= MAX_EVENTS_PER_MONTH:
         return 0
@@ -64,41 +69,39 @@ def generate_events_for_day(target_date):
 
     events_created = 0
 
-    regions = select_regions(30)
+    regions = select_regions(120)
 
     for region in regions:
 
         if events_created >= remaining:
             break
 
-        event = try_generate_earthquake(region, target_date)
+        event_date = random_day_in_month(month_date)
+
+        event = try_generate_earthquake(region, event_date)
 
         if event:
             apply_earthquake_effect(region, event.skala, event.ilosc_ofiar)
-
             db.session.add(event)
-            db.session.commit()
             events_created += 1
             continue
 
-        event = try_generate_train_disaster(region, target_date)
+        event = try_generate_train_disaster(region, event_date)
 
         if event:
             apply_train_disaster_effect(region, event.skala, event.ilosc_ofiar)
-
             db.session.add(event)
-            db.session.commit()
             events_created += 1
             continue
 
-        event = try_generate_road_disaster(region, target_date)
+        event = try_generate_road_disaster(region, event_date)
 
         if event:
             apply_road_disaster_effect(region, event.skala, event.ilosc_ofiar)
-
             db.session.add(event)
-            db.session.commit()
             events_created += 1
+
+    db.session.commit()
 
     return events_created
 
@@ -116,6 +119,14 @@ def cooldown_block(event_type, region_id, current_entenda):
 
     return existing is not None
 
+def random_day_in_month(month_date):
+
+    days = calendar.monthrange(month_date.year, month_date.month)[1]
+
+    day = random.randint(1, days)
+
+    return month_date.replace(day=day)
+
 def try_generate_earthquake(region, target_date):
 
     s = region.region_sejsmicznosc or 0
@@ -127,27 +138,27 @@ def try_generate_earthquake(region, target_date):
         return None
 
     if s < 20:
-        prob = 1
+        prob = 0.001
         scale = 1
         victims_range = (0,5)
 
     elif s < 40:
-        prob = 2
+        prob = 0.002
         scale = 2
         victims_range = (6,30)
 
     elif s < 60:
-        prob = 3
+        prob = 0.003
         scale = 3
         victims_range = (31,100)
 
     elif s < 80:
-        prob = 4
+        prob = 0.035
         scale = 4
         victims_range = (101,1000)
 
     else:
-        prob = 5
+        prob = 0.04
         scale = 5
         victims_range = (1001,10000)
 
@@ -176,27 +187,27 @@ def try_generate_train_disaster(region, target_date):
         return None
 
     if infra > 80:
-        prob = 1
+        prob = 0.0005
         scale = 1
         victims_range = (0,1)
 
     elif infra > 65:
-        prob = 2
+        prob = 0.0015
         scale = 2
         victims_range = (2,10)
 
     elif infra > 50:
-        prob = 3
+        prob = 0.0025
         scale = 3
         victims_range = (11,30)
 
     elif infra > 30:
-        prob = 4
+        prob = 0.003
         scale = 4
         victims_range = (31,50)
 
     else:
-        prob = 0.0005
+        prob = 0.005
         scale = 5
         victims_range = (51,200)
 
@@ -225,27 +236,27 @@ def try_generate_road_disaster(region, target_date):
         return None
 
     if infra > 80:
-        prob = 1
+        prob = 0.0005
         scale = 1
         victims_range = (0,1)
 
     elif infra > 65:
-        prob = 1
+        prob = 0.0015
         scale = 2
         victims_range = (2,5)
 
     elif infra > 50:
-        prob = 1
+        prob = 0.0025
         scale = 3
         victims_range = (5,10)
 
     elif infra > 30:
-        prob = 1
+        prob = 0.003
         scale = 4
         victims_range = (11,15)
 
     else:
-        prob = 1
+        prob = 0.005
         scale = 5
         victims_range = (16,20)
 
