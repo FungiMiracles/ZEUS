@@ -181,7 +181,7 @@ def create_app():
     def forbidden(e):
         return render_template("403.html"), 403
     
-    start_event_scheduler(app)
+    # start_event_scheduler(app) <--- ODBLOKOWUJE GENERATOR ZDARZEŃ
 
     return app
 
