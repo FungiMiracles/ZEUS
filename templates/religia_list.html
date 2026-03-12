@@ -379,8 +379,13 @@
 
             <div class="religia-filter">
                 <label>Kontynent</label>
-                <select name="kontynent">
-                    <option value="">— Wszystkie —</option>
+                <select name="kontynent_id">
+                    {% for k in kontynenty %}
+                    <option value="{{ k.kontynent_id }}"
+                    {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+                    {{ k.kontynent_nazwa }}
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
 

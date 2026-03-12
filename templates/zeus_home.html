@@ -182,14 +182,15 @@
 
                 <form action="{{ url_for('wyniki_wyszukiwania') }}" method="GET">
                     <label>Kontynent</label>
-                    <select name="kontynent">
-                        <option value="">—</option>
-                        <option>Kao</option>
-                        <option>Beifa</option>
-                        <option>Anzinia</option>
-                        <option>Peryfa</option>
-                        <option>Wyspy Większe</option>
-                        <option>Wyspy Mniejsze</option>
+                    <select name="kontynent_id" id="kontynentSelect">
+                        <option value="">— brak —</option>
+
+                        {% for k in kontynenty %}
+                            <option value="{{ k.kontynent_id }}">
+                                {{ k.kontynent_nazwa }}
+                            </option>
+                        {% endfor %}
+
                     </select>
 
                     <label>Nazwa państwa</label>

@@ -346,9 +346,9 @@
     <select name="kontynent">
     <option value="">— wszystkie —</option>
     {% for k in kontynenty %}
-    <option value="{{ k }}"
-    {% if request.args.get('kontynent') == k %}selected{% endif %}>
-    {{ k }}
+    <option value="{{ k.kontynent_id }}"
+    {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+    {{ k.kontynent_nazwa }}
     </option>
     {% endfor %}
     </select>
@@ -512,7 +512,7 @@
                             {{ row.panstwo_nazwa }} ({{ row.panstwo_kod }})
                         </div>
                         <div class="country-meta">
-                            ID: {{ row.PANSTWO_ID }} • {{ row.kontynent }}
+                            ID: {{ row.PANSTWO_ID }} • {{ row.kontynent_rel.kontynent_nazwa if row.kontynent_rel else "—" }}
                         </div>
                     </div>
 
