@@ -8,7 +8,7 @@ from flask import (
 )
 
 from extensions import db
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 from permissions import wymaga_roli
 from sqlalchemy import func
 from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
@@ -30,12 +30,10 @@ def init_demografia_routes(app):
         panstwo_id = request.args.get("panstwo_id")
 
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         panstwa = []
         panstwo = None
@@ -44,7 +42,7 @@ def init_demografia_routes(app):
         if kontynent:
             panstwa = (
                 Panstwo.query
-                .filter_by(kontynent=kontynent)
+                .filter_by(kontynent_id=kontynent)
                 .order_by(Panstwo.panstwo_nazwa)
                 .all()
             )
@@ -92,12 +90,10 @@ def init_demografia_routes(app):
     def demografia_generator_miast():
 
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         if request.method == "POST":
 
@@ -244,12 +240,10 @@ def init_demografia_routes(app):
 
         # lista kontynentów
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         # lista państw (jeśli wybrano kontynent)
         panstwa = []

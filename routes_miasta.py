@@ -1,7 +1,7 @@
 # routes_miasta.py
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
-from models import Miasto, Panstwo, Region
+from models import Miasto, Panstwo, Region, DictKontynent
 from permissions import wymaga_roli
 from demografia_utils import przelicz_region_demografia
 from sqlalchemy import or_
@@ -253,24 +253,22 @@ def init_miasta_routes(app):
             )
         
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         panstwa_query = Panstwo.query
 
         if kontynent:
-            panstwa_query = panstwa_query.filter(Panstwo.kontynent == kontynent)
+            panstwa_query = panstwa_query.filter(Panstwo.kontynent_id == kontynent)
 
         panstwa = panstwa_query.order_by(Panstwo.panstwo_nazwa).all()
 
         regiony_query = Region.query.join(Panstwo)
 
         if kontynent:
-            regiony_query = regiony_query.filter(Panstwo.kontynent == kontynent)
+            regiony_query = regiony_query.filter(Panstwo.kontynent_id == kontynent)
 
         if panstwo_nazwa:
             regiony_query = regiony_query.filter(
