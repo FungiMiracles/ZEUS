@@ -93,6 +93,13 @@ def init_panstwa_routes(app):
         pkb_pc_do = request.args.get("pkb_pc_do")
         czy_suwerenny = request.args.get("czy_suwerenny")
 
+        kontynenty = db.session.query(Panstwo.kontynent)\
+            .distinct()\
+            .order_by(Panstwo.kontynent)\
+            .all()
+
+        kontynenty = [k[0] for k in kontynenty]
+
         query = Panstwo.query
 
         if kontynent:
@@ -154,6 +161,7 @@ def init_panstwa_routes(app):
             pagination=pagination,
             total=total,
             args=args,
+            kontynenty=kontynenty,
             empty=len(results) == 0
         )
 
