@@ -427,7 +427,7 @@ def init_gospodarka_routes(app):
         return jsonify({
             "id": pan.PANSTWO_ID,
             "nazwa": pan.panstwo_nazwa,
-            "kontynent": pan.kontynent_rel.kontynent_nazwa if pan.kontynent_rel else None
+            "kontynent": pan.kontynent_rel.kontynent_nazwa if pan.kontynent_rel else None,
             "populacja": safe(pan.panstwo_populacja),
             "gospodarka": gospodarka,
             "reverse_fields": reverse_fields
