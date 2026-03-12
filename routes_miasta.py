@@ -15,7 +15,7 @@ def init_miasta_routes(app):
     
         query = Panstwo.query
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
     
         panstwa = query.order_by(Panstwo.panstwo_nazwa).all()
     
@@ -187,7 +187,7 @@ def init_miasta_routes(app):
         )
 
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
     
         if miasto_nazwa:
             query = query.filter(Miasto.miasto_nazwa.like(f"{miasto_nazwa}%"))

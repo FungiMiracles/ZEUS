@@ -60,10 +60,9 @@ def init_regiony_routes(app):
         per_page = 25
 
         # ===== LISTY DO FILTRÓW =====
-        kontynenty = [
-            k[0] for k in DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
-            if k[0]
-        ]
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
 
         uksztaltowania = DictRegionTeren.query.all()
         polozenia = DictRegionPolozenie.query.all()
@@ -86,7 +85,7 @@ def init_regiony_routes(app):
             )
 
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         if panstwo_id and panstwo_id.isdigit():
             query = query.filter(Region.panstwo_id == int(panstwo_id))

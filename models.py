@@ -674,4 +674,5 @@ class DictKontynent(db.Model):
     kontynent_id = db.Column(db.Integer, primary_key=True)
     kontynent_nazwa = db.Column(db.String(100), unique=True, nullable=False)
 
-    panstwa = db.relationship("Panstwo", backref="kontynent_rel", lazy=True)   
+    panstwa = db.relationship("Panstwo", backref="kontynent_rel", lazy=True)
+    
