@@ -51,6 +51,7 @@
 .country-name {
     font-size: 1.05em;
     font-weight: 700;
+    gap: 8px;
 }
 
 .country-meta {
@@ -304,10 +305,9 @@
                     <div class="country-main">
                         <div class="country-name">
                             <img
-                                src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                                src="{{ url_for('static', filename='flags/' + row.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
                                 class="flag-region"
-                                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
-                            >
+                                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
                             {{ row.panstwo_nazwa }} ({{ row.panstwo_kod }})
                         </div>
                         <div class="country-meta">
