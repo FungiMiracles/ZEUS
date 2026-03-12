@@ -215,11 +215,11 @@
                   <select name="kontynent" onchange="this.form.submit()">
                       <option value="">— wybierz —</option>
                       {% for k in kontynenty %}
-                          <option value="{{ k }}"
-                              {% if k == selected_kontynent %}selected{% endif %}>
-                              {{ k }}
-                          </option>
-                      {% endfor %}
+                        <option value="{{ k.kontynent_id }}"
+                        {% if k.kontynent_id|string == selected_kontynent|string %}selected{% endif %}>
+                        {{ k.kontynent_nazwa }}
+                        </option>
+                        {% endfor %}
                   </select>
               </div>
       

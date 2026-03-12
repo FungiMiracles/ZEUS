@@ -11,9 +11,10 @@ def init_miasta_routes(app):
 
     @app.route("/api/panstwa")
     def api_panstwa():
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
     
         query = Panstwo.query
+        
         if kontynent:
             query = query.filter(Panstwo.kontynent_id == kontynent)
     

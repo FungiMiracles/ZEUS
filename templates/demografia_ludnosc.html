@@ -172,14 +172,10 @@
 
             <div>
                 <label>Kontynent</label>
-                <select name="kontynent">
-                    <option value="">— wybierz —</option>
-                    {% for k in kontynenty %}
-                        <option value="{{ k }}"
-                            {% if k == selected_kontynent %}selected{% endif %}>
-                            {{ k }}
-                        </option>
-                    {% endfor %}
+                <select name="kontynent_id">
+                    <option value="{{ k.kontynent_id }}">
+                    {{ k.kontynent_nazwa }}
+                    </option>
                 </select>
             </div>
 

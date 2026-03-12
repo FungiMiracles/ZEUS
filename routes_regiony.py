@@ -31,7 +31,7 @@ def init_regiony_routes(app):
 
         panstwo_nazwa = request.args.get("panstwo_nazwa", "").strip()
         region_nazwa = request.args.get("region_nazwa", "").strip()
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent_id")
         panstwo_id = request.args.get("panstwo_id")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")

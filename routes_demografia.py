@@ -13,7 +13,6 @@ from permissions import wymaga_roli
 from sqlalchemy import func
 from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
 import random
-from flask import jsonify
 from datetime import datetime
 
 
@@ -26,7 +25,7 @@ def init_demografia_routes(app):
     @app.route("/demografia/kalkulator", methods=["GET"])
     def demografia_kalkulator():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
         panstwo_id = request.args.get("panstwo_id")
 
         kontynenty = (
@@ -235,7 +234,7 @@ def init_demografia_routes(app):
     @app.route("/demografia/ludnosc", methods=["GET"])
     def demografia_ludnosc():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
         panstwo_id = request.args.get("panstwo_id")
 
         # lista kontynentów
@@ -250,7 +249,7 @@ def init_demografia_routes(app):
         if kontynent:
             panstwa = (
                 Panstwo.query
-                .filter_by(kontynent=kontynent)
+                .filter(Panstwo.kontynent_id == kontynent)
                 .order_by(Panstwo.panstwo_nazwa)
                 .all()
             )
