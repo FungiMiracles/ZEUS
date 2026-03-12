@@ -8,9 +8,10 @@ from models import (
     DictRegionTeren,
     DictRegionPolozenie,
     DictRegionTyp,
-    DictKontynent
+    DictKontynent,
     Zdarzenie,
 )
+
 from permissions import wymaga_roli
 from flask import Response, send_file
 import os
