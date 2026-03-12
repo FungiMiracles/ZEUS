@@ -249,7 +249,6 @@ def init_panstwa_routes(app):
                 "panstwo_religia",
                 "panstwo_PKB",
                 "panstwo_PKB_per_capita",
-                "panstwo_populacja",
                 "czy_suwerenny",
             ]
 
