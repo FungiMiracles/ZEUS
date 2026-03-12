@@ -184,6 +184,13 @@
     border-color: #4171d1;
 }
 
+.flag-region {
+        height: 30px;
+        width: auto;
+        border: 1px solid #000;
+        border-radius: 2px;
+}
+
 /* ============================================================
    MOBILE — LISTA PAŃSTW (FINAL, STABILNA)
 ============================================================ */
@@ -296,6 +303,11 @@
                     <!-- LEWA STRONA -->
                     <div class="country-main">
                         <div class="country-name">
+                            <img
+                                src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                                class="flag-region"
+                                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
+                            >
                             {{ row.panstwo_nazwa }} ({{ row.panstwo_kod }})
                         </div>
                         <div class="country-meta">
