@@ -252,6 +252,7 @@ main.container {
     height: 30px;
     display: flex;
     align-items: center;
+    margin: 0 40px;
 }
 
 .news-track {
@@ -387,14 +388,14 @@ main.container {
                 {% for e in latest_events %}
                     <span class="news-item">
                         [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
-                        {{ e.opis_wygenerowany }}
+                        {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }}
                     </span>
                 {% endfor %}
 
                 {% for e in latest_events %}
                     <span class="news-item">
                         [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
-                        {{ e.opis_wygenerowany }}
+                        {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }}
                     </span>
                 {% endfor %}
             {% endif %}
