@@ -20,7 +20,17 @@ def init_main_routes(app):
     
     @app.route("/home")
     def home_page():
-        return render_template("zeus_home.html")
+        latest_events = (
+            Zdarzenie.query
+            .order_by(Zdarzenie.data_entenda.desc())
+            .limit(10)
+            .all()
+        )
+
+        return render_template(
+            "zeus_home.html",
+            latest_events=latest_events
+        )
 
     @app.route("/historia")
     def historia():
@@ -129,19 +139,3 @@ def init_main_routes(app):
     def miasto_dodano():
         return render_template("miasto_dodano.html")
     
-    # --------------------------
-    # Pasek wiadomości ze świata
-    # --------------------------
-
-    latest_events = (
-        Zdarzenie.query
-        .filter(Zdarzenie.opis_wygenerowany != None)
-        .order_by(Zdarzenie.data_entenda.desc())
-        .limit(10)
-        .all()
-    )
-
-    return render_template(
-        "zeus_home.html",
-        latest_events=latest_events
-    )
