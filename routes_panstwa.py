@@ -349,4 +349,66 @@ def init_panstwa_routes(app):
 
         flash("Informacje szczegółowe zostały zapisane.", "success")
         return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
+    
+    @app.route("/wyniki_wyszukiwania")
+    def wyniki_wyszukiwania():
+
+        query = Panstwo.query
+
+        kontynent = request.args.get("kontynent")
+        ustroj = request.args.get("panstwo_ustroj")
+        populacja_od = request.args.get("populacja_od")
+        populacja_do = request.args.get("populacja_do")
+        powierzchnia = request.args.get("panstwo_powierzchnia")
+        jezyk = request.args.get("panstwo_jezyk")
+        religia = request.args.get("panstwo_religia")
+        pkb_od = request.args.get("pkb_od")
+        pkb_do = request.args.get("pkb_do")
+        pkb_pc_od = request.args.get("pkb_pc_od")
+        pkb_pc_do = request.args.get("pkb_pc_do")
+        czy_suwerenny = request.args.get("czy_suwerenny")
+
+        if kontynent:
+            query = query.filter(Panstwo.kontynent == kontynent)
+
+        if ustroj:
+            query = query.filter(Panstwo.panstwo_ustroj.ilike(f"%{ustroj}%"))
+
+        if populacja_od:
+            query = query.filter(Panstwo.panstwo_populacja >= int(populacja_od))
+
+        if populacja_do:
+            query = query.filter(Panstwo.panstwo_populacja <= int(populacja_do))
+
+        if powierzchnia:
+            query = query.filter(Panstwo.panstwo_powierzchnia >= int(powierzchnia))
+
+        if jezyk:
+            query = query.filter(Panstwo.panstwo_jezyk.ilike(f"%{jezyk}%"))
+
+        if religia:
+            query = query.filter(Panstwo.panstwo_religia.ilike(f"%{religia}%"))
+
+        if pkb_od:
+            query = query.filter(Panstwo.panstwo_PKB >= int(pkb_od))
+
+        if pkb_do:
+            query = query.filter(Panstwo.panstwo_PKB <= int(pkb_do))
+
+        if pkb_pc_od:
+            query = query.filter(Panstwo.panstwo_PKB_per_capita >= int(pkb_pc_od))
+
+        if pkb_pc_do:
+            query = query.filter(Panstwo.panstwo_PKB_per_capita <= int(pkb_pc_do))
+
+        if czy_suwerenny:
+            query = query.filter(Panstwo.czy_suwerenny == czy_suwerenny)
+
+        results = query.all()
+
+        return render_template(
+            "wyniki_panstwa.html",
+            results=results,
+            total=len(results)
+        )
 

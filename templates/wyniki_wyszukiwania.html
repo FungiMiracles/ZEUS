@@ -192,6 +192,29 @@
         border-radius: 2px;
 }
 
+.search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+        gap: 12px;
+}
+
+.search-form input,
+.search-form select {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #bdc3c7;
+}
+
+.btn-search {
+        padding: 8px 16px;
+        background: #5d7dce;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+}
+
 /* ============================================================
    MOBILE — LISTA PAŃSTW (FINAL, STABILNA)
 ============================================================ */
@@ -263,6 +286,88 @@
 </style>
 
 <div class="wyniki-panstw">
+
+    <form method="GET" action="{{ url_for('wyniki_wyszukiwania') }}" class="search-form">
+
+        <div class="search-grid">
+
+        <div>
+        <label>Kontynent</label>
+        <select name="kontynent">
+        <option value="">-- dowolny --</option>
+        <option value="Kao">Kao</option>
+        <option value="Beifa">Beifa</option>
+        <option value="Anzinia">Anzinia</option>
+        <option value="Peryfa">Peryfa</option>
+        <option value="Wyspy Większe">Wyspy Większe</option>
+        <option value="Wyspy Mniejsze">Wyspy Mniejsze</option>
+        </select>
+        </div>
+
+        <div>
+        <label>Ustrój polityczny</label>
+        <input type="text" name="panstwo_ustroj">
+        </div>
+
+        <div>
+        <label>Populacja od</label>
+        <input type="number" name="populacja_od">
+        </div>
+
+        <div>
+        <label>Populacja do</label>
+        <input type="number" name="populacja_do">
+        </div>
+
+        <div>
+        <label>Powierzchnia</label>
+        <input type="number" name="panstwo_powierzchnia">
+        </div>
+
+        <div>
+        <label>Język urzędowy</label>
+        <input type="text" name="panstwo_jezyk">
+        </div>
+
+        <div>
+        <label>Religia dominująca</label>
+        <input type="text" name="panstwo_religia">
+        </div>
+
+        <div>
+        <label>PKB od</label>
+        <input type="number" name="pkb_od">
+        </div>
+
+        <div>
+        <label>PKB do</label>
+        <input type="number" name="pkb_do">
+        </div>
+
+        <div>
+        <label>PKB per capita od</label>
+        <input type="number" name="pkb_pc_od">
+        </div>
+
+        <div>
+        <label>PKB per capita do</label>
+        <input type="number" name="pkb_pc_do">
+        </div>
+
+        <div>
+        <label>Status suwerenności</label>
+        <label><input type="radio" name="czy_suwerenny" value=""> Dowolny</label>
+        <label><input type="radio" name="czy_suwerenny" value="TAK"> Suwerenny</label>
+        <label><input type="radio" name="czy_suwerenny" value="NIE"> Niesuwerenny</label>
+        </div>
+
+        </div>
+
+        <div style="margin-top:15px;">
+        <button type="submit" class="btn-search">Szukaj</button>
+        </div>
+
+        </form>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
