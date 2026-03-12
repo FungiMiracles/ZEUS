@@ -34,8 +34,7 @@ def apply_earthquake_effect(region, scale, victims):
 
     _apply_population_loss(region, victims)
 
-    # uszkodzenia infrastruktury zależne od skali
-    damage_base = scale * random.randint(2, 5)
+    damage_base = int(scale * random.uniform(0.5, 1))
 
     region.region_stan_infra_drogowej = _degrade(
         region.region_stan_infra_drogowej,
@@ -66,7 +65,7 @@ def apply_train_disaster_effect(region, scale, victims):
 
     _apply_population_loss(region, victims)
 
-    damage = scale * random.randint(1, 3)
+    damage = int(scale * random.uniform(0.5, 1))
 
     region.region_stan_infra_kolejowej = _degrade(
         region.region_stan_infra_kolejowej,
@@ -82,7 +81,122 @@ def apply_road_disaster_effect(region, scale, victims):
 
     _apply_population_loss(region, victims)
 
-    damage = scale * random.randint(1, 2)
+    damage = int(scale * random.uniform(0.5, 1))
+
+    region.region_stan_infra_drogowej = _degrade(
+        region.region_stan_infra_drogowej,
+        damage
+    )
+    
+# =====================================================
+# POWÓDŹ
+# =====================================================
+    
+def apply_flood_effect(region, scale, victims):
+
+    _apply_population_loss(region, victims)
+
+    damage = int(scale * random.uniform(0.5, 1))
+
+    region.region_stan_infra_drogowej = _degrade(
+        region.region_stan_infra_drogowej,
+        damage
+    )
+
+    region.region_stan_infra_kolejowej = _degrade(
+        region.region_stan_infra_kolejowej,
+        damage
+    )
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage
+    )
+
+# =====================================================
+# LAWINA
+# =====================================================
+
+def apply_avalanche_effect(region, scale, victims):
+
+    _apply_population_loss(region, victims)
+
+    damage = int(scale * random.uniform(0.4, 0.7))
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage
+    )
+
+# =====================================================
+# ERUPCJA WULKANU
+# =====================================================
+
+def apply_volcano_effect(region, scale, victims):
+
+    _apply_population_loss(region, victims)
+
+    damage = int(scale * random.uniform(0.5, 1))
+
+    region.region_stan_infra_drogowej = _degrade(
+        region.region_stan_infra_drogowej,
+        damage
+    )
+
+    region.region_stan_infra_kolejowej = _degrade(
+        region.region_stan_infra_kolejowej,
+        damage
+    )
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage
+    )
+
+# =====================================================
+# FALA MROZU
+# =====================================================
+
+def apply_coldwave_effect(region, scale, victims):
+
+    _apply_population_loss(region, victims)
+
+    damage = int(scale * random.uniform(0.6, 0.9))
+
+    region.region_stan_infra_drogowej = _degrade(
+        region.region_stan_infra_drogowej,
+        damage
+    )
+
+    region.region_stan_infra_energetycznej = _degrade(
+        region.region_stan_infra_energetycznej,
+        damage
+    )    
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage
+    )
+
+# =====================================================
+# FALA UPAŁU
+# =====================================================
+
+def apply_heatwave_effect(region, scale, victims):
+
+    _apply_population_loss(region, victims)
+
+    damage = int(scale * random.uniform(0.8, 1.1))
+
+    region.region_stan_infra_energetycznej = _degrade(
+        region.region_stan_infra_energetycznej,
+        damage
+    ) 
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage
+    )
 
     region.region_stan_infra_drogowej = _degrade(
         region.region_stan_infra_drogowej,

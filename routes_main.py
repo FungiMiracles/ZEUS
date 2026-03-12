@@ -7,6 +7,7 @@ from paths import INFO_FILE
 from permissions import wymaga_roli
 import markdown
 from paths import VERSIONS_FILE
+from models import Zdarzenie
 
 
 def init_main_routes(app):
@@ -127,3 +128,20 @@ def init_main_routes(app):
     @app.route("/miasto_dodano")
     def miasto_dodano():
         return render_template("miasto_dodano.html")
+    
+    # --------------------------
+    # Pasek wiadomości ze świata
+    # --------------------------
+
+    latest_events = (
+        Zdarzenie.query
+        .filter(Zdarzenie.opis_wygenerowany != None)
+        .order_by(Zdarzenie.data_entenda.desc())
+        .limit(10)
+        .all()
+    )
+
+    return render_template(
+        "zeus_home.html",
+        latest_events=latest_events
+    )

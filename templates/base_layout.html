@@ -243,6 +243,36 @@ main.container {
     color: #721c24;
 }
 
+.news-bar {
+    background-color: #0b1f3a;
+    color: white;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.news-track {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scrollNews 60s linear infinite;
+}
+
+.news-item {
+    margin-right: 80px;
+}
+
+@keyframes scrollNews {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
 /* =====================================================
    MOBILE & TABLET
 ===================================================== */
@@ -348,6 +378,26 @@ main.container {
                     ⓘ Informacje o wersjach
                 </a>
             </div>
+        </div>
+    </div>
+
+    <div class="news-bar">
+        <div class="news-track">
+            {% if latest_events %}
+                {% for e in latest_events %}
+                    <span class="news-item">
+                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
+                        {{ e.opis_wygenerowany }}
+                    </span>
+                {% endfor %}
+
+                {% for e in latest_events %}
+                    <span class="news-item">
+                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
+                        {{ e.opis_wygenerowany }}
+                    </span>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 

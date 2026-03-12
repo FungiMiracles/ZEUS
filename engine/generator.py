@@ -6,13 +6,21 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import calendar
 
 from extensions import db
-from models import Zdarzenie, Region
+from models import Zdarzenie, Region, Panstwo, Miasto
 from engine.selectors import select_regions
+
+from engine.template_selector import select_template
+from engine.event_renderer import render_event_description
 
 from engine.effects import (
     apply_earthquake_effect,
     apply_train_disaster_effect,
-    apply_road_disaster_effect
+    apply_road_disaster_effect,
+    apply_flood_effect,
+    apply_avalanche_effect,
+    apply_volcano_effect,
+    apply_coldwave_effect,
+    apply_heatwave_effect
 )
 
 #----------------------------------------------------------#
@@ -91,36 +99,46 @@ def generate_events_for_month(month_date):
         if events_created >= remaining:
             break
 
-        event_date = random_day_in_month(month_date)
+        events = [
+            (try_generate_earthquake, apply_earthquake_effect),
+            (try_generate_train_disaster, apply_train_disaster_effect),
+            (try_generate_road_disaster, apply_road_disaster_effect),
+            (try_generate_flood, apply_flood_effect),
+            (try_generate_avalanche, apply_avalanche_effect),
+            (try_generate_volcano, apply_volcano_effect),
+            (try_generate_coldwave, apply_coldwave_effect),
+            (try_generate_heatwave, apply_heatwave_effect)
+        ]
 
-        event = try_generate_earthquake(region, event_date)
+        random.shuffle(events)
 
-        if event and region_events < MAX_EVENTS_PER_REGION_PER_MONTH and events_created < remaining:
-            apply_earthquake_effect(region, event.skala, event.ilosc_ofiar)
-            db.session.add(event)
-            events_created += 1
-            region_events += 1
+        for generator, effect in events:
 
-        event = try_generate_train_disaster(region, event_date)
+            event = generator(region, random_day_in_month(month_date))
 
-        if event and region_events < MAX_EVENTS_PER_REGION_PER_MONTH and events_created < remaining:
-            apply_train_disaster_effect(region, event.skala, event.ilosc_ofiar)
-            db.session.add(event)
-            events_created += 1
-            region_events += 1
+            if event and region_events < MAX_EVENTS_PER_REGION_PER_MONTH and events_created < remaining:
 
-        event = try_generate_road_disaster(region, event_date)
+                template = select_template(event.zdarzenie_typ, event.skala)
 
-        if event and region_events < MAX_EVENTS_PER_REGION_PER_MONTH and events_created < remaining:
-            apply_road_disaster_effect(region, event.skala, event.ilosc_ofiar)
-            db.session.add(event)
-            events_created += 1
-            region_events += 1
+                if template:
+                    event.opis_szablon_id = template.szablon_id
+                    event.opis_wygenerowany = render_event_description(event, template.tresc)
+                else:
+                    event.opis_wygenerowany = None
+
+                effect(region, event.skala, event.ilosc_ofiar)
+
+                db.session.add(event)
+
+                events_created += 1
+                region_events += 1
+
+                if region_events >= MAX_EVENTS_PER_REGION_PER_MONTH:
+                    break
 
     db.session.commit()
 
-    return events_created
-
+    return events_created              
 #----------------------------------------------------------#
 
 def cooldown_block(event_type, region_id, current_entenda):
@@ -196,12 +214,12 @@ def try_generate_earthquake(region, target_date):
         victims_range = (31,100)
 
     elif s < 80:
-        prob = 0.035
+        prob = 0.0035
         scale = 4
         victims_range = (101,1000)
 
     else:
-        prob = 0.04
+        prob = 0.004
         scale = 5
         victims_range = (1001,10000)
 
@@ -210,9 +228,18 @@ def try_generate_earthquake(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
     return Zdarzenie(
         zdarzenie_typ="trzesienie_ziemi",
+        panstwo_id=region.panstwo_id,
         region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -261,9 +288,18 @@ def try_generate_train_disaster(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
     return Zdarzenie(
         zdarzenie_typ="katastrofa_kolejowa",
+        panstwo_id=region.panstwo_id,
         region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -312,9 +348,318 @@ def try_generate_road_disaster(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
     return Zdarzenie(
         zdarzenie_typ="katastrofa_w_ruchu_ladowym",
+        panstwo_id=region.panstwo_id,
         region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_flood(region, target_date):
+
+    s = region.region_ryzyko_powodzi or 0
+
+    if s <= 0:
+        return None
+
+    if cooldown_block("powodz", region.region_id, target_date):
+        return None
+
+    if s < 20:
+        prob = 0.001
+        scale = 1
+        victims_range = (0,1)
+
+    elif s < 40:
+        prob = 0.002
+        scale = 2
+        victims_range = (2,15)
+
+    elif s < 60:
+        prob = 0.003
+        scale = 3
+        victims_range = (16,80)
+
+    elif s < 80:
+        prob = 0.0035
+        scale = 4
+        victims_range = (81,300)
+
+    else:
+        prob = 0.004
+        scale = 5
+        victims_range = (301,950)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
+    return Zdarzenie(
+        zdarzenie_typ="powodz",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_avalanche(region, target_date):
+
+    s = region.region_ryzyko_lawin or 0
+
+    if s <= 0:
+        return None
+
+    if cooldown_block("lawina", region.region_id, target_date):
+        return None
+
+    if s < 20:
+        prob = 0.001
+        scale = 1
+        victims_range = (0,1)
+
+    elif s < 40:
+        prob = 0.0015
+        scale = 2
+        victims_range = (2,10)
+
+    elif s < 60:
+        prob = 0.002
+        scale = 3
+        victims_range = (11,15)
+
+    elif s < 80:
+        prob = 0.003
+        scale = 4
+        victims_range = (16,20)
+
+    else:
+        prob = 0.0035
+        scale = 5
+        victims_range = (21,30)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
+    return Zdarzenie(
+        zdarzenie_typ="lawina",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_volcano(region, target_date):
+
+    s = region.region_aktywny_wulkan or 0
+
+    if s <= 0:
+        return None
+
+    if cooldown_block("erupcja_wulkanu", region.region_id, target_date):
+        return None
+
+    if s < 20:
+        prob = 0.0005
+        scale = 1
+        victims_range = (0,5)
+
+    elif s < 40:
+        prob = 0.001
+        scale = 2
+        victims_range = (6,15)
+
+    elif s < 60:
+        prob = 0.0015
+        scale = 3
+        victims_range = (16,25)
+
+    elif s < 80:
+        prob = 0.0025
+        scale = 4
+        victims_range = (26,45)
+
+    else:
+        prob = 0.003
+        scale = 5
+        victims_range = (46,60)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
+    return Zdarzenie(
+        zdarzenie_typ="erupcja_wulkanu",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_coldwave(region, target_date):
+
+    s = region.region_ryzyko_mrozu or 0
+
+    if s <= 0:
+        return None
+
+    if cooldown_block("fala_mrozu", region.region_id, target_date):
+        return None
+
+    if s < 20:
+        prob = 0.0005
+        scale = 1
+        victims_range = (0,1)
+
+    elif s < 40:
+        prob = 0.001
+        scale = 2
+        victims_range = (2,5)
+
+    elif s < 60:
+        prob = 0.0015
+        scale = 3
+        victims_range = (6,10)
+
+    elif s < 80:
+        prob = 0.0025
+        scale = 4
+        victims_range = (11,50)
+
+    else:
+        prob = 0.003
+        scale = 5
+        victims_range = (51,200)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
+    return Zdarzenie(
+        zdarzenie_typ="fala_mrozu",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_heatwave(region, target_date):
+
+    s = region.region_ryzyko_upalu or 0
+
+    if s <= 0:
+        return None
+
+    if cooldown_block("fala_upalu", region.region_id, target_date):
+        return None
+
+    if s < 20:
+        prob = 0.0005
+        scale = 1
+        victims_range = (0,0)
+
+    elif s < 40:
+        prob = 0.001
+        scale = 2
+        victims_range = (1,5)
+
+    elif s < 60:
+        prob = 0.0015
+        scale = 3
+        victims_range = (6,15)
+
+    elif s < 80:
+        prob = 0.0025
+        scale = 4
+        victims_range = (16,30)
+
+    else:
+        prob = 0.003
+        scale = 5
+        victims_range = (31,70)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = (
+        Miasto.query
+        .filter_by(region_id=region.region_id)
+        .order_by(db.func.rand())
+        .first()
+    )
+
+    return Zdarzenie(
+        zdarzenie_typ="fala_upalu",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id if miasto else None,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),

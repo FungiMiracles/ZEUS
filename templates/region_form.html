@@ -223,6 +223,10 @@
         font-weight: 600;
         color: #2c3e50;
     }
+
+    .extra-event {
+        display: none;
+    }
     
 
 @media (max-width: 768px) {
@@ -394,6 +398,42 @@
                 "
             >
     </div>
+
+    <h2 style="font-size:1.4em; color:#2c3e50; margin-top:30px;">
+    Wydarzenia w tym regionie
+    </h2>
+
+    {% if events %}
+    <table class="city-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Opis zdarzenia</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for e in events %}
+            <tr class="{% if loop.index > 3 %}extra-event{% endif %}">
+                <td>{{ e.data_entenda.strftime('%Y-%m-%d') }}</td>
+                <td>{{ e.opis_wygenerowany }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+    {% if events|length > 3 %}
+    <div class="city-toggle" onclick="toggleEvents(this)">
+        ▼ Pokaż więcej wydarzeń
+    </div>
+    {% endif %}
+
+    {% else %}
+    <p style="color:#7f8c8d; font-style:italic; margin-top:10px;">
+        Brak wydarzeń w tym regionie.
+    </p>
+    {% endif %}
 
     {% set liczba_miast = miasta|length if miasta else 0 %}
     {% set ludnosc_miejska = miasta | sum(attribute='miasto_populacja') if miasta else 0 %}
@@ -712,6 +752,22 @@ function toggleCities(btn) {
     btn.innerHTML = expanded
         ? "▲ Zwiń listę miast"
         : "▼ Pokaż wszystkie miasta";
+}
+
+function toggleEvents(btn) {
+
+    const table = btn.previousElementSibling;
+    const rows = table.querySelectorAll(".extra-event");
+
+    const expanded = table.classList.toggle("show-all");
+
+    rows.forEach(r => {
+        r.style.display = expanded ? "table-row" : "none";
+    });
+
+    btn.innerHTML = expanded
+        ? "▲ Zwiń wydarzenia"
+        : "▼ Pokaż więcej wydarzeń";
 }
 </script>
 

@@ -8,6 +8,7 @@ from models import (
     DictRegionTeren,
     DictRegionPolozenie,
     DictRegionTyp,
+    Zdarzenie,
 )
 from permissions import wymaga_roli
 from flask import Response, send_file
@@ -582,15 +583,23 @@ def init_regiony_routes(app):
         panstwo = region.panstwo
         miasta=region.miasta
         back_url = request.referrer
+        events = (
+            Zdarzenie.query
+            .filter(Zdarzenie.region_id == region.region_id)
+            .order_by(Zdarzenie.data_entenda.desc())
+            .limit(50)
+            .all()
+        )
 
         return render_template(
             "region_form.html",
             region=region,
             panstwo=panstwo,
             miasta=miasta,
+            events=events,
             back_url=back_url
         )
-    
+            
 
 
             

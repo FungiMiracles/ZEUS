@@ -636,6 +636,47 @@ class ZdarzenieSzablon(db.Model):
 
     created_at = db.Column(db.DateTime, default=db.func.now())
 
+class Zdarzenie(db.Model):
+    __tablename__ = "zdarzenia"
+
+    zdarzenie_id = db.Column(db.Integer, primary_key=True)
+
+    zdarzenie_typ = db.Column(db.String(32))
+    zdarzenie_kategoria = db.Column(db.String(32))
+
+    panstwo_id = db.Column(db.Integer, db.ForeignKey("panstwa.PANSTWO_ID"), nullable=True)
+    region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"), nullable=True)
+    miasto_id = db.Column(db.Integer, db.ForeignKey("miasta.miasto_id"), nullable=True)
+
+    ilosc_ofiar = db.Column(db.Integer)
+    skala = db.Column(db.Integer)
+
+    opis_szablon_id = db.Column(db.Integer)
+    opis_wygenerowany = db.Column(db.Text)
+
+    data_entenda = db.Column(db.DateTime)
+    data_rzeczywista = db.Column(db.DateTime)
+
+    status = db.Column(db.String(32))
+
+    created_at = db.Column(db.DateTime)
+    payload_json = db.Column(db.JSON)
+
+
+class ZdarzenieSzablon(db.Model):
+    __tablename__ = "zdarzenia_szablony"
+
+    szablon_id = db.Column(db.Integer, primary_key=True)
+
+    zdarzenie_typ = db.Column(db.String(32), nullable=False)
+    tresc = db.Column(db.Text)
+
+    aktywny = db.Column(db.Boolean, default=True)
+    waga = db.Column(db.Integer, default=1)
+
+    wariant = db.Column(db.String(32))
+    created_at = db.Column(db.DateTime)
+
 #------------------------------------------------#
 # SŁOWNIKI #
 #------------------------------------------------#
