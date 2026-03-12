@@ -321,13 +321,13 @@
     <!-- ===== KONTYNENT ===== -->
     <div class="filter-group">
         <label>Kontynent</label>
-        <select name="kontynent" id="kontynent-select">
+        <select name="kontynent_id" id="kontynent-select">
             <option value="">— wszystkie —</option>
             {% for k in kontynenty %}
-                <option value="{{ k }}"
-                    {% if request.args.get('kontynent') == k %}selected{% endif %}>
-                    {{ k }}
-                </option>
+            <option value="{{ k.kontynent_id }}"
+            {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+            {{ k.kontynent_nazwa }}
+            </option>
             {% endfor %}
         </select>
     </div>
@@ -652,7 +652,7 @@ function zaladujPanstwa(kontynent) {
 
     if (!kontynent) return;
 
-    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
         .then(res => res.json())
         .then(data => {
             data.forEach(p => {

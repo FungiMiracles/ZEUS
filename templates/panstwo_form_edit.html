@@ -65,14 +65,16 @@
                 <tr>
                     <td style="padding:10px;">Kontynent</td>
                     <td style="padding:10px;">
-                        <select name="kontynent" style="width:100%; padding:6px;">
-                            {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
-                                <option value="{{ k }}"
-                                    {% if (form_data and form_data.kontynent == k)
-                                          or (not form_data and p.kontynent == k) %}
+                        <select name="kontynent_id" style="width:100%; padding:6px;">
+                            {% for k in kontynenty %}
+                                <option value="{{ k.kontynent_id }}"
+
+                                    {% if (form_data and form_data.kontynent_id == k.kontynent_id|string)
+                                        or (not form_data and p.kontynent_id == k.kontynent_id) %}
                                         selected
-                                    {% endif %}
-                                >{{ k }}</option>
+                                    {% endif %}>
+                                    {{ k.kontynent_nazwa }}
+                                </option>
                             {% endfor %}
                         </select>
                     </td>

@@ -233,14 +233,16 @@
 
                 <div>
                     <label>Kontynent</label>
-                    <select name="kontynent" id="kontynent" required>
+                    <select name="kontynent_id" id="kontynent" required>
                         <option value="">— wybierz —</option>
+
                         {% for k in kontynenty %}
-                            <option value="{{ k }}"
-                                {% if form_data and form_data.kontynent == k %}selected{% endif %}>
-                                {{ k }}
+                            <option value="{{ k.kontynent_id }}"
+                                {% if form_data and form_data.kontynent_id == k.kontynent_id|string %}selected{% endif %}>
+                                {{ k.kontynent_nazwa }}
                             </option>
                         {% endfor %}
+
                     </select>
                 </div>
 
@@ -313,7 +315,7 @@
 
 <script>
 document.getElementById("kontynent").addEventListener("change", function () {
-    const kontynent = this.value;
+    const kontynentId = this.value;
     const panstwoSelect = document.getElementById("panstwo");
     const regionSelect = document.getElementById("region");
 
@@ -324,7 +326,7 @@ document.getElementById("kontynent").addEventListener("change", function () {
 
     if (!kontynent) return;
 
-    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/panstwa_by_kontynent?kontynent_id=${kontynentId}`)
         .then(res => res.json())
         .then(data => {
             panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';

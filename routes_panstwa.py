@@ -13,7 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from extensions import db
-from models import Panstwo, Miasto
+from models import Panstwo, Miasto, DictKontynent
 
 from paths import (
     FLAGI_DIR,
@@ -77,7 +77,7 @@ def init_panstwa_routes(app):
     @app.route("/wyniki_wyszukiwania", methods=["GET"])
     def wyniki_wyszukiwania():
 
-        kontynent = request.args.get("kontynent")
+        kontynent_id = request.args.get("kontynent_id")
         nazwa = request.args.get("panstwo_nazwa")
         kod = request.args.get("panstwo_kod")
 
@@ -93,17 +93,16 @@ def init_panstwa_routes(app):
         pkb_pc_do = request.args.get("pkb_pc_do")
         czy_suwerenny = request.args.get("czy_suwerenny")
 
-        kontynenty = db.session.query(Panstwo.kontynent)\
-            .distinct()\
-            .order_by(Panstwo.kontynent)\
-            .all()
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
 
         kontynenty = [k[0] for k in kontynenty]
 
         query = Panstwo.query
 
-        if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+        if kontynent_id:
+            query = query.filter(Panstwo.kontynent_id == kontynent_id)
 
         if nazwa:
             query = query.filter(Panstwo.panstwo_nazwa.like(f"%{nazwa}%"))
@@ -205,7 +204,7 @@ def init_panstwa_routes(app):
             pkb_pc = request.form.get("PKB_per_capita")
             waluta = request.form.get("panstwo_waluta")
             religia = request.form.get("panstwo_religia")
-            kontynent = request.form.get("kontynent")
+            kontynent_id = int(request.form.get("kontynent_id"))
             powierzchnia = request.form.get("panstwo_powierzchnia")
             czy_suwerenny = request.form.get("czy_suwerenny")
 
@@ -213,7 +212,7 @@ def init_panstwa_routes(app):
                 nazwa, pelna, kod, ustroj, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
-                kontynent, powierzchnia, czy_suwerenny
+                kontynent_id, powierzchnia, czy_suwerenny
             ]
 
             if any(not field for field in required_fields):
@@ -264,7 +263,7 @@ def init_panstwa_routes(app):
                     panstwo_PKB_per_capita=pkb_pc,
                     panstwo_waluta=waluta,
                     panstwo_religia=religia,
-                    kontynent=kontynent,
+                    kontynent_id=kontynent_id,
                     panstwo_powierzchnia=powierzchnia,
                     czy_suwerenny=czy_suwerenny,
                 )
@@ -280,7 +279,12 @@ def init_panstwa_routes(app):
 
             return redirect(url_for("panstwo_dodano"))
 
-        return render_template("panstwo_form_add.html")
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+
+        return render_template(
+            "panstwo_form_add.html",
+            kontynenty=kontynenty
+        )
 
     @app.route("/panstwo/<int:panstwo_id>/edit", methods=["GET", "POST"])
     def panstwo_form_edit(panstwo_id):
@@ -331,7 +335,7 @@ def init_panstwa_routes(app):
                 p.panstwo_nazwa = form.get("panstwo_nazwa")
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
-                p.kontynent = form.get("kontynent")
+                p.kontynent_id = form.get("kontynent_id")
                 p.panstwo_ustroj = form.get("panstwo_ustroj")
                 p.panstwo_stolica = form.get("panstwo_stolica")
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))

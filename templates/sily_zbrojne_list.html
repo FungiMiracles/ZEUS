@@ -117,12 +117,13 @@
         <!-- FILTER KONTYNENT -->
         <div>
             <label>Kontynent:</label><br>
-            <select name="kontynent">
+            <select name="kontynent_id">
                 <option value="">Wszystkie</option>
                 {% for k in kontynenty %}
-                    <option value="{{ k }}" {% if request.args.get('kontynent') == k %}selected{% endif %}>
-                        {{ k }}
-                    </option>
+                <option value="{{ k.kontynent_id }}"
+                {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+                {{ k.kontynent_nazwa }}
+                </option>
                 {% endfor %}
             </select>
         </div>

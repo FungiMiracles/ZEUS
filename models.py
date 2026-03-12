@@ -18,7 +18,10 @@ class Panstwo(db.Model):
     panstwo_waluta = db.Column(db.String(255))
     panstwo_jezyk = db.Column(db.String(255))
     panstwo_religia = db.Column(db.String(255))
-    kontynent = db.Column(db.String(255))
+    kontynent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_kontynent.kontynent_id")
+    )
     panstwo_powierzchnia = db.Column(BigInteger)
     panstwo_opis = db.Column(db.Text)
     opis_updated_at = db.Column(db.DateTime)
@@ -664,3 +667,11 @@ class DictRegionTyp(db.Model):
     nazwa = db.Column(db.String(100))
     poziom = db.Column(db.Enum("NADRZ", "PODRZ"))
     opis = db.Column(db.Text)
+
+class DictKontynent(db.Model):
+    __tablename__ = "dict_kontynent"
+
+    kontynent_id = db.Column(db.Integer, primary_key=True)
+    kontynent_nazwa = db.Column(db.String(100), unique=True, nullable=False)
+
+    panstwa = db.relationship("Panstwo", backref="kontynent_rel", lazy=True)   
