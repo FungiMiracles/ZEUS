@@ -14,23 +14,24 @@ def init_main_routes(app):
     # --------------------------
     # Strony główne / proste
     # --------------------------
-    @app.route("/")
-    def root():
-        return redirect(url_for("wejscie"))
-    
-    @app.route("/home")
-    def home_page():
+
+    @app.context_processor
+    def inject_world_news():
         latest_events = (
             Zdarzenie.query
             .order_by(Zdarzenie.data_entenda.desc())
             .limit(10)
             .all()
         )
-
-        return render_template(
-            "zeus_home.html",
-            latest_events=latest_events
-        )
+        return {"latest_events": latest_events}
+    
+    @app.route("/")
+    def root():
+        return redirect(url_for("wejscie"))
+    
+    @app.route("/home")
+    def home_page():
+        return render_template("zeus_home.html")
 
     @app.route("/historia")
     def historia():
