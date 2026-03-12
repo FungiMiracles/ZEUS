@@ -147,11 +147,15 @@
             <div class="soj-select-box">
                <label for="kontynentSelect">Kontynent</label>
                <select id="kontynentSelect">
-                   <option value="">— wybierz —</option>
-                   {% for k in kontynenty %}
-                       <option value="{{ k }}">{{ k }}</option>
-                   {% endfor %}
-               </select>
+                <option value="">— wybierz —</option>
+
+                {% for k in kontynenty %}
+                <option value="{{ k.kontynent_id }}">
+                    {{ k.kontynent_nazwa }}
+                </option>
+                {% endfor %}
+
+                </select>
            </div>
 
             <div class="dyp-select-box">

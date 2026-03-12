@@ -527,7 +527,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    const kontynentSelect = document.querySelector('select[name="kontynent"]');
+    const kontynentSelect = document.querySelector('select[name="kontynent_id"]');
     const panstwoSelect   = document.querySelector('select[name="panstwo"]');
 
     // --- wczytaj kontynenty ---
@@ -559,7 +559,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function loadPanstwa(kontynent) {
-        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
             .then(r => r.json())
             .then(data => {
                 data.forEach(p => {
