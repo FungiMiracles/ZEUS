@@ -248,7 +248,7 @@ def init_miasta_routes(app):
                     "czy_na_mapie": m.czy_na_mapie,
                     "panstwo_nazwa": p.panstwo_nazwa,
                     "region_nazwa": r.region_nazwa if r else "Brak przypisania regionalnego",
-                    "kontynent": p.kontynent,
+                    "kontynent": p.kontynent_rel.kontynent_nazwa if p.kontynent_rel else None,
                 }
             )
         

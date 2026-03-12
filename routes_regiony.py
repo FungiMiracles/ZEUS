@@ -8,6 +8,7 @@ from models import (
     DictRegionTeren,
     DictRegionPolozenie,
     DictRegionTyp,
+    DictKontynent
     Zdarzenie,
 )
 from permissions import wymaga_roli
@@ -59,7 +60,7 @@ def init_regiony_routes(app):
 
         # ===== LISTY DO FILTRÓW =====
         kontynenty = [
-            k[0] for k in db.session.query(Panstwo.kontynent).distinct().all()
+            k[0] for k in DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
             if k[0]
         ]
 

@@ -97,7 +97,7 @@ def init_panstwa_routes(app):
             DictKontynent.kontynent_nazwa
         ).all()
 
-        kontynenty = [k[0] for k in kontynenty]
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
         query = Panstwo.query
 

@@ -35,7 +35,7 @@ def init_kultura_routes(app):
     
         panstwa = (
             Panstwo.query
-            .filter(Panstwo.kontynent == kontynent)
+            .filter(Panstwo.kontynent_id == kontynent)
             .order_by(Panstwo.panstwo_nazwa.asc())
             .all()
         )
@@ -226,7 +226,7 @@ def init_kultura_routes(app):
             if panstwo_id:
                 query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
             elif kontynent:
-                query = query.filter(Panstwo.kontynent == kontynent)
+                query = query.filter(Panstwo.kontynent_id == kontynent)
     
         wyniki = query.order_by(Jezyk.jezyk_nazwa).all()
     
