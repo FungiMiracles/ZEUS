@@ -273,9 +273,6 @@ def init_panstwa_routes(app):
                 )
 
             try:
-                # --- NOWA POPULACJA (najpierw) ---
-                nowa_populacja = int(form.get("panstwo_populacja"))
-
                 # --- POLA TEKSTOWE / STAŁE ---
                 p.panstwo_nazwa = form.get("panstwo_nazwa")
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
