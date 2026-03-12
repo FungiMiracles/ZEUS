@@ -44,11 +44,23 @@
         font-size: 1.15em;
     }
 
-    .extra-city {
-    display: none;
+    .region-country-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .show-all .extra-city {
+    .flag-region {
+        height: 18px;
+        width: auto;
+        border: 1px solid #000;
+    }
+
+    .extra-city {
+        display: none;
+    }
+
+    .city-table.show-all .extra-city {
         display: table-row;
     }
 
@@ -59,6 +71,22 @@
         font-weight: 600;
         color: #5d7dce;
         user-select: none;
+    }
+
+    .btn-city {
+        display: inline-block;
+        padding: 5px 10px;
+        background: #5d7dce;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+
+    .btn-city:hover {
+        background: #315eb8;
+        color: white;
     }
 
     .info-table th {
@@ -318,6 +346,10 @@
         margin-bottom: 6px;
     }
 
+     .city-table.show-all .extra-city {
+        display: block;
+    }
+
     /* ========================================================
        STATYSTYKI REGIONU
     ======================================================== */
@@ -456,7 +488,17 @@
 
             <tr>
                 <td style="font-weight:700;">Państwo:</td>
-                <td>{{ panstwo.panstwo_nazwa }}</td>
+                <td class="region-country-cell">
+
+                    <img
+                        src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                        class="flag-region"
+                        onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
+                    >
+
+                    {{ panstwo.panstwo_nazwa }}
+
+                </td>
             </tr>
 
             <tr>
@@ -682,6 +724,11 @@
                 <td>{{ m.miasto_kod }}</td>
                 <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
                 <td>{{ m.miasto_typ }}</td>
+                <td>
+                    <a href="{{ url_for('miasto_form', miasto_id=m.miasto_id) }}" class="btn-city">
+                        Przejdź
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -742,13 +789,7 @@
 function toggleCities(btn) {
 
     const table = btn.previousElementSibling;
-    const rows = table.querySelectorAll(".extra-city");
-
     const expanded = table.classList.toggle("show-all");
-
-    rows.forEach(r => {
-        r.style.display = expanded ? "table-row" : "none";
-    });
 
     btn.innerHTML = expanded
         ? "▲ Zwiń listę miast"
