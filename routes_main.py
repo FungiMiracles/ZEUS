@@ -7,7 +7,7 @@ from paths import INFO_FILE
 from permissions import wymaga_roli
 import markdown
 from paths import VERSIONS_FILE
-from models import Zdarzenie
+from models import Zdarzenie, DictKontynent
 
 
 def init_main_routes(app):
@@ -31,7 +31,15 @@ def init_main_routes(app):
     
     @app.route("/home")
     def home_page():
-        return render_template("zeus_home.html")
+            
+            kontynenty = DictKontynent.query.order_by(
+                DictKontynent.kontynent_nazwa
+            ).all()
+
+            return render_template(
+                "zeus_home.html",
+                kontynenty=kontynenty
+            )
 
     @app.route("/historia")
     def historia():

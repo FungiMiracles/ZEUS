@@ -93,10 +93,6 @@ def init_panstwa_routes(app):
         pkb_pc_do = request.args.get("pkb_pc_do")
         czy_suwerenny = request.args.get("czy_suwerenny")
 
-        kontynenty = DictKontynent.query.order_by(
-            DictKontynent.kontynent_nazwa
-        ).all()
-
         kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
         query = Panstwo.query
