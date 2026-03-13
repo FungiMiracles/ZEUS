@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!kontynent.value) return;
 
-        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent.value)}`)
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent.value)}`)
             .then(r => r.json())
             .then(data => {
                 data.forEach(p => {
