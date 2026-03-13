@@ -159,30 +159,16 @@ def init_dyplomacja_routes(app):
     @app.route("/api/dyplomacja")
     def api_dyplomacja():
 
-        import unicodedata
-
-        def normalize(value):
-            if not value:
-                return ""
-            value = value.lower().replace(" ", "_")
-            value = (
-                unicodedata
-                .normalize("NFKD", value)
-                .encode("ascii", "ignore")
-                .decode("ascii")
-            )
-            return value
-
         p1 = request.args.get("p1", type=int)
         p2 = request.args.get("p2", type=int)
 
         if not p1 or not p2 or p1 == p2:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": "Neutralne",
+                "stan": "Pokój"
             })
 
-        # 🔑 KANONICZNY PORZĄDEK — A-B zamiast A-B / B-A
+        # 🔑 kanoniczna kolejność
         a, b = sorted([p1, p2])
 
         rel = (
@@ -193,16 +179,13 @@ def init_dyplomacja_routes(app):
 
         if not rel:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": "Neutralne",
+                "stan": "Pokój"
             })
 
-        relacja = normalize(rel.relacja.relacja_nazwa if rel.relacja else "neutralne")
-        stan = normalize(rel.stan.stan_nazwa if rel.stan else "pokoj")
-
         return jsonify({
-            "relacja": relacja,
-            "stan": stan
+            "relacja": rel.relacja.relacja_nazwa if rel.relacja else "Neutralne",
+            "stan": rel.stan.stan_nazwa if rel.stan else "Pokój"
         })
 
     @app.route("/api/dyplomacja/kontynenty")
