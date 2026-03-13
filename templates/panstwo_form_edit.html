@@ -82,9 +82,16 @@
                 <tr>
                     <td style="padding:10px;">Ustrój polityczny</td>
                     <td style="padding:10px;">
-                        <input type="text" name="panstwo_ustroj"
-                               value="{{ form_data.panstwo_ustroj if form_data else p.panstwo_ustroj }}"
-                               style="width:100%; padding:6px;">
+                        <select name="ustroj_id" required>
+
+                            {% for u in ustroje %}
+                            <option value="{{ u.ustroj_id }}"
+                                {% if p.ustroj_id == u.ustroj_id %}selected{% endif %}>
+                                {{ u.ustroj_nazwa }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
                     </td>
                 </tr>
 

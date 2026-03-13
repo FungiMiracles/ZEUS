@@ -10,7 +10,10 @@ class Panstwo(db.Model):
     panstwo_nazwa = db.Column(db.String(255))
     panstwo_kod = db.Column(db.String(255))
     panstwo_pelna_nazwa = db.Column(db.String(255))
-    panstwo_ustroj = db.Column(db.String(255))
+    ustroj_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_panstwo_ustroj.ustroj_id")
+    )
     panstwo_stolica = db.Column(db.String(255))
     panstwo_populacja = db.Column(BigInteger)
     panstwo_PKB = db.Column(BigInteger)
@@ -35,6 +38,7 @@ class Panstwo(db.Model):
 
     miasta = db.relationship("Miasto", backref="panstwo", lazy=True)
     regiony = db.relationship("Region", backref="panstwo", lazy=True)
+    ustroj = db.relationship("DictPanstwoUstroj")
 
 
 class Region(db.Model):
@@ -681,4 +685,9 @@ class DictKontynent(db.Model):
     kontynent_nazwa = db.Column(db.String(100), unique=True, nullable=False)
 
     panstwa = db.relationship("Panstwo", backref="kontynent_rel", lazy=True)
-    
+
+class DictPanstwoUstroj(db.Model):
+    __tablename__ = "dict_panstwo_ustroj"
+
+    ustroj_id = db.Column(db.Integer, primary_key=True)
+    ustroj_nazwa = db.Column(db.String(100), nullable=False, unique=True)

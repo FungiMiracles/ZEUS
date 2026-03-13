@@ -13,7 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from extensions import db
-from models import Panstwo, Miasto, DictKontynent
+from models import Panstwo, Miasto, DictKontynent, DictPanstwoUstroj
 
 from paths import (
     FLAGI_DIR,
@@ -174,12 +174,17 @@ def init_panstwa_routes(app):
         )
 
         profil_jezykowy = p.profil_jezykowy  # może być None
+
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
     
         return render_template(
             "panstwo_form.html",
             p=p,
             miasta=miasta,
             profil_jezykowy=profil_jezykowy,
+            ustroje=ustroje,
             ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
         )
 
@@ -191,12 +196,16 @@ def init_panstwa_routes(app):
 
         kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
+
         if request.method == "POST":
 
             nazwa = request.form.get("panstwo_nazwa")
             pelna = request.form.get("panstwo_pelna_nazwa")
             kod = request.form.get("panstwo_kod")
-            ustroj = request.form.get("panstwo_ustroj")
+            ustroj_id = request.form.get("ustroj_id")
             stolica = request.form.get("panstwo_stolica")
             populacja = int(request.form.get("panstwo_populacja"))
             pkb = int(request.form.get("PKB"))
@@ -254,6 +263,7 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_add.html",
                     kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=f"Błąd zapisu plików: {e}",
                     form_data=request.form
                 )
@@ -263,7 +273,7 @@ def init_panstwa_routes(app):
                     panstwo_nazwa=nazwa,
                     panstwo_pelna_nazwa=pelna,
                     panstwo_kod=kod,
-                    panstwo_ustroj=ustroj,
+                    ustroj_id=ustroj_id,
                     panstwo_stolica=stolica,
                     panstwo_populacja=populacja,
                     panstwo_PKB=pkb,
@@ -281,6 +291,7 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_add.html",
                     kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=f"Błąd zapisu do bazy: {e}",
                     form_data=request.form
                 )
@@ -289,7 +300,8 @@ def init_panstwa_routes(app):
 
         return render_template(
             "panstwo_form_add.html",
-            kontynenty=kontynenty
+            kontynenty=kontynenty,
+            ustroje=ustroje
         )
 
     @app.route("/panstwo/<int:panstwo_id>/edit", methods=["GET", "POST"])
@@ -298,6 +310,10 @@ def init_panstwa_routes(app):
 
         kontynenty = DictKontynent.query.order_by(
             DictKontynent.kontynent_nazwa
+        ).all()
+
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
         ).all()
 
         if request.method == "POST":
@@ -310,7 +326,7 @@ def init_panstwa_routes(app):
                 "panstwo_pelna_nazwa",
                 "panstwo_kod",
                 "kontynent_id",
-                "panstwo_ustroj",
+                "ustroj_id",
                 "panstwo_stolica",
                 "panstwo_powierzchnia",
                 "panstwo_waluta",
@@ -329,6 +345,7 @@ def init_panstwa_routes(app):
                     "panstwo_form_edit.html",
                     p=p,
                     kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=" ".join(set(errors)),
                     form_data=form
                 )
@@ -338,6 +355,7 @@ def init_panstwa_routes(app):
                     "panstwo_form_edit.html",
                     p=p,
                     kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error="Musisz określić status suwerenności państwa.",
                     form_data=form
                 )
@@ -367,6 +385,7 @@ def init_panstwa_routes(app):
                     "panstwo_form_edit.html",
                     p=p,
                     kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=" ".join(set(errors)),
                     form_data=form
                 )
@@ -377,7 +396,8 @@ def init_panstwa_routes(app):
         return render_template(
             "panstwo_form_edit.html",
             p=p,
-            kontynenty=kontynenty
+            kontynenty=kontynenty,
+            ustroje=ustroje
         )
 
     # ================= USUWANIE PAŃSTWA =================

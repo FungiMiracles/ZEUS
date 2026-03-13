@@ -252,12 +252,15 @@
 
                 <div class="form-group">
                     <label>Kontynent</label>
-                    <select name="kontynent_id" required>
-                        {% for k in kontynenty %}
-                            <option value="{{ k.kontynent_id }}">
-                                {{ k.kontynent_nazwa }}
-                            </option>
+                    <select name="ustroj_id" required>
+                        <option value="">-- wybierz ustrój --</option>
+
+                        {% for u in ustroje %}
+                        <option value="{{ u.ustroj_id }}">
+                            {{ u.ustroj_nazwa }}
+                        </option>
                         {% endfor %}
+
                     </select>
                 </div>
 
