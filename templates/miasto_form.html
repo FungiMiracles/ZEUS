@@ -214,9 +214,7 @@
                     <td style="font-weight:700;">Typ miasta:</td>
                     <td>
                         {% if miasto.miasto_typ %}
-                            {{ miasto.miasto_typ }}
-                        {% else %}
-                            Nie określono
+                            {{ miasto.typ.miasto_typ_nazwa if miasto.typ else "Nie określono" }}
                         {% endif %}
                     </td>
                 </tr>

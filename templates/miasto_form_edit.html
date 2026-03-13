@@ -64,10 +64,20 @@
                 <tr>
                     <td style="padding:10px;">Typ miasta</td>
                     <td style="padding:10px;">
-                        <select name="miasto_typ" style="width:100%; padding:6px;">
-                            <option value="stolica" {% if miasto.miasto_typ == "stolica" %}selected{% endif %}>stolica</option>
-                            <option value="stolica regionu" {% if miasto.miasto_typ == "stolica regionu" %}selected{% endif %}>stolica regionu</option>
-                            <option value="miasto" {% if miasto.miasto_typ == "miasto" %}selected{% endif %}>miasto</option>
+                        <select name="miasto_typ_id">
+                        {% for typ in typy %}
+
+                        <option value="{{ typ.miasto_typ_id }}"
+                        {% if typ.miasto_typ_id == miasto.miasto_typ_id %}
+                        selected
+                        {% endif %}
+                        >
+
+                        {{ typ.miasto_typ_nazwa }}
+
+                        </option>
+
+                        {% endfor %}
                         </select>
                     </td>
                 </tr>

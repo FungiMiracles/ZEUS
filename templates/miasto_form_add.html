@@ -258,20 +258,12 @@
 
                 <div class="form-group">
                     <label>Typ miasta</label>
-                    <select name="miasto_typ" required>
-                        <option value="">— wybierz —</option>
-                        <option value="stolica"
-                            {% if form_data and form_data.get('miasto_typ') == 'stolica' %}selected{% endif %}>
-                            stolica
-                        </option>
-                        <option value="stolica regionu"
-                            {% if form_data and form_data.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
-                            stolica regionu
-                        </option>
-                        <option value="miasto"
-                            {% if form_data and form_data.get('miasto_typ') == 'miasto' %}selected{% endif %}>
-                            miasto
-                        </option>
+                    <select name="miasto_typ_id">
+                        {% for typ in typy %}
+                            <option value="{{ typ.miasto_typ_id }}">
+                                {{ typ.miasto_typ_nazwa }}
+                            </option>
+                        {% endfor %}
                     </select>
                 </div>
 
