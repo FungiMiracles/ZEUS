@@ -390,10 +390,9 @@
                                      onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
                             </td>
                         </tr>
-
                         {% for label, value in [
-                            ('Kontynent:', p.kontynent),
-                            ('Ustrój polityczny:', p.panstwo_ustroj),
+                            ('Kontynent:', p.kontynent_rel.kontynent_nazwa),
+                            ('Ustrój polityczny:', p.ustroj.ustroj_nazwa),
                             ('Stolica:', p.panstwo_stolica),
                             ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
                             ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),

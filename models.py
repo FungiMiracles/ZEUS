@@ -10,7 +10,10 @@ class Panstwo(db.Model):
     panstwo_nazwa = db.Column(db.String(255))
     panstwo_kod = db.Column(db.String(255))
     panstwo_pelna_nazwa = db.Column(db.String(255))
-    panstwo_ustroj = db.Column(db.String(255))
+    ustroj_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_panstwo_ustroj.ustroj_id")
+    )
     panstwo_stolica = db.Column(db.String(255))
     panstwo_populacja = db.Column(BigInteger)
     panstwo_PKB = db.Column(BigInteger)
@@ -18,7 +21,10 @@ class Panstwo(db.Model):
     panstwo_waluta = db.Column(db.String(255))
     panstwo_jezyk = db.Column(db.String(255))
     panstwo_religia = db.Column(db.String(255))
-    kontynent = db.Column(db.String(255))
+    kontynent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_kontynent.kontynent_id")
+    )
     panstwo_powierzchnia = db.Column(BigInteger)
     panstwo_opis = db.Column(db.Text)
     opis_updated_at = db.Column(db.DateTime)
@@ -32,6 +38,7 @@ class Panstwo(db.Model):
 
     miasta = db.relationship("Miasto", backref="panstwo", lazy=True)
     regiony = db.relationship("Region", backref="panstwo", lazy=True)
+    ustroj = db.relationship("DictPanstwoUstroj")
 
 
 class Region(db.Model):
@@ -101,7 +108,12 @@ class Miasto(db.Model):
     miasto_nazwa = db.Column(db.String(255))
     miasto_kod = db.Column(db.String(4))
     miasto_populacja = db.Column(db.Integer)
-    miasto_typ = db.Column(db.String(255))
+    miasto_typ_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_miasto_typ.miasto_typ_id")
+    )
+
+    typ = db.relationship("DictMiastoTyp")
     region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"))
     czy_na_mapie = db.Column(db.Enum("TAK", "NIE", name="czy_na_mapie_enum"), nullable=False, default="TAK")
     czy_generowane = db.Column(db.Enum("TAK", "NIE", name="czy_generowane_enum"), nullable=False, default="TAK")
@@ -231,7 +243,13 @@ class Historia(db.Model):
         nullable=False
     )
 
-    kontynent = db.Column(db.String(100), nullable=True)
+    kontynent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_kontynent.kontynent_id"),
+        nullable=True
+    )
+
+    kontynent_rel = db.relationship("DictKontynent")
 
     # =========================================================
     #  POWIĄZANIA GEOGRAFICZNE (OPCJONALNE)
@@ -344,32 +362,15 @@ class Stosunki(db.Model):
         primary_key=True
     )
     
-    relacja = db.Column(db.Enum(
-        "sojusznicze", 
-        "partnerskie_strategiczne", 
-        "partnerskie",
-        "przyjazne",
-        "dobre",
-        "neutralne",
-        "chlodne",
-        "zle",
-        "napiete",
-        "wrogie",
-        "egzystencjalnie_wrogie",
-        name="relacja_enum"), nullable=False, default="neutralne")
-    
-    stan = db.Column(db.Enum(
-        "pokoj",
-        "zwieszenie_broni",
-        "konflikt_dyplomatyczny",
-        "wojna_handlowa",
-        "wojna_informacyjna",
-        "wojna_hybrydowa",
-        "konflikt_kinetyczny_zamrozony",
-        "wojna_kinetyczna",
-        "okupacja",
-        name="stan_enum"
-    ), nullable=False, default="pokoj")
+    relacja_id = db.Column(
+    db.Integer,
+    db.ForeignKey("dict_stosunki_relacja.relacja_id")
+    )
+
+    stan_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_stosunki_stan.stan_id")
+    )
 
     panstwo = db.relationship(
     "Panstwo",
@@ -382,6 +383,10 @@ class Stosunki(db.Model):
         foreign_keys=[PANSTWO_ID2],
         lazy="joined"
     )
+
+    relacja = db.relationship("DictStosunkiRelacja")
+
+    stan = db.relationship("DictStosunkiStan")
 
 
     @property
@@ -626,6 +631,8 @@ class ZdarzenieSzablon(db.Model):
 
     zdarzenie_typ = db.Column(db.String(32), nullable=False)
 
+    skala = db.Column(db.Integer, nullable=False)
+
     tresc = db.Column(db.Text, nullable=False)
 
     aktywny = db.Column(db.Boolean, default=True)
@@ -662,3 +669,35 @@ class DictRegionTyp(db.Model):
     nazwa = db.Column(db.String(100))
     poziom = db.Column(db.Enum("NADRZ", "PODRZ"))
     opis = db.Column(db.Text)
+
+class DictKontynent(db.Model):
+    __tablename__ = "dict_kontynent"
+
+    kontynent_id = db.Column(db.Integer, primary_key=True)
+    kontynent_nazwa = db.Column(db.String(100), unique=True, nullable=False)
+
+    panstwa = db.relationship("Panstwo", backref="kontynent_rel", lazy=True)
+
+class DictPanstwoUstroj(db.Model):
+    __tablename__ = "dict_panstwo_ustroj"
+
+    ustroj_id = db.Column(db.Integer, primary_key=True)
+    ustroj_nazwa = db.Column(db.String(100), nullable=False, unique=True)
+
+class DictMiastoTyp(db.Model):
+    __tablename__ = "dict_miasto_typ"
+
+    miasto_typ_id = db.Column(db.Integer, primary_key=True)
+    miasto_typ_nazwa = db.Column(db.String(100), nullable=False, unique=True)
+
+class DictStosunkiRelacja(db.Model):
+    __tablename__ = "dict_stosunki_relacja"
+
+    relacja_id = db.Column(db.Integer, primary_key=True)
+    relacja_nazwa = db.Column(db.String(50), nullable=False)
+
+class DictStosunkiStan(db.Model):
+    __tablename__ = "dict_stosunki_stan"
+
+    stan_id = db.Column(db.Integer, primary_key=True)
+    stan_nazwa = db.Column(db.String(50), nullable=False)

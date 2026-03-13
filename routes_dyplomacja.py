@@ -3,12 +3,13 @@ from flask import (
     request,
     redirect,
     url_for,
-    flash
+    flash,
+    jsonify
 )
 from extensions import db
-from models import Panstwo, Stosunki
+from models import Panstwo, Stosunki, DictKontynent, DictStosunkiStan, DictStosunkiRelacja
 from permissions import wymaga_roli
-from flask import jsonify
+from sqlalchemy import or_
 
 
 def init_dyplomacja_routes(app):
@@ -42,31 +43,13 @@ def init_dyplomacja_routes(app):
 
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
 
-        relacje = [
-            "sojusznicze",
-            "partnerskie_strategiczne",
-            "partnerskie",
-            "przyjazne",
-            "dobre",
-            "neutralne",
-            "chlodne",
-            "zle",
-            "napiete",
-            "wrogie",
-            "egzystencjalnie_wrogie"
-        ]
+        relacje = DictStosunkiRelacja.query.order_by(
+            DictStosunkiRelacja.relacja_nazwa
+        ).all()
 
-        stany = [
-            "pokoj",
-            "zawieszenie_broni",
-            "konflikt_dyplomatyczny",
-            "wojna_handlowa",
-            "wojna_informacyjna",
-            "wojna_hybrydowa",
-            "konflikt_kinetyczny_zamrozony",
-            "wojna_kinetyczna",
-            "okupacja"
-        ]
+        stany = DictStosunkiStan.query.order_by(
+            DictStosunkiStan.stan_nazwa
+        ).all()
 
         # ─────────────────────────────
         # NORMALIZACJA PAR
@@ -82,8 +65,8 @@ def init_dyplomacja_routes(app):
             stosunek = Stosunki(
                 PANSTWO_ID=a,
                 PANSTWO_ID2=b,
-                relacja="neutralne",
-                stan="pokoj"
+                relacja_id=6,   # neutralne
+                stan_id=1       # pokoj
             )
             db.session.add(stosunek)
             db.session.flush()  # ← ważne, bez commit
@@ -93,11 +76,11 @@ def init_dyplomacja_routes(app):
         # ─────────────────────────────
         if request.method == "POST":
 
-            relacja = request.form.get("relacja")
-            stan = request.form.get("stan")
+            relacja_id = request.form.get("relacja_id")
+            stan_id = request.form.get("stan_id")
 
-            stosunek.relacja = relacja
-            stosunek.stan = stan
+            stosunek.relacja_id = int(relacja_id)
+            stosunek.stan_id = int(stan_id)
 
             try:
                 db.session.commit()
@@ -121,8 +104,8 @@ def init_dyplomacja_routes(app):
         form_data = {
             "panstwo_id": str(p1),
             "panstwo_id2": str(p2),
-            "relacja": stosunek.relacja,
-            "stan": stosunek.stan
+            "relacja_id": stosunek.relacja_id,
+            "stan_id": stosunek.stan_id
         }
 
         return render_template(
@@ -138,13 +121,10 @@ def init_dyplomacja_routes(app):
     def dyplomacja_sojusze():
     
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-    
-        kontynenty = [k[0] for k in kontynenty if k[0]]
     
         return render_template(
             "dyplomacja_sojusze.html",
@@ -178,99 +158,117 @@ def init_dyplomacja_routes(app):
 
     @app.route("/api/dyplomacja")
     def api_dyplomacja():
+
         p1 = request.args.get("p1", type=int)
         p2 = request.args.get("p2", type=int)
-    
+
         if not p1 or not p2 or p1 == p2:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": "Neutralne",
+                "stan": "Pokój"
             })
-    
-        # 🔑 KANONICZNY PORZĄDEK — ABSOLUTNIE KLUCZOWE
+
+        # 🔑 kanoniczna kolejność
         a, b = sorted([p1, p2])
-    
-        rel = Stosunki.query.filter_by(
-            PANSTWO_ID=a,
-            PANSTWO_ID2=b
-        ).first()
-    
+
+        rel = (
+            Stosunki.query
+            .filter_by(PANSTWO_ID=a, PANSTWO_ID2=b)
+            .first()
+        )
+
         if not rel:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": "Neutralne",
+                "stan": "Pokój"
             })
-    
+
         return jsonify({
-            "relacja": rel.relacja,
-            "stan": rel.stan
+            "relacja": rel.relacja.relacja_nazwa if rel.relacja else "Neutralne",
+            "stan": rel.stan.stan_nazwa if rel.stan else "Pokój"
         })
 
     @app.route("/api/dyplomacja/kontynenty")
     def api_dyplomacja_kontynenty():
+
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-    
-        return jsonify([k[0] for k in kontynenty if k[0]])
+
+        return jsonify([
+            {
+                "id": k.kontynent_id,
+                "nazwa": k.kontynent_nazwa
+            }
+            for k in kontynenty
+        ])
 
     @app.route("/api/dyplomacja/sojusze")
     def api_dyplomacja_sojusze():
-    
+
         panstwo_id = request.args.get("panstwo_id", type=int)
         relacja = request.args.get("relacja")
         stan = request.args.get("stan")
-    
+
         if not panstwo_id:
             return jsonify([])
-    
+
         q = Stosunki.query.filter(
-            (Stosunki.PANSTWO_ID == panstwo_id) |
-            (Stosunki.PANSTWO_ID2 == panstwo_id)
+            or_(
+                Stosunki.PANSTWO_ID == panstwo_id,
+                Stosunki.PANSTWO_ID2 == panstwo_id
+            )
         )
-    
+
         if relacja:
-            q = q.filter(Stosunki.relacja == relacja)
-    
+            q = q.join(Stosunki.relacja).filter(
+                DictStosunkiRelacja.relacja_nazwa == relacja
+            )
+
         if stan:
-            q = q.filter(Stosunki.stan == stan)
-    
+            q = q.join(Stosunki.stan).filter(
+                DictStosunkiStan.stan_nazwa == stan
+            )
+
         wyniki = []
-    
+
         for s in q.all():
+
             other_id = (
                 s.PANSTWO_ID2 if s.PANSTWO_ID == panstwo_id else s.PANSTWO_ID
             )
-    
-            p = Panstwo.query.get(other_id)
-    
+
+            p = db.session.get(Panstwo, other_id)
+
+            if not p:
+                continue
+
             wyniki.append({
                 "panstwo_id": p.PANSTWO_ID,
                 "panstwo_nazwa": p.panstwo_nazwa,
-                "relacja": s.relacja,
-                "stan": s.stan
+                "relacja": s.relacja.relacja_nazwa,
+                "stan": s.stan.stan_nazwa
             })
-    
+
         return jsonify(wyniki)
-
-
+    
     @app.route("/api/dyplomacja/panstwa")
     def api_dyplomacja_panstwa():
-        kontynent = request.args.get("kontynent")
-    
-        if not kontynent:
+
+        kontynent_id = request.args.get("kontynent_id", type=int)
+
+        if not kontynent_id:
             return jsonify([])
-    
+
         panstwa = (
             Panstwo.query
-            .filter(Panstwo.kontynent == kontynent)
+            .filter(Panstwo.kontynent_id == kontynent_id)
             .order_by(Panstwo.panstwo_nazwa)
             .all()
         )
-    
+
         return jsonify([
             {
                 "id": p.PANSTWO_ID,

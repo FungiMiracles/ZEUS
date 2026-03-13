@@ -172,14 +172,16 @@
 
             <div>
                 <label>Kontynent</label>
-                <select name="kontynent">
-                    <option value="">— wybierz —</option>
-                    {% for k in kontynenty %}
-                        <option value="{{ k }}"
-                            {% if k == selected_kontynent %}selected{% endif %}>
-                            {{ k }}
-                        </option>
-                    {% endfor %}
+                <select name="kontynent_id">
+                <option value="">— wybierz —</option>
+
+                {% for k in kontynenty %}
+                <option value="{{ k.kontynent_id }}"
+                {% if k.kontynent_id|string == selected_kontynent|string %}selected{% endif %}>
+                {{ k.kontynent_nazwa }}
+                </option>
+                {% endfor %}
+
                 </select>
             </div>
 
@@ -267,7 +269,7 @@
             <ul>
                 {% for m in dane.top_miasta %}
                     <li>
-                        {{ m.miasto_nazwa }} — {{ m.miasto_populacja }}
+                        {{ m.miasto_nazwa }} — {{ m.miasto_populacja | spacenum }}
                     </li>
                 {% endfor %}
             </ul>
@@ -320,7 +322,7 @@
 </div>
 
 <script>
-const kontynentSelect = document.querySelector('select[name="kontynent"]');
+const kontynentSelect = document.querySelector('select[name="kontynent_id"]');
 const panstwoSelect = document.querySelector('select[name="panstwo_id"]');
 
 kontynentSelect.addEventListener("change", () => {
@@ -330,7 +332,7 @@ kontynentSelect.addEventListener("change", () => {
 
     if (!kontynent) return;
 
-    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
         .then(res => res.json())
         .then(data => {
             data.forEach(p => {

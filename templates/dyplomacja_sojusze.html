@@ -147,11 +147,15 @@
             <div class="soj-select-box">
                <label for="kontynentSelect">Kontynent</label>
                <select id="kontynentSelect">
-                   <option value="">— wybierz —</option>
-                   {% for k in kontynenty %}
-                       <option value="{{ k }}">{{ k }}</option>
-                   {% endfor %}
-               </select>
+                <option value="">— wybierz —</option>
+
+                {% for k in kontynenty %}
+                <option value="{{ k.kontynent_id }}">
+                    {{ k.kontynent_nazwa }}
+                </option>
+                {% endfor %}
+
+                </select>
            </div>
 
             <div class="dyp-select-box">
@@ -303,6 +307,16 @@ const STAN_MAP = {
     }
 };
 
+function toKey(v) {
+    if (!v) return "";
+    return v
+        .toLowerCase()
+        .replace(/ /g, "_")
+        .replace(/[ąćęłńóśżź]/g, c => ({
+            "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ż":"z","ź":"z"
+        }[c]));
+}
+
 kontynentSelect.addEventListener("change", () => {
     const kontynent = kontynentSelect.value;
 
@@ -312,7 +326,7 @@ kontynentSelect.addEventListener("change", () => {
 
     if (!kontynent) return;
 
-    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/dyplomacja/panstwa?kontynent_id=${encodeURIComponent(kontynent)}`)
         .then(res => res.json())
         .then(data => {
             console.log("PAŃSTWA:", data);
@@ -365,12 +379,15 @@ searchBtn.addEventListener("click", () => {
                 const card = document.createElement("div");
                 card.className = "soj-card";
             
-                const rel = RELACJA_MAP[r.relacja] || {
+                const relKey = toKey(r.relacja);
+                const stanKey = toKey(r.stan);
+
+                const rel = RELACJA_MAP[relKey] || {
                     label: r.relacja,
                     class: "rel-grey"
                 };
-            
-                const stanObj = STAN_MAP[r.stan] || {
+
+                const stanObj = STAN_MAP[stanKey] || {
                     label: r.stan,
                     class: "rel-grey"
                 };

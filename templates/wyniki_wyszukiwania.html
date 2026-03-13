@@ -51,6 +51,7 @@
 .country-name {
     font-size: 1.05em;
     font-weight: 700;
+    gap: 8px;
 }
 
 .country-meta {
@@ -184,6 +185,75 @@
     border-color: #4171d1;
 }
 
+.flag-region {
+        height: 30px;
+        width: auto;
+        border: 1px solid #000;
+        border-radius: 2px;
+}
+
+.zeus-filter-box {
+    max-width: 1100px;
+    margin: 0 auto 25px auto;
+    padding: 16px 18px;
+    background-color: #f4f6f8;
+    border: 1px solid #d3d7dc;
+    border-radius: 10px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 16px;
+}
+
+.advanced-filters {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 16px;
+}
+
+.zeus-filter-box .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zeus-filter-box label {
+    font-size: 0.65em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #34495e;
+    text-transform: uppercase;
+}
+
+.zeus-filter-box select,
+.zeus-filter-box input {
+    padding: 7px 8px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #bfc6cd;
+    background-color: #ffffff;
+    color: #2c3e50;
+}
+
+.zeus-filter-box .filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.zeus-filter-box .filter-actions button {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 0.85em;
+    font-weight: 800;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #5d7dce;
+    color: #ffffff;
+}
+
 /* ============================================================
    MOBILE — LISTA PAŃSTW (FINAL, STABILNA)
 ============================================================ */
@@ -204,7 +274,10 @@
 
   .country-name {
     font-size: 1.05em;
-    font-weight: 800;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .country-meta {
@@ -256,6 +329,142 @@
 
 <div class="wyniki-panstw">
 
+    <form method="GET" action="{{ url_for('wyniki_wyszukiwania') }}">
+
+    <div style="max-width:1100px;margin:0 auto 10px auto;">
+    <label style="font-weight:700;font-size:0.9em;">
+    <input type="checkbox" id="toggle-advanced">
+    Filtry zaawansowane
+    </label>
+    </div>
+
+    <div class="zeus-filter-box">
+
+    <!-- KONTYNENT -->
+    <div class="filter-group">
+    <label>Kontynent</label>
+    <select name="kontynent_id">
+    <option value="">— wszystkie —</option>
+    {% for k in kontynenty %}
+    <option value="{{ k.kontynent_id }}"
+    {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+    {{ k.kontynent_nazwa }}
+    </option>
+    {% endfor %}
+    </select>
+    </div>
+
+    <!-- NAZWA -->
+    <div class="filter-group">
+    <label>Nazwa państwa</label>
+    <input type="text" name="panstwo_nazwa"
+    value="{{ request.args.get('panstwo_nazwa','') }}">
+    </div>
+
+    <!-- KOD -->
+    <div class="filter-group">
+    <label>Kod państwa</label>
+    <input type="text" name="panstwo_kod"
+    value="{{ request.args.get('panstwo_kod','') }}">
+    </div>
+
+    <!-- POPULACJA OD -->
+    <div class="filter-group">
+    <label>Populacja od</label>
+    <input type="number" name="populacja_od"
+    value="{{ request.args.get('populacja_od','') }}">
+    </div>
+
+    <!-- POPULACJA DO -->
+    <div class="filter-group">
+    <label>Populacja do</label>
+    <input type="number" name="populacja_do"
+    value="{{ request.args.get('populacja_do','') }}">
+    </div>
+
+    <div id="advanced-filters" style="display:none;" class="advanced-filters">
+
+    <!-- USTRÓJ -->
+    <div class="filter-group">
+    <label>Ustrój polityczny</label>
+    <input type="text" name="panstwo_ustroj"
+    value="{{ request.args.get('panstwo_ustroj','') }}">
+    </div>
+
+    <!-- POWIERZCHNIA -->
+    <div class="filter-group">
+    <label>Powierzchnia ≥</label>
+    <input type="number" name="panstwo_powierzchnia"
+    value="{{ request.args.get('panstwo_powierzchnia','') }}">
+    </div>
+
+    <!-- JĘZYK -->
+    <div class="filter-group">
+    <label>Język urzędowy</label>
+    <input type="text" name="panstwo_jezyk"
+    value="{{ request.args.get('panstwo_jezyk','') }}">
+    </div>
+
+    <!-- RELIGIA -->
+    <div class="filter-group">
+    <label>Religia dominująca</label>
+    <input type="text" name="panstwo_religia"
+    value="{{ request.args.get('panstwo_religia','') }}">
+    </div>
+
+    <!-- PKB OD -->
+    <div class="filter-group">
+    <label>PKB od</label>
+    <input type="number" name="pkb_od"
+    value="{{ request.args.get('pkb_od','') }}">
+    </div>
+
+    <!-- PKB DO -->
+    <div class="filter-group">
+    <label>PKB do</label>
+    <input type="number" name="pkb_do"
+    value="{{ request.args.get('pkb_do','') }}">
+    </div>
+
+    <!-- PKB PC OD -->
+    <div class="filter-group">
+    <label>PKB per capita od</label>
+    <input type="number" name="pkb_pc_od"
+    value="{{ request.args.get('pkb_pc_od','') }}">
+    </div>
+
+    <!-- PKB PC DO -->
+    <div class="filter-group">
+    <label>PKB per capita do</label>
+    <input type="number" name="pkb_pc_do"
+    value="{{ request.args.get('pkb_pc_do','') }}">
+    </div>
+
+    <!-- SUWERENNOŚĆ -->
+    <div class="filter-group">
+    <label>Status suwerenności</label>
+    <select name="czy_suwerenny">
+    <option value="">— wszystkie —</option>
+    <option value="TAK"
+    {% if request.args.get('czy_suwerenny') == "TAK" %}selected{% endif %}>
+    Suwerenne
+    </option>
+    <option value="NIE"
+    {% if request.args.get('czy_suwerenny') == "NIE" %}selected{% endif %}>
+    Niesuwerenne
+    </option>
+    </select>
+    </div>
+
+    </div>
+
+    <div class="filter-actions">
+    <button type="submit">Filtruj</button>
+    </div>
+
+    </div>
+    </form>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="region-flash">
@@ -268,11 +477,11 @@
         {% endif %}
     {% endwith %}
 
-    <h1>Wyniki wyszukiwania państw</h1>
-
     <div class="results-count">
         Ilość znalezionych państw: {{ total }}
     </div>
+
+    <h1>Wyniki wyszukiwania państw</h1>
 
     {% if empty %}
 
@@ -296,10 +505,14 @@
                     <!-- LEWA STRONA -->
                     <div class="country-main">
                         <div class="country-name">
+                            <img
+                                src="{{ url_for('static', filename='flags/' + row.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                                class="flag-region"
+                                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
                             {{ row.panstwo_nazwa }} ({{ row.panstwo_kod }})
                         </div>
                         <div class="country-meta">
-                            ID: {{ row.PANSTWO_ID }} • {{ row.kontynent }}
+                            ID: {{ row.PANSTWO_ID }} • {{ row.kontynent_rel.kontynent_nazwa if row.kontynent_rel else "—" }}
                         </div>
                     </div>
 
@@ -408,5 +621,28 @@
 
     {% endif %}
 </div>
+
+<script>
+const toggle = document.getElementById("toggle-advanced");
+const advanced = document.getElementById("advanced-filters");
+
+function updateAdvanced(){
+advanced.style.display = toggle.checked ? "grid" : "none";
+}
+
+toggle.addEventListener("change", updateAdvanced);
+
+const advancedUsed = [
+"{{ request.args.get('panstwo_ustroj','') }}",
+"{{ request.args.get('pkb_od','') }}",
+"{{ request.args.get('pkb_do','') }}"
+].some(v => v !== "");
+
+if (advancedUsed){
+toggle.checked = true;
+}
+
+updateAdvanced();
+</script>
 
 {% endblock %}

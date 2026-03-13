@@ -222,7 +222,7 @@
 <script>
 const STAN_LABELS = {
     pokoj: "Pokój",
-    zwieszenie_broni: "Zawieszenie broni",
+    zawieszenie_broni: "Zawieszenie broni",
     konflikt_dyplomatyczny: "Konflikt dyplomatyczny",
     wojna_handlowa: "Wojna handlowa",
     wojna_informacyjna: "Wojna informacyjna",
@@ -245,11 +245,22 @@ const RELACJA_LABELS = {
     wrogie: "Wrogie",
     egzystencjalnie_wrogie: "Egzystencjalnie wrogie",
 };
+
+function toKey(v) {
+    if (!v) return "";
+    return v
+        .toLowerCase()
+        .replace(/ /g, "_")
+        .replace(/[ąćęłńóśżź]/g, c => ({
+            "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ż":"z","ź":"z"
+        }[c]));
+}
    
 const relacjeGreen = [
     "sojusznicze",
     "partnerskie_strategiczne",
     "partnerskie",
+    "przyjazne",
     "dobre"
 ];
 
@@ -325,11 +336,14 @@ function updateRelation() {
             const rel = document.getElementById("relacjaValue");
             const stan = document.getElementById("stanValue");
 
-            rel.textContent = RELACJA_LABELS[d.relacja] ?? d.relacja;
-            stan.textContent = STAN_LABELS[d.stan] ?? d.stan;
+            const relKey = toKey(d.relacja);
+            const stanKey = toKey(d.stan);
 
-            rel.className = "relation-value " + colorClassRelacja(d.relacja);
-            stan.className = "relation-value " + colorClassStan(d.stan);
+            rel.textContent = RELACJA_LABELS[relKey] ?? d.relacja;
+            stan.textContent = STAN_LABELS[stanKey] ?? d.stan;
+
+            rel.className = "relation-value " + colorClassRelacja(relKey);
+            stan.className = "relation-value " + colorClassStan(stanKey);
 
             card.style.display = "block";
         });

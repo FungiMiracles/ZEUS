@@ -7,19 +7,39 @@ from paths import INFO_FILE
 from permissions import wymaga_roli
 import markdown
 from paths import VERSIONS_FILE
+from models import Zdarzenie, DictKontynent
 
 
 def init_main_routes(app):
     # --------------------------
     # Strony główne / proste
     # --------------------------
+
+    @app.context_processor
+    def inject_world_news():
+        latest_events = (
+            Zdarzenie.query
+            .order_by(Zdarzenie.data_entenda.desc())
+            .limit(10)
+            .all()
+        )
+        return {"latest_events": latest_events}
+    
     @app.route("/")
     def root():
         return redirect(url_for("wejscie"))
     
     @app.route("/home")
     def home_page():
-        return render_template("zeus_home.html")
+            
+            kontynenty = DictKontynent.query.order_by(
+                DictKontynent.kontynent_nazwa
+            ).all()
+
+            return render_template(
+                "zeus_home.html",
+                kontynenty=kontynenty
+            )
 
     @app.route("/historia")
     def historia():
@@ -127,3 +147,4 @@ def init_main_routes(app):
     @app.route("/miasto_dodano")
     def miasto_dodano():
         return render_template("miasto_dodano.html")
+    

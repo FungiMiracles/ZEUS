@@ -221,18 +221,19 @@ a.btn-zeus:active {
          <div class="historia-section">
              <h3>Lokalizacja</h3>
          
-             <div class="historia-field">
-                 <label>Kontynent</label>
-                 <select name="kontynent" id="kontynentSelect">
-                     <option value="">— brak —</option>
-                     <option>Kao</option>
-                     <option>Beifa</option>
-                     <option>Anzinia</option>
-                     <option>Peryfa</option>
-                     <option>Wyspy Większe</option>
-                     <option>Wyspy Mniejsze</option>
-                 </select>
-             </div>
+                <div class="historia-field">
+                    <label>Kontynent</label>
+                    <select name="kontynent_id" id="kontynentSelect">
+                        <option value="">— brak —</option>
+
+                        {% for k in kontynenty %}
+                            <option value="{{ k.kontynent_id }}">
+                                {{ k.kontynent_nazwa }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
          
              <div class="historia-field">
                 <label>Państwo</label>
@@ -307,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!kontynent.value) return;
 
-        fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent.value)}`)
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${kontynent.value}`)
             .then(r => r.json())
             .then(data => {
                 data.forEach(p => {

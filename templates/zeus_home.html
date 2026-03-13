@@ -163,7 +163,7 @@
 
     <!-- OPIS -->
     <div class="zeus-intro">
-        Zeus to system administracyjny i encyklopedia fikcyjnego świata Entendy.
+        Zeus to system administracyjny, symulacyjny i encyklopedia fikcyjnego świata Entendy.
     </div>
 
     <!-- ================= WYSZUKIWANIE ================= -->
@@ -182,14 +182,15 @@
 
                 <form action="{{ url_for('wyniki_wyszukiwania') }}" method="GET">
                     <label>Kontynent</label>
-                    <select name="kontynent">
-                        <option value="">—</option>
-                        <option>Kao</option>
-                        <option>Beifa</option>
-                        <option>Anzinia</option>
-                        <option>Peryfa</option>
-                        <option>Wyspy Większe</option>
-                        <option>Wyspy Mniejsze</option>
+                    <select name="kontynent_id" id="kontynentSelect">
+                        <option value="">— brak —</option>
+
+                        {% for k in kontynenty %}
+                            <option value="{{ k.kontynent_id }}">
+                                {{ k.kontynent_nazwa }}
+                            </option>
+                        {% endfor %}
+
                     </select>
 
                     <label>Nazwa państwa</label>
@@ -302,7 +303,7 @@
     </div>
 
     <footer style="text-align:center; font-size:0.75em; color:#7f8c8d; margin:12px 0;">
-        ZEUS © 2026 | Ostatnie wydanie: W1.MAR.26
+        ZEUS © 2026 | Ostatnie wydanie: W2.MAR.26
     </footer>
 
 </div>

@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify, url_for, redirect, abort, Response
 from extensions import db
-from models import Religia, ReligiaPerPanstwo, Panstwo
+from models import Religia, ReligiaPerPanstwo, Panstwo, DictKontynent
 from permissions import wymaga_roli
 from sqlalchemy.orm import aliased
 
@@ -19,7 +19,7 @@ def init_religia_routes(app):
     @app.route("/religia/list", methods=["GET"])
     def religia_list():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
         panstwo_id = request.args.get("panstwo")
         religia_id = request.args.get("religia")
 
@@ -34,7 +34,7 @@ def init_religia_routes(app):
                 ReligiaNadrzedna.religia_nazwa.label("religia_nadrzedna_nazwa"),
 
                 db.func.min(Panstwo.panstwo_nazwa).label("panstwo_nazwa"),
-                db.func.min(Panstwo.kontynent).label("kontynent"),
+                db.func.min(DictKontynent.kontynent_nazwa).label("kontynent"),
             )
             .outerjoin(
                 ReligiaNadrzedna,
@@ -48,16 +48,14 @@ def init_religia_routes(app):
                 Panstwo,
                 Panstwo.PANSTWO_ID == ReligiaPerPanstwo.panstwo_id
             )
-            .group_by(
-                Religia.religia_id,
-                Religia.religia_nazwa,
-                Religia.religia_typ,
-                ReligiaNadrzedna.religia_nazwa
+            .outerjoin(
+                DictKontynent,
+                Panstwo.kontynent_id == DictKontynent.kontynent_id
             )
         )
 
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         if panstwo_id and panstwo_id.isdigit():
             query = query.filter(Panstwo.PANSTWO_ID == int(panstwo_id))
@@ -65,7 +63,17 @@ def init_religia_routes(app):
         if religia_id and religia_id.isdigit():
             query = query.filter(Religia.religia_id == int(religia_id))
 
-        rows = query.order_by(Religia.religia_nazwa.asc()).all()
+        rows = (
+            query
+            .group_by(
+                Religia.religia_id,
+                Religia.religia_nazwa,
+                Religia.religia_typ,
+                ReligiaNadrzedna.religia_nazwa
+            )
+            .order_by(Religia.religia_nazwa.asc())
+            .all()
+        )
 
         results = [
             {
@@ -79,12 +87,7 @@ def init_religia_routes(app):
             for r in rows
         ]
 
-        kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
-            .all()
-        )
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
         religie = (
             db.session.query(Religia.religia_id, Religia.religia_nazwa)
@@ -95,7 +98,7 @@ def init_religia_routes(app):
         return render_template(
             "religia_list.html",
             results=results,
-            kontynenty=[k[0] for k in kontynenty],
+            kontynenty=kontynenty,
             religie=religie
         )
 
@@ -104,11 +107,11 @@ def init_religia_routes(app):
     # ============================================================
     @app.route("/api/religia/panstwa")
     def api_religia_panstwa():
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
 
         query = Panstwo.query
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         panstwa = query.order_by(Panstwo.panstwo_nazwa).all()
 

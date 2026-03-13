@@ -13,7 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from extensions import db
-from models import Panstwo, Miasto
+from models import Panstwo, Miasto, DictKontynent, DictPanstwoUstroj
 
 from paths import (
     FLAGI_DIR,
@@ -76,20 +76,68 @@ def init_panstwa_routes(app):
 
     @app.route("/wyniki_wyszukiwania", methods=["GET"])
     def wyniki_wyszukiwania():
-        kontynent = request.args.get("kontynent")
+
+        kontynent_id = request.args.get("kontynent_id")
         nazwa = request.args.get("panstwo_nazwa")
         kod = request.args.get("panstwo_kod")
 
+        ustroj = request.args.get("panstwo_ustroj")
+        populacja_od = request.args.get("populacja_od")
+        populacja_do = request.args.get("populacja_do")
+        powierzchnia = request.args.get("panstwo_powierzchnia")
+        jezyk = request.args.get("panstwo_jezyk")
+        religia = request.args.get("panstwo_religia")
+        pkb_od = request.args.get("pkb_od")
+        pkb_do = request.args.get("pkb_do")
+        pkb_pc_od = request.args.get("pkb_pc_od")
+        pkb_pc_do = request.args.get("pkb_pc_do")
+        czy_suwerenny = request.args.get("czy_suwerenny")
+
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+
         query = Panstwo.query
 
-        if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+        if kontynent_id:
+            query = query.filter(Panstwo.kontynent_id == kontynent_id)
 
         if nazwa:
             query = query.filter(Panstwo.panstwo_nazwa.like(f"%{nazwa}%"))
 
         if kod:
             query = query.filter(Panstwo.panstwo_kod.like(f"%{kod}%"))
+
+        if ustroj:
+            query = query.filter(Panstwo.panstwo_ustroj.like(f"%{ustroj}%"))
+
+        if populacja_od:
+            query = query.filter(Panstwo.panstwo_populacja >= int(populacja_od))
+
+        if populacja_do:
+            query = query.filter(Panstwo.panstwo_populacja <= int(populacja_do))
+
+        if powierzchnia:
+            query = query.filter(Panstwo.panstwo_powierzchnia >= int(powierzchnia))
+
+        if jezyk:
+            query = query.filter(Panstwo.panstwo_jezyk.like(f"%{jezyk}%"))
+
+        if religia:
+            query = query.filter(Panstwo.panstwo_religia.like(f"%{religia}%"))
+
+        if pkb_od:
+            query = query.filter(Panstwo.panstwo_PKB >= int(pkb_od))
+
+        if pkb_do:
+            query = query.filter(Panstwo.panstwo_PKB <= int(pkb_do))
+
+        if pkb_pc_od:
+            query = query.filter(Panstwo.panstwo_PKB_per_capita >= int(pkb_pc_od))
+
+        if pkb_pc_do:
+            query = query.filter(Panstwo.panstwo_PKB_per_capita <= int(pkb_pc_do))
+
+        if czy_suwerenny:
+            query = query.filter(Panstwo.czy_suwerenny == czy_suwerenny)
 
         page = request.args.get("page", 1, type=int)
         per_page = 25
@@ -108,6 +156,7 @@ def init_panstwa_routes(app):
             pagination=pagination,
             total=total,
             args=args,
+            kontynenty=kontynenty,
             empty=len(results) == 0
         )
 
@@ -125,12 +174,17 @@ def init_panstwa_routes(app):
         )
 
         profil_jezykowy = p.profil_jezykowy  # może być None
+
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
     
         return render_template(
             "panstwo_form.html",
             p=p,
             miasta=miasta,
             profil_jezykowy=profil_jezykowy,
+            ustroje=ustroje,
             ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
         )
 
@@ -139,32 +193,44 @@ def init_panstwa_routes(app):
     @app.route("/panstwo_form_add", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def panstwo_add_form():
+
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
+
         if request.method == "POST":
 
             nazwa = request.form.get("panstwo_nazwa")
             pelna = request.form.get("panstwo_pelna_nazwa")
             kod = request.form.get("panstwo_kod")
-            ustroj = request.form.get("panstwo_ustroj")
+            ustroj_id = request.form.get("ustroj_id")
             stolica = request.form.get("panstwo_stolica")
-            populacja = request.form.get("panstwo_populacja")
-            pkb = request.form.get("PKB")
-            pkb_pc = request.form.get("PKB_per_capita")
+            populacja = int(request.form.get("panstwo_populacja"))
+            pkb = int(request.form.get("PKB"))
+            pkb_pc = int(request.form.get("PKB_per_capita"))
             waluta = request.form.get("panstwo_waluta")
             religia = request.form.get("panstwo_religia")
-            kontynent = request.form.get("kontynent")
-            powierzchnia = request.form.get("panstwo_powierzchnia")
+            kontynent_id_raw = request.form.get("kontynent_id")
+            try:
+                kontynent_id = int(kontynent_id_raw)
+            except (TypeError, ValueError):
+                kontynent_id = None
+            powierzchnia = int(request.form.get("panstwo_powierzchnia"))
             czy_suwerenny = request.form.get("czy_suwerenny")
 
             required_fields = [
                 nazwa, pelna, kod, ustroj, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
-                kontynent, powierzchnia, czy_suwerenny
+                kontynent_id_raw, powierzchnia, czy_suwerenny
             ]
 
             if any(not field for field in required_fields):
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Wszystkie pola formularza są obowiązkowe.",
                     form_data=request.form
                 )
@@ -175,6 +241,7 @@ def init_panstwa_routes(app):
             if czy_suwerenny not in ("TAK", "NIE"):
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Musisz określić, czy państwo jest suwerenne.",
                     form_data=request.form
                 )
@@ -182,6 +249,7 @@ def init_panstwa_routes(app):
             if not flaga or not mapa or flaga.filename == "" or mapa.filename == "":
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Dodaj flagę i mapę państwa.",
                     form_data=request.form
                 )
@@ -194,6 +262,8 @@ def init_panstwa_routes(app):
             except Exception as e:
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=f"Błąd zapisu plików: {e}",
                     form_data=request.form
                 )
@@ -203,14 +273,14 @@ def init_panstwa_routes(app):
                     panstwo_nazwa=nazwa,
                     panstwo_pelna_nazwa=pelna,
                     panstwo_kod=kod,
-                    panstwo_ustroj=ustroj,
+                    ustroj_id=ustroj_id,
                     panstwo_stolica=stolica,
                     panstwo_populacja=populacja,
                     panstwo_PKB=pkb,
                     panstwo_PKB_per_capita=pkb_pc,
                     panstwo_waluta=waluta,
                     panstwo_religia=religia,
-                    kontynent=kontynent,
+                    kontynent_id=kontynent_id,
                     panstwo_powierzchnia=powierzchnia,
                     czy_suwerenny=czy_suwerenny,
                 )
@@ -220,17 +290,31 @@ def init_panstwa_routes(app):
                 db.session.rollback()
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=f"Błąd zapisu do bazy: {e}",
                     form_data=request.form
                 )
 
             return redirect(url_for("panstwo_dodano"))
 
-        return render_template("panstwo_form_add.html")
+        return render_template(
+            "panstwo_form_add.html",
+            kontynenty=kontynenty,
+            ustroje=ustroje
+        )
 
     @app.route("/panstwo/<int:panstwo_id>/edit", methods=["GET", "POST"])
     def panstwo_form_edit(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
+
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
 
         if request.method == "POST":
             form = request.form
@@ -241,15 +325,14 @@ def init_panstwa_routes(app):
                 "panstwo_nazwa",
                 "panstwo_pelna_nazwa",
                 "panstwo_kod",
-                "kontynent",
-                "panstwo_ustroj",
+                "kontynent_id",
+                "ustroj_id",
                 "panstwo_stolica",
                 "panstwo_powierzchnia",
                 "panstwo_waluta",
                 "panstwo_religia",
                 "panstwo_PKB",
                 "panstwo_PKB_per_capita",
-                "panstwo_populacja",
                 "czy_suwerenny",
             ]
 
@@ -261,6 +344,8 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
+                    kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error=" ".join(set(errors)),
                     form_data=form
                 )
@@ -269,19 +354,18 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
+                    kontynenty=kontynenty,
+                    ustroje=ustroje,
                     error="Musisz określić status suwerenności państwa.",
                     form_data=form
                 )
 
             try:
-                # --- NOWA POPULACJA (najpierw) ---
-                nowa_populacja = int(form.get("panstwo_populacja"))
-
                 # --- POLA TEKSTOWE / STAŁE ---
                 p.panstwo_nazwa = form.get("panstwo_nazwa")
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
-                p.kontynent = form.get("kontynent")
+                p.kontynent_id = int(form.get("kontynent_id"))
                 p.panstwo_ustroj = form.get("panstwo_ustroj")
                 p.panstwo_stolica = form.get("panstwo_stolica")
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
@@ -300,16 +384,21 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
-                    error=f"Błąd zapisu danych: {e}",
+                    kontynenty=kontynenty,
+                    ustroje=ustroje,
+                    error=" ".join(set(errors)),
                     form_data=form
                 )
         
 
             return redirect(url_for("panstwo_form", panstwo_id=p.PANSTWO_ID))
 
-        return render_template("panstwo_form_edit.html", p=p)
-
-
+        return render_template(
+            "panstwo_form_edit.html",
+            p=p,
+            kontynenty=kontynenty,
+            ustroje=ustroje
+        )
 
     # ================= USUWANIE PAŃSTWA =================
 
@@ -353,4 +442,5 @@ def init_panstwa_routes(app):
 
         flash("Informacje szczegółowe zostały zapisane.", "success")
         return redirect(url_for("panstwo_form", panstwo_id=panstwo_id))
+
 

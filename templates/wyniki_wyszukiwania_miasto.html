@@ -385,13 +385,13 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             <!-- ===== Po kontynencie, państwie, regionie -->
             <div class="filter-group">
                 <label>Kontynent</label>
-                <select name="kontynent" id="kontynent-select">
+                <select name="kontynent_id" id="kontynent-select">
                     <option value="">— wszystkie —</option>
                     {% for k in kontynenty %}
-                        <option value="{{ k }}"
-                            {% if k == selected_kontynent %}selected{% endif %}>
-                            {{ k }}
-                        </option>
+                    <option value="{{ k.kontynent_id }}"
+                    {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+                    {{ k.kontynent_nazwa }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -431,18 +431,22 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 <label>Typ miasta</label>
                 <select name="miasto_typ">
                     <option value="">— wszystkie —</option>
-                    <option value="stolica"
-                            {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+
+                    <option value="1"
+                        {% if request.args.get('miasto_typ') == '1' %}selected{% endif %}>
                         Stolica państwa
                     </option>
-                    <option value="stolica regionu"
-                            {% if request.args.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
+
+                    <option value="2"
+                        {% if request.args.get('miasto_typ') == '2' %}selected{% endif %}>
                         Stolica regionu
                     </option>
-                    <option value="miasto"
-                            {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+
+                    <option value="3"
+                        {% if request.args.get('miasto_typ') == '3' %}selected{% endif %}>
                         Miasto
                     </option>
+
                 </select>
             </div>
 
@@ -734,16 +738,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!kontynent) return;
 
-        fetch(`/api/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
             .then(res => res.json())
             .then(data => {
                 data.forEach(p => {
                     const opt = document.createElement("option");
-                    opt.value = p.panstwo_nazwa;
-                    opt.textContent = p.panstwo_nazwa;
-                    if (p.panstwo_nazwa === selectedPanstwo) {
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+
+                    if (String(p.id) === String(selectedPanstwo)) {
                         opt.selected = true;
                     }
+
                     panstwoSelect.appendChild(opt);
                 });
 
@@ -763,13 +769,18 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(res => res.json())
             .then(data => {
                 data.forEach(r => {
+
                     const opt = document.createElement("option");
-                    opt.value = r.region_nazwa;
+
+                    opt.value = r.region_id;
                     opt.textContent = r.region_nazwa;
-                    if (r.region_nazwa === selectedRegion) {
+
+                    if (String(r.region_id) === String(selectedRegion)) {
                         opt.selected = true;
                     }
+
                     regionSelect.appendChild(opt);
+
                 });
             });
     }
@@ -790,6 +801,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 </script>
-                            
-                            
+                                                
 {% endblock %}

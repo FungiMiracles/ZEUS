@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from extensions import db
-from models import Panstwo, Gospodarka
+from models import Panstwo, Gospodarka, DictKontynent
 from permissions import wymaga_roli
 
 
@@ -280,11 +280,10 @@ def init_gospodarka_routes(app):
 
         # Lista dostępnych kontynentów
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         # Bazowe zapytanie
         query = (
@@ -294,7 +293,7 @@ def init_gospodarka_routes(app):
 
         # Filtrowanie
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         if panstwo_q:
             query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_q}%"))
@@ -428,7 +427,7 @@ def init_gospodarka_routes(app):
         return jsonify({
             "id": pan.PANSTWO_ID,
             "nazwa": pan.panstwo_nazwa,
-            "kontynent": pan.kontynent,
+            "kontynent": pan.kontynent_rel.kontynent_nazwa if pan.kontynent_rel else None,
             "populacja": safe(pan.panstwo_populacja),
             "gospodarka": gospodarka,
             "reverse_fields": reverse_fields

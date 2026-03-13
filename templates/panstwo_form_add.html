@@ -252,14 +252,15 @@
 
                 <div class="form-group">
                     <label>Kontynent</label>
-                    <select name="kontynent" required>
-                        <option value="">— wybierz —</option>
-                        <option>Kao</option>
-                        <option>Beifa</option>
-                        <option>Anzinia</option>
-                        <option>Peryfa</option>
-                        <option>Wyspy Większe</option>
-                        <option>Wyspy Mniejsze</option>
+                    <select name="ustroj_id" required>
+                        <option value="">-- wybierz ustrój --</option>
+
+                        {% for u in ustroje %}
+                        <option value="{{ u.ustroj_id }}">
+                            {{ u.ustroj_nazwa }}
+                        </option>
+                        {% endfor %}
+
                     </select>
                 </div>
 

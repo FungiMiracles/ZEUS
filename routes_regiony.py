@@ -8,7 +8,10 @@ from models import (
     DictRegionTeren,
     DictRegionPolozenie,
     DictRegionTyp,
+    DictKontynent,
+    Zdarzenie,
 )
+
 from permissions import wymaga_roli
 from flask import Response, send_file
 import os
@@ -28,7 +31,7 @@ def init_regiony_routes(app):
 
         panstwo_nazwa = request.args.get("panstwo_nazwa", "").strip()
         region_nazwa = request.args.get("region_nazwa", "").strip()
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent_id")
         panstwo_id = request.args.get("panstwo_id")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
@@ -57,10 +60,9 @@ def init_regiony_routes(app):
         per_page = 25
 
         # ===== LISTY DO FILTRÓW =====
-        kontynenty = [
-            k[0] for k in db.session.query(Panstwo.kontynent).distinct().all()
-            if k[0]
-        ]
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
 
         uksztaltowania = DictRegionTeren.query.all()
         polozenia = DictRegionPolozenie.query.all()
@@ -83,7 +85,7 @@ def init_regiony_routes(app):
             )
 
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         if panstwo_id and panstwo_id.isdigit():
             query = query.filter(Region.panstwo_id == int(panstwo_id))
@@ -582,15 +584,23 @@ def init_regiony_routes(app):
         panstwo = region.panstwo
         miasta=region.miasta
         back_url = request.referrer
+        events = (
+            Zdarzenie.query
+            .filter(Zdarzenie.region_id == region.region_id)
+            .order_by(Zdarzenie.data_entenda.desc())
+            .limit(50)
+            .all()
+        )
 
         return render_template(
             "region_form.html",
             region=region,
             panstwo=panstwo,
             miasta=miasta,
+            events=events,
             back_url=back_url
         )
-    
+            
 
 
             

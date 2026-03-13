@@ -233,14 +233,16 @@
 
                 <div>
                     <label>Kontynent</label>
-                    <select name="kontynent" id="kontynent" required>
+                    <select name="kontynent_id" id="kontynent" required>
                         <option value="">— wybierz —</option>
+
                         {% for k in kontynenty %}
-                            <option value="{{ k }}"
-                                {% if form_data and form_data.kontynent == k %}selected{% endif %}>
-                                {{ k }}
+                            <option value="{{ k.kontynent_id }}"
+                                {% if form_data and form_data.kontynent_id == k.kontynent_id|string %}selected{% endif %}>
+                                {{ k.kontynent_nazwa }}
                             </option>
                         {% endfor %}
+
                     </select>
                 </div>
 
@@ -313,30 +315,40 @@
 
 <script>
 document.getElementById("kontynent").addEventListener("change", function () {
-    const kontynent = this.value;
+
+    const kontynentId = this.value;
     const panstwoSelect = document.getElementById("panstwo");
     const regionSelect = document.getElementById("region");
 
     panstwoSelect.innerHTML = "<option>Ładowanie…</option>";
     panstwoSelect.disabled = true;
-    regionSelect.innerHTML = "<option>— wybierz państwo —</option>";
+
+    regionSelect.innerHTML = '<option value="">— wybierz —</option>';
     regionSelect.disabled = true;
+    regionSelect.required = true;
 
-    if (!kontynent) return;
+    if (!kontynentId) return;
 
-    fetch(`/api/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/panstwa_by_kontynent?kontynent_id=${kontynentId}`)
         .then(res => res.json())
         .then(data => {
+
             panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
+
             data.forEach(p => {
                 panstwoSelect.innerHTML +=
                     `<option value="${p.id}">${p.nazwa}</option>`;
             });
+
             panstwoSelect.disabled = false;
-        });
+
+        })
+        .catch(err => console.error("API error:", err));
+
 });
 
 document.getElementById("panstwo").addEventListener("change", function () {
+
     const panstwoId = this.value;
     const regionSelect = document.getElementById("region");
 
@@ -348,13 +360,19 @@ document.getElementById("panstwo").addEventListener("change", function () {
     fetch(`/api/regiony_by_panstwo?panstwo_id=${panstwoId}`)
         .then(res => res.json())
         .then(data => {
+
             regionSelect.innerHTML = '<option value="">— wybierz —</option>';
+
             data.forEach(r => {
                 regionSelect.innerHTML +=
                     `<option value="${r.region_id}">${r.region_nazwa}</option>`;
             });
+
             regionSelect.disabled = false;
-        });
+
+        })
+        .catch(err => console.error("API error:", err));
+
 });
 </script>
 

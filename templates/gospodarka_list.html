@@ -369,8 +369,8 @@
                       </td>
                   
                       <td data-label="Kontynent">
-                          {{ p.kontynent or "—" }}
-                      </td>
+                            {{ p.kontynent_rel.kontynent_nazwa if p.kontynent_rel else "—" }}
+                        </td>
                   
                       {% if p.gospodarka %}
                   

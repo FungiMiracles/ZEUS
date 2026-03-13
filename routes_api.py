@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from extensions import db
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
+
 
 
 
@@ -8,14 +9,15 @@ def init_api_routes(app):
 
     @app.route("/api/panstwa_by_kontynent")
     def api_panstwa_by_kontynent():
-        kontynent = request.args.get("kontynent")
 
-        if not kontynent:
+        kontynent_id = request.args.get("kontynent_id", type=int)
+
+        if not kontynent_id:
             return jsonify([])
 
         panstwa = (
             db.session.query(Panstwo.PANSTWO_ID, Panstwo.panstwo_nazwa)
-            .filter(Panstwo.kontynent == kontynent)
+            .filter(Panstwo.kontynent_id == kontynent_id)
             .order_by(Panstwo.panstwo_nazwa)
             .all()
         )
@@ -27,14 +29,20 @@ def init_api_routes(app):
     
     @app.route("/api/kontynenty")
     def api_kontynenty():
+
         rows = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
 
-        return jsonify([k[0] for k in rows if k[0]])
+        return jsonify([
+            {
+                "id": k.kontynent_id,
+                "nazwa": k.kontynent_nazwa
+            }
+            for k in rows
+        ])
     
     @app.route("/api/miasta_by_region")
     def api_miasta_by_region():

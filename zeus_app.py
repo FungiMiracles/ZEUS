@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from engine.clock import get_current_entenda_date
-
 from flask import (
     Flask,
     redirect,
@@ -12,10 +11,8 @@ from flask import (
 )
 from flask_migrate import Migrate
 from sqlalchemy import func
-
 from extensions import db
 from permissions import wymaga_roli
-
 from routes_auth import init_auth_routes
 from routes_main import init_main_routes
 from routes_panstwa import init_panstwa_routes
@@ -41,7 +38,6 @@ START_REAL = datetime(2025, 11, 28)
 START_ENTENDA_YEAR = 2990
 START_ENTENDA_MONTH = 1
 DNI_NA_MIESIAC = 2
-
 
 def oblicz_kalendarz_entendy():
     teraz = datetime.utcnow()
@@ -141,7 +137,7 @@ def create_app():
     @app.context_processor
     def inject_global_entenda_data():
         try:
-            from models import Panstwo, Region, Miasto
+            from models import Panstwo, Region, Miasto, DictKontynent
 
             entenda_now = get_current_entenda_date()
 
@@ -150,11 +146,7 @@ def create_app():
                 .scalar()
             ) or 0
 
-            continents = (
-                db.session.query(Panstwo.kontynent)
-                .distinct()
-                .count()
-            )
+            continents = DictKontynent.query.count()
 
             countries = db.session.query(Panstwo.PANSTWO_ID).count()
             regions = Region.query.count()

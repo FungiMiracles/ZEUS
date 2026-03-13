@@ -8,12 +8,11 @@ from flask import (
 )
 
 from extensions import db
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 from permissions import wymaga_roli
 from sqlalchemy import func
 from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
 import random
-from flask import jsonify
 from datetime import datetime
 
 
@@ -26,16 +25,14 @@ def init_demografia_routes(app):
     @app.route("/demografia/kalkulator", methods=["GET"])
     def demografia_kalkulator():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
         panstwo_id = request.args.get("panstwo_id")
 
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         panstwa = []
         panstwo = None
@@ -44,7 +41,7 @@ def init_demografia_routes(app):
         if kontynent:
             panstwa = (
                 Panstwo.query
-                .filter_by(kontynent=kontynent)
+                .filter_by(kontynent_id=kontynent)
                 .order_by(Panstwo.panstwo_nazwa)
                 .all()
             )
@@ -92,16 +89,14 @@ def init_demografia_routes(app):
     def demografia_generator_miast():
 
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         if request.method == "POST":
 
-            kontynent = request.form.get("kontynent")
+            kontynent = request.form.get("kontynent_id")
             panstwo_id = request.form.get("panstwo_id")
             region_id = request.form.get("region_id")
             ilosc = request.form.get("ilosc")
@@ -239,24 +234,22 @@ def init_demografia_routes(app):
     @app.route("/demografia/ludnosc", methods=["GET"])
     def demografia_ludnosc():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent_id", type=int)
         panstwo_id = request.args.get("panstwo_id")
 
         # lista kontynentów
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
-            .distinct()
-            .order_by(Panstwo.kontynent)
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
 
         # lista państw (jeśli wybrano kontynent)
         panstwa = []
         if kontynent:
             panstwa = (
                 Panstwo.query
-                .filter_by(kontynent=kontynent)
+                .filter(Panstwo.kontynent_id == kontynent)
                 .order_by(Panstwo.panstwo_nazwa)
                 .all()
             )

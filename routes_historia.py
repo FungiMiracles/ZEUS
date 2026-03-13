@@ -5,7 +5,7 @@ from extensions import db
 from models import Historia
 from permissions import wymaga_roli
 from datetime import date, datetime
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 import re
 
 def parse_year_or_date(value: str) -> date:
@@ -139,12 +139,13 @@ def init_historia_routes(app):
     @app.route("/historia/dodaj", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def historia_dodaj():
-    
-        # ─────────────────────────────
-        # DANE DO FORMULARZA (GET + ERROR)
-        # ─────────────────────────────
+
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-    
+
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
         if request.method == "POST":
             try:
                 form = request.form
@@ -168,6 +169,10 @@ def init_historia_routes(app):
                 panstwo_id = parse_fk(form.get("panstwo_id"))
                 region_id = parse_fk(form.get("region_id"))
                 miasto_id = parse_fk(form.get("miasto_id"))
+
+                kontynenty = DictKontynent.query.order_by(
+                    DictKontynent.kontynent_nazwa
+                ).all()
     
                 # ───────────────
                 # HIERARCHIA GEO
@@ -208,7 +213,7 @@ def init_historia_routes(app):
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
-                    kontynent=form.get("kontynent") or None,
+                    kontynent_id=parse_fk(form.get("kontynent_id")),
                     wydarzenie_opis=form.get("wydarzenie_opis"),
                     panstwo_id=panstwo.PANSTWO_ID if panstwo else None,
                     region_id=region.region_id if region else None,
@@ -230,12 +235,14 @@ def init_historia_routes(app):
                 return render_template(
                     "historia_form_add.html",
                     panstwa=panstwa,
-                    form_data=request.form
+                    kontynenty=kontynenty,
+                    form_data={}
                 )
         
         return render_template(
             "historia_form_add.html",
             panstwa=panstwa,
+            kontynenty=kontynenty,
             form_data={}
         )
 
@@ -246,8 +253,15 @@ def init_historia_routes(app):
     @wymaga_roli("wszechmocny")
     def historia_edytuj(historia_id):
 
+        def parse_fk(v):
+            return int(v) if v and v.isdigit() else None
+
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-    
+
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
         h = Historia.query.get_or_404(historia_id)
     
         if request.method == "POST":
@@ -259,7 +273,7 @@ def init_historia_routes(app):
                 # ───────────────
                 h.nazwa_wydarzenia = form.get("nazwa_wydarzenia")
                 h.epoka = form.get("epoka")
-                h.kontynent = form.get("kontynent") or None
+                h.kontynent_id = parse_fk(form.get("kontynent_id"))
                 h.wydarzenie_opis = form.get("wydarzenie_opis")
     
                 # ───────────────
@@ -271,12 +285,6 @@ def init_historia_routes(app):
     
                 if h.data_do and h.data_do < h.data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza niż początkowa.")
-    
-                # ───────────────
-                # FK PARSE
-                # ───────────────
-                def parse_fk(v):
-                    return int(v) if v and v.isdigit() else None
     
                 panstwo_id = parse_fk(form.get("panstwo_id"))
                 region_id = parse_fk(form.get("region_id"))
@@ -336,7 +344,8 @@ def init_historia_routes(app):
                 return render_template(
                     "historia_form_edit.html",
                     h=h,
-                    panstwa=panstwa
+                    panstwa=panstwa,
+                    kontynenty=kontynenty
                 )
     
         # ───────────────
@@ -345,7 +354,8 @@ def init_historia_routes(app):
         return render_template(
             "historia_form_edit.html",
             h=h,
-            panstwa=panstwa
+            panstwa=panstwa,
+            kontynenty=kontynenty
         )
 
     # --------------------------------------------------------

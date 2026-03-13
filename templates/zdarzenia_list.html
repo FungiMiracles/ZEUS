@@ -15,8 +15,6 @@
     padding: 10px 20px 40px 20px;
 }
 
-
-
 /* =========================================================
    TABLE – ZEUS ADMIN STYLE
 ========================================================= */
@@ -147,6 +145,38 @@
     white-space: nowrap;
     cursor: pointer;
 }
+
+@media (max-width: 768px) {
+
+.events-page {
+    padding: 10px 10px 30px 10px;
+}
+
+/* filtry */
+
+.zeus-filter-box {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.filter-group {
+    min-width: 0;
+}
+
+.filter-group input,
+.filter-group select {
+    font-size: 0.9em;
+    padding: 8px 10px;
+}
+
+/* przycisk */
+
+.filter-actions button {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 0.9em;
+}
 </style>
 
 <h1>Wygenerowane zdarzenia</h1>
@@ -201,14 +231,6 @@ value="{{ request.args.get('data_do','') }}">
 
 </div>
 </form>
-
-<div style="text-align:right; margin-bottom:10px;">
-    <form method="POST" action="/zdarzenia/generuj">
-        <button class="btn btn-success">
-        ⚡ Generuj zdarzenia
-        </button>
-    </form>
-</div>
 
 <hr>
 

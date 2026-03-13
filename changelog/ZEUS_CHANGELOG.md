@@ -1,4 +1,54 @@
-__Wydanie W1.MAR.26 (XX.03.2026)__
+Wydanie W2.MAR.26 (13.03.2026)
+
+Zmiany:
+
+Z1.W2.MAR.26 [Generator Zdarzeń] Usunięcie przycisku „Generuj zdarzenia” z ekranu Generatora Zdarzeń.
+
+Z2.W2.MAR.26 [Generator Zdarzeń] Implementacja nowych typów wydarzeń w Generatorze Zdarzeń: powódź, lawina, wybuch wulkanu, mróz oraz fala upałów.
+
+Z3.W2.MAR.26 [Generator Zdarzeń] Wprowadzenie mechanizmu generowania opisów wydarzeń na podstawie szablonów zapisanych w bazie danych. Generator zdarzeń zapisuje w kolumnie „OPIS” treść zdarzenia wygenerowaną z szablonu oraz identyfikator wykorzystanego szablonu.
+
+Z4.W2.MAR.26 [Generator Zdarzeń] Implementacja systemu szablonów opisów dla istniejących wydarzeń w Generatorze Zdarzeń.
+
+Z5.W2.MAR.26 [Strona Główna] Dodanie paska „Wiadomości ze świata”, wyświetlającego przesuwające się z prawej do lewej informacje o ostatnich wydarzeniach. Pasek prezentuje 10 najnowszych zdarzeń w formacie: [DATA] [OPIS ZDARZENIA].
+
+Z6.W2.MAR.26 [Regiony] Na formularzu regionu dodano listę wydarzeń, które miały miejsce w danym regionie. Domyślnie wyświetlane są 3 najnowsze wydarzenia z możliwością rozwinięcia listy.
+
+Z7.W2.MAR.26 [Regiony] Na formularzu regionu obok nazwy państwa wyświetlana jest flaga państwa, do którego należy region.
+
+Z8.W2.MAR.26 [Regiony] Na liście miast w formularzu regionu dodano przycisk „Przejdź”, umożliwiający bezpośrednie przejście do formularza danego miasta.
+
+Z9.W2.MAR.26 [Regiony] Formularz regionu został dostosowany do poprawnego działania na urządzeniach mobilnych.
+
+Z10.W2.MAR.26 [Miasta] Na formularzu miasta obok nazwy państwa wyświetlana jest flaga państwa, do którego należy dane miasto.
+
+Z11.W2.MAR.26 [Państwa] Na liście wyników wyszukiwania państw dodano wyświetlanie flag państw obok nazwy każdego wyniku.
+
+Z12.W2.MAR.26 [Państwa] Dodanie zaawansowanego filtra wyszukiwania państw. Możliwe jest filtrowanie po: kontynencie, ustroju politycznym, populacji, powierzchni, języku urzędowym, religii dominującej, PKB, PKB per capita oraz statusie suwerenności.
+
+Z13.W2.MAR.26 [Strona Główna] Aktualizacja opisu systemu ZEUS na stronie głównej. System został opisany jako system administracyjny, symulacyjny i encyklopedia świata Entendy.
+
+Z14.W2.MAR.26 [Generator Zdarzeń] Strona Generatora Zdarzeń została dostosowana do widoku mobilnego.
+
+Z15.W2.MAR.26 [Państwa] Wprowadzenie słownika kontynentów (dict_kontynent). Do tabeli panstwa dodano kolumnę kontynent_id, a formularze oraz backend zostały dostosowane do korzystania z nowego słownika.
+
+Z16.W2.MAR.26 [Państwa] Wprowadzenie słownika ustrojów politycznych (dict_panstwo_ustroj). Do tabeli panstwa dodano kolumnę ustroj_id, a modele danych oraz formularze zostały dostosowane do nowej struktury.
+
+Z17.W2.MAR.26 [Miasta] Wprowadzenie słownika typów miast (dict_miasto_typ). Do tabeli miasta dodano kolumnę miasto_typ_id, a backend i formularze miast zostały dostosowane do korzystania ze słownika.
+
+Z18.W2.MAR.26 [Stosunki międzynarodowe] Wprowadzenie słownika relacji dyplomatycznych (dict_stosunki_relacja). Do tabeli stosunki dodano kolumnę relacja_id, a backend został dostosowany do obsługi relacji opartych na słowniku.
+
+Z19.W2.MAR.26 [Stosunki międzynarodowe] Wprowadzenie słownika stanów dyplomatycznych (dict_stosunki_stan). Do tabeli stosunki dodano kolumnę stan_id, a modele danych oraz backend zostały dostosowane do nowej struktury.
+
+Poprawki:
+
+P1.W2.MAR.26 [Generator Zdarzeń] Poprawiono sortowanie listy wydarzeń w Generatorze Zdarzeń – rekordy są wyświetlane malejąco według identyfikatora zdarzenia.
+
+Parametry:
+
+PAR1.W2.MAR.26 [Generator Zdarzeń] Zmniejszono zakres liczby ofiar dla wielu typów zdarzeń generowanych przez Generator Zdarzeń.
+
+__Wydanie W1.MAR.26 (07.03.2026)__
 
 Zmiany:
 
