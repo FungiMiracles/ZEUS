@@ -240,11 +240,16 @@ a.btn-zeus:active {
 
             <div class="historia-field">
                 <label>Kontynent</label>
-                <select name="kontynent" id="kontynentSelect">
+                <select name="kontynent_id" id="kontynentSelect">
                     <option value="">— brak —</option>
-                    {% for k in ["Kao","Beifa","Anzinia","Peryfa","Wyspy Większe","Wyspy Mniejsze"] %}
-                        <option value="{{ k }}" {% if h.kontynent == k %}selected{% endif %}>{{ k }}</option>
+
+                    {% for k in kontynenty %}
+                        <option value="{{ k.kontynent_id }}"
+                            {% if h.kontynent_id == k.kontynent_id %}selected{% endif %}>
+                            {{ k.kontynent_nazwa }}
+                        </option>
                     {% endfor %}
+
                 </select>
             </div>
 
