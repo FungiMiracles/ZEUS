@@ -433,6 +433,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+window.addEventListener("DOMContentLoaded", () => {
+    const kont = document.getElementById("kontynentSelect");
+    if (kont.value) {
+        kont.dispatchEvent(new Event("change"));
+    }
+});
 </script>
 
 {% endblock %}
