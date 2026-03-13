@@ -182,8 +182,8 @@ def init_dyplomacja_routes(app):
             })
             
         return jsonify({
-            "relacja": rel.relacja.relacja_nazwa,
-            "stan": rel.stan.stan_nazwa
+            "relacja": rel.relacja.relacja_kod,
+            "stan": rel.stan.stan_kod
         })
 
     @app.route("/api/dyplomacja/kontynenty")

@@ -356,8 +356,8 @@
         display: block;
     }
 
-     .city-table.show-all .extra-city {
-        display: block;
+    .city-row.extra-city {
+        display: none;
     }
 
     /* ========================================================
@@ -734,7 +734,7 @@
                 <td>{{ m.miasto_nazwa }}</td>
                 <td>{{ m.miasto_kod }}</td>
                 <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
-                <td>{{ m.miasto_typ }}</td>
+                <td>{{ m.typ_miasta.nazwa }}</td>
                 <td>
                     <a href="{{ url_for('miasto_form', miasto_id=m.miasto_id) }}" class="btn-city">
                         Przejdź
@@ -799,7 +799,8 @@
 <script>
 function toggleCities(btn) {
 
-    const table = btn.previousElementSibling;
+    const table = document.querySelector(".city-table");
+
     const expanded = table.classList.toggle("show-all");
 
     btn.innerHTML = expanded

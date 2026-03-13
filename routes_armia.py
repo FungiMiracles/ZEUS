@@ -1,7 +1,7 @@
 # routes_armia.py
 from flask import render_template, request, jsonify, redirect, url_for, flash
 from extensions import db
-from models import Panstwo, Wojsko
+from models import Panstwo, Wojsko, DictKontynent
 from permissions import wymaga_roli
 
 def init_armia_routes(app):
@@ -179,16 +179,11 @@ def init_armia_routes(app):
     
     @app.route("/sily_zbrojne_list")
     def sily_zbrojne_list():
-        kontynent = request.args.get("kontynent", "").strip()
+        kontynent = request.args.get("kontynent_id", "").strip()
         panstwo_q = request.args.get("panstwo", "").strip()
 
         # Pobranie listy kontynentów (zgodnie z Twoim modelem)
-        kontynenty = (
-            db.session.query(Panstwo.kontynent_id)
-            .distinct()
-            .all()
-        )
-        kontynenty = [k[0] for k in kontynenty if k[0]]
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
         # ---- BAZOWE ZAPYTANIE ----
         query = (
