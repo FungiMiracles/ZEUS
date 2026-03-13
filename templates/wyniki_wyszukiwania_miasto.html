@@ -431,18 +431,22 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 <label>Typ miasta</label>
                 <select name="miasto_typ">
                     <option value="">— wszystkie —</option>
-                    <option value="stolica"
-                            {% if request.args.get('miasto_typ') == 'stolica' %}selected{% endif %}>
+
+                    <option value="1"
+                        {% if request.args.get('miasto_typ') == '1' %}selected{% endif %}>
                         Stolica państwa
                     </option>
-                    <option value="stolica regionu"
-                            {% if request.args.get('miasto_typ') == 'stolica regionu' %}selected{% endif %}>
+
+                    <option value="2"
+                        {% if request.args.get('miasto_typ') == '2' %}selected{% endif %}>
                         Stolica regionu
                     </option>
-                    <option value="miasto"
-                            {% if request.args.get('miasto_typ') == 'miasto' %}selected{% endif %}>
+
+                    <option value="3"
+                        {% if request.args.get('miasto_typ') == '3' %}selected{% endif %}>
                         Miasto
                     </option>
+
                 </select>
             </div>
 
