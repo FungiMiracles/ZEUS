@@ -734,7 +734,7 @@
                 <td>{{ m.miasto_nazwa }}</td>
                 <td>{{ m.miasto_kod }}</td>
                 <td>{{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}</td>
-                <td>{{ m.typ_miasta.nazwa }}</td>
+                <td>{{ m.typ.miasto_typ_nazwa if m.typ else "Brak danych" }}</td>
                 <td>
                     <a href="{{ url_for('miasto_form', miasto_id=m.miasto_id) }}" class="btn-city">
                         Przejdź
