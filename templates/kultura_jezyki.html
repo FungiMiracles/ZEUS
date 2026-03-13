@@ -332,14 +332,14 @@ Kultura — Języki
                 <!-- KONTYNENT -->
                 <div>
                     <label><strong>Kontynent</strong></label>
-                    <select id="filter-kontynent" name="kontynent" class="form-control">
+                    <select id="filter-kontynent" name="kontynent_id" class="form-control">
                         <option value="">— wszystkie kontynenty —</option>
-                        <option value="Kao" {% if selected_kontynent == "Kao" %}selected{% endif %}>Kao</option>
-                        <option value="Beifa" {% if selected_kontynent == "Beifa" %}selected{% endif %}>Beifa</option>
-                        <option value="Anzinia" {% if selected_kontynent == "Anzinia" %}selected{% endif %}>Anzinia</option>
-                        <option value="Peryfa" {% if selected_kontynent == "Peryfa" %}selected{% endif %}>Peryfa</option>
-                        <option value="Wyspy Większe" {% if selected_kontynent == "Wyspy Większe" %}selected{% endif %}>Wyspy Większe</option>
-                        <option value="Wyspy Mniejsze" {% if selected_kontynent == "Wyspy Mniejsze" %}selected{% endif %}>Wyspy Mniejsze</option>
+                        <option value="1" {% if selected_kontynent == "Kao" %}selected{% endif %}>Kao</option>
+                        <option value="2" {% if selected_kontynent == "Beifa" %}selected{% endif %}>Beifa</option>
+                        <option value="3" {% if selected_kontynent == "Anzinia" %}selected{% endif %}>Anzinia</option>
+                        <option value="6" {% if selected_kontynent == "Peryfa" %}selected{% endif %}>Peryfa</option>
+                        <option value="4" {% if selected_kontynent == "Wyspy Większe" %}selected{% endif %}>Wyspy Większe</option>
+                        <option value="5" {% if selected_kontynent == "Wyspy Mniejsze" %}selected{% endif %}>Wyspy Mniejsze</option>
                     </select>
                 </div>
 
@@ -498,7 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
         panstwoSelect.disabled = true;
         panstwoSelect.innerHTML = "<option value=''>Ładowanie państw...</option>";
 
-        fetch(`/api/kultura/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent)}`)
+        fetch(`/api/kultura/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Błąd pobierania państw");

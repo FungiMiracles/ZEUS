@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
-from models import Panstwo, Jezyk, JezykiPerPanstwo
+from models import Panstwo, Jezyk, JezykiPerPanstwo, DictKontynent
 from sqlalchemy import func
 from permissions import wymaga_roli
 
@@ -28,14 +28,14 @@ def init_kultura_routes(app):
 
     @app.route("/api/kultura/panstwa_by_kontynent")
     def api_kultura_panstwa_by_kontynent():
-        kontynent = request.args.get("kontynent")
+        kontynent_id = request.args.get("kontynent_id", type=int)
     
         if not kontynent:
             return jsonify([])
     
         panstwa = (
             Panstwo.query
-            .filter(Panstwo.kontynent_id == kontynent)
+            .filter(Panstwo.kontynent_id == kontynent_id)
             .order_by(Panstwo.panstwo_nazwa.asc())
             .all()
         )
@@ -191,7 +191,7 @@ def init_kultura_routes(app):
     @app.route("/kultura/jezyki/search", methods=["POST"])
     def kultura_jezyki_search():
     
-        kontynent = request.form.get("kontynent")
+        kontynent_id = request.form.get("kontynent_id", type=int)
         panstwo_id = request.form.get("panstwo")
         jezyk_id = request.form.get("jezyk")
     
@@ -225,8 +225,8 @@ def init_kultura_routes(app):
     
             if panstwo_id:
                 query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
-            elif kontynent:
-                query = query.filter(Panstwo.kontynent_id == kontynent)
+            elif kontynent_id:
+                query = query.filter(Panstwo.kontynent_id == kontynent_id)
     
         wyniki = query.order_by(Jezyk.jezyk_nazwa).all()
     

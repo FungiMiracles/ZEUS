@@ -96,7 +96,7 @@ def init_demografia_routes(app):
 
         if request.method == "POST":
 
-            kontynent = request.form.get("kontynent")
+            kontynent = request.form.get("kontynent_id")
             panstwo_id = request.form.get("panstwo_id")
             region_id = request.form.get("region_id")
             ilosc = request.form.get("ilosc")
@@ -234,7 +234,7 @@ def init_demografia_routes(app):
     @app.route("/demografia/ludnosc", methods=["GET"])
     def demografia_ludnosc():
 
-        kontynent = request.args.get("kontynent", type=int)
+        kontynent = request.args.get("kontynent_id", type=int)
         panstwo_id = request.args.get("panstwo_id")
 
         # lista kontynentów

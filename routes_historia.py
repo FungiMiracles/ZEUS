@@ -139,12 +139,13 @@ def init_historia_routes(app):
     @app.route("/historia/dodaj", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def historia_dodaj():
-    
-        # ─────────────────────────────
-        # DANE DO FORMULARZA (GET + ERROR)
-        # ─────────────────────────────
+
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-    
+
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
         if request.method == "POST":
             try:
                 form = request.form
@@ -265,7 +266,7 @@ def init_historia_routes(app):
                 # ───────────────
                 h.nazwa_wydarzenia = form.get("nazwa_wydarzenia")
                 h.epoka = form.get("epoka")
-                h.kontynent = form.get("kontynent") or None
+                h.kontynent_id = parse_fk(form.get("kontynent_id"))
                 h.wydarzenie_opis = form.get("wydarzenie_opis")
     
                 # ───────────────

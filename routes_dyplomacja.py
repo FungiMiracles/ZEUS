@@ -269,7 +269,7 @@ def init_dyplomacja_routes(app):
     @app.route("/api/dyplomacja/panstwa")
     def api_dyplomacja_panstwa():
 
-        kontynent_id = request.args.get("kontynent", type=int)
+        kontynent_id = request.args.get("kontynent_id", type=int)
 
         if not kontynent_id:
             return jsonify([])
