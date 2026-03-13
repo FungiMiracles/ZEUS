@@ -257,7 +257,11 @@ def init_historia_routes(app):
             return int(v) if v and v.isdigit() else None
 
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
-    
+
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
         h = Historia.query.get_or_404(historia_id)
     
         if request.method == "POST":
@@ -349,7 +353,8 @@ def init_historia_routes(app):
         return render_template(
             "historia_form_edit.html",
             h=h,
-            panstwa=panstwa
+            panstwa=panstwa,
+            kontynenty=kontynenty
         )
 
     # --------------------------------------------------------
