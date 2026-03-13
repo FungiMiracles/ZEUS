@@ -234,7 +234,13 @@ class Historia(db.Model):
         nullable=False
     )
 
-    kontynent = db.Column(db.String(100), nullable=True)
+    kontynent_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_kontynent.kontynent_id"),
+        nullable=True
+    )
+
+    kontynent_rel = db.relationship("DictKontynent")
 
     # =========================================================
     #  POWIĄZANIA GEOGRAFICZNE (OPCJONALNE)

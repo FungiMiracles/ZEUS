@@ -213,7 +213,7 @@ def init_historia_routes(app):
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
-                    kontynent_id = parse_fk(form.get("kontynent_id")),
+                    kontynent_id=parse_fk(form.get("kontynent_id")),
                     wydarzenie_opis=form.get("wydarzenie_opis"),
                     panstwo_id=panstwo.PANSTWO_ID if panstwo else None,
                     region_id=region.region_id if region else None,
@@ -253,6 +253,9 @@ def init_historia_routes(app):
     @wymaga_roli("wszechmocny")
     def historia_edytuj(historia_id):
 
+        def parse_fk(v):
+            return int(v) if v and v.isdigit() else None
+
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
     
         h = Historia.query.get_or_404(historia_id)
@@ -278,12 +281,6 @@ def init_historia_routes(app):
     
                 if h.data_do and h.data_do < h.data_od:
                     raise ValueError("Data końcowa nie może być wcześniejsza niż początkowa.")
-    
-                # ───────────────
-                # FK PARSE
-                # ───────────────
-                def parse_fk(v):
-                    return int(v) if v and v.isdigit() else None
     
                 panstwo_id = parse_fk(form.get("panstwo_id"))
                 region_id = parse_fk(form.get("region_id"))
