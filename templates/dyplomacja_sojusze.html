@@ -310,13 +310,13 @@ const STAN_MAP = {
 kontynentSelect.addEventListener("change", () => {
     const kontynent = kontynentSelect.value;
 
-    panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
+    panstwoSelect.innerHTML = "<option>Ładowanie…</option>";
     panstwoSelect.disabled = true;
     sojList.innerHTML = "";
 
     if (!kontynent) return;
 
-    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
+    fetch(`/api/dyplomacja/panstwa?kontynent=${encodeURIComponent(kontynent_id)}`)
         .then(res => res.json())
         .then(data => {
             console.log("PAŃSTWA:", data);

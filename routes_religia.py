@@ -19,7 +19,7 @@ def init_religia_routes(app):
     @app.route("/religia/list", methods=["GET"])
     def religia_list():
 
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
         panstwo_id = request.args.get("panstwo")
         religia_id = request.args.get("religia")
 
@@ -63,7 +63,17 @@ def init_religia_routes(app):
         if religia_id and religia_id.isdigit():
             query = query.filter(Religia.religia_id == int(religia_id))
 
-        rows = query.order_by(Religia.religia_nazwa.asc()).all()
+        rows = (
+            query
+            .group_by(
+                Religia.religia_id,
+                Religia.religia_nazwa,
+                Religia.religia_typ,
+                ReligiaNadrzedna.religia_nazwa
+            )
+            .order_by(Religia.religia_nazwa.asc())
+            .all()
+        )
 
         results = [
             {
@@ -97,7 +107,7 @@ def init_religia_routes(app):
     # ============================================================
     @app.route("/api/religia/panstwa")
     def api_religia_panstwa():
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent", type=int)
 
         query = Panstwo.query
         if kontynent:

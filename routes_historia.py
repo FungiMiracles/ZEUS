@@ -5,7 +5,7 @@ from extensions import db
 from models import Historia
 from permissions import wymaga_roli
 from datetime import date, datetime
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 import re
 
 def parse_year_or_date(value: str) -> date:
