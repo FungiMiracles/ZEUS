@@ -82,15 +82,13 @@
                 <tr>
                     <td style="padding:10px;">Ustrój polityczny</td>
                     <td style="padding:10px;">
-                        <select name="ustroj_id" required>
-
+                        <select name="ustroj_id" required style="width:100%; padding:6px;">
                             {% for u in ustroje %}
                             <option value="{{ u.ustroj_id }}"
                                 {% if p.ustroj_id == u.ustroj_id %}selected{% endif %}>
                                 {{ u.ustroj_nazwa }}
                             </option>
                             {% endfor %}
-
                         </select>
                     </td>
                 </tr>

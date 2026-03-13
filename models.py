@@ -108,7 +108,12 @@ class Miasto(db.Model):
     miasto_nazwa = db.Column(db.String(255))
     miasto_kod = db.Column(db.String(4))
     miasto_populacja = db.Column(db.Integer)
-    miasto_typ = db.Column(db.String(255))
+    miasto_typ_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_miasto_typ.miasto_typ_id")
+    )
+
+    typ = db.relationship("DictMiastoTyp")
     region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"))
     czy_na_mapie = db.Column(db.Enum("TAK", "NIE", name="czy_na_mapie_enum"), nullable=False, default="TAK")
     czy_generowane = db.Column(db.Enum("TAK", "NIE", name="czy_generowane_enum"), nullable=False, default="TAK")
@@ -691,3 +696,9 @@ class DictPanstwoUstroj(db.Model):
 
     ustroj_id = db.Column(db.Integer, primary_key=True)
     ustroj_nazwa = db.Column(db.String(100), nullable=False, unique=True)
+
+class DictMiastoTyp(db.Model):
+    __tablename__ = "dict_miasto_typ"
+
+    miasto_typ_id = db.Column(db.Integer, primary_key=True)
+    miasto_typ_nazwa = db.Column(db.String(100), nullable=False, unique=True)

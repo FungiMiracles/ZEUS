@@ -1,7 +1,7 @@
 # routes_miasta.py
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from extensions import db
-from models import Miasto, Panstwo, Region, DictKontynent
+from models import Miasto, Panstwo, Region, DictKontynent, DictMiastoTyp
 from permissions import wymaga_roli
 from demografia_utils import przelicz_region_demografia
 from sqlalchemy import or_
@@ -54,15 +54,16 @@ def init_miasta_routes(app):
     def miasto_form_edit(miasto_id):
         miasto = Miasto.query.get_or_404(miasto_id)
 
+        typy = DictMiastoTyp.query.order_by(DictMiastoTyp.miasto_typ_nazwa).all()
+
         if request.method == "POST":
             nazwa = request.form.get("miasto_nazwa")
             kod = request.form.get("miasto_kod")
             panstwo_id = request.form.get("panstwo_id")
             populacja = request.form.get("miasto_populacja")
-            typ = request.form.get("miasto_typ")
+            miasto_typ_id = request.form.get("miasto_typ_id")
             region_id = request.form.get("region_id")
             czy_na_mapie = request.form.get("czy_na_mapie")
-            stara_populacja = miasto.miasto_populacja or 0
             stary_region = miasto.region
 
             # Walidacja
@@ -84,6 +85,7 @@ def init_miasta_routes(app):
                 return render_template(
                     "miasto_form_edit.html",
                     error=" ".join(errors),
+                    typy=typy,
                     miasto=miasto,
                     form_data=request.form
                 )
@@ -92,6 +94,7 @@ def init_miasta_routes(app):
             panstwo_id = int(panstwo_id)
             populacja = int(populacja)
             region_id = int(region_id)
+            miasto_typ_id = int(miasto_typ_id)
 
             # Walidacja spójności region–państwo
             region_obj = Region.query.get(region_id)
@@ -100,6 +103,7 @@ def init_miasta_routes(app):
                     "miasto_form_edit.html",
                     error=f"Region o ID {region_id} nie istnieje.",
                     miasto=miasto,
+                    typy=typy,
                     form_data=request.form
                 )
 
@@ -108,6 +112,7 @@ def init_miasta_routes(app):
                     "miasto_form_edit.html",
                     error="Podany region należy do innego państwa.",
                     miasto=miasto,
+                    typy=typy,
                     form_data=request.form
                 )
 
@@ -121,18 +126,19 @@ def init_miasta_routes(app):
                     miasto_id=miasto.miasto_id,
                     panstwo_id=panstwo_id,
                     region_id=region_id,
-                    miasto_typ=typ
+                    miasto_typ_id=miasto_typ_id
                 )
             except ValueError as e:
                 return render_template(
                     "miasto_form_edit.html",
                     error=str(e),
                     miasto=miasto,
+                    typy=typy,
                     form_data=request.form
                 )
 
             miasto.miasto_populacja = populacja
-            miasto.miasto_typ = typ
+            miasto.miasto_typ_id = miasto_typ_id
             miasto.panstwo_id = panstwo_id
             miasto.region_id = region_id
             miasto.czy_na_mapie = czy_na_mapie
@@ -146,6 +152,7 @@ def init_miasta_routes(app):
                     "miasto_form_edit.html",
                     error=str(e),
                     miasto=miasto,
+                    typy=typy,
                     form_data=request.form
                 )
             
@@ -155,7 +162,11 @@ def init_miasta_routes(app):
             return redirect(url_for("miasto_form", miasto_id=miasto_id))
 
         # GET — wyświetlenie formularza
-        return render_template("miasto_form_edit.html", miasto=miasto)
+        return render_template(
+            "miasto_form_edit.html",
+            miasto=miasto,
+            typy=typy
+        )
 
 
     # --------------------------------
@@ -213,7 +224,7 @@ def init_miasta_routes(app):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
     
         if miasto_typ:
-            query = query.filter(Miasto.miasto_typ == miasto_typ)
+            query = query.filter(Miasto.miasto_typ_id == miasto_typ)
     
         if populacja_od and populacja_od.isdigit():
             query = query.filter(Miasto.miasto_populacja >= int(populacja_od))
@@ -245,7 +256,7 @@ def init_miasta_routes(app):
                     "miasto_nazwa": m.miasto_nazwa,
                     "miasto_kod": m.miasto_kod,
                     "miasto_populacja": m.miasto_populacja,
-                    "miasto_typ": m.miasto_typ,
+                    "miasto_typ": m.typ.miasto_typ_nazwa,
                     "czy_na_mapie": m.czy_na_mapie,
                     "panstwo_nazwa": p.panstwo_nazwa,
                     "region_nazwa": r.region_nazwa if r else "Brak przypisania regionalnego",
@@ -311,12 +322,15 @@ def init_miasta_routes(app):
     def miasto_form_add():
 
         empty_miasto = Miasto()
+        miasto_typ_id = request.form.get("miasto_typ_id")
+        typy = DictMiastoTyp.query.order_by(DictMiastoTyp.miasto_typ_nazwa).all()
 
         # ───── GET ─────
         if request.method == "GET":
             return render_template(
                 "miasto_form_add.html",
                 miasto=empty_miasto,
+                typy=typy,
                 form_data={}
             )
 
@@ -325,18 +339,18 @@ def init_miasta_routes(app):
         kod = request.form.get("miasto_kod")
         panstwo_id = request.form.get("panstwo_id")
         populacja = request.form.get("miasto_populacja")
-        typ = request.form.get("miasto_typ")
         region_id = request.form.get("region_id")
         czy_na_mapie = request.form.get("czy_na_mapie")
 
         # ↓↓↓ OD TEGO MOMENTU WOLNO UŻYWAĆ `nazwa` ↓↓↓
 
         # walidacje
-        required_fields = [nazwa, kod, panstwo_id, populacja, typ, region_id, czy_na_mapie]
+        required_fields = [nazwa, kod, panstwo_id, populacja, miasto_typ_id, region_id, czy_na_mapie]
         if any(not f for f in required_fields):
             return render_template(
                 "miasto_form_add.html",
                 miasto=empty_miasto,
+                typy=typy,
                 error="Wszystkie pola formularza są obowiązkowe.",
                 form_data=request.form,
             )
@@ -345,6 +359,7 @@ def init_miasta_routes(app):
         panstwo_id = int(panstwo_id)
         region_id = int(region_id)
         populacja = int(populacja)
+        miasto_typ_id = int(miasto_typ_id)
 
         # duplikaty — TERAZ JUŻ BEZPIECZNIE
         duplicate_cities = (
@@ -357,6 +372,7 @@ def init_miasta_routes(app):
             return render_template(
                 "miasto_form_add.html",
                 miasto=empty_miasto,
+                typy=typy,
                 error="Miasto o takiej nazwie już istnieje.",
                 form_data=request.form,
             )
@@ -366,12 +382,13 @@ def init_miasta_routes(app):
                 miasto_id=None,
                 panstwo_id=panstwo_id,
                 region_id=region_id,
-                miasto_typ=typ
+                miasto_typ_id=miasto_typ_id
             )
         except ValueError as e:
             return render_template(
                 "miasto_form_add.html",
                 miasto=empty_miasto,
+                typy=typy,
                 error=str(e),
                 form_data=request.form,
             )       
@@ -382,7 +399,7 @@ def init_miasta_routes(app):
             miasto_kod=kod,
             panstwo_id=panstwo_id,
             miasto_populacja=populacja,
-            miasto_typ=typ,
+            miasto_typ_id=miasto_typ_id,
             region_id=region_id,
             czy_na_mapie=czy_na_mapie,
         )
@@ -396,6 +413,7 @@ def init_miasta_routes(app):
             return render_template(
                 "miasto_form_add.html",
                 miasto=empty_miasto,
+                typy=typy,
                 error=str(e),
                 form_data=request.form,
             )
@@ -452,34 +470,37 @@ def init_miasta_routes(app):
     def usun_miasto(miasto_id):
         miasto = Miasto.query.get_or_404(miasto_id)
         region = miasto.region
-    
+
         try:
             db.session.delete(miasto)
-    
-            # 🔥 zwrot ludności przez PRZELICZENIE
+
             if region:
                 przelicz_region_demografia(region)
-    
+
             db.session.commit()
-            flash(f"Miasto {miasto.miasto_nazwa} zostało usunięte, a populacja regionu ponownie przeliczona.", "success")
-    
+
+            flash(
+                f"Miasto {miasto.miasto_nazwa} zostało usunięte, a populacja regionu ponownie przeliczona.",
+                "success"
+            )
+
         except Exception as e:
             db.session.rollback()
             flash(f"Błąd podczas usuwania miasta: {e}", "error")
-    
+
         return redirect(request.referrer or url_for("wyniki_wyszukiwania_miasto"))
         
-    def waliduj_stolice(miasto_id, panstwo_id, region_id, miasto_typ):
+    def waliduj_stolice(miasto_id, panstwo_id, region_id, miasto_typ_id):
         """
         R7: jedno miasto typu 'stolica' na państwo
         R8: jedno miasto typu 'stolica regionu' na region
         """
 
-        # ───── R7: STOLICA PAŃSTWA ─────
-        if miasto_typ == "stolica":
+        # stolica państwa
+        if miasto_typ_id == 1:
             q = Miasto.query.filter(
                 Miasto.panstwo_id == panstwo_id,
-                Miasto.miasto_typ == "stolica"
+                Miasto.miasto_typ_id == 1
             )
 
             if miasto_id:
@@ -490,11 +511,11 @@ def init_miasta_routes(app):
                     "To państwo ma już przypisaną stolicę państwa."
                 )
 
-        # ───── R8: STOLICA REGIONU ─────
-        if miasto_typ == "stolica regionu":
+        # stolica regionu
+        if miasto_typ_id == 2:
             q = Miasto.query.filter(
                 Miasto.region_id == region_id,
-                Miasto.miasto_typ == "stolica regionu"
+                Miasto.miasto_typ_id == 2
             )
 
             if miasto_id:
