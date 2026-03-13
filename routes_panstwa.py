@@ -188,6 +188,9 @@ def init_panstwa_routes(app):
     @app.route("/panstwo_form_add", methods=["GET", "POST"])
     @wymaga_roli("tworzyciel", "wszechmocny")
     def panstwo_add_form():
+
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+
         if request.method == "POST":
 
             nazwa = request.form.get("panstwo_nazwa")
@@ -195,25 +198,30 @@ def init_panstwa_routes(app):
             kod = request.form.get("panstwo_kod")
             ustroj = request.form.get("panstwo_ustroj")
             stolica = request.form.get("panstwo_stolica")
-            populacja = request.form.get("panstwo_populacja")
-            pkb = request.form.get("PKB")
-            pkb_pc = request.form.get("PKB_per_capita")
+            populacja = int(request.form.get("panstwo_populacja"))
+            pkb = int(request.form.get("PKB"))
+            pkb_pc = int(request.form.get("PKB_per_capita"))
             waluta = request.form.get("panstwo_waluta")
             religia = request.form.get("panstwo_religia")
-            kontynent_id = int(request.form.get("kontynent_id"))
-            powierzchnia = request.form.get("panstwo_powierzchnia")
+            kontynent_id_raw = request.form.get("kontynent_id")
+            try:
+                kontynent_id = int(kontynent_id_raw)
+            except (TypeError, ValueError):
+                kontynent_id = None
+            powierzchnia = int(request.form.get("panstwo_powierzchnia"))
             czy_suwerenny = request.form.get("czy_suwerenny")
 
             required_fields = [
                 nazwa, pelna, kod, ustroj, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
-                kontynent_id, powierzchnia, czy_suwerenny
+                kontynent_id_raw, powierzchnia, czy_suwerenny
             ]
 
             if any(not field for field in required_fields):
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Wszystkie pola formularza są obowiązkowe.",
                     form_data=request.form
                 )
@@ -224,6 +232,7 @@ def init_panstwa_routes(app):
             if czy_suwerenny not in ("TAK", "NIE"):
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Musisz określić, czy państwo jest suwerenne.",
                     form_data=request.form
                 )
@@ -231,6 +240,7 @@ def init_panstwa_routes(app):
             if not flaga or not mapa or flaga.filename == "" or mapa.filename == "":
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error="Dodaj flagę i mapę państwa.",
                     form_data=request.form
                 )
@@ -243,6 +253,7 @@ def init_panstwa_routes(app):
             except Exception as e:
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error=f"Błąd zapisu plików: {e}",
                     form_data=request.form
                 )
@@ -269,13 +280,12 @@ def init_panstwa_routes(app):
                 db.session.rollback()
                 return render_template(
                     "panstwo_form_add.html",
+                    kontynenty=kontynenty,
                     error=f"Błąd zapisu do bazy: {e}",
                     form_data=request.form
                 )
 
             return redirect(url_for("panstwo_dodano"))
-
-        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
         return render_template(
             "panstwo_form_add.html",
@@ -286,6 +296,10 @@ def init_panstwa_routes(app):
     def panstwo_form_edit(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
 
+        kontynenty = DictKontynent.query.order_by(
+            DictKontynent.kontynent_nazwa
+        ).all()
+
         if request.method == "POST":
             form = request.form
             czy_suwerenny = form.get("czy_suwerenny")
@@ -295,7 +309,7 @@ def init_panstwa_routes(app):
                 "panstwo_nazwa",
                 "panstwo_pelna_nazwa",
                 "panstwo_kod",
-                "kontynent",
+                "kontynent_id",
                 "panstwo_ustroj",
                 "panstwo_stolica",
                 "panstwo_powierzchnia",
@@ -314,6 +328,7 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
+                    kontynenty=kontynenty,
                     error=" ".join(set(errors)),
                     form_data=form
                 )
@@ -322,6 +337,7 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
+                    kontynenty=kontynenty,
                     error="Musisz określić status suwerenności państwa.",
                     form_data=form
                 )
@@ -331,7 +347,7 @@ def init_panstwa_routes(app):
                 p.panstwo_nazwa = form.get("panstwo_nazwa")
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
-                p.kontynent_id = form.get("kontynent_id")
+                p.kontynent_id = int(form.get("kontynent_id"))
                 p.panstwo_ustroj = form.get("panstwo_ustroj")
                 p.panstwo_stolica = form.get("panstwo_stolica")
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
@@ -350,16 +366,19 @@ def init_panstwa_routes(app):
                 return render_template(
                     "panstwo_form_edit.html",
                     p=p,
-                    error=f"Błąd zapisu danych: {e}",
+                    kontynenty=kontynenty,
+                    error=" ".join(set(errors)),
                     form_data=form
                 )
         
 
             return redirect(url_for("panstwo_form", panstwo_id=p.PANSTWO_ID))
 
-        return render_template("panstwo_form_edit.html", p=p)
-
-
+        return render_template(
+            "panstwo_form_edit.html",
+            p=p,
+            kontynenty=kontynenty
+        )
 
     # ================= USUWANIE PAŃSTWA =================
 
