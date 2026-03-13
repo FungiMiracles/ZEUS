@@ -47,7 +47,7 @@ def init_zdarzenia_routes(app):
 
         zdarzenia = (
             query
-            .order_by(Zdarzenie.data_entenda.asc())
+            .order_by(Zdarzenie.zdarzenie_id.desc())
             .limit(500)
             .all()
         )

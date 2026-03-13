@@ -206,22 +206,22 @@ def try_generate_earthquake(region, target_date):
     elif s < 40:
         prob = 0.002
         scale = 2
-        victims_range = (6,30)
+        victims_range = (6,12)
 
     elif s < 60:
         prob = 0.003
         scale = 3
-        victims_range = (31,100)
+        victims_range = (13,25)
 
     elif s < 80:
         prob = 0.0035
         scale = 4
-        victims_range = (101,1000)
+        victims_range = (26,500)
 
     else:
         prob = 0.004
         scale = 5
-        victims_range = (1001,10000)
+        victims_range = (501,10000)
 
     if random.random() > prob:
         return None
@@ -266,22 +266,22 @@ def try_generate_train_disaster(region, target_date):
     elif infra > 65:
         prob = 0.0008
         scale = 2
-        victims_range = (2,10)
+        victims_range = (2,5)
 
     elif infra > 50:
         prob = 0.0025
         scale = 3
-        victims_range = (11,30)
+        victims_range = (6,12)
 
     elif infra > 30:
         prob = 0.003
         scale = 4
-        victims_range = (31,50)
+        victims_range = (13,20)
 
     else:
         prob = 0.005
         scale = 5
-        victims_range = (51,200)
+        victims_range = (21,50)
 
     if random.random() > prob:
         return None
@@ -331,17 +331,17 @@ def try_generate_road_disaster(region, target_date):
     elif infra > 50:
         prob = 0.0025
         scale = 3
-        victims_range = (5,10)
+        victims_range = (5,8)
 
     elif infra > 30:
         prob = 0.003
         scale = 4
-        victims_range = (11,15)
+        victims_range = (9,12)
 
     else:
         prob = 0.005
         scale = 5
-        victims_range = (16,20)
+        victims_range = (13,18)
 
     if random.random() > prob:
         return None
@@ -391,17 +391,17 @@ def try_generate_flood(region, target_date):
     elif s < 60:
         prob = 0.003
         scale = 3
-        victims_range = (16,80)
+        victims_range = (16,40)
 
     elif s < 80:
         prob = 0.0035
         scale = 4
-        victims_range = (81,300)
+        victims_range = (41,100)
 
     else:
         prob = 0.004
         scale = 5
-        victims_range = (301,950)
+        victims_range = (101,1000)
 
     if random.random() > prob:
         return None
@@ -446,22 +446,22 @@ def try_generate_avalanche(region, target_date):
     elif s < 40:
         prob = 0.0015
         scale = 2
-        victims_range = (2,10)
+        victims_range = (2,5)
 
     elif s < 60:
         prob = 0.002
         scale = 3
-        victims_range = (11,15)
+        victims_range = (6,11)
 
     elif s < 80:
         prob = 0.003
         scale = 4
-        victims_range = (16,20)
+        victims_range = (12,18)
 
     else:
         prob = 0.0035
         scale = 5
-        victims_range = (21,30)
+        victims_range = (19,25)
 
     if random.random() > prob:
         return None
@@ -576,12 +576,12 @@ def try_generate_coldwave(region, target_date):
     elif s < 80:
         prob = 0.0025
         scale = 4
-        victims_range = (11,50)
+        victims_range = (11,20)
 
     else:
         prob = 0.003
         scale = 5
-        victims_range = (51,200)
+        victims_range = (21,100)
 
     if random.random() > prob:
         return None
