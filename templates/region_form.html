@@ -799,7 +799,9 @@
 <script>
 function toggleCities(btn) {
 
-    const table = document.querySelector(".city-table");
+    const table = btn.previousElementSibling;
+
+    if (!table) return;
 
     const expanded = table.classList.toggle("show-all");
 

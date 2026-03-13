@@ -158,32 +158,51 @@ def init_dyplomacja_routes(app):
 
     @app.route("/api/dyplomacja")
     def api_dyplomacja():
+
+        import unicodedata
+
+        def normalize(value):
+            if not value:
+                return ""
+            value = value.lower().replace(" ", "_")
+            value = (
+                unicodedata
+                .normalize("NFKD", value)
+                .encode("ascii", "ignore")
+                .decode("ascii")
+            )
+            return value
+
         p1 = request.args.get("p1", type=int)
         p2 = request.args.get("p2", type=int)
-    
+
         if not p1 or not p2 or p1 == p2:
             return jsonify({
                 "relacja": "neutralne",
                 "stan": "pokoj"
             })
-                
-        # 🔑 KANONICZNY PORZĄDEK — ABSOLUTNIE KLUCZOWE
+
+        # 🔑 KANONICZNY PORZĄDEK — A-B zamiast A-B / B-A
         a, b = sorted([p1, p2])
-    
-        rel = Stosunki.query.filter_by(
-            PANSTWO_ID=a,
-            PANSTWO_ID2=b
-        ).first()
-    
+
+        rel = (
+            Stosunki.query
+            .filter_by(PANSTWO_ID=a, PANSTWO_ID2=b)
+            .first()
+        )
+
         if not rel:
             return jsonify({
                 "relacja": "neutralne",
                 "stan": "pokoj"
             })
-            
+
+        relacja = normalize(rel.relacja.relacja_nazwa if rel.relacja else "neutralne")
+        stan = normalize(rel.stan.stan_nazwa if rel.stan else "pokoj")
+
         return jsonify({
-            "relacja": rel.relacja.relacja_nazwa.lower().replace(" ", "_"),
-            "stan": rel.stan.stan_nazwa.lower().replace(" ", "_")
+            "relacja": relacja,
+            "stan": stan
         })
 
     @app.route("/api/dyplomacja/kontynenty")
