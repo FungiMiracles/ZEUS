@@ -184,7 +184,7 @@ def init_armia_routes(app):
 
         # Pobranie listy kontynentów (zgodnie z Twoim modelem)
         kontynenty = (
-            db.session.query(Panstwo.kontynent)
+            db.session.query(Panstwo.kontynent_id)
             .distinct()
             .all()
         )
@@ -208,7 +208,7 @@ def init_armia_routes(app):
 
         # ---- FILTR KONTYNENTU ----
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         # ---- FILTR PAŃSTWA / ID ----
         if panstwo_q:
@@ -268,7 +268,7 @@ def init_armia_routes(app):
         return jsonify({
             "id": panstwo.PANSTWO_ID,
             "nazwa": panstwo.panstwo_nazwa,
-            "kontynent": panstwo.kontynent,
+            "kontynent": panstwo.kontynent_id,
             "populacja": panstwo.panstwo_populacja or 0,
 
             "wojsko": {

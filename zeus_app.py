@@ -137,7 +137,7 @@ def create_app():
     @app.context_processor
     def inject_global_entenda_data():
         try:
-            from models import Panstwo, Region, Miasto
+            from models import Panstwo, Region, Miasto, DictKontynent
 
             entenda_now = get_current_entenda_date()
 
@@ -146,11 +146,7 @@ def create_app():
                 .scalar()
             ) or 0
 
-            continents = (
-                db.session.query(Panstwo.kontynent)
-                .distinct()
-                .count()
-            )
+            continents = DictKontynent.query.count()
 
             countries = db.session.query(Panstwo.PANSTWO_ID).count()
             regions = Region.query.count()

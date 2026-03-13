@@ -324,7 +324,7 @@ document.getElementById("kontynent").addEventListener("change", function () {
     regionSelect.innerHTML = "<option>— wybierz państwo —</option>";
     regionSelect.disabled = true;
 
-    if (!kontynent) return;
+    if (!kontynentId) return;
 
     fetch(`/api/panstwa_by_kontynent?kontynent_id=${kontynentId}`)
         .then(res => res.json())

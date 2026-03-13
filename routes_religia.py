@@ -88,7 +88,7 @@ def init_religia_routes(app):
         return render_template(
             "religia_list.html",
             results=results,
-            kontynenty=[k[0] for k in kontynenty],
+            kontynenty=kontynenty,
             religie=religie
         )
 
@@ -101,7 +101,7 @@ def init_religia_routes(app):
 
         query = Panstwo.query
         if kontynent:
-            query = query.filter(Panstwo.kontynent == kontynent)
+            query = query.filter(Panstwo.kontynent_id == kontynent)
 
         panstwa = query.order_by(Panstwo.panstwo_nazwa).all()
 

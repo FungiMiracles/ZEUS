@@ -168,6 +168,10 @@ def init_historia_routes(app):
                 panstwo_id = parse_fk(form.get("panstwo_id"))
                 region_id = parse_fk(form.get("region_id"))
                 miasto_id = parse_fk(form.get("miasto_id"))
+
+                kontynenty = DictKontynent.query.order_by(
+                    DictKontynent.kontynent_nazwa
+                ).all()
     
                 # ───────────────
                 # HIERARCHIA GEO
@@ -208,7 +212,7 @@ def init_historia_routes(app):
                     epoka=form["epoka"],
                     data_od=data_od,
                     data_do=data_do,
-                    kontynent=form.get("kontynent") or None,
+                    kontynent_id = parse_fk(form.get("kontynent_id")),
                     wydarzenie_opis=form.get("wydarzenie_opis"),
                     panstwo_id=panstwo.PANSTWO_ID if panstwo else None,
                     region_id=region.region_id if region else None,
@@ -230,12 +234,14 @@ def init_historia_routes(app):
                 return render_template(
                     "historia_form_add.html",
                     panstwa=panstwa,
-                    form_data=request.form
+                    kontynenty=kontynenty,
+                    form_data={}
                 )
         
         return render_template(
             "historia_form_add.html",
             panstwa=panstwa,
+            kontynenty=kontynenty,
             form_data={}
         )
 
