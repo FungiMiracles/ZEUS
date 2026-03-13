@@ -193,7 +193,7 @@
                 <select name="relacja_id" required>
                     {% for r in relacje %}
                     <option value="{{ r.relacja_id }}"
-                    {% if r.relacja_id == stosunek.relacja_id %}selected{% endif %}>
+                    {% if r.relacja_id|string == form_data.relacja_id|string %}selected{% endif %}>
                     {{ r.relacja_nazwa }}
                     </option>
                     {% endfor %}
@@ -206,7 +206,7 @@
                 <select name="stan_id">
                     {% for s in stany %}
                     <option value="{{ s.stan_id }}"
-                    {% if r.stan_id == stosunek.stan_id %}selected{% endif %}>
+                    {% if s.stan_id|string == form_data.stan_id|string %}selected{% endif %}>
                     {{ s.stan_nazwa }}
                     </option>
                     {% endfor %}
