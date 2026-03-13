@@ -344,7 +344,8 @@ def init_historia_routes(app):
                 return render_template(
                     "historia_form_edit.html",
                     h=h,
-                    panstwa=panstwa
+                    panstwa=panstwa,
+                    kontynenty=kontynenty
                 )
     
         # ───────────────
