@@ -30,7 +30,7 @@ def init_kultura_routes(app):
     def api_kultura_panstwa_by_kontynent():
         kontynent_id = request.args.get("kontynent_id", type=int)
     
-        if not kontynent:
+        if not kontynent_id:
             return jsonify([])
     
         panstwa = (
@@ -206,7 +206,7 @@ def init_kultura_routes(app):
         # ===============================
         # FILTR PO PAŃSTWIE / KONTYNENCIE
         # ===============================
-        if panstwo_id or kontynent:
+        if panstwo_id or kontynent_id:
             query = query.join(
                 JezykiPerPanstwo,
                 db.or_(
@@ -233,7 +233,7 @@ def init_kultura_routes(app):
         return render_template(
             "kultura_jezyki.html",
             wyniki=wyniki,
-            selected_kontynent=kontynent,
+            selected_kontynent=kontynent_id,
             selected_panstwo=panstwo_id,
             selected_jezyk=jezyk_id
         )
