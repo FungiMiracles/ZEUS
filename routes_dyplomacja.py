@@ -224,49 +224,6 @@ def init_dyplomacja_routes(app):
 
     @app.route("/api/dyplomacja/sojusze")
     def api_dyplomacja_sojusze():
-    
-        panstwo_id = request.args.get("panstwo_id", type=int)
-        relacja = request.args.get("relacja")
-        stan = request.args.get("stan")
-    
-        if not panstwo_id:
-            return jsonify([])
-    
-        q = Stosunki.query.filter(
-            (Stosunki.PANSTWO_ID == panstwo_id) |
-            (Stosunki.PANSTWO_ID2 == panstwo_id)
-        )
-    
-        if relacja:
-            q = q.filter(Stosunki.relacja == relacja)
-    
-        if stan:
-            q = q.filter(Stosunki.stan == stan)
-    
-        wyniki = []
-    
-        for s in q.all():
-
-            other_id = (
-                s.PANSTWO_ID2 if s.PANSTWO_ID == panstwo_id else s.PANSTWO_ID
-            )
-
-            p = Panstwo.query.get(other_id)
-
-            if not p:
-                continue
-    
-            wyniki.append({
-                "panstwo_id": p.PANSTWO_ID,
-                "panstwo_nazwa": p.panstwo_nazwa,
-                "relacja": s.relacja,
-                "stan": s.stan
-            })
-    
-        return jsonify(wyniki)
-
-    @app.route("/api/dyplomacja/sojusze")
-    def api_dyplomacja_sojusze():
 
         panstwo_id = request.args.get("panstwo_id", type=int)
         relacja = request.args.get("relacja")
