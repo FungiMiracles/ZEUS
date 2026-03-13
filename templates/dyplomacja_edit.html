@@ -190,29 +190,27 @@
             <!-- RELACJA -->
             <div class="dyp-full">
                 <label>Relacja</label>
-                <select name="relacja" required>
+                <select name="relacja_id" required>
                     {% for r in relacje %}
-                        <option value="{{ r }}"
-                            {% if form_data.relacja == r %}selected{% endif %}>
-                            {{ r }}
-                        </option>
+                    <option value="{{ r.relacja_id }}"
+                    {% if r.relacja_id == stosunek.relacja_id %}selected{% endif %}>
+                    {{ r.relacja_nazwa }}
+                    </option>
                     {% endfor %}
-                </select>
-
+                    </select>
             </div>
 
             <!-- STAN -->
             <div class="dyp-full">
                 <label>Stan</label>
-                <select name="stan" required>
+                <select name="stan_id">
                     {% for s in stany %}
-                        <option value="{{ s }}"
-                            {% if form_data.stan == s %}selected{% endif %}>
-                            {{ s }}
-                        </option>
+                    <option value="{{ s.stan_id }}"
+                    {% if r.stan_id == stosunek.stan_id %}selected{% endif %}>
+                    {{ s.stan_nazwa }}
+                    </option>
                     {% endfor %}
-                </select>
-
+                    </select>
             </div>
 
             <!-- AKCJE -->

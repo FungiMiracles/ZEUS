@@ -7,7 +7,7 @@ from flask import (
     jsonify
 )
 from extensions import db
-from models import Panstwo, Stosunki, DictKontynent
+from models import Panstwo, Stosunki, DictKontynent, DictStosunkiStan
 from permissions import wymaga_roli
 from sqlalchemy import or_
 
@@ -43,31 +43,13 @@ def init_dyplomacja_routes(app):
 
         panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
 
-        relacje = [
-            "sojusznicze",
-            "partnerskie_strategiczne",
-            "partnerskie",
-            "przyjazne",
-            "dobre",
-            "neutralne",
-            "chlodne",
-            "zle",
-            "napiete",
-            "wrogie",
-            "egzystencjalnie_wrogie"
-        ]
+        relacje = DictStosunkiRelacja.query.order_by(
+            DictStosunkiRelacja.relacja_nazwa
+        ).all()
 
-        stany = [
-            "pokoj",
-            "zawieszenie_broni",
-            "konflikt_dyplomatyczny",
-            "wojna_handlowa",
-            "wojna_informacyjna",
-            "wojna_hybrydowa",
-            "konflikt_kinetyczny_zamrozony",
-            "wojna_kinetyczna",
-            "okupacja"
-        ]
+        stany = DictStosunkiStan.query.order_by(
+            DictStosunkiStan.stan_nazwa
+        ).all()
 
         # ─────────────────────────────
         # NORMALIZACJA PAR
@@ -83,8 +65,8 @@ def init_dyplomacja_routes(app):
             stosunek = Stosunki(
                 PANSTWO_ID=a,
                 PANSTWO_ID2=b,
-                relacja="neutralne",
-                stan="pokoj"
+                relacja_id=6,   # neutralne
+                stan_id=1       # pokoj
             )
             db.session.add(stosunek)
             db.session.flush()  # ← ważne, bez commit
@@ -94,11 +76,11 @@ def init_dyplomacja_routes(app):
         # ─────────────────────────────
         if request.method == "POST":
 
-            relacja = request.form.get("relacja")
-            stan = request.form.get("stan")
+            relacja_id = request.form.get("relacja_id")
+            stan_id = request.form.get("stan_id")
 
-            stosunek.relacja = relacja
-            stosunek.stan = stan
+            stosunek.relacja_id = int(relacja_id)
+            stosunek.stan_id = int(stan_id)
 
             try:
                 db.session.commit()
@@ -181,10 +163,10 @@ def init_dyplomacja_routes(app):
     
         if not p1 or not p2 or p1 == p2:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": rel.relacja.relacja_nazwa,
+                "stan": rel.stan.stan_nazwa
             })
-    
+                
         # 🔑 KANONICZNY PORZĄDEK — ABSOLUTNIE KLUCZOWE
         a, b = sorted([p1, p2])
     
@@ -195,13 +177,13 @@ def init_dyplomacja_routes(app):
     
         if not rel:
             return jsonify({
-                "relacja": "neutralne",
-                "stan": "pokoj"
+                "relacja": rel.relacja.relacja_nazwa,
+                "stan": rel.stan.stan_nazwa
             })
     
         return jsonify({
-            "relacja": rel.relacja,
-            "stan": rel.stan
+            "relacja": rel.relacja.relacja_nazwa,
+            "stan": rel.stan.stan_nazwa
         })
 
     @app.route("/api/dyplomacja/kontynenty")

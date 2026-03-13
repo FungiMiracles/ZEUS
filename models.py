@@ -362,32 +362,15 @@ class Stosunki(db.Model):
         primary_key=True
     )
     
-    relacja = db.Column(db.Enum(
-        "sojusznicze", 
-        "partnerskie_strategiczne", 
-        "partnerskie",
-        "przyjazne",
-        "dobre",
-        "neutralne",
-        "chlodne",
-        "zle",
-        "napiete",
-        "wrogie",
-        "egzystencjalnie_wrogie",
-        name="relacja_enum"), nullable=False, default="neutralne")
-    
-    stan = db.Column(db.Enum(
-        "pokoj",
-        "zwieszenie_broni",
-        "konflikt_dyplomatyczny",
-        "wojna_handlowa",
-        "wojna_informacyjna",
-        "wojna_hybrydowa",
-        "konflikt_kinetyczny_zamrozony",
-        "wojna_kinetyczna",
-        "okupacja",
-        name="stan_enum"
-    ), nullable=False, default="pokoj")
+    relacja_id = db.Column(
+    db.Integer,
+    db.ForeignKey("dict_stosunki_relacja.relacja_id")
+    )
+
+    stan_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_stosunki_stan.stan_id")
+    )
 
     panstwo = db.relationship(
     "Panstwo",
@@ -400,6 +383,10 @@ class Stosunki(db.Model):
         foreign_keys=[PANSTWO_ID2],
         lazy="joined"
     )
+
+    relacja = db.relationship("DictStosunkiRelacja")
+
+    stan = db.relationship("DictStosunkiStan")
 
 
     @property
@@ -702,3 +689,15 @@ class DictMiastoTyp(db.Model):
 
     miasto_typ_id = db.Column(db.Integer, primary_key=True)
     miasto_typ_nazwa = db.Column(db.String(100), nullable=False, unique=True)
+
+class DictStosunkiRelacja(db.Model):
+    __tablename__ = "dict_stosunki_relacja"
+
+    relacja_id = db.Column(db.Integer, primary_key=True)
+    relacja_nazwa = db.Column(db.String(50), nullable=False)
+
+class DictStosunkiStan(db.Model):
+    __tablename__ = "dict_stosunki_stan"
+
+    stan_id = db.Column(db.Integer, primary_key=True)
+    stan_nazwa = db.Column(db.String(50), nullable=False)
