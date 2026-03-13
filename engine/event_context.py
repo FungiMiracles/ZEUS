@@ -7,7 +7,7 @@ def get_capital_name(panstwo_id):
 
     capital = (
         Miasto.query
-        .filter_by(panstwo_id=panstwo_id, miasto_typ="STOLICA")
+        .filter_by(panstwo_id=panstwo_id, miasto_typ_id=1)
         .limit(1).first()
     )
 
