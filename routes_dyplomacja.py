@@ -7,7 +7,7 @@ from flask import (
     jsonify
 )
 from extensions import db
-from models import Panstwo, Stosunki, DictKontynent, DictStosunkiStan
+from models import Panstwo, Stosunki, DictKontynent, DictStosunkiStan, DictStosunkiRelacja
 from permissions import wymaga_roli
 from sqlalchemy import or_
 
@@ -104,8 +104,8 @@ def init_dyplomacja_routes(app):
         form_data = {
             "panstwo_id": str(p1),
             "panstwo_id2": str(p2),
-            "relacja": stosunek.relacja,
-            "stan": stosunek.stan
+            "relacja_id": stosunek.relacja_id,
+            "stan_id": stosunek.stan_id
         }
 
         return render_template(
@@ -163,8 +163,8 @@ def init_dyplomacja_routes(app):
     
         if not p1 or not p2 or p1 == p2:
             return jsonify({
-                "relacja": rel.relacja.relacja_nazwa,
-                "stan": rel.stan.stan_nazwa
+                "relacja": "neutralne",
+                "stan": "pokoj"
             })
                 
         # 🔑 KANONICZNY PORZĄDEK — ABSOLUTNIE KLUCZOWE
@@ -177,10 +177,10 @@ def init_dyplomacja_routes(app):
     
         if not rel:
             return jsonify({
-                "relacja": rel.relacja.relacja_nazwa,
-                "stan": rel.stan.stan_nazwa
+                "relacja": "neutralne",
+                "stan": "pokoj"
             })
-    
+            
         return jsonify({
             "relacja": rel.relacja.relacja_nazwa,
             "stan": rel.stan.stan_nazwa
@@ -221,10 +221,14 @@ def init_dyplomacja_routes(app):
         )
 
         if relacja:
-            q = q.filter(Stosunki.relacja == relacja)
+            q = q.join(Stosunki.relacja).filter(
+                DictStosunkiRelacja.relacja_nazwa == relacja
+            )
 
         if stan:
-            q = q.filter(Stosunki.stan == stan)
+            q = q.join(Stosunki.stan).filter(
+                DictStosunkiStan.stan_nazwa == stan
+            )
 
         wyniki = []
 
@@ -242,8 +246,8 @@ def init_dyplomacja_routes(app):
             wyniki.append({
                 "panstwo_id": p.PANSTWO_ID,
                 "panstwo_nazwa": p.panstwo_nazwa,
-                "relacja": s.relacja,
-                "stan": s.stan
+                "relacja": s.relacja.relacja_nazwa,
+                "stan": s.stan.stan_nazwa
             })
 
         return jsonify(wyniki)
