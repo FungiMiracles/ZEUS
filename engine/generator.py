@@ -29,6 +29,8 @@ MAX_EVENTS_PER_MONTH = 20
 
 MAX_EVENTS_PER_REGION_PER_MONTH = 2
 
+MAX_EVENTS_PER_DAY = 2
+
 #----------------------------------------------------------#
 
 def start_event_scheduler(app):
@@ -116,6 +118,9 @@ def generate_events_for_month(month_date):
 
             event = generator(region, random_day_in_month(month_date))
 
+            if event and get_day_event_count(event.data_entenda) >= MAX_EVENTS_PER_DAY:
+                continue
+
             if event and region_events < MAX_EVENTS_PER_REGION_PER_MONTH and events_created < remaining:
 
                 template = select_template(event.zdarzenie_typ, event.skala)
@@ -183,6 +188,16 @@ def get_region_month_event_count(region_id, date):
         .filter(Zdarzenie.region_id == region_id)
         .filter(extract("year", Zdarzenie.data_entenda) == date.year)
         .filter(extract("month", Zdarzenie.data_entenda) == date.month)
+        .count()
+    )
+
+#----------------------------------------------------------#
+
+def get_day_event_count(date):
+
+    return (
+        db.session.query(Zdarzenie)
+        .filter(Zdarzenie.data_entenda == date)
         .count()
     )
 
