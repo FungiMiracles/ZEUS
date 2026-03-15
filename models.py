@@ -2,6 +2,7 @@
 from sqlalchemy import BigInteger, DateTime
 from extensions import db
 from datetime import datetime
+from sqlalchemy.orm import deferred
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"
@@ -82,7 +83,7 @@ class Region(db.Model):
     region_stan_infra_portowej = db.Column(db.SmallInteger)
 
     # ===== MAPA =====
-    region_mapa = db.Column(db.LargeBinary, nullable=True)
+    region_mapa = deferred(db.Column(db.LargeBinary, nullable=True))
     region_mapa_mime = db.Column(db.String(50), nullable=True)
 
     # ===== RELACJE =====
