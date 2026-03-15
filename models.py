@@ -27,7 +27,7 @@ class Panstwo(db.Model):
         db.ForeignKey("dict_kontynent.kontynent_id")
     )
     panstwo_powierzchnia = db.Column(BigInteger)
-    panstwo_opis = db.Column(db.Text)
+    panstwo_opis = deferred(db.Column(db.Text))
     opis_updated_at = db.Column(db.DateTime)
     panstwo_populacja_audit = db.Column(DateTime)
     panstwo_opis_audit = db.Column(DateTime)
@@ -291,7 +291,7 @@ class Historia(db.Model):
         server_default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp()
     )
-    wydarzenie_opis = db.Column(db.Text)
+    wydarzenie_opis = deferred(db.Column(db.Text))
 
     # =========================================================
     #  RELACJE (opcjonalnie, ale zalecane)
@@ -512,7 +512,7 @@ class Religia(db.Model):
 
     opis = db.Column(db.Text)
 
-    religia_obraz = db.Column(db.LargeBinary)
+    religia_obraz = deferred(db.Column(db.LargeBinary))
     religia_obraz_mime = db.Column(db.String(100))
 
     # Self-FK: religia nadrzędna (NULL = religia główna)
