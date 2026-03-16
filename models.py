@@ -2,7 +2,7 @@
 from sqlalchemy import BigInteger, DateTime
 from extensions import db
 from datetime import datetime
-from sqlalchemy.orm import deferred
+from sqlalchemy.orm import deferred, selectinload
 
 class Panstwo(db.Model):
     __tablename__ = "panstwa"

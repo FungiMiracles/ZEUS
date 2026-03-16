@@ -5,6 +5,7 @@ from models import Miasto, Panstwo, Region, DictKontynent, DictMiastoTyp
 from permissions import wymaga_roli
 from demografia_utils import przelicz_region_demografia
 from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
 
 
 def init_miasta_routes(app):
@@ -196,6 +197,10 @@ def init_miasta_routes(app):
             db.session.query(Miasto, Panstwo, Region)
             .join(Panstwo, Miasto.panstwo_id == Panstwo.PANSTWO_ID)
             .outerjoin(Region, Miasto.region_id == Region.region_id)
+            .options(
+                selectinload(Miasto.typ),
+                selectinload(Panstwo.kontynent_rel)
+            )
         )
 
         if kontynent:

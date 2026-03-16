@@ -15,6 +15,7 @@ from models import (
 from permissions import wymaga_roli
 from flask import Response, send_file
 import os
+from sqlalchemy.orm import selectinload
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACEHOLDER_PATH = os.path.join(BASE_DIR, "static", "region_placeholder.jpg")
@@ -579,7 +580,14 @@ def init_regiony_routes(app):
     
     @app.route("/region/<int:region_id>")
     def region_form(region_id):
-        region = Region.query.get_or_404(region_id)
+        region = (
+            Region.query
+            .options(
+                selectinload(Region.miasta),
+                selectinload(Region.panstwo)
+            )
+            .get_or_404(region_id)
+        )
 
         panstwo = region.panstwo
         miasta=region.miasta
