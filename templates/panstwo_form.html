@@ -6,7 +6,6 @@
 <style>
 /* ============================================================
    ZEUS — FORMULARZ PAŃSTWA
-   Stylescope: .panstwo-form
 ============================================================ */
 
 /* ================= GLOBAL ================= */
@@ -130,6 +129,14 @@
 
 .panstwo-table tbody tr:nth-child(odd) .cell {
     background-color: #e2e8ff;
+}
+
+.country-title-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    flex-shrink: 0;   /* 🔥 KLUCZ */
 }
 
 /* ================= OBRAZY ================= */
@@ -311,8 +318,9 @@
 .country-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;   /* KLUCZ */
-    margin: 10px 30px;
+    align-items: center;
+
+    gap: 20px;         /* 🔥 żeby nie ściskało */
 }
 
 .country-header > div:first-child {
@@ -330,12 +338,6 @@
     padding-bottom: 8px;
 }
 
-.country-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .country-title-block {
     display: flex;
     align-items: center;
@@ -351,6 +353,7 @@
     border: 1px solid #ccc;
 
     display: block;
+    flex-shrink: 0;   /* 🔥 żeby nie malała */
 }
 
 .panstwo-map-wrapper {
@@ -377,6 +380,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+
+    line-height: 1.2;   /* 🔥 poprawia pionowe wyrównanie */
 }
 
 /* ============================================================
