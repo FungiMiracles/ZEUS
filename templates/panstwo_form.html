@@ -525,6 +525,29 @@
         <!-- ================= LEWA KOLUMNA ================= -->
         <div class="col-left">
 
+            <h3 style="margin-top:30px;">Flaga i mapa</h3>
+                <hr>
+
+                <div class="panstwo-grid panstwo-grid-1col">
+
+                    {% if p.panstwo_flaga %}
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Flaga</div>
+                        <img src="{{ url_for('panstwo_flaga', panstwo_id=p.PANSTWO_ID) }}"
+                            class="panstwo-image">
+                    </div>
+                    {% endif %}
+
+                    {% if p.panstwo_mapa %}
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Mapa</div>
+                        <img src="{{ url_for('panstwo_mapa', panstwo_id=p.PANSTWO_ID) }}"
+                            class="panstwo-image">
+                    </div>
+                    {% endif %}
+
+                </div>
+
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
             <h3 style="margin-top:30px;">Informacje o państwie</h3>
             <hr>
