@@ -61,11 +61,6 @@
     min-width: 0;
 }
 
-/* ================= SEKCJE ================= */
-.panstwo-section {
-    margin-bottom: 24px;
-}
-
 /* ================= OPIS HEADER ================= */
 .opis-header {
     display: flex;
@@ -91,13 +86,18 @@
 /* ================= TABELA ================= */
 .panstwo-table {
     width: 100%;
-    border: 1px solid #2f4fa3;
-    border-collapse: separate;
-    border-spacing: 0;
+    border: 1px solid #2f4fa3;   /* jak kafelki */
     border-radius: 8px;
     overflow: hidden;
+
+    background: #f9fbff;         /* 🔥 to samo co kafelki */
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    padding: 12px 14px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.panstwo-table tbody {
     background: #f9fbff;
 }
 
@@ -142,34 +142,25 @@
     object-fit: contain;
 }
 
-/* ================= MIASTA ================= */
-.city-row {
-    font-weight: 600;
-    text-align: right;
-    white-space: nowrap;
-}
-
 /* ================= OPIS ================= */
 .description-cell {
     padding: 18px;
-    background-color: #fff;
+    background: #f9fbff;
 }
 
 .country-description {
+    white-space: pre-wrap;
     font-size: 0.95em;
     line-height: 1.7;
     color: #2c3e50;
     max-width: 100%;
     overflow-wrap: anywhere;
     word-break: break-word;
-   text-align: justify;
-      text-justify: inter-word;
-      hyphens: auto;
-      padding-left: 2px;
-      padding-right: 2px;
-}
-
-   .country-description {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    padding-left: 2px;
+    padding-right: 2px;
     text-indent: 0;
 }
 
@@ -188,18 +179,6 @@
     padding: 40px 10px;
     font-style: italic;
     color: #7f8c8d;
-}
-
-.country-description {
-    white-space: pre-wrap;   /* ← TO JEST KLUCZ */
-    line-height: 1.7;
-    font-size: 0.95em;
-    color: #2c3e50;
-   text-align: justify;
-      text-justify: inter-word;
-      hyphens: auto;
-      padding-left: 2px;
-      padding-right: 2px;
 }
 
 /* ================= PRZYCISKI ================= */
@@ -248,9 +227,7 @@
     display: none;
     position: absolute;
     top: 100%;
-    right: 0;
-    transform: translateX(-100%);  /* 🔥 TO JEST MAGIA */
-
+    right: 0;        /* 🔥 klucz */
     margin-top: 6px;
 
     min-width: 240px;
@@ -305,10 +282,6 @@
 
 .panstwo-grid-1col {
     grid-template-columns: 1fr;
-}
-
-.panstwo-grid-3x2 {
-    grid-template-columns: repeat(3, 1fr);
 }
 
 .panstwo-card {
@@ -503,7 +476,7 @@
                     </div>
 
                     <div class="dropdown-container">
-                        <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+                        <button class="hamburger-btn" onclick="toggleMenu(event)">☰</button>
 
                         <div id="dropdownMenu" class="dropdown-menu">
                     <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
@@ -835,7 +808,8 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
-function toggleMenu() {
+function toggleMenu(event) {
+    event.stopPropagation();
     const menu = document.getElementById("dropdownMenu");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
