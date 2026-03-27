@@ -38,7 +38,7 @@
 }
 
 .panstwo-form .country-fullname {
-    margin: -15px 0 20px 30px;
+    margin: -10px 0 5px 30px;
     font-style: italic;
     color: #34495e;
 }
@@ -245,15 +245,15 @@
 .dropdown-menu {
     display: none;
     position: absolute;
-    top: 45px;
+    top: 100%;
     right: 0;
-    left: auto;
+    margin-top: 6px;
+
     min-width: 240px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
     z-index: 1000;
-    overflow: hidden;
 }
 
 .dropdown-menu a,
@@ -348,13 +348,9 @@
     margin-left: 0;
 }
 
-.dropdown-container {
-    position: relative;
-}
-
 .country-header-wrapper {
-    margin: 0 30px 20px 30px;
-    padding-bottom: 5px;
+    margin: 0 30px 10px 30px;
+    padding-bottom: 8px;
 }
 
 .country-header {
@@ -588,7 +584,7 @@
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Ustrój</div>
                         <div class="panstwo-card-value">
-                            {{ p.ustroj_rel.ustroj_nazwa if p.ustroj_rel else "Brak danych" }}
+                            {{ p.ustroj.ustroj_nazwa if p.ustroj_rel else "Brak danych" }}
                         </div>
                     </div>
 
