@@ -91,12 +91,14 @@
 /* ================= TABELA ================= */
 .panstwo-table {
     width: 100%;
+    border: 1px solid #2f4fa3;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: #fefefe;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    padding: 12px 14px;
+    background: #f9fbff;
 }
 
 .panstwo-table thead th {
@@ -612,17 +614,17 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Powierzchnia</div>
-                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") if p.panstwo_powierzchnia else "Brak danych" }}</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") if p.panstwo_powierzchnia else "Brak danych" }} km²</div>
                     </div>
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">PKB</div>
-                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB).replace(",", " ") if p.panstwo_PKB else "Brak danych" }}</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB).replace(",", " ") if p.panstwo_PKB else "Brak danych" }} ROI</div>
                     </div>
 
                     <div class="panstwo-card">
-                        <div class="panstwo-card-label">PKB per capita:</div>
-                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") }}</div>
+                        <div class="panstwo-card-label">PKB per capita</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") }} ROI</div>
                     </div>
 
                     {% if infra_avg is not none %}
