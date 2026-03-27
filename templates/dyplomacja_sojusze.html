@@ -368,14 +368,12 @@ searchBtn.addEventListener("click", () => {
         return;
     }
 
-    const params = new URLSearchParams({
-        panstwo_id: panstwoId
-    });
+    const params = new URLSearchParams({ panstwo_id: panstwoId });
 
     if (relacja) params.append("relacja", relacja);
     if (stan) params.append("stan", stan);
 
-    fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
+    fetch(`/api/dyplomacja/sojusze?${params}`)
         .then(res => res.json())
         .then(data => {
             if (data.length === 0) {
@@ -407,6 +405,12 @@ searchBtn.addEventListener("click", () => {
                 `;
             
                 sojList.appendChild(card);
+            if (initialKontynent) {
+                kontynentSelect.value = initialKontynent;
+
+                // wywołaj change ręcznie
+                kontynentSelect.dispatchEvent(new Event("change"));
+            }
             });
         })
         .catch(err => {
@@ -414,13 +418,6 @@ searchBtn.addEventListener("click", () => {
             sojList.innerHTML = "<div>Błąd pobierania danych.</div>";
         });
 });
-
-if (initialKontynent) {
-    kontynentSelect.value = initialKontynent;
-
-    // wywołaj change ręcznie
-    kontynentSelect.dispatchEvent(new Event("change"));
-}
 </script>
 
 

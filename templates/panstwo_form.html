@@ -320,14 +320,15 @@
 }
 
 .panstwo-card-label {
-    font-size: 0.8em;
-    font-weight: 700;
+    font-size: 1.15em;
+    font-weight: 800;
     color: #2f4fa3;
+    margin-bottom: 6px;
 }
 
 .panstwo-card-value {
-    font-size: 1.05em;
-    font-weight: 600;
+    font-size: 0.95em;
+    font-weight: 500;
     color: #2c3e50;
 }
 
@@ -504,15 +505,18 @@
 
     <div class="country-header-wrapper">
 
-    <div class="country-header">
+        <div class="country-header">
 
-        <div>
-            <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
-            <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+            <div>
+                <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+                <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+            </div>
+
+            <div class="dropdown-container">
+                <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+            </div>
+
         </div>
-
-        <div class="dropdown-container">
-        <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
 
         <div id="dropdownMenu" class="dropdown-menu">
             <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
@@ -535,7 +539,9 @@
                 Ludność i populacja
             </a>
 
-            <a href="{{ url_for('dyplomacja_sojusze', panstwo_id=p.PANSTWO_ID) }}">
+            <a href="{{ url_for('dyplomacja_sojusze', 
+                panstwo_id=p.PANSTWO_ID,
+                kontynent_id=p.kontynent_id) }}">
                 Sojusze i bloki
             </a>
 
