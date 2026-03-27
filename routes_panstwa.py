@@ -165,6 +165,28 @@ def init_panstwa_routes(app):
     @app.route("/panstwo/<int:panstwo_id>")
     def panstwo_form(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
+
+        regiony = p.regiony
+
+        infra_values = []
+
+        for r in regiony:
+            vals = [
+                r.region_stan_infra_kolejowej,
+                r.region_stan_infra_drogowej,
+                r.region_stan_infra_energetycznej,
+                r.region_stan_infra_mieszkalnej,
+                r.region_stan_infra_portowej,
+            ]
+
+            # filtrujemy None
+            vals = [v for v in vals if v is not None]
+
+            if vals:
+                infra_values.append(sum(vals) / len(vals))
+
+        # średnia dla państwa
+        infra_avg = round(sum(infra_values) / len(infra_values), 1) if infra_values else None
     
         miasta = (
             Miasto.query
@@ -185,7 +207,8 @@ def init_panstwa_routes(app):
             miasta=miasta,
             profil_jezykowy=profil_jezykowy,
             ustroje=ustroje,
-            ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
+            ostatnia_edycja=p.opis_updated_at,  # opcjonalne, patrz niżej
+            infra_avg=infra_avg
         )
 
     # ================= DODAWANIE PAŃSTWA =================

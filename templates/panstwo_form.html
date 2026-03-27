@@ -226,6 +226,111 @@
     color: #2c3e50;
 }
 
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.hamburger-btn {
+    font-size: 22px;
+    padding: 8px 12px;
+    border: none;
+    background: #2c73d2;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 45px;
+    left: 0;
+    min-width: 240px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-weight: 600;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+    background: #f1f4f8;
+}
+
+.dropdown-delete {
+    color: #c0392b;
+}
+
+.dropdown-menu hr {
+    margin: 6px 0;
+    border: none;
+    border-top: 1px solid #eee;
+}
+
+.panstwo-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 35px;
+}
+
+.panstwo-grid-3x1 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.panstwo-grid-3x2 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.panstwo-card-value {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.panstwo-grid-3x2 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.panstwo-card {
+    border: 1px solid #2f4fa3;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #f9fbff;
+}
+
+.panstwo-card-label {
+    font-size: 0.8em;
+    font-weight: 700;
+    color: #2f4fa3;
+}
+
+.panstwo-card-value {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.col-left .panstwo-grid-3x2 {
+    grid-template-columns: 1fr 1fr;
+}
+
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
 ============================================================ */
@@ -326,10 +431,10 @@
    .country-description p:first-child {
     margin-top: 0;
 }
-   
-}
-   
-   @media (min-width: 768px) and (max-width: 1023px) {
+
+    .panstwo-grid-3x2 {
+        grid-template-columns: 1fr;
+    }
 
     .panstwo-form .col-left {
         flex: 0 0 340px;
@@ -339,6 +444,11 @@
     .panstwo-form .col-right {
         flex: 1;
         min-width: 0;
+    }
+
+    .panstwo-grid-3x1,
+    .panstwo-grid-3x2 {
+        grid-template-columns: 1fr;
     }
 
 }
@@ -354,6 +464,28 @@
     <br>
     <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
 
+    <div class="dropdown-container">
+        <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+
+        <div id="dropdownMenu" class="dropdown-menu">
+            <a href="{{ url_for('wyniki_wyszukiwania') }}">🔙 Wróć do wyników wyszukiwania</a>
+
+            <a href="/panstwo/{{ p.PANSTWO_ID }}/edit">✏️ Edytuj państwo</a>
+
+            <form action="{{ url_for('usun_panstwo', panstwo_id=p.PANSTWO_ID) }}" method="POST" style="margin:0;">
+                <button type="submit" class="dropdown-delete">🗑 Usuń państwo</button>
+            </form>
+
+            <hr>
+
+            <a href="/demografia/{{ p.PANSTWO_ID }}">Kalkulator demograficzny</a>
+            <a href="/ludnosc/{{ p.PANSTWO_ID }}">Ludność i populacja</a>
+            <a href="/sojusze/{{ p.PANSTWO_ID }}">Sojusze i bloki</a>
+            <a href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">Dane gospodarcze</a>
+            <a href="/armia/{{ p.PANSTWO_ID }}">Siły zbrojne</a>
+        </div>
+    </div>
+
     <hr class="title-separator">
 
     <div class="layout">
@@ -362,86 +494,156 @@
         <div class="col-left">
 
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
-            <div class="panstwo-section">
-                <table class="panstwo-table">
-                    <thead>
-                        <tr>
-                            <th colspan="3">Informacje o państwie</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <h3 style="margin-top:30px;">Informacje o państwie</h3>
 
-                        <tr>
-                            <td class="label">Flaga:</td>
-                            <td colspan="2" class="cell-big cell">
-                                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                                <img class="panstwo-image"
-                                     src="{{ url_for('static', filename=flag_path) }}"
-                                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
-                            </td>
-                        </tr>
+                <div class="panstwo-grid panstwo-grid-3x2">
 
-                        <tr>
-                            <td class="label">Mapa:</td>
-                            <td colspan="2" class="cell-big cell">
-                                {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                                <img class="panstwo-image"
-                                     src="{{ url_for('static', filename=mapa_path) }}"
-                                     onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
-                            </td>
-                        </tr>
-                        {% for label, value in [
-                            ('Kontynent:', p.kontynent_rel.kontynent_nazwa),
-                            ('Ustrój polityczny:', p.ustroj.ustroj_nazwa),
-                            ('Stolica:', p.panstwo_stolica),
-                            ('Populacja:', "{:,}".format(p.panstwo_populacja).replace(",", " ") ~ " osób"),
-                            ('Powierzchnia:', "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") ~ " km²"),
-                            ('Waluta:', p.panstwo_waluta),
-                            ('Język urzędowy:', profil_jezykowy.jezyk_urzedowy1_rel.jezyk_nazwa
-                                if profil_jezykowy
-                                and profil_jezykowy.jezyk_urzedowy1_rel
-                                else 'Brak przypisanego języka urzędowego'
-                            ),
-                            ('Religia dominująca:', p.panstwo_religia),
-                            ('PKB:', "{:,}".format(p.panstwo_PKB).replace(",", " ") ~ " ROI"),
-                            ('PKB per capita:', "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") ~ " ROI"),
-                        ] %}
-                        <tr>
-                            <td class="label">{{ label }}</td>
-                            <td colspan="2" class="cell">{{ value }}</td>
-                        </tr>
-                        {% endfor %}
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Nazwa państwa</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_nazwa }}</div>
+                    </div>
 
-                    </tbody>
-                </table>
-            </div>
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Pełna nazwa</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_pelna_nazwa }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Kod</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_kod }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Stolica</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_stolica }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Populacja</div>
+                        <div class="panstwo-card-value">
+                            {{ "{:,}".format(p.panstwo_populacja).replace(",", " ") }}
+                        </div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Ustrój</div>
+                        <div class="panstwo-card-value" style="color: {{ infra_color }}; font-weight:700; font-size:1.2em;">{{ p.ustroj.ustroj_nazwa if p.ustroj else "Brak danych" }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Waluta</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_waluta }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Język</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_jezyk }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Religia</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_religia }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Kontynent</div>
+                        <div class="panstwo-card-value">{{ p.kontynent_rel.kontynent_nazwa if p.kontynent_rel else "Brak danych" }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Powierzchnia</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_powierzchnia }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">PKB</div>
+                        <div class="panstwo-card-value">{{ p.panstwo_PKB }}</div>
+                    </div>
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">PKB per capita:</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") }}</div>
+                    </div>
+
+                    {% if infra_avg is not none %}
+                        {% set infra_color =
+                            'darkgreen' if infra_avg >= 85 else
+                            'green' if infra_avg >= 70 else
+                            '#f1c40f' if infra_avg >= 60 else
+                            '#e67e22' if infra_avg >= 40 else
+                            '#e74c3c'
+                        %}
+                    {% else %}
+                        {% set infra_color = '#7f8c8d' %}
+                    {% endif %}
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Poziom infrastruktury</div>
+                        <div class="panstwo-card-value"
+                            style="color: {{ infra_color }}; font-weight:700;">
+
+                            {% if infra_avg is not none %}
+                                {{ infra_avg }} / 100
+                            {% else %}
+                                Brak danych
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                </div>
 
             <!-- ===== NAJWIĘKSZE MIASTA ===== -->
-            <div class="panstwo-section">
-                <table class="panstwo-table">
-                    <thead>
-                        <tr>
-                            <th colspan="3">Największe miasta</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if miasta %}
-                            {% for m in miasta[:5] %}
-                            <tr>
-                                <td colspan="2" class="cell">{{ m.miasto_nazwa }}</td>
-                                <td class="cell city-row">
-                                    {{ "{:,}".format(m.miasto_populacja).replace(",", " ") }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="3" class="cell">Brak danych o miastach.</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+            <h3 style="margin-top:30px;">Miasta w tym państwie</h3>
+
+                {% if miasta %}
+                <div class="panstwo-grid panstwo-grid-3x2">
+
+                    {% for m in miasta %}
+                    <div class="panstwo-card">
+
+                        <div class="panstwo-card-label">
+                            {{ m.miasto_nazwa }}
+                        </div>
+
+                        <div class="panstwo-card-value">
+                            Kod: {{ m.miasto_kod }}
+                        </div>
+
+                        <div class="panstwo-card-value">
+                            Populacja:
+                            {{ "{:,}".format(m.miasto_populacja).replace(",", " ") if m.miasto_populacja else "Brak danych" }}
+                        </div>
+
+                        <div class="panstwo-card-value">
+                            Typ:
+                            {{ m.typ.miasto_typ_nazwa if m.typ else "Brak danych" }}
+                        </div>
+
+                        <div style="margin-top:8px;">
+                            <a href="{{ url_for('miasto_form', miasto_id=m.miasto_id) }}"
+                            style="
+                                display:inline-block;
+                                padding:6px 10px;
+                                background:#2f4fa3;
+                                color:white;
+                                border-radius:5px;
+                                text-decoration:none;
+                                font-size:0.85em;
+                            ">
+                                Przejdź →
+                            </a>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+                {% else %}
+                <p style="color:#7f8c8d; font-style:italic;">
+                    Brak miast przypisanych do tego państwa.
+                </p>
+                {% endif %}
 
         </div>
 
@@ -567,6 +769,23 @@ document.addEventListener("DOMContentLoaded", function () {
         console.warn("ZEUS: Nie znaleziono elementów edycji opisu.");
     }
 });
+</script>
+
+<script>
+function toggleMenu() {
+    const menu = document.getElementById("dropdownMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+// zamykanie po kliknięciu poza menu
+window.onclick = function(event) {
+    if (!event.target.matches('.hamburger-btn')) {
+        const menu = document.getElementById("dropdownMenu");
+        if (menu && menu.style.display === "block") {
+            menu.style.display = "none";
+        }
+    }
+}
 </script>
 
 {% endblock %}
