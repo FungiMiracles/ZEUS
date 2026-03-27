@@ -343,26 +343,40 @@
 }
 
 .flag-inline {
-    width: 60px;
-    height: 40px;
+    width: 70px;
+    height: 45px;
     object-fit: cover;
     border-radius: 4px;
     border: 1px solid #ccc;
+    flex-shrink: 0;
 }
 
 .panstwo-map-wrapper {
-    width: 100%;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;   /* 🔥 centrowanie */
+    margin: 20px 0 30px 0;
 }
 
 .panstwo-map-large {
     width: 100%;
-    max-height: 320px;
+    max-width: 700px;          /* 🔥 kontrola szerokości */
+    max-height: 420px;
+
     object-fit: contain;
+
     border-radius: 10px;
     border: 1px solid #2f4fa3;
     background: #f9fbff;
+
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
+
+.country-text {
+    display: flex;
+    flex-direction: column;
+}
+
+
 
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
@@ -505,7 +519,7 @@
                     src="{{ url_for('static', filename=flag_path) }}"
                     onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
 
-                <div>
+                <div class="country-text">
                     <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
                     <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
                 </div>
@@ -562,19 +576,15 @@
         <!-- ================= LEWA KOLUMNA ================= -->
         <div class="col-left">
 
-            <h3 style="margin-top:30px;">Mapa</h3>
+            <h3 style="margin-top:30px; text-align:center;">Mapa państwa</h3>
             <hr>
 
-            <div class="panstwo-grid panstwo-grid-1col">
+            {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
 
-                {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                <div class="panstwo-card">
-                    <div class="panstwo-card-label">Mapa</div>
-                    <img class="panstwo-image"
-                        src="{{ url_for('static', filename=mapa_path) }}"
-                        onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
-                </div>
-
+            <div class="panstwo-map-wrapper">
+                <img class="panstwo-map-large"
+                    src="{{ url_for('static', filename=mapa_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
             </div>
 
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
