@@ -31,14 +31,14 @@
 }
 
 .panstwo-form .country-name {
-    margin: 10px 0 10px 30px;
+    margin: 0;
     font-weight: 700;
     font-size: 26px;
     color: #2c3e50;
 }
 
 .panstwo-form .country-fullname {
-    margin: -10px 0 5px 30px;
+    margin: 0;
     font-style: italic;
     color: #34495e;
 }
@@ -346,20 +346,22 @@
     width: 70px;
     height: 45px;
     object-fit: cover;
+
     border-radius: 4px;
     border: 1px solid #ccc;
-    flex-shrink: 0;
+
+    display: block;
 }
 
 .panstwo-map-wrapper {
     display: flex;
-    justify-content: center;   /* 🔥 centrowanie */
+    justify-content: center;
     margin: 20px 0 30px 0;
 }
 
 .panstwo-map-large {
     width: 100%;
-    max-width: 700px;          /* 🔥 kontrola szerokości */
+    max-width: 700px;  
     max-height: 420px;
 
     object-fit: contain;
@@ -374,9 +376,8 @@
 .country-text {
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
-
-
 
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
