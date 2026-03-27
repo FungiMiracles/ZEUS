@@ -336,6 +336,34 @@
     align-items: center;
 }
 
+.country-title-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.flag-inline {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.panstwo-map-wrapper {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.panstwo-map-large {
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 1px solid #2f4fa3;
+    background: #f9fbff;
+}
+
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
 ============================================================ */
@@ -469,11 +497,20 @@
 
         <div class="country-header">
 
-            <div>
-                <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
-                <br>
-                <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
-                    </div>
+            <div class="country-title-block">
+
+                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+
+                <img class="flag-inline"
+                    src="{{ url_for('static', filename=flag_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+
+                <div>
+                    <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+                    <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+                </div>
+
+            </div>
 
                     <div class="dropdown-container">
                         <button class="hamburger-btn" onclick="toggleMenu(event)">☰</button>
@@ -525,18 +562,10 @@
         <!-- ================= LEWA KOLUMNA ================= -->
         <div class="col-left">
 
-            <h3 style="margin-top:30px;">Flaga i mapa</h3>
+            <h3 style="margin-top:30px;">Mapa</h3>
             <hr>
 
             <div class="panstwo-grid panstwo-grid-1col">
-
-                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-                <div class="panstwo-card">
-                    <div class="panstwo-card-label">Flaga</div>
-                    <img class="panstwo-image"
-                        src="{{ url_for('static', filename=flag_path) }}"
-                        onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
-                </div>
 
                 {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
                 <div class="panstwo-card">
