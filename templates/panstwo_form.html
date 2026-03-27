@@ -298,6 +298,10 @@
     grid-template-columns: repeat(3, 1fr);
 }
 
+.panstwo-grid-1col {
+    grid-template-columns: 1fr;
+}
+
 .panstwo-card-value {
     font-size: 1.05em;
     font-weight: 600;
@@ -552,12 +556,12 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Powierzchnia</div>
-                        <div class="panstwo-card-value">{{ p.panstwo_powierzchnia }}</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_powierzchnia).replace(",", " ") if p.panstwo_powierzchnia else "Brak danych" }}</div>
                     </div>
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">PKB</div>
-                        <div class="panstwo-card-value">{{ p.panstwo_PKB }}</div>
+                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB).replace(",", " ") if p.panstwo_PKB else "Brak danych" }}</div>
                     </div>
 
                     <div class="panstwo-card">
@@ -597,9 +601,9 @@
             <h3 style="margin-top:30px;">Miasta w tym państwie</h3>
 
                 {% if miasta %}
-                <div class="panstwo-grid panstwo-grid-3x2">
+                <div class="panstwo-grid panstwo-grid-1col">
 
-                    {% for m in miasta %}
+                    {% for m in miasta[:5] %}
                     <div class="panstwo-card">
 
                         <div class="panstwo-card-label">
