@@ -538,14 +538,16 @@
 
         <div class="country-header">
 
-            <div class="country-title-block">
+            <br>
 
-                <div class="country-text">
-                    <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
-                    <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
-                </div>
+                    <div class="country-title-block">
 
-            </div>
+                        <div class="country-text">
+                            <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+                            <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+                        </div>
+
+                    </div>
 
                     <div class="dropdown-container">
                         <button class="hamburger-btn" onclick="toggleMenu(event)">☰</button>
@@ -597,7 +599,7 @@
         <!-- ================= LEWA KOLUMNA ================= -->
         <div class="col-left">
 
-            <h3 style="margin-top:30px; text-align:center;">Mapa państwa</h3>
+            <h3 style="margin-top:30px; text-align:center;">Flaga państwa</h3>
 
             {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
 
