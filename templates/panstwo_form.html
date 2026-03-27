@@ -509,6 +509,7 @@
 
             <div>
                 <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+                <br>
                 <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
             </div>
 
@@ -564,6 +565,7 @@
 
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
             <h3 style="margin-top:30px;">Informacje o państwie</h3>
+            <hr>
 
                 <div class="panstwo-grid panstwo-grid-3x2">
 
@@ -596,7 +598,7 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Ustrój</div>
-                        <div class="panstwo-card-value" style="color: {{ infra_color }}; font-weight:700; font-size:1.2em;">{{ p.ustroj.ustroj_nazwa if p.ustroj else "Brak danych" }}</div>
+                        <div class="panstwo-card-value">
                     </div>
 
                     <div class="panstwo-card">
@@ -664,6 +666,7 @@
 
             <!-- ===== NAJWIĘKSZE MIASTA ===== -->
             <h3 style="margin-top:30px;">Miasta w tym państwie</h3>
+            <hr>
 
                 {% if miasta %}
                 <div class="panstwo-grid panstwo-grid-1col">
