@@ -229,7 +229,7 @@
 .dropdown-container {
     position: relative;
     display: inline-block;
-    margin-bottom: 15px;
+    margin-bottom: 1px;
 }
 
 .hamburger-btn {
@@ -246,7 +246,8 @@
     display: none;
     position: absolute;
     top: 45px;
-    left: 0;
+    right: 0;
+    left: auto;
     min-width: 240px;
     background: white;
     border-radius: 8px;
@@ -302,12 +303,6 @@
     grid-template-columns: 1fr;
 }
 
-.panstwo-card-value {
-    font-size: 1.05em;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
 .panstwo-grid-3x2 {
     grid-template-columns: repeat(3, 1fr);
 }
@@ -357,15 +352,9 @@
     position: relative;
 }
 
-.dropdown-menu {
-    right: 0;
-    left: auto;
-}
-
 .country-header-wrapper {
     margin: 0 30px 20px 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #dcdcdc;
+    padding-bottom: 5px;
 }
 
 .country-header {
@@ -599,6 +588,8 @@
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Ustrój</div>
                         <div class="panstwo-card-value">
+                            {{ p.ustroj_rel.ustroj_nazwa if p.ustroj_rel else "Brak danych" }}
+                        </div>
                     </div>
 
                     <div class="panstwo-card">

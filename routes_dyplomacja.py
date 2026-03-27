@@ -121,6 +121,7 @@ def init_dyplomacja_routes(app):
     def dyplomacja_sojusze():
 
         panstwo_id = request.args.get("panstwo_id", type=int)
+        kontynent_id = request.args.get("kontynent_id", type=int)
 
         kontynenty = (
             DictKontynent.query
@@ -131,7 +132,8 @@ def init_dyplomacja_routes(app):
         return render_template(
             "dyplomacja_sojusze.html",
             kontynenty=kontynenty,
-            panstwo_id=panstwo_id   # 👈 KLUCZ
+            panstwo_id=panstwo_id,
+            kontynent_id=kontynent_id
         )
 
 
@@ -218,6 +220,16 @@ def init_dyplomacja_routes(app):
         if not panstwo_id:
             return jsonify([])
 
+        # 🔧 NORMALIZACJA (underscore → spacje + kapitalizacja)
+        def normalize(v):
+            if not v:
+                return v
+            return v.replace("_", " ").capitalize()
+
+        relacja_norm = normalize(relacja)
+        stan_norm = normalize(stan)
+
+        # 🔍 baza zapytania
         q = Stosunki.query.filter(
             or_(
                 Stosunki.PANSTWO_ID == panstwo_id,
@@ -225,14 +237,16 @@ def init_dyplomacja_routes(app):
             )
         )
 
-        if relacja:
+        # 🔍 filtr relacji
+        if relacja_norm:
             q = q.join(Stosunki.relacja).filter(
-                DictStosunkiRelacja.relacja_nazwa == relacja
+                DictStosunkiRelacja.relacja_nazwa == relacja_norm
             )
 
-        if stan:
+        # 🔍 filtr stanu
+        if stan_norm:
             q = q.join(Stosunki.stan).filter(
-                DictStosunkiStan.stan_nazwa == stan
+                DictStosunkiStan.stan_nazwa == stan_norm
             )
 
         wyniki = []
@@ -251,8 +265,8 @@ def init_dyplomacja_routes(app):
             wyniki.append({
                 "panstwo_id": p.PANSTWO_ID,
                 "panstwo_nazwa": p.panstwo_nazwa,
-                "relacja": s.relacja.relacja_nazwa,
-                "stan": s.stan.stan_nazwa
+                "relacja": s.relacja.relacja_nazwa if s.relacja else "Neutralne",
+                "stan": s.stan.stan_nazwa if s.stan else "Pokój"
             })
 
         return jsonify(wyniki)
