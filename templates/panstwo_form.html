@@ -526,27 +526,27 @@
         <div class="col-left">
 
             <h3 style="margin-top:30px;">Flaga i mapa</h3>
-                <hr>
+            <hr>
 
-                <div class="panstwo-grid panstwo-grid-1col">
+            <div class="panstwo-grid panstwo-grid-1col">
 
-                    {% if p.panstwo_flaga %}
-                    <div class="panstwo-card">
-                        <div class="panstwo-card-label">Flaga</div>
-                        <img src="{{ url_for('panstwo_flaga', panstwo_id=p.PANSTWO_ID) }}"
-                            class="panstwo-image">
-                    </div>
-                    {% endif %}
-
-                    {% if p.panstwo_mapa %}
-                    <div class="panstwo-card">
-                        <div class="panstwo-card-label">Mapa</div>
-                        <img src="{{ url_for('panstwo_mapa', panstwo_id=p.PANSTWO_ID) }}"
-                            class="panstwo-image">
-                    </div>
-                    {% endif %}
-
+                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                <div class="panstwo-card">
+                    <div class="panstwo-card-label">Flaga</div>
+                    <img class="panstwo-image"
+                        src="{{ url_for('static', filename=flag_path) }}"
+                        onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
                 </div>
+
+                {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+                <div class="panstwo-card">
+                    <div class="panstwo-card-label">Mapa</div>
+                    <img class="panstwo-image"
+                        src="{{ url_for('static', filename=mapa_path) }}"
+                        onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+                </div>
+
+            </div>
 
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
             <h3 style="margin-top:30px;">Informacje o państwie</h3>
