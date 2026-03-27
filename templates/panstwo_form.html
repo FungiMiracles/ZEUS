@@ -361,6 +361,18 @@
     left: auto;
 }
 
+.country-header-wrapper {
+    margin: 0 30px 20px 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.country-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
 ============================================================ */
@@ -490,14 +502,16 @@
     <p class="page-title">Formularz państwa</p>
     <hr class="title-separator">
 
+    <div class="country-header-wrapper">
+
     <div class="country-header">
 
-    <div>
-        <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
-        <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
-    </div>
+        <div>
+            <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
+            <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+        </div>
 
-    <div class="dropdown-container">
+        <div class="dropdown-container">
         <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
 
         <div id="dropdownMenu" class="dropdown-menu">

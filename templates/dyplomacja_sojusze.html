@@ -215,6 +215,9 @@
 </div>
 
 <script>
+const urlParams = new URLSearchParams(window.location.search);
+const initialPanstwo = urlParams.get("panstwo_id");
+const initialKontynent = urlParams.get("kontynent_id");
 const kontynentSelect = document.getElementById("kontynentSelect");
 const panstwoSelect = document.getElementById("panstwoSelect");
 const relacjaFilter = document.getElementById("relacjaFilter");
@@ -338,13 +341,18 @@ kontynentSelect.addEventListener("change", () => {
                 panstwoSelect.appendChild(opt);
             });
 
-            // 🔑 TO JEST KLUCZOWE
             panstwoSelect.disabled = false;
+
+            // 🔥 TU MUSI BYĆ
+            if (initialPanstwo) {
+                panstwoSelect.value = initialPanstwo;
+
+                document.getElementById("sojSearchBtn").click();
+            }
         })
         .catch(err => {
             console.error("Błąd API:", err);
         });
-});
 
 const searchBtn = document.getElementById("sojSearchBtn");
 
@@ -406,6 +414,13 @@ searchBtn.addEventListener("click", () => {
             sojList.innerHTML = "<div>Błąd pobierania danych.</div>";
         });
 });
+
+if (initialKontynent) {
+    kontynentSelect.value = initialKontynent;
+
+    // wywołaj change ręcznie
+    kontynentSelect.dispatchEvent(new Event("change"));
+}
 </script>
 
 
