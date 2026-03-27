@@ -496,48 +496,48 @@
                 <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
                 <br>
                 <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
+                    </div>
+
+                    <div class="dropdown-container">
+                        <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+
+                        <div id="dropdownMenu" class="dropdown-menu">
+                    <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
+
+                    <a href="/panstwo/{{ p.PANSTWO_ID }}/edit">Edytuj państwo</a>
+
+                    <form action="{{ url_for('usun_panstwo', panstwo_id=p.PANSTWO_ID) }}" method="POST" style="margin:0;">
+                        <button type="submit" class="dropdown-delete">Usuń państwo</button>
+                    </form>
+
+                    <hr>
+
+                    <a href="{{ url_for('demografia_kalkulator', panstwo_id=p.PANSTWO_ID) }}">
+                        Kalkulator demograficzny
+                    </a>
+
+                    <a href="{{ url_for('demografia_ludnosc', 
+                        kontynent_id=p.kontynent_id, 
+                        panstwo_id=p.PANSTWO_ID) }}">
+                        Ludność i populacja
+                    </a>
+
+                    <a href="{{ url_for('dyplomacja_sojusze', 
+                        panstwo_id=p.PANSTWO_ID,
+                        kontynent_id=p.kontynent_id) }}">
+                        Sojusze i bloki
+                    </a>
+
+                    <a href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
+                        Dane gospodarcze
+                    </a>
+
+                    <a href="{{ url_for('wojsko_form', panstwo_id=p.PANSTWO_ID) }}">
+                        Siły zbrojne
+                    </a>
+                </div>
             </div>
 
-            <div class="dropdown-container">
-                <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
-            </div>
-
-        </div>
-
-        <div id="dropdownMenu" class="dropdown-menu">
-            <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
-
-            <a href="/panstwo/{{ p.PANSTWO_ID }}/edit">Edytuj państwo</a>
-
-            <form action="{{ url_for('usun_panstwo', panstwo_id=p.PANSTWO_ID) }}" method="POST" style="margin:0;">
-                <button type="submit" class="dropdown-delete">Usuń państwo</button>
-            </form>
-
-            <hr>
-
-            <a href="{{ url_for('demografia_kalkulator', panstwo_id=p.PANSTWO_ID) }}">
-                Kalkulator demograficzny
-            </a>
-
-            <a href="{{ url_for('demografia_ludnosc', 
-                kontynent_id=p.kontynent_id, 
-                panstwo_id=p.PANSTWO_ID) }}">
-                Ludność i populacja
-            </a>
-
-            <a href="{{ url_for('dyplomacja_sojusze', 
-                panstwo_id=p.PANSTWO_ID,
-                kontynent_id=p.kontynent_id) }}">
-                Sojusze i bloki
-            </a>
-
-            <a href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
-                Dane gospodarcze
-            </a>
-
-            <a href="{{ url_for('wojsko_form', panstwo_id=p.PANSTWO_ID) }}">
-                Siły zbrojne
-            </a>
         </div>
     </div>
 
@@ -584,7 +584,7 @@
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Ustrój</div>
                         <div class="panstwo-card-value">
-                            {{ p.ustroj.ustroj_nazwa if p.ustroj_rel else "Brak danych" }}
+                            {{ p.ustroj.ustroj_nazwa if p.ustroj else "Brak danych" }}
                         </div>
                     </div>
 
