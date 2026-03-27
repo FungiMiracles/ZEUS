@@ -362,6 +362,27 @@
     margin: 20px 0 30px 0;
 }
 
+/* ================= FLAGA NAD MAPĄ ================= */
+.panstwo-flag-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 10px 0;
+}
+
+.panstwo-flag-large {
+    width: 100%;
+    max-width: 320px;   /* 🔥 flaga zawsze mniejsza niż mapa */
+    aspect-ratio: 3 / 2; /* 🔥 zachowuje proporcje */
+    
+    object-fit: cover;
+
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    background: #f9fbff;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
 .panstwo-map-large {
     width: 100%;
     max-width: 700px;  
@@ -519,12 +540,6 @@
 
             <div class="country-title-block">
 
-                {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
-
-                <img class="flag-inline"
-                    src="{{ url_for('static', filename=flag_path) }}"
-                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
-
                 <div class="country-text">
                     <h2 class="country-name">{{ p.panstwo_nazwa }}</h2>
                     <p class="country-fullname">{{ p.panstwo_pelna_nazwa }}</p>
@@ -583,6 +598,16 @@
         <div class="col-left">
 
             <h3 style="margin-top:30px; text-align:center;">Mapa państwa</h3>
+
+            {% set flag_path = 'flags/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
+
+            <div class="panstwo-flag-wrapper">
+                <img class="panstwo-flag-large"
+                    src="{{ url_for('static', filename=flag_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+            </div>
+
+            <h3 style="margin-top:20px; text-align:center;">Mapa państwa</h3>
             <hr>
 
             {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
