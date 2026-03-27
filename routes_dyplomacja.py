@@ -119,16 +119,19 @@ def init_dyplomacja_routes(app):
 
     @app.route("/dyplomacja/sojusze")
     def dyplomacja_sojusze():
-    
+
+        panstwo_id = request.args.get("panstwo_id", type=int)
+
         kontynenty = (
             DictKontynent.query
             .order_by(DictKontynent.kontynent_nazwa)
             .all()
         )
-    
+
         return render_template(
             "dyplomacja_sojusze.html",
-            kontynenty=kontynenty
+            kontynenty=kontynenty,
+            panstwo_id=panstwo_id   # 👈 KLUCZ
         )
 
 

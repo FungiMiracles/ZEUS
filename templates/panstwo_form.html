@@ -338,8 +338,13 @@
 .country-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin: 10px 30px 10px 30px;
+    align-items: center;   /* KLUCZ */
+    margin: 10px 30px;
+}
+
+.country-header > div:first-child {
+    display: flex;
+    flex-direction: column;
 }
 
 .country-header .country-name,
@@ -510,11 +515,13 @@
                 Kalkulator demograficzny
             </a>
 
-            <a href="{{ url_for('demografia_ludnosc', panstwo_id=p.PANSTWO_ID) }}">
+            <a href="{{ url_for('demografia_ludnosc', 
+                kontynent_id=p.kontynent_id, 
+                panstwo_id=p.PANSTWO_ID) }}">
                 Ludność i populacja
             </a>
 
-            <a href="{{ url_for('dyplomacja_sojusze') }}">
+            <a href="{{ url_for('dyplomacja_sojusze', panstwo_id=p.PANSTWO_ID) }}">
                 Sojusze i bloki
             </a>
 
