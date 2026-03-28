@@ -11,7 +11,7 @@ from extensions import db
 from models import Panstwo, Region, Miasto, DictKontynent
 from permissions import wymaga_roli
 from sqlalchemy import func
-from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
+from services.demografia_ludnosc import licz_dane_kontynentu
 import random
 from datetime import datetime
 

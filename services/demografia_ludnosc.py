@@ -114,24 +114,20 @@ def licz_dane_panstwa(panstwo_id):
     if not panstwo:
         return None
 
-    regiony = (
-        db.session.query(
-            Region.region_populacja,
-            Region.region_ludnosc_pozamiejska,
-            func.coalesce(func.sum(Miasto.miasto_populacja), 0)
-        )
-        .outerjoin(Miasto, Miasto.region_id == Region.region_id)
+    populacja = (
+        db.session.query(func.coalesce(func.sum(Region.region_populacja), 0))
         .filter(Region.panstwo_id == panstwo_id)
-        .group_by(Region.region_id)
-        .all()
+        .scalar()
     )
 
-    populacja = sum(r[0] or 0 for r in regiony)
-    ludnosc_miejska = sum(r[2] or 0 for r in regiony)
-    ludnosc_pozamiejska = sum(r[1] or 0 for r in regiony)
+    ludnosc_miejska = (
+        db.session.query(func.coalesce(func.sum(Miasto.miasto_populacja), 0))
+        .filter(Miasto.panstwo_id == panstwo_id)
+        .scalar()
+    )
 
     return {
-        "panstwo": panstwo.panstwo_nazwa,
+        "nazwa": panstwo.panstwo_nazwa,
         "populacja": populacja,
         "ludnosc_miejska": ludnosc_miejska,
         "ludnosc_pozamiejska": ludnosc_pozamiejska,
