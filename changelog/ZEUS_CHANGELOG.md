@@ -1,3 +1,17 @@
+__Wydanie W3.MAR.26 (30.03.2026)__
+
+Zmiany:
+
+Z1.W3.MAR.26 [Formularz państwa] Dodanie rozwijalnego menu pozwalające na przejście do poszczególnych modułów w kontekście wyświetlanego państwa.
+
+Z2.W3.MAR.26 [Formularz państwa] Zmiana wyglądu formularza na spójny ze stylistyką formularza regionu.
+
+Z3.W3.MAR.26 [Formularz państwa] Dodanie informacji o poziomie rozwoju infrastrukturalnego państwa.
+
+Z10.W3.MAR.26 [Ludność i populacja] Dodanie flagi państwa obok nagłówka z nazwą państwa.
+
+Poprawki:
+
 __Wydanie W2.MAR.26 (13.03.2026)__
 
 Zmiany:
