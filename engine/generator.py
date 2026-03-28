@@ -26,11 +26,11 @@ from engine.effects import (
 
 #----------------------------------------------------------#
 
-MAX_EVENTS_PER_MONTH = 20
+MAX_EVENTS_PER_MONTH = 40
 
 MAX_EVENTS_PER_REGION_PER_MONTH = 2
 
-MAX_EVENTS_PER_DAY = 2
+MAX_EVENTS_PER_DAY = 5
 
 LAST_REGEN_YEAR = None
 
