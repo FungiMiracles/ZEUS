@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 from extensions import db
 
 
@@ -87,10 +87,12 @@ def licz_dane_kontynentu(kontynent):
         for m in top_miasta_raw
     ]
 
+    kont = DictKontynent.query.get(kontynent)
+
     # ===== ZWROT =====
     return {
         "typ": "kontynent",
-        "nazwa": kontynent,
+        "nazwa": kont.kontynent_nazwa if kont else "Nieznany kontynent",
         "populacja": populacja,
         "powierzchnia": powierzchnia,
         "gestosc": gestosc,
