@@ -16,7 +16,7 @@ def format_populacja(n):
 def licz_dane_kontynentu(kontynent):
 
     # ===== PAŃSTWA NA KONTYNENCIE =====
-    panstwa = Panstwo.query.filter_by(kontynent=kontynent).all()
+    panstwa = Panstwo.query.filter_by(kontynent_id=kontynent).all()
     if not panstwa:
         return None
 
