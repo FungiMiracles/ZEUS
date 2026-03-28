@@ -136,6 +136,21 @@
     font-weight: 600;
 }
 
+.demografia-country-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.demografia-flag {
+    width: 48px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+}
+
 /* ===== MOBILE ===== */
 
 @media (max-width: 768px) {
@@ -211,7 +226,15 @@
     {% if tryb == "kontynent" and dane %}
 
     <div class="data-box">
-        <h2>{{ dane.nazwa }}</h2>
+        {% set flag_path = 'flags/' + dane.nazwa|replace(' ', '_') + '.jpg' %}
+
+        <div class="demografia-country-header">
+            <img class="demografia-flag"
+                src="{{ url_for('static', filename=flag_path) }}"
+                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+
+            <h2>{{ dane.nazwa }}</h2>
+        </div>
 
         <div class="data-grid">
 
