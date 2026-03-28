@@ -105,7 +105,7 @@ def licz_dane_kontynentu(kontynent):
         "top_miasta": top_miasta,
     }
 
-def licz_dane_panstwa(panstwo_id):
+###def licz_dane_panstwa(panstwo_id):
     from extensions import db
     from models import Panstwo, Region, Miasto
     from sqlalchemy import func
@@ -126,6 +126,12 @@ def licz_dane_panstwa(panstwo_id):
         .scalar()
     )
 
+    ludnosc_pozamiejska = (
+        db.session.query(func.coalesce(func.sum(Region.region_ludnosc_pozamiejska), 0))
+        .filter(Region.panstwo_id == panstwo_id)
+        .scalar()
+    )
+
     return {
         "nazwa": panstwo.panstwo_nazwa,
         "populacja": populacja,
@@ -134,5 +140,5 @@ def licz_dane_panstwa(panstwo_id):
         "urbanizacja": round(
             (ludnosc_miejska / populacja) * 100, 2
         ) if populacja else 0
-    }
+    }###
 

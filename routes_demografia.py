@@ -46,7 +46,7 @@ def init_demografia_routes(app):
                 .all()
             )
 
-        if panstwo_id and panstwo_id.isdigit():
+        if panstwo_id:
             panstwo = Panstwo.query.get(int(panstwo_id))
             if panstwo:
                 regiony = (
