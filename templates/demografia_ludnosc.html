@@ -320,8 +320,8 @@
             <!-- 🔥 TU DODAJ MAPĘ -->
             <div class="demografia-map-wrapper">
                 <img class="demografia-map"
-                    src="{{ url_for('static', filename=map_path) }}"
-                    onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+                src="{{ url_for('static', filename=map_path) }}"
+                onerror="this.onerror=null; this.src='{{ url_for('static', filename='maps/default.png') }}'">
             </div>
       
           <div class="data-grid">
