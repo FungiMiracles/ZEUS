@@ -317,13 +317,6 @@
                 <h2>{{ dane.nazwa }}</h2>
             </div>
 
-            <!-- 🔥 TU DODAJ MAPĘ -->
-            <div class="demografia-map-wrapper">
-                <img class="demografia-map"
-                src="{{ url_for('static', filename=map_path) }}"
-                onerror="this.onerror=null; this.src='{{ url_for('static', filename='maps/default.png') }}'">
-            </div>
-      
           <div class="data-grid">
               <div class="data-item"><span class="label">Populacja</span><span class="value">{{ dane.populacja | spacenum }}</span></div>
               <div class="data-item"><span class="label">Powierzchnia</span><span class="value">{{ dane.powierzchnia | spacenum }} km²</span></div>
