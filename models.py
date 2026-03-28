@@ -101,6 +101,12 @@ class Region(db.Model):
     region_typ_podrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
     typ_podrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_podrz_id])
 
+    procreg_infra_drogowa = db.Column(db.Float)
+    procreg_infra_kolejowa = db.Column(db.Float)
+    procreg_infra_energetyczna = db.Column(db.Float)
+    procreg_infra_mieszkaniowa = db.Column(db.Float)
+    procreg_infra_portowa = db.Column(db.Float)
+
 class Miasto(db.Model):
     __tablename__ = "miasta"
 
