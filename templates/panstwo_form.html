@@ -234,7 +234,8 @@
     display: none;
     position: absolute;
     top: 100%;
-    right: 0;        /* 🔥 klucz */
+    right: 0;
+    left: auto;       
     margin-top: 6px;
 
     min-width: 240px;
@@ -550,7 +551,8 @@
                     <div class="dropdown-container">
                         <button class="hamburger-btn" onclick="toggleMenu(event)">☰</button>
 
-                        <div id="dropdownMenu" class="dropdown-menu">
+                    <div id="dropdownMenu" class="dropdown-menu">
+
                     <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
 
                     <a href="/panstwo/{{ p.PANSTWO_ID }}/edit">Edytuj państwo</a>

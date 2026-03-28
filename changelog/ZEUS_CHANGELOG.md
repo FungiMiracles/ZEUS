@@ -2,15 +2,17 @@ __Wydanie W3.MAR.26 (30.03.2026)__
 
 Zmiany:
 
-Z1.W3.MAR.26 [Formularz państwa] Dodanie rozwijalnego menu pozwalające na przejście do poszczególnych modułów w kontekście wyświetlanego państwa.
+Z1.W3.MAR.26 [Formularz państwa] Dodanie rozwijalnego menu pozwalającego na przejście do poszczególnych modułów w kontekście wyświetlanego państwa.
 
-Z2.W3.MAR.26 [Formularz państwa] Zmiana wyglądu formularza na spójny ze stylistyką formularza regionu.
+Z2.W3.MAR.26 [Formularz państwa] Zmiana wyglądu formularza państwa na spójny ze stylistyką formularza regionu.
 
-Z3.W3.MAR.26 [Formularz państwa] Dodanie informacji o poziomie rozwoju infrastrukturalnego państwa.
+Z3.W3.MAR.26 [Formularz państwa] Dodanie informacji o poziomie rozwoju infrastrukturalnego państwa w raz z oznaczeniami kolorystycznymi.
 
 Z10.W3.MAR.26 [Ludność i populacja] Dodanie flagi państwa obok nagłówka z nazwą państwa.
 
 Poprawki:
+
+Z20.W3.MAR.26 [Poprawki błędów] Naprawa błędów 036, 038, 039, 040, 041.
 
 __Wydanie W2.MAR.26 (13.03.2026)__
 
@@ -152,7 +154,7 @@ Z10.W2.LUT.26 [Miasto]
 Została wdrożona reguła R8: "Każdy region ma tylko jedną stolicę regionu."
 
 Z11.W2.LUT.26 [Państwo]
-Została wdrożona reguła R11: "Każde państwo powinno mieć status: "czy-suwerenny"=TAK/NIE".
+Została wdrożona reguła R11: "Każde państwo powinno mieć status: "czy-suwerenny"="TAK/NIE".
 
 Poprawki błędów:
 
