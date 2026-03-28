@@ -650,6 +650,27 @@ class ZdarzenieSzablon(db.Model):
 
     created_at = db.Column(db.DateTime, default=db.func.now())
 
+class RegionalDataChange(db.Model):
+    __tablename__ = "regional_data_change"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"), nullable=False)
+
+    data_entenda = db.Column(db.Date, nullable=False)
+    data_rzeczywista = db.Column(db.DateTime, nullable=False)
+
+    source = db.Column(db.String(20), nullable=False)
+    event_id = db.Column(db.Integer, nullable=True)
+
+    delta_ludnosc_pozamiejska = db.Column(db.Integer, default=0)
+
+    delta_infra_drogowa = db.Column(db.Float, default=0)
+    delta_infra_kolejowa = db.Column(db.Float, default=0)
+    delta_infra_energetyczna = db.Column(db.Float, default=0)
+    delta_infra_mieszkaniowa = db.Column(db.Float, default=0)
+    delta_infra_portowa = db.Column(db.Float, default=0)
+
 #------------------------------------------------#
 # SŁOWNIKI #
 #------------------------------------------------#

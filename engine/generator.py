@@ -8,7 +8,6 @@ import calendar
 from extensions import db
 from models import Zdarzenie, Region, Panstwo, Miasto
 from engine.selectors import select_regions
-
 from engine.template_selector import select_template
 from engine.event_renderer import render_event_description
 
@@ -20,7 +19,9 @@ from engine.effects import (
     apply_avalanche_effect,
     apply_volcano_effect,
     apply_coldwave_effect,
-    apply_heatwave_effect
+    apply_heatwave_effect,
+    apply_region_regeneration
+
 )
 
 #----------------------------------------------------------#
@@ -30,6 +31,8 @@ MAX_EVENTS_PER_MONTH = 20
 MAX_EVENTS_PER_REGION_PER_MONTH = 2
 
 MAX_EVENTS_PER_DAY = 2
+
+LAST_REGEN_YEAR = None
 
 #----------------------------------------------------------#
 
@@ -51,6 +54,8 @@ def start_event_scheduler(app):
 def generate_events():
 
     current_entenda = get_current_entenda_date()
+
+    apply_yearly_regeneration_if_needed(current_entenda)
 
     last_generated = get_last_generated_entenda_date()
 
@@ -75,6 +80,29 @@ def generate_events():
     print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
 
     return generated_total
+
+def apply_global_regeneration():
+
+    regions = Region.query.all()
+
+    for r in regions:
+        apply_region_regeneration(r)
+
+    db.session.commit()
+
+    print("[ZEUS] wykonano roczną regenerację infrastruktury")
+
+def apply_yearly_regeneration_if_needed(current_date):
+
+    global LAST_REGEN_YEAR
+
+    if LAST_REGEN_YEAR is None:
+        LAST_REGEN_YEAR = current_date.year
+        return
+
+    if current_date.year > LAST_REGEN_YEAR:
+        LAST_REGEN_YEAR = current_date.year
+        apply_global_regeneration()
 
 #----------------------------------------------------------#
 
