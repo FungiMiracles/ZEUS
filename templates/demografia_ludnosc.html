@@ -136,19 +136,18 @@
     font-weight: 600;
 }
 
-.demografia-country-header {
+.demografia-map-wrapper {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
+    justify-content: center;
+    margin: 15px 0 20px 0;
 }
 
-.demografia-flag {
-    width: 48px;
-    height: 32px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid #aaa;
+.demografia-map {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #f9fbff;
 }
 
 /* ===== MOBILE ===== */
@@ -226,15 +225,7 @@
     {% if tryb == "kontynent" and dane %}
 
     <div class="data-box">
-        {% set flag_path = 'flags/' + dane.nazwa|replace(' ', '_') + '.jpg' %}
-
-        <div class="demografia-country-header">
-            <img class="demografia-flag"
-                src="{{ url_for('static', filename=flag_path) }}"
-                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
-
-            <h2>{{ dane.nazwa }}</h2>
-        </div>
+        <h2>{{ dane.nazwa }}</h2>
 
         <div class="data-grid">
 
@@ -303,7 +294,23 @@
     {% elif tryb == "panstwo" %}
 
       <div class="data-box">
-          <h2>{{ dane.nazwa }}</h2>
+          {% set flag_path = 'flags/' + dane.nazwa|replace(' ', '_') + '.jpg' %}
+            {% set map_path = 'maps/' + dane.nazwa|replace(' ', '_') + '.png' %}
+
+            <div class="demografia-country-header">
+                <img class="demografia-flag"
+                    src="{{ url_for('static', filename=flag_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+
+                <h2>{{ dane.nazwa }}</h2>
+            </div>
+
+            <!-- 🔥 TU DODAJ MAPĘ -->
+            <div class="demografia-map-wrapper">
+                <img class="demografia-map"
+                    src="{{ url_for('static', filename=map_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+            </div>
       
           <div class="data-grid">
               <div class="data-item"><span class="label">Populacja</span><span class="value">{{ dane.populacja | spacenum }}</span></div>
