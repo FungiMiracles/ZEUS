@@ -148,6 +148,13 @@ textarea {
     gap: 8px;
     margin-bottom: 8px;
 }
+
+.flag-icon {
+    width: 22px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+}
 </style>
 
 <div class="org-container">
@@ -199,7 +206,7 @@ textarea {
 
             <img
                 src="{{ url_for('static', filename='flags/' + m.panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
-                class="flag-region"
+                class="flag-icon"
                 onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
             >
 
