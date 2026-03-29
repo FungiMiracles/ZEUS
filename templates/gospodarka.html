@@ -4,7 +4,6 @@
 <style>
     .gosp-header { text-align: center; margin: 20px 0 40px; }
     .gosp-header h2 { font-weight: 800; color: #2c73d2; }
-    
     .gosp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
     .gosp-card {
         background: white; border-radius: 20px; padding: 40px; text-align: center;
@@ -15,13 +14,9 @@
     .gosp-card h5 { color: #1e293b; font-weight: 700; }
     .gosp-card:hover { background: #f8faff; border-color: #2c73d2; box-shadow: 0 12px 20px rgba(44, 115, 210, 0.1); }
 </style>
-
-<div class="gosp-header">
-    <h2><i class="fas fa-chart-line mr-2"></i> Gospodarka i Handel</h2>
-</div>
-
+<div class="gosp-header"><h2><i class="fas fa-chart-line mr-2"></i> Gospodarka i Handel</h2></div>
 <div class="gosp-grid">
-    <a href="{{ url_for('gospodarka_zasoby') }}" class="gosp-card">
+    <a href="{{ url_for('gospodarka_lista') }}" class="gosp-card">
         <i class="fas fa-coins"></i>
         <h5>Zasoby i Finanse</h5>
     </a>
