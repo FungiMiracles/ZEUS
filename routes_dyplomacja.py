@@ -594,6 +594,44 @@ def init_dyplomacja_routes(app):
 
         return render_template("organizacja_form_add.html")
     
+    @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/leave", methods=["POST"])
+    def organizacja_member_leave(org_id, panstwo_id):
+
+        rel = OrganizacjaPanstwo.query.filter_by(
+            org_id=org_id,
+            panstwo_id=panstwo_id
+        ).first()
+
+        if not rel:
+            flash("Nie znaleziono członka organizacji.", "error")
+            return redirect(request.referrer)
+
+        rel.status_czlonkostwa = "byly_czlonek"
+
+        db.session.commit()
+
+        flash("Państwo opuściło organizację.", "success")
+        return redirect(request.referrer)
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/suspend", methods=["POST"])
+    def organizacja_member_suspend(org_id, panstwo_id):
+
+        rel = OrganizacjaPanstwo.query.filter_by(
+            org_id=org_id,
+            panstwo_id=panstwo_id
+        ).first()
+
+        if not rel:
+            flash("Nie znaleziono członka organizacji.", "error")
+            return redirect(request.referrer)
+
+        rel.status_czlonkostwa = "zawieszony"
+
+        db.session.commit()
+
+        flash("Członkostwo państwa zostało zawieszone.", "success")
+        return redirect(request.referrer)
+    
 
     
     

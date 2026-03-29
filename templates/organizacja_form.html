@@ -152,6 +152,43 @@ textarea {
 .org-members div {
     margin-bottom: 6px;
 }
+
+.member-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.btn-action {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+/* OPUSZCZENIE */
+.btn-leave {
+    background: #e67e22;
+    color: white;
+}
+.btn-leave:hover {
+    background: #b95f13;
+}
+
+/* ZAWIESZENIE */
+.btn-suspend {
+    background: #c0392b;
+    color: white;
+}
+.btn-suspend:hover {
+    background: #7a1f16;
+}
+
+.status-czlonek { color: #2ecc71; }
+.status-byly_czlonek { color: #7f8c8d; }
+.status-zawieszony { color: #ca982c; }
 </style>
 
 <div class="org-container">
@@ -207,8 +244,36 @@ textarea {
                 onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
             >
 
-            {{ m.panstwo.panstwo_nazwa }} | Status: ({{ m.status_czlonkostwa }})
-            
+            <span class="member-name">
+                {{ m.panstwo.panstwo_nazwa }} | 
+            </span>
+
+            <span class="member-status status-{{ m.status_czlonkostwa }}">
+                Status: ({{ m.status_czlonkostwa }})
+            </span>
+
+            {% if m.status_czlonkostwa == "czlonek" %}
+            <div class="member-actions">
+
+                <form method="POST"
+                    action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
+                    style="display:inline;"
+                    onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
+
+                    <button class="btn-action btn-leave">Opuść</button>
+                </form>
+
+                <form method="POST"
+                    action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/suspend"
+                    style="display:inline;"
+                    onsubmit="return confirm('Czy na pewno chcesz zawiesić członkostwo?');">
+
+                    <button class="btn-action btn-suspend">Zawieś</button>
+                </form>
+
+            </div>
+            {% endif %}
+
         </div>
         {% endfor %}
 
