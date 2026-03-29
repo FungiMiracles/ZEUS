@@ -24,30 +24,30 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: 0.3s;
+        transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
     }
 
     .tile-card i {
         font-size: 2.5rem;
         color: #2c73d2;
         margin-bottom: 15px;
+        transition: transform 0.3s ease;
     }
+
+    .tile-card h5 { font-weight: 700; margin-bottom: 8px; }
+    .tile-card span { font-size: 0.85rem; color: #94a3b8; }
 
     .tile-card:hover {
         transform: translateY(-5px);
         border-color: #2c73d2;
         box-shadow: 0 12px 20px -5px rgba(44,115,210,0.2);
     }
-
-    .tile-card span {
-        font-size: 0.85rem;
-        color: #94a3b8;
-    }
+    .tile-card:hover i { transform: scale(1.1); }
 </style>
 
 <div class="module-header">
     <h2><i class="fas fa-chart-line mr-2"></i> Gospodarka</h2>
-    <p>Dane ekonomiczne, rozwój i analiza państw.</p>
+    <p>Dane ekonomiczne, analiza i rozwój państw.</p>
 </div>
 
 <div class="zeus-grid-tiles">
@@ -58,11 +58,11 @@
         <span>Przegląd wskaźników ekonomicznych państw.</span>
     </a>
 
-    <a href="{{ url_for('gospodarka_list') }}" class="tile-card">
+    <div class="tile-card" onclick="zeusToast('Moduł w budowie')">
         <i class="fas fa-balance-scale"></i>
         <h5>Porównanie</h5>
         <span>Analiza i zestawienie gospodarek.</span>
-    </a>
+    </div>
 
 </div>
 

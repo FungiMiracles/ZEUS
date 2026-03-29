@@ -22,30 +22,33 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
     }
 
     .tile-card i {
         font-size: 2.5rem;
         color: #27ae60;
         margin-bottom: 15px;
+        transition: transform 0.3s ease;
     }
+
+    .tile-card h5 { font-weight: 700; margin-bottom: 8px; }
+    .tile-card span { font-size: 0.85rem; color: #94a3b8; }
 
     .tile-card:hover {
         transform: translateY(-5px);
         border-color: #27ae60;
         box-shadow: 0 12px 20px -5px rgba(39,174,96,0.2);
     }
+    .tile-card:hover i { transform: scale(1.1); }
 
-    .tile-locked {
-        background: #f8fafc;
-        opacity: 0.7;
-        cursor: not-allowed;
-    }
+    .tile-locked { background: #f8fafc; opacity: 0.7; cursor: not-allowed; }
+    .tile-locked i { color: #94a3b8; }
 </style>
 
 <div class="module-header">
     <h2><i class="fas fa-leaf mr-2"></i> Natura</h2>
-    <p>Świat przyrody, środowisko i systemy naturalne.</p>
+    <p>Środowisko naturalne i systemy przyrody.</p>
 </div>
 
 <div class="zeus-grid-tiles">
@@ -53,21 +56,13 @@
     <div class="tile-card tile-locked" onclick="zeusToast('Moduł w budowie')">
         <i class="fas fa-globe"></i>
         <h5>Kosmos</h5>
+        <span>Badania przestrzeni i zjawisk kosmicznych.</span>
     </div>
 
-    <div class="tile-card tile-locked" onclick="zeusToast('Moduł w budowie')">
-        <i class="fas fa-user"></i>
-        <h5>Człowiek</h5>
-    </div>
-
-    <div class="tile-card tile-locked" onclick="zeusToast('Moduł w budowie')">
+    <div class="tile-card tile-locked">
         <i class="fas fa-seedling"></i>
         <h5>Flora</h5>
-    </div>
-
-    <div class="tile-card tile-locked" onclick="zeusToast('Moduł w budowie')">
-        <i class="fas fa-paw"></i>
-        <h5>Fauna</h5>
+        <span>Roślinność świata Entendy.</span>
     </div>
 
 </div>
