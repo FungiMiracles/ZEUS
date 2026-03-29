@@ -578,6 +578,23 @@ def init_dyplomacja_routes(app):
     @wymaga_roli("wszechmocny")
     def organizacja_add():
 
+        # 🔽 ZAWSZE przygotuj dane do formularza (GET + POST)
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+
+        panstwa = (
+            Panstwo.query
+            .filter_by(czy_suwerenny=True)
+            .order_by(Panstwo.kontynent_id, Panstwo.panstwo_nazwa)
+            .all()
+        )
+
+        panstwa_by_kontynent = {k.kontynent_id: [] for k in kontynenty}
+
+        for p in panstwa:
+            if p.kontynent_id in panstwa_by_kontynent:
+                panstwa_by_kontynent[p.kontynent_id].append(p)
+
+        # 🔽 POST
         if request.method == "POST":
 
             nazwa = request.form.get("org_nazwa")
@@ -587,26 +604,59 @@ def init_dyplomacja_routes(app):
             aktywna = True if request.form.get("czy_aktywna") else False
             siedziba = request.form.get("siedziba")
 
+            selected_ids = request.form.getlist("panstwa_ids")  # 🔥 KLUCZ
+
             if not nazwa:
                 flash("Podaj nazwę organizacji.", "error")
-                return redirect(request.url)
+                return render_template(
+                    "organizacja_form_add.html",
+                    kontynenty=kontynenty,
+                    panstwa_by_kontynent=panstwa_by_kontynent
+                )
 
-            org = OrganizacjaMiedzynarodowa(
-                org_nazwa=nazwa,
-                org_skrot=skrot,
-                org_typ=typ,
-                org_opis=opis,
-                czy_aktywna=aktywna,
-                siedziba=siedziba
-            )
+            try:
+                org = OrganizacjaMiedzynarodowa(
+                    org_nazwa=nazwa,
+                    org_skrot=skrot,
+                    org_typ=typ,
+                    org_opis=opis,
+                    czy_aktywna=aktywna,
+                    siedziba=siedziba
+                )
 
-            db.session.add(org)
-            db.session.commit()
+                db.session.add(org)
+                db.session.flush()  # 🔥 potrzebne do ORG_ID
 
-            flash("Organizacja została dodana.", "success")
-            return redirect("/dyplomacja/organizacje")
+                # 🔽 dodanie wielu państw
+                for pid in selected_ids:
+                    rel = OrganizacjaPanstwo(
+                        org_id=org.ORG_ID,
+                        panstwo_id=int(pid),
+                        status_czlonkostwa="czlonek"
+                    )
+                    db.session.add(rel)
 
-        return render_template("organizacja_form_add.html")
+                db.session.commit()
+
+                flash("Organizacja została dodana wraz z państwami.", "success")
+                return redirect("/dyplomacja/organizacje")
+
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Błąd zapisu: {e}", "error")
+
+                return render_template(
+                    "organizacja_form_add.html",
+                    kontynenty=kontynenty,
+                    panstwa_by_kontynent=panstwa_by_kontynent
+                )
+
+        # 🔽 GET
+        return render_template(
+            "organizacja_form_add.html",
+            kontynenty=kontynenty,
+            panstwa_by_kontynent=panstwa_by_kontynent
+        )
     
     @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/leave", methods=["POST"])
     @wymaga_roli("wszechmocny")

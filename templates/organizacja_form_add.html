@@ -133,6 +133,23 @@
             </label>
         </div>
 
+        <div class="form-group">
+            <label>Państwa członkowskie</label>
+
+            {% for k in kontynenty %}
+                <div style="margin-bottom:10px; border-top:1px solid #ddd; padding-top:8px;">
+                    <b>{{ k.kontynent_nazwa }}</b><br>
+
+                    {% for p in panstwa_by_kontynent[k.kontynent_id] %}
+                        <label style="display:inline-block; width:200px;">
+                            <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
+                            {{ p.panstwo_nazwa }}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Zapisz</button>
 
