@@ -117,17 +117,45 @@ textarea {
 .btn-primary:hover { background: #154e91; }
 
 .btn-secondary {
-    background: #ecf0f1;
-    border: 1px solid #bdc3c7;
+    background: #af1515;
+    border: 1px solid #af1515;
 }
 
 .btn-secondary:hover {
-    background: #3498db;
-    color: white;
+    background: #600101;
+    color: #600101;
+}
+
+.org-member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.member-name {
+    font-weight: 600;
+}
+
+.member-status {
+    color: #666;
+    font-size: 0.9em;
 }
 </style>
 
 <div class="org-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+            {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <div class="header">
         <h1>{{ org.org_nazwa }} ({{ org.org_skrot }})</h1>
@@ -160,11 +188,19 @@ textarea {
         <h2>Członkowie</h2>
 
         {% for m in members %}
-        <div>
-            <img src="{{ url_for('static', filename='flagi/' ~ m.panstwo.panstwo_nazwa ~ '.jpg') }}"
-                 class="flag-icon">
-            {{ m.panstwo.panstwo_nazwa }}
-            ({{ m.status_czlonkostwa }})
+        <div class="org-member">
+
+            <img src="{{ url_for('static', filename='flagi/' ~ m.panstwo.panstwo_nazwa.replace(' ','_') ~ '.jpg') }}"
+                class="flag-icon">
+
+            <span class="member-name">
+                {{ m.panstwo.panstwo_nazwa }}
+            </span>
+
+            <span class="member-status">
+                ({{ m.status_czlonkostwa }})
+            </span>
+
         </div>
         {% endfor %}
     </div>

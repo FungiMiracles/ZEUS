@@ -115,6 +115,10 @@
     vertical-align: middle;
 }
 
+.org-members div {
+    margin-bottom: 6px;
+}
+
 /* ===== BACK BUTTON ===== */
 .btn-back {
     background-color: #2c3e50;
@@ -136,6 +140,18 @@
 
     <!-- ===== FILTER (GET FORM) ===== -->
     <form method="GET" class="org-filter">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
         <h2>Organizacje międzynarodowe</h2>
 
