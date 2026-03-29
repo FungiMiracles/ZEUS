@@ -504,6 +504,10 @@ def init_dyplomacja_routes(app):
             kontynenty=kontynenty
         )
     
+    @property
+    def status_label(self):
+        return "AKTYWNA" if self.aktywna else "NIEAKTYWNA"
+    
 
     
     

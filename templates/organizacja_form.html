@@ -3,35 +3,181 @@
 
 {% block content %}
 
-<div style="max-width:900px; margin:30px auto;">
+<style>
+.org-container {
+    max-width: 1000px;
+    margin: 25px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: #f4f6f8;
+    padding-bottom: 40px;
+}
 
-    <h2>{{ org.org_nazwa }} ({{ org.org_skrot }})</h2>
+.header {
+    text-align: center;
+    margin: 20px 0 30px 0;
+}
 
-    <p><b>Typ:</b> {{ org.org_typ }}</p>
-    <p><b>Status:</b> 
-        {% if org.czy_aktywna %}
-            <span style="color:green;">TAK</span>
-        {% else %}
-            <span style="color:red;">NIE</span>
-        {% endif %}
-    </p>
+.header h1 {
+    font-size: 2em;
+    font-weight: 700;
+    color: #2c3e50;
+}
 
-    <p><b>Opis:</b></p>
-    <p>{{ org.org_opis }}</p>
+/* BOX */
+.section-box {
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
 
-    <hr>
+.section-box h2 {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    color: #34495e;
+}
 
-    <h3>Członkowie</h3>
+/* GRID */
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 20px;
+}
 
-    <ul>
+/* INPUT / VALUE */
+.section-grid label {
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+.section-grid input,
+.section-grid select,
+textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-weight: 600;
+}
+
+.value-box {
+    background: #eef1f7;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #c8ccd1;
+    font-weight: 600;
+}
+
+/* FLAGI */
+.flag-icon {
+    width: 22px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* ALERTY */
+.alert {
+    max-width: 900px;
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #2e7d32;
+}
+
+.alert-error {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+/* BUTTONY */
+.action-row {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary { background: #2d76c9; color: white; }
+.btn-primary:hover { background: #154e91; }
+
+.btn-secondary {
+    background: #ecf0f1;
+    border: 1px solid #bdc3c7;
+}
+
+.btn-secondary:hover {
+    background: #3498db;
+    color: white;
+}
+</style>
+
+<div class="org-container">
+
+    <div class="header">
+        <h1>{{ org.org_nazwa }} ({{ org.org_skrot }})</h1>
+    </div>
+
+    <div class="section-box">
+        <h2>Dane organizacji</h2>
+
+        <div class="section-grid">
+            <div>
+                <label>Typ</label>
+                <div class="value-box">{{ org.org_typ }}</div>
+            </div>
+
+            <div>
+                <label>Status</label>
+                <div class="value-box">
+                    {{ "AKTYWNA" if org.czy_aktywna else "NIEAKTYWNA" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-box">
+        <h2>Opis</h2>
+        <div class="value-box">{{ org.org_opis }}</div>
+    </div>
+
+    <div class="section-box">
+        <h2>Członkowie</h2>
+
         {% for m in members %}
-        <li>{{ m.panstwo.panstwo_nazwa }} ({{ m.status_czlonkostwa }})</li>
+        <div>
+            <img src="{{ url_for('static', filename='flagi/' ~ m.panstwo.panstwo_nazwa ~ '.jpg') }}"
+                 class="flag-icon">
+            {{ m.panstwo.panstwo_nazwa }}
+            ({{ m.status_czlonkostwa }})
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 
-    <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/add_country">
-        <button>Dodaj państwo do organizacji</button>
-    </a>
+    <div class="action-row">
+        <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/add_country">
+            <button class="btn btn-primary">Dodaj państwo</button>
+        </a>
+
+        <a href="/dyplomacja/organizacje">
+            <button class="btn btn-secondary">Wróć</button>
+        </a>
+    </div>
 
 </div>
 
