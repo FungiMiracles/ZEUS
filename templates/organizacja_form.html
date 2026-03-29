@@ -265,7 +265,18 @@ textarea {
                 </span>
 
                 <span class="member-status status-{{ m.status_czlonkostwa }}">
-                    Status: ({{ m.status_czlonkostwa }})
+                    Status:
+                    <b>
+                        {% if m.status_czlonkostwa == "czlonek" %}
+                            członek
+                        {% elif m.status_czlonkostwa == "byly_czlonek" %}
+                            były członek
+                        {% elif m.status_czlonkostwa == "zawieszony" %}
+                            zawieszony
+                        {% else %}
+                            {{ m.status_czlonkostwa }}
+                        {% endif %}
+                    </b>
                 </span>
 
                 <div class="member-actions">
