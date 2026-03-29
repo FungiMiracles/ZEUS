@@ -154,43 +154,56 @@
 
     <div class="zeus-section">
         <h3><i class="fas fa-search"></i> Wyszukiwanie</h3>
-        <div class="zeus-grid">
-            
-            <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='Wyszukiwarka.png') }}"></div>
-                <h4>Państwa</h4>
-                <form action="{{ url_for('wyniki_wyszukiwania') }}" method="GET">
-                    <label>Kontynent</label>
-                    <select name="kontynent_id">
-                        <option value="">— Wszystkie —</option>
-                        {% for k in kontynenty %}<option value="{{ k.kontynent_id }}">{{ k.kontynent_nazwa }}</option>{% endfor %}
-                    </select>
-                    <label>Nazwa</label><input type="text" name="panstwo_nazwa" placeholder="np. Entenda">
-                    <button class="btn-zeus btn-search">Szukaj Państwa</button>
-                </form>
-            </div>
+            <div class="zeus-grid">
+                
+                <div class="zeus-card">
+                    <div class="icon"><img src="{{ url_for('static', filename='Wyszukiwarka.png') }}"></div>
+                    <h4>Państwa</h4>
+                    <form action="{{ url_for('wyniki_wyszukiwania') }}" method="GET">
+                        <label>Kontynent</label>
+                        <select name="kontynent_id">
+                            <option value="">— Wszystkie —</option>
+                            {% for k in kontynenty %}
+                                <option value="{{ k.kontynent_id }}">{{ k.kontynent_nazwa }}</option>
+                            {% endfor %}
+                        </select>
+                        
+                        <label>Nazwa państwa</label>
+                        <input type="text" name="panstwo_nazwa" placeholder="np. Entenda...">
+                        
+                        <button type="submit" class="btn-zeus btn-search">Szukaj Państwa</button>
+                    </form>
+                </div>
 
-            <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='region.png') }}"></div>
-                <h4>Regiony</h4>
-                <form action="{{ url_for('wyniki_wyszukiwania_region') }}" method="GET">
-                    <label>Nazwa państwa</label><input type="text" name="panstwo_nazwa">
-                    <label>Nazwa regionu</label><input type="text" name="region_nazwa">
-                    <button class="btn-zeus btn-search">Szukaj Regionu</button>
-                </form>
-            </div>
+                <div class="zeus-card">
+                    <div class="icon"><img src="{{ url_for('static', filename='region.png') }}"></div>
+                    <h4>Regiony</h4>
+                    <form action="{{ url_for('wyniki_wyszukiwania_region') }}" method="GET">
+                        <label>Nazwa państwa</label>
+                        <input type="text" name="panstwo_nazwa" placeholder="Szukaj w kraju...">
+                        
+                        <label>Nazwa regionu</label>
+                        <input type="text" name="region_nazwa" placeholder="np. Mazowsze...">
+                        
+                        <button type="submit" class="btn-zeus btn-search">Szukaj Regionu</button>
+                    </form>
+                </div>
 
-            <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='miasto2.png') }}"></div>
-                <h4>Miasta</h4>
-                <form action="{{ url_for('wyniki_wyszukiwania_miasto') }}" method="GET">
-                    <label>Nazwa miasta</label><input type="text" name="miasto_nazwa">
-                    <label>Kod (ECIC)</label><input type="text" name="miasto_kod">
-                    <button class="btn-zeus btn-search">Szukaj Miasta</button>
-                </form>
+                <div class="zeus-card">
+                    <div class="icon"><img src="{{ url_for('static', filename='miasto2.png') }}"></div>
+                    <h4>Miasta</h4>
+                    <form action="{{ url_for('wyniki_wyszukiwania_miasto') }}" method="GET">
+                        <label>Nazwa miasta</label>
+                        <input type="text" name="miasto_nazwa" placeholder="np. Warszawa...">
+                        
+                        <label>Kod (ECIC)</label>
+                        <input type="text" name="miasto_kod" placeholder="np. WAW...">
+                        
+                        <button type="submit" class="btn-zeus btn-search">Szukaj Miasta</button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
     {% set can_add = session.rola in ["tworzyciel", "wszechmocny"] %}
     <div class="zeus-section">
@@ -231,7 +244,7 @@
     </div>
 
     <footer style="text-align:center; padding: 20px; font-size:0.8em; color:#bdc3c7;">
-        ZEUS Intelligence System © 2026 | Projekt Entenda
+        ZEUS © 2026 | Ostatnie wydanie: W2.MAR.26
     </footer>
 
 </div>

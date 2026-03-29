@@ -64,7 +64,7 @@
             display: inline-block;
             white-space: nowrap;
             padding-left: 100%;
-            animation: scrollNews 60s linear infinite; /* Wolniejszy ruch: 60 sekund */
+            animation: scrollNews 150s linear infinite; /* Wolniejszy ruch: 60 sekund */
         }
 
         .news-bar:hover .news-track {
@@ -178,13 +178,6 @@
         <div class="entenda-clock">{{ ENTENDA_DATE }} <small>CE</small></div>
     </div>
 </header>
-
-<div class="entenda-stats">
-    Świat: <strong>{{ E_WORLD_POP }}</strong> ludzi • 
-    <strong>{{ E_WORLD_COUNTRIES }}</strong> państw • 
-    <strong>{{ E_WORLD_REGIONS }}</strong> regionów • 
-    <strong>{{ E_WORLD_CITIES }}</strong> miast
-</div>
 
 <nav class="zeus-nav-bar">
     {% for endpoint, label in [
