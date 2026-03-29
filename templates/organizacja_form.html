@@ -1,0 +1,38 @@
+{% extends "base_layout.html" %}
+{% block title %}Organizacja{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:30px auto;">
+
+    <h2>{{ org.org_nazwa }} ({{ org.org_skrot }})</h2>
+
+    <p><b>Typ:</b> {{ org.org_typ }}</p>
+    <p><b>Status:</b> 
+        {% if org.czy_aktywna %}
+            <span style="color:green;">TAK</span>
+        {% else %}
+            <span style="color:red;">NIE</span>
+        {% endif %}
+    </p>
+
+    <p><b>Opis:</b></p>
+    <p>{{ org.org_opis }}</p>
+
+    <hr>
+
+    <h3>Członkowie</h3>
+
+    <ul>
+        {% for m in members %}
+        <li>{{ m.panstwo.panstwo_nazwa }} ({{ m.status_czlonkostwa }})</li>
+        {% endfor %}
+    </ul>
+
+    <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/add_country">
+        <button>Dodaj państwo do organizacji</button>
+    </a>
+
+</div>
+
+{% endblock %}

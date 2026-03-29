@@ -671,6 +671,58 @@ class RegionalDataChange(db.Model):
     delta_infra_mieszkaniowa = db.Column(db.Float, default=0)
     delta_infra_portowa = db.Column(db.Float, default=0)
 
+class OrganizacjaMiedzynarodowa(db.Model):
+    __tablename__ = "dict_org_miedzy"
+
+    ORG_ID = db.Column(db.Integer, primary_key=True)
+
+    org_nazwa = db.Column(db.String(255), nullable=False)
+    org_skrot = db.Column(db.String(50))
+    org_typ = db.Column(db.String(100))
+    org_opis = db.Column(db.Text)
+
+    czy_aktywna = db.Column(db.Boolean, default=True)
+
+    data_utworzenia = db.Column(db.DateTime, default=db.func.now())
+
+    # 🔗 relacja do państw
+    czlonkowie = db.relationship(
+        "OrganizacjaPanstwo",
+        backref="organizacja",
+        lazy=True
+    )
+
+class OrganizacjaPanstwo(db.Model):
+    __tablename__ = "organizacja_per_panstwo"
+
+    ID = db.Column(db.Integer, primary_key=True)
+
+    org_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_org_miedzy.ORG_ID"),
+        nullable=False
+    )
+
+    panstwo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID"),
+        nullable=False
+    )
+
+    status_czlonkostwa = db.Column(db.String(50), nullable=False)
+
+    data_dolaczenia = db.Column(db.DateTime, default=db.func.now())
+    data_opuszczenia = db.Column(db.DateTime, nullable=True)
+
+    czy_aktywny = db.Column(db.Boolean, default=True)
+
+    # 🔗 relacja do państwa
+    panstwo = db.relationship(
+        "Panstwo",
+        backref="organizacje",
+        lazy=True
+    )
+
 #------------------------------------------------#
 # SŁOWNIKI #
 #------------------------------------------------#

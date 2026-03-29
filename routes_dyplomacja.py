@@ -7,9 +7,21 @@ from flask import (
     jsonify
 )
 from extensions import db
-from models import Panstwo, Stosunki, DictKontynent, DictStosunkiStan, DictStosunkiRelacja
+
+from models import (
+    Panstwo,
+    Stosunki,
+    DictKontynent,
+    DictStosunkiStan,
+    DictStosunkiRelacja,
+    OrganizacjaMiedzynarodowa,
+    OrganizacjaPanstwo
+)
+
 from permissions import wymaga_roli
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
+from datetime import datetime
 
 
 def init_dyplomacja_routes(app):
@@ -293,4 +305,206 @@ def init_dyplomacja_routes(app):
             }
             for p in panstwa
         ])
+    
+    @app.route("/dyplomacja/organizacje")
+    def organizacje_view():
+
+        kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
+        organizacje = OrganizacjaMiedzynarodowa.query.all()
+
+        return render_template(
+            "organizacje_miedzynarodowe.html",
+            kontynenty=kontynenty,
+            organizacje=organizacje
+        )
+
+
+    # =========================
+    # API: ORGANIZACJE
+    # =========================
+    @app.route("/api/dyplomacja/organizacje")
+    def api_organizacje():
+
+        panstwo_id = request.args.get("panstwo_id", type=int)
+        org_id = request.args.get("org_id", type=int)
+        active = request.args.get("active")
+        inactive = request.args.get("inactive")
+
+        query = OrganizacjaMiedzynarodowa.query
+
+        if org_id:
+            query = query.filter_by(ORG_ID=org_id)
+
+        if active and not inactive:
+            query = query.filter_by(czy_aktywna=True)
+
+        if inactive and not active:
+            query = query.filter_by(czy_aktywna=False)
+
+        orgs = query.order_by(OrganizacjaMiedzynarodowa.org_nazwa).all()
+
+        wynik = []
+
+        for org in orgs:
+
+            # sprawdzenie czy organizacja ma dane państwo
+            if panstwo_id:
+                exists = OrganizacjaPanstwo.query.filter_by(
+                    org_id=org.ORG_ID,
+                    panstwo_id=panstwo_id
+                ).first()
+
+                if not exists:
+                    continue
+
+            # pobierz wszystkich członków (1 query)
+            members = (
+                OrganizacjaPanstwo.query
+                .filter_by(org_id=org.ORG_ID)
+                .options(joinedload(OrganizacjaPanstwo.panstwo))
+                .all()
+            )
+
+            wynik.append({
+                "id": org.ORG_ID,
+                "nazwa": org.org_nazwa,
+                "skrot": org.org_skrot,
+                "typ": org.org_typ,
+                "opis": org.org_opis,
+                "aktywna": org.czy_aktywna,
+                "czlonkowie": [m.panstwo.panstwo_nazwa for m in members]
+            })
+
+        return jsonify(wynik)
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>")
+    def organizacja_form(org_id):
+
+        org = OrganizacjaMiedzynarodowa.query.get_or_404(org_id)
+
+        members = (
+            OrganizacjaPanstwo.query
+            .filter_by(org_id=org_id)
+            .options(joinedload(OrganizacjaPanstwo.panstwo))
+            .all()
+        )
+
+        return render_template(
+            "organizacja_form.html",
+            org=org,
+            members=members
+        )
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/edit", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
+    def organizacja_form_edit(org_id):
+
+        org = OrganizacjaMiedzynarodowa.query.get_or_404(org_id)
+
+        if request.method == "POST":
+
+            org.org_nazwa = request.form.get("org_nazwa")
+            org.org_skrot = request.form.get("org_skrot")
+            org.org_typ = request.form.get("org_typ")
+            org.org_opis = request.form.get("org_opis")
+
+            org.czy_aktywna = True if request.form.get("czy_aktywna") == "on" else False
+
+            try:
+                db.session.commit()
+                flash("Organizacja zaktualizowana.", "success")
+                return redirect(url_for("organizacja_form", org_id=org_id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Błąd zapisu: {e}", "error")
+
+        return render_template("organizacja_form_edit.html", org=org)
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/delete", methods=["POST"])
+    @wymaga_roli("wszechmocny")
+    def organizacja_delete(org_id):
+
+        org = OrganizacjaMiedzynarodowa.query.get_or_404(org_id)
+
+        # 🔍 sprawdzenie czy są członkowie
+        members_exist = OrganizacjaPanstwo.query.filter_by(org_id=org_id).first()
+
+        if members_exist:
+            flash(
+                "Nie możesz usunąć organizacji, do której należą państwa. "
+                "Wszystkie państwa muszą najpierw odejść z organizacji.",
+                "error"
+            )
+            return redirect(request.referrer or url_for("organizacje_view"))
+
+        try:
+            db.session.delete(org)
+            db.session.commit()
+            flash("Organizacja usunięta.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Błąd usuwania: {e}", "error")
+
+        return redirect(request.referrer or url_for("organizacje_view"))
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/add_country", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
+    def organizacja_add_country(org_id):
+
+        org = OrganizacjaMiedzynarodowa.query.get_or_404(org_id)
+
+        kontynenty = (
+            DictKontynent.query
+            .order_by(DictKontynent.kontynent_nazwa)
+            .all()
+        )
+
+        if request.method == "POST":
+
+            panstwo_id = request.form.get("panstwo_id", type=int)
+            data_raw = request.form.get("data_dolaczenia")
+            data_dolaczenia = datetime.strptime(data_raw, "%Y-%m-%d")
+
+            # ❗ walidacja
+            if not panstwo_id:
+                flash("Musisz wybrać państwo.", "error")
+                return redirect(request.url)
+
+            # ❗ sprawdzenie czy już istnieje
+            exists = OrganizacjaPanstwo.query.filter_by(
+                org_id=org_id,
+                panstwo_id=panstwo_id
+            ).first()
+
+            if exists:
+                flash("To państwo już należy do tej organizacji.", "error")
+                return redirect(request.url)
+
+            try:
+                rel = OrganizacjaPanstwo(
+                    org_id=org_id,
+                    panstwo_id=panstwo_id,
+                    status_czlonkostwa="czlonek",
+                    data_dolaczenia=data_dolaczenia
+                )
+
+                db.session.add(rel)
+                db.session.commit()
+
+                flash("Państwo dodane do organizacji.", "success")
+                return redirect(url_for("organizacja_form", org_id=org_id))
+
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Błąd: {e}", "error")
+
+        return render_template(
+            "organizacja_add_country.html",
+            org=org,
+            kontynenty=kontynenty
+        )
+    
+
+    
+    
 

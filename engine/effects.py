@@ -515,3 +515,103 @@ def apply_heatwave_effect(region, scale, victims):
         delta_energia=delta_energia,
         delta_mieszkania=delta_mieszkania
     )
+
+# =====================================================
+# POŻAR BUDYNKU
+# =====================================================
+
+def apply_building_fire_effect(region, scale, victims):
+
+    old_pop = region.region_ludnosc_pozamiejska or 0
+
+    _apply_population_loss(region, victims)
+
+    new_pop = region.region_ludnosc_pozamiejska or 0
+    delta_ludnosc = new_pop - old_pop
+
+    old_mieszkania = region.region_stan_infra_mieszkalnej or 0
+
+    # 🔥 procentowe uszkodzenie zgodnie z tabelą
+    damage_map = {
+        1: 0.0,
+        2: 0.002,
+        3: 0.003,
+        4: 0.004,
+        5: 0.005
+    }
+
+    max_damage_pct = damage_map.get(scale, 0)
+
+    # losujemy w zakresie 50–100% maksymalnego wpływu
+    damage_pct = max_damage_pct * random.uniform(0.5, 1.0)
+
+    # przeliczamy na wartość absolutną
+    damage_value = (region.region_stan_infra_mieszkalnej or 0) * damage_pct
+
+    region.region_stan_infra_mieszkalnej = _degrade(
+        region.region_stan_infra_mieszkalnej,
+        damage_value
+    )
+
+    # 🔵 delta
+    delta_mieszkania = (region.region_stan_infra_mieszkalnej or 0) - old_mieszkania
+
+    log_region_change(
+        region=region,
+        data_entenda=get_current_entenda_date(),
+        source="EVENT",
+        delta_ludnosc=delta_ludnosc,
+        delta_drogi=0,
+        delta_kolej=0,
+        delta_energia=0,
+        delta_mieszkania=delta_mieszkania
+    )
+
+# =====================================================
+# PRZERWA W DOSTAWIE PRĄDU
+# =====================================================
+
+def apply_power_outage_effect(region, scale, victims):
+
+    old_pop = region.region_ludnosc_pozamiejska or 0
+
+    _apply_population_loss(region, victims)
+
+    new_pop = region.region_ludnosc_pozamiejska or 0
+    delta_ludnosc = new_pop - old_pop
+
+    log_region_change(
+        region=region,
+        data_entenda=get_current_entenda_date(),
+        source="EVENT",
+        delta_ludnosc=delta_ludnosc,
+        delta_drogi=0,
+        delta_kolej=0,
+        delta_energia=0,
+        delta_mieszkania=0
+    )
+
+# =====================================================
+# KATASTROFA LOTNICZA
+# =====================================================
+
+def apply_air_disaster_effect(region, scale, victims):
+
+    old_pop = region.region_ludnosc_pozamiejska or 0
+
+    _apply_population_loss(region, victims)
+
+    new_pop = region.region_ludnosc_pozamiejska or 0
+    delta_ludnosc = new_pop - old_pop
+
+    log_region_change(
+        region=region,
+        data_entenda=get_current_entenda_date(),
+        source="EVENT",
+        delta_ludnosc=delta_ludnosc,
+        delta_drogi=0,
+        delta_kolej=0,
+        delta_energia=0,
+        delta_mieszkania=0
+    )
+

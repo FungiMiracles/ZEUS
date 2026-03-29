@@ -1,0 +1,67 @@
+{% extends "base_layout.html" %}
+{% block title %}Dodaj państwo{% endblock %}
+
+{% block content %}
+
+<div style="max-width:600px; margin:30px auto;">
+
+    <h2>Dodaj państwo do organizacji</h2>
+    <h3>{{ org.org_nazwa }}</h3>
+
+    <form method="POST">
+
+        <!-- KONTYNENT -->
+        <label>Kontynent</label>
+        <select id="kontynentSelect">
+            <option value="">— wybierz —</option>
+            {% for k in kontynenty %}
+            <option value="{{ k.kontynent_id }}">{{ k.kontynent_nazwa }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- PAŃSTWO -->
+        <label>Państwo</label>
+        <select name="panstwo_id" id="panstwoSelect" required disabled>
+            <option>— wybierz kontynent —</option>
+        </select>
+
+        <!-- DATA -->
+        <label>Data dołączenia</label>
+        <input type="date" name="data_dolaczenia" required>
+
+        <br><br>
+
+        <button type="submit">Dodaj</button>
+
+    </form>
+
+</div>
+
+<script>
+const kontynentSelect = document.getElementById("kontynentSelect");
+const panstwoSelect = document.getElementById("panstwoSelect");
+
+kontynentSelect.addEventListener("change", () => {
+
+    const id = kontynentSelect.value;
+    panstwoSelect.innerHTML = "<option>— wybierz —</option>";
+
+    if (!id) return;
+
+    fetch(`/api/dyplomacja/panstwa?kontynent_id=${id}`)
+    .then(r => r.json())
+    .then(data => {
+
+        data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.nazwa;
+            panstwoSelect.appendChild(opt);
+        });
+
+        panstwoSelect.disabled = false;
+    });
+});
+</script>
+
+{% endblock %}
