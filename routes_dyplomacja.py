@@ -507,6 +507,17 @@ def init_dyplomacja_routes(app):
 
             panstwo_id = request.form.get("panstwo_id", type=int)
             data_raw = request.form.get("data_dolaczenia")
+
+            if not data_raw:
+                flash("Podaj datę dołączenia państwa do organizacji.", "error")
+                return redirect(request.url)
+
+            try:
+                data_dolaczenia = datetime.strptime(data_raw, "%Y-%m-%d")
+            except Exception:
+                flash("Niepoprawny format daty.", "error")
+                return redirect(request.url)
+            
             data_dolaczenia = datetime.strptime(data_raw, "%Y-%m-%d")
 
             # ❗ walidacja

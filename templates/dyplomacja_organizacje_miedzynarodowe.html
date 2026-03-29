@@ -225,9 +225,9 @@
                     {{ o.org_nazwa }} ({{ o.org_skrot }})
                 </div>
 
-                <div>{{ o.org_typ }}</div>
+                <div>Typ organizacji: {{ o.org_typ }}</div>
 
-                <div>{{ o.org_opis or "" }}</div>
+                <div>Opis: {{ o.org_opis or "" }}</div>
 
                 <div>
                     Status:
@@ -280,5 +280,31 @@
     </div>
 
 </div>
+
+<script>
+const kontynentSelect = document.getElementById("kontynentSelect");
+const panstwoSelect = document.getElementById("panstwoSelect");
+
+kontynentSelect.addEventListener("change", () => {
+
+    const id = kontynentSelect.value;
+    panstwoSelect.innerHTML = "<option value=''>— wszystkie —</option>";
+
+    if (!id) return;
+
+    fetch(`/api/dyplomacja/panstwa?kontynent_id=${id}`)
+    .then(r => r.json())
+    .then(data => {
+
+        data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.nazwa;
+            panstwoSelect.appendChild(opt);
+        });
+
+    });
+});
+</script>
 
 {% endblock %}
