@@ -1,86 +1,106 @@
 {% extends 'base_layout.html' %}
-{% block title %}
-Historia
-{% endblock %}
+{% block title %}Historia{% endblock %}
+
 {% block content %}
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
-        Historia
-    </p>
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
-
-
-<!-- ===================== STYLING ===================== -->
 <style>
-.hist-tiles {
-    max-width: 900px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-}
+    .module-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .module-header h2 {
+        font-weight: 800;
+        color: var(--zeus-dark);
+        letter-spacing: -1px;
+    }
+    .module-header p { color: #64748b; font-size: 1rem; }
 
-.hist-tile {
-    background: linear-gradient(135deg, #8b5a2b, #6e4420); /* brąz */
-    border-radius: 14px;
-    padding: 34px 22px;
-    text-align: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.15em;
-    min-height: 160px;
+    .zeus-grid-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 10px;
+    }
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    .tile-card {
+        background: #ffffff;
+        border: 1px solid #e1e5ea;
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+        text-decoration: none !important;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
 
-    text-decoration: none !important;
-    border: 1px solid #5a361a;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-    transition: 0.25s;
-}
+    /* Akcent dla Historii (brąz/złoto) */
+    .tile-card i {
+        font-size: 2.5rem;
+        color: #8b5a2b;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
 
-/* Ikony */
-.hist-tile .icon {
-    font-size: 45px;
-    margin-bottom: 14px;
-    opacity: 0.95;
-}
+    .tile-card h5 {
+        color: var(--zeus-dark);
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
 
-/* Hover */
-.hist-tile:hover {
-    background: linear-gradient(135deg, #6e4420, #523217);
-    box-shadow: 0 7px 20px rgba(0,0,0,0.28);
-    transform: translateY(-6px) scale(1.03);
-    color: white;
-}
+    .tile-card span {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.4;
+    }
+
+    .tile-card:hover {
+        transform: translateY(-5px);
+        border-color: #8b5a2b;
+        box-shadow: 0 12px 20px -5px rgba(139, 90, 43, 0.2);
+    }
+
+    .tile-card:hover i {
+        transform: scale(1.1);
+    }
+
+    .tile-locked {
+        background: #f8fafc;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    .tile-locked i { color: #94a3b8; }
 </style>
 
+<div class="module-header">
+    <h2><i class="fas fa-scroll mr-2"></i> Historia</h2>
+    <p>Przegląd wydarzeń, kronik i procesów historycznych świata Entendy.</p>
+</div>
 
-<!-- ===================== KAFELKI ===================== -->
-<div class="hist-tiles">
+<div class="zeus-grid-tiles">
 
-<a class="hist-tile" href="{{ url_for('historia_lista') }}">
-    <div class="icon">📜</div>
-    Przeglądaj wydarzenia historyczne
-</a>
+    <a href="{{ url_for('historia_lista') }}" class="tile-card">
+        <i class="fas fa-book-open"></i>
+        <h5>Wydarzenia historyczne</h5>
+        <span>Pełna lista wydarzeń wraz z opisami i kontekstem.</span>
+    </a>
 
-{% if session.rola in ["tworzyciel", "wszechmocny"] %}
-<a class="hist-tile" href="{{ url_for('historia_dodaj') }}">
-    <div class="icon">➕</div>
-    Dodaj nowe wydarzenie historyczne
-</a>
-{% else %}
-<a class="hist-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-    <div class="icon">➕</div>
-    Dodaj nowe wydarzenie historyczne
-</a>
-
-{% endif %}
-
+    {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+    <a href="{{ url_for('historia_dodaj') }}" class="tile-card">
+        <i class="fas fa-plus-circle"></i>
+        <h5>Dodaj wydarzenie</h5>
+        <span>Twórz nowe wpisy do kronik świata.</span>
+    </a>
+    {% else %}
+    <div class="tile-card tile-locked" onclick="zeusToast('Twoja rola nie pozwala na dodawanie wydarzeń')">
+        <i class="fas fa-lock"></i>
+        <h5>Dodaj wydarzenie</h5>
+        <span>Funkcja dostępna dla twórców i administratorów.</span>
+    </div>
+    {% endif %}
 
 </div>
 
