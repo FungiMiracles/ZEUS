@@ -1,81 +1,103 @@
 {% extends 'base_layout.html' %}
-{% block title %}
-Kultura
-{% endblock %}
+{% block title %}Kultura{% endblock %}
+
 {% block content %}
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
-        Kultura
-    </p>
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
-
-
-<!-- ===================== STYLING ===================== -->
 <style>
-.kult-tiles {
-    max-width: 900px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-}
+    .module-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .module-header h2 {
+        font-weight: 800;
+        color: var(--zeus-dark);
+        letter-spacing: -1px;
+    }
+    .module-header p { color: #64748b; font-size: 1rem; }
 
-.kult-tile {
-    background: linear-gradient(135deg, #d4a017, #b58500); /* ciemniejsze złoto/żółty */
-    border-radius: 14px;
-    padding: 34px 22px;
-    text-align: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.15em;
-    min-height: 160px;
+    .zeus-grid-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 10px;
+    }
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    .tile-card {
+        background: #ffffff;
+        border: 1px solid #e1e5ea;
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+        text-decoration: none !important;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
 
-    text-decoration: none !important;
-    border: 1px solid #9d6e00;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-    transition: 0.25s;
-}
+    /* Akcent dla Kultury (złoto) */
+    .tile-card i {
+        font-size: 2.5rem;
+        color: #b58900;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
 
-/* Ikonki */
-.kult-tile .icon {
-    font-size: 45px;
-    margin-bottom: 14px;
-    opacity: 0.95;
-}
+    .tile-card h5 {
+        color: var(--zeus-dark);
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
 
-/* Hover */
-.kult-tile:hover {
-    background: linear-gradient(135deg, #b58500, #8a6500);
-    box-shadow: 0 7px 20px rgba(0,0,0,0.25);
-    transform: translateY(-6px) scale(1.03);
-    color: white;
-}
+    .tile-card span {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.4;
+    }
+
+    .tile-card:hover {
+        transform: translateY(-5px);
+        border-color: #b58900;
+        box-shadow: 0 12px 20px -5px rgba(181, 137, 0, 0.2);
+    }
+
+    .tile-card:hover i {
+        transform: scale(1.1);
+    }
+
+    .tile-locked {
+        background: #f8fafc;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    .tile-locked i { color: #94a3b8; }
 </style>
 
+<div class="module-header">
+    <h2><i class="fas fa-landmark mr-2"></i> Kultura</h2>
+    <p>Religie, języki oraz dziedzictwo kulturowe świata Entendy.</p>
+</div>
 
-<!-- ===================== KAFELKI ===================== -->
-<div class="kult-tiles">
+<div class="zeus-grid-tiles">
 
-    <a class="kult-tile" href="{{ url_for('religia_home') }}">
-        <div class="icon">✨</div>
-        Religie i wierzenia
+    <a href="{{ url_for('religia_home') }}" class="tile-card">
+        <i class="fas fa-star-and-crescent"></i>
+        <h5>Religie i wierzenia</h5>
+        <span>Systemy wierzeń, religie oraz ich wpływ na społeczeństwa.</span>
     </a>
 
-    <a class="kult-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
-        <div class="icon">🎨</div>
-        Literatura i sztuka [niedostępne]
-    </a>
+    <div class="tile-card tile-locked" onclick="zeusToast('Moduł literatury i sztuki jest w trakcie tworzenia')">
+        <i class="fas fa-palette"></i>
+        <h5>Literatura i sztuka</h5>
+        <span>Twórczość artystyczna, nurty i rozwój kultury.</span>
+    </div>
 
-    <a class="kult-tile" href="{{ url_for('kultura_jezyki') }}">
-        <div class="icon">🗣️</div>
-        Języki
+    <a href="{{ url_for('kultura_jezyki') }}" class="tile-card">
+        <i class="fas fa-language"></i>
+        <h5>Języki</h5>
+        <span>Rozkład językowy i systemy komunikacji.</span>
     </a>
 
 </div>
