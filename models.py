@@ -729,6 +729,18 @@ class OrganizacjaPanstwo(db.Model):
         lazy=True
     )
 
+    organizacje = db.relationship(
+        "OrganizacjaPanstwo",
+        backref="organizacja",
+        cascade="all, delete-orphan"
+    )
+
+    org_id = db.Column(
+        db.Integer,
+        db.ForeignKey("organizacje.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
 #------------------------------------------------#
 # SŁOWNIKI #
 #------------------------------------------------#
