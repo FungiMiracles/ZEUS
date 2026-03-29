@@ -453,7 +453,8 @@ def init_dyplomacja_routes(app):
             org.org_opis = request.form.get("org_opis")
             org.siedziba = request.form.get("siedziba")
 
-            org.czy_aktywna = True if request.form.get("czy_aktywna") == "on" else False
+            value = request.form.get("czy_aktywna")
+            org.czy_aktywna = True if value == "1" else False
 
             try:
                 db.session.commit()
