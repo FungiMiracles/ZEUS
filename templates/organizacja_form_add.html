@@ -97,30 +97,63 @@
     cursor: pointer;
 }
 
-.country-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 6px 12px;
-    margin-top: 6px;
+.form-group {
+    margin-bottom: 10px;
 }
 
+.form-group label {
+    font-weight: 700;
+    font-size: 0.85em;
+    display: block;
+    margin-bottom: 3px;
+}
+
+/* 🔥 checkbox aktywna */
+.form-checkbox label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* 🔥 lista państw */
+.country-section {
+    margin-bottom: 8px;
+}
+
+.country-title {
+    font-weight: 700;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+}
+
+/* 🔥 grid bardziej kompaktowy */
+.country-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 3px 8px;
+}
+
+/* 🔥 checkbox + tekst w jednej linii */
 .country-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.9em;
+    gap: 5px;
+    font-size: 0.85em;
+    line-height: 1.2;
     cursor: pointer;
 }
 
 .country-item input {
-    flex-shrink: 0;
-    cursor: pointer;
+    margin: 0;
+    transform: scale(0.95);
 }
 
 .country-item:hover {
     background: #f1f5f9;
-    border-radius: 6px;
-    padding: 2px 4px;
+    border-radius: 4px;
+    padding: 1px 3px;
 }
 </style>
 
@@ -179,8 +212,8 @@
 
                 {% for k in kontynenty %}
 
-                    <div style="margin-bottom:10px;">
-                        <b>{{ k.kontynent_nazwa }}</b>
+                    <div class="country-section">
+                        <div class="country-title">{{ k.kontynent_nazwa }}</div>
 
                         <div class="country-list">
 
