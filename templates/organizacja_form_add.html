@@ -4,6 +4,8 @@
 {% block content %}
 
 <style>
+
+/* ================= CONTAINER ================= */
 .form-container {
     max-width: 700px;
     margin: 30px auto;
@@ -20,15 +22,16 @@
     margin-bottom: 20px;
 }
 
+/* ================= FORM ================= */
 .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
 }
 
 .form-group label {
     font-weight: 700;
-    font-size: 0.9em;
+    font-size: 0.85em;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .form-group input,
@@ -39,6 +42,7 @@
     border: 1px solid #b4b9be;
 }
 
+/* ================= BUTTONS ================= */
 .form-actions {
     margin-top: 20px;
     display: flex;
@@ -72,6 +76,7 @@
     background: #600101;
 }
 
+/* ================= ALERT ================= */
 .alert {
     margin-bottom: 15px;
     padding: 10px;
@@ -84,112 +89,7 @@
     color: #c0392b;
 }
 
-.form-checkbox label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.form-checkbox input[type="checkbox"] {
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
-.form-group {
-    margin-bottom: 10px;
-}
-
-.form-group label {
-    font-weight: 700;
-    font-size: 0.85em;
-    display: block;
-    margin-bottom: 3px;
-}
-
-/* 🔥 checkbox aktywna */
-.form-checkbox label {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 6px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-/* 🔥 lista państw */
-.country-section {
-    margin-bottom: 8px;
-}
-
-.country-title {
-    font-weight: 1000;
-    font-size: 1em;
-    margin-bottom: 10px;
-}
-
-/* 🔥 wrapper kontynentów */
-.country-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* 🔥 sekcja kontynentu */
-.country-section {
-    border-top: 1px solid #e0e0e0;
-    padding-top: 6px;
-}
-
-/* 🔥 nazwa kontynentu */
-.country-title {
-    font-weight: 700;
-    font-size: 0.9em;
-    margin-bottom: 6px;
-}
-
-/* 🔥 lista państw */
-.country-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 🔥 STAŁE KOLUMNY */
-    gap: 4px 12px;
-}
-
-/* 🔥 GRID */
-.country-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px 16px;
-}
-
-/* 🔥 ELEMENT */
-.country-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85em;
-}
-
-/* 🔥 checkbox */
-.country-item input {
-    margin: 0;
-    flex-shrink: 0;
-}
-
-/* 🔥 label */
-.country-item label {
-    margin: 0;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-/* 🔥 hover WRACA */
-.country-item:hover {
-    background: #f1f5f9;
-    border-radius: 4px;
-    padding: 2px 4px;
-}
-
+/* ================= CHECKBOX (AKTYWNA) ================= */
 .form-checkbox {
     display: flex;
     justify-content: flex-start;
@@ -200,7 +100,73 @@
     align-items: center;
     gap: 6px;
     margin: 0;
+    font-weight: 700;
+    cursor: pointer;
 }
+
+.form-checkbox input[type="checkbox"] {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+/* ================= PAŃSTWA ================= */
+
+/* wrapper */
+.country-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* sekcja */
+.country-section {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 6px;
+}
+
+/* tytuł kontynentu */
+.country-title {
+    font-weight: 700;
+    font-size: 0.9em;
+    margin-bottom: 6px;
+}
+
+/* GRID — KLUCZOWE */
+.country-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 4px 16px;
+}
+
+/* element */
+.country-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    line-height: 1.2;
+}
+
+/* checkbox */
+.country-item input {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* label */
+.country-item label {
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* hover */
+.country-item:hover {
+    background: #f1f5f9;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
 </style>
 
 <div class="form-container">
