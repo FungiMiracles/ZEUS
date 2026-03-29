@@ -563,6 +563,37 @@ def init_dyplomacja_routes(app):
     def status_label(self):
         return "AKTYWNA" if self.aktywna else "NIEAKTYWNA"
     
+    @app.route("/dyplomacja/organizacja/add", methods=["GET", "POST"])
+    def organizacja_add():
+
+        if request.method == "POST":
+
+            nazwa = request.form.get("org_nazwa")
+            skrot = request.form.get("org_skrot")
+            typ = request.form.get("org_typ")
+            opis = request.form.get("org_opis")
+            aktywna = True if request.form.get("czy_aktywna") else False
+
+            if not nazwa:
+                flash("Podaj nazwę organizacji.", "error")
+                return redirect(request.url)
+
+            org = OrganizacjaMiedzynarodowa(
+                org_nazwa=nazwa,
+                org_skrot=skrot,
+                org_typ=typ,
+                org_opis=opis,
+                czy_aktywna=aktywna
+            )
+
+            db.session.add(org)
+            db.session.commit()
+
+            flash("Organizacja została dodana.", "success")
+            return redirect("/dyplomacja/organizacje")
+
+        return render_template("organizacja_form_add.html")
+    
 
     
     

@@ -134,6 +134,25 @@
         border: 1px solid #000;
         border-radius: 2px;
     }
+
+/* ===== ALERTY ===== */
+.alert {
+    max-width: 900px;
+    margin: 10px auto 15px auto;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+}
 </style>
 
 <div class="org-container">
@@ -207,8 +226,16 @@
 
         </div>
 
-        <div style="text-align:center; margin-top:18px;">
+        <div style="text-align:center; margin-top:18px; display:flex; justify-content:center; gap:10px;">
+
             <button type="submit" class="btn-main">Szukaj</button>
+
+            <a href="/dyplomacja/organizacja/add">
+                <button type="button" class="btn-main" style="background:#27ae60;">
+                    Dodaj nową organizację
+                </button>
+            </a>
+
         </div>
 
     </form>
