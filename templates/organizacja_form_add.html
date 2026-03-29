@@ -128,43 +128,65 @@
     margin-bottom: 10px;
 }
 
-/* 🔥 grid bardziej kompaktowy */
+/* 🔥 wrapper kontynentów */
+.country-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 🔥 sekcja kontynentu */
+.country-section {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 6px;
+}
+
+/* 🔥 nazwa kontynentu */
+.country-title {
+    font-weight: 700;
+    font-size: 0.9em;
+    margin-bottom: 6px;
+}
+
+/* 🔥 lista państw */
 .country-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 3px 8px;
+    grid-template-columns: repeat(3, 1fr); /* 🔥 STAŁE KOLUMNY */
+    gap: 4px 12px;
 }
 
-/* 🔥 checkbox + tekst w jednej linii */
+/* 🔥 pojedynczy checkbox */
 .country-item {
-    display: flex;
+    display: flex !important;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 0.85em;
-    line-height: 1.2;
     cursor: pointer;
-    width: 100%;             
-    justify-content: flex-start;
+    margin: 0;
 }
 
+/* 🔥 WAŻNE — nadpisanie globalnego label */
+.country-item {
+    display: flex !important;
+}
+
+/* 🔥 checkbox */
 .country-item input {
     margin: 0;
     transform: scale(0.95);
 }
 
+/* 🔥 hover */
 .country-item:hover {
     background: #f1f5f9;
     border-radius: 4px;
     padding: 1px 3px;
 }
 
-.country-item span {
-    flex: 1;   /* tekst zajmuje resztę miejsca */
-}
-
-.country-list {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 2px 6px;
+.form-checkbox label {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
 }
 </style>
 
@@ -219,7 +241,7 @@
         <div class="form-group">
             <label>Państwa członkowskie</label>
 
-            <div class="country-list">
+            <div class="country-wrapper">
 
                 {% for k in kontynenty %}
 
