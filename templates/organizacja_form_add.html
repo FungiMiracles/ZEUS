@@ -155,32 +155,28 @@
     gap: 4px 12px;
 }
 
-/* 🔥 pojedynczy checkbox */
 .country-item {
+    width: 100%;
+}
+
+/* 🔥 TO JEST KLUCZ */
+.country-item label {
     display: flex !important;
     align-items: center;
     gap: 6px;
     font-size: 0.85em;
     cursor: pointer;
-    margin: 0;
 }
 
-/* 🔥 WAŻNE — nadpisanie globalnego label */
-.country-item {
-    display: flex !important;
-}
-
-/* 🔥 checkbox */
+/* checkbox */
 .country-item input {
     margin: 0;
     transform: scale(0.95);
 }
 
-/* 🔥 hover */
-.country-item:hover {
-    background: #f1f5f9;
-    border-radius: 4px;
-    padding: 1px 3px;
+/* tekst */
+.country-item span {
+    display: inline;
 }
 
 .form-checkbox label {
@@ -251,10 +247,12 @@
                         <div class="country-list">
 
                             {% for p in panstwa_by_kontynent[k.kontynent_id] %}
-                                <label class="country-item">
-                                    <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
-                                    <span>{{ p.panstwo_nazwa }}</span>
-                                </label>
+                                <div class="country-item">
+                                    <label>
+                                        <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
+                                        <span>{{ p.panstwo_nazwa }}</span>
+                                    </label>
+                                </div>
                             {% endfor %}
 
                         </div>
