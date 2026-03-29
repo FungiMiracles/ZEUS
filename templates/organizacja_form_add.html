@@ -155,34 +155,51 @@
     gap: 4px 12px;
 }
 
-.country-item {
-    width: 100%;
+/* 🔥 GRID */
+.country-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px 16px;
 }
 
-/* 🔥 TO JEST KLUCZ */
-.country-item label {
-    display: flex !important;
+/* 🔥 ELEMENT */
+.country-item {
+    display: flex;
     align-items: center;
     gap: 6px;
     font-size: 0.85em;
+}
+
+/* 🔥 checkbox */
+.country-item input {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* 🔥 label */
+.country-item label {
+    margin: 0;
+    font-weight: 500;
     cursor: pointer;
 }
 
-/* checkbox */
-.country-item input {
-    margin: 0;
-    transform: scale(0.95);
+/* 🔥 hover WRACA */
+.country-item:hover {
+    background: #f1f5f9;
+    border-radius: 4px;
+    padding: 2px 4px;
 }
 
-/* tekst */
-.country-item span {
-    display: inline;
+.form-checkbox {
+    display: flex;
+    justify-content: flex-start;
 }
 
 .form-checkbox label {
     display: flex !important;
     align-items: center;
     gap: 6px;
+    margin: 0;
 }
 </style>
 
@@ -248,10 +265,8 @@
 
                             {% for p in panstwa_by_kontynent[k.kontynent_id] %}
                                 <div class="country-item">
-                                    <label>
-                                        <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
-                                        <span>{{ p.panstwo_nazwa }}</span>
-                                    </label>
+                                    <input type="checkbox" id="p{{ p.PANSTWO_ID }}" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
+                                    <label for="p{{ p.PANSTWO_ID }}">{{ p.panstwo_nazwa }}</label>
                                 </div>
                             {% endfor %}
 
