@@ -321,6 +321,17 @@ def init_dyplomacja_routes(app):
 
         query = OrganizacjaMiedzynarodowa.query
 
+        kontynent_id = request.args.get("kontynent_id", type=int)
+
+        panstwa = []
+        if kontynent_id:
+            panstwa = (
+                Panstwo.query
+                .filter_by(kontynent_id=kontynent_id)
+                .order_by(Panstwo.panstwo_nazwa)
+                .all()
+            )
+
         # 🔽 FILTR: organizacja
         if org_id:
             query = query.filter_by(ORG_ID=org_id)
@@ -359,7 +370,8 @@ def init_dyplomacja_routes(app):
             "dyplomacja_organizacje_miedzynarodowe.html",
             kontynenty=kontynenty,
             organizacje=organizacje,
-            results=results
+            results=results,
+            panstwa=panstwa   # 🔥 KLUCZOWE
         )
 
 

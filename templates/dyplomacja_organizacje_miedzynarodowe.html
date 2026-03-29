@@ -343,5 +343,33 @@ kontynentSelect.addEventListener("change", () => {
     });
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+    const kontynentId = kontynentSelect.value;
+
+    if (kontynentId) {
+        fetch(`/api/dyplomacja/panstwa?kontynent_id=${kontynentId}`)
+        .then(r => r.json())
+        .then(data => {
+
+            panstwoSelect.innerHTML = "<option value=''>— wszystkie —</option>";
+
+            data.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.nazwa;
+
+                if (p.id == "{{ request.args.get('panstwo_id') }}") {
+                    opt.selected = true;
+                }
+
+                panstwoSelect.appendChild(opt);
+            });
+
+        });
+    }
+
+});
+</script>
 {% endblock %}
