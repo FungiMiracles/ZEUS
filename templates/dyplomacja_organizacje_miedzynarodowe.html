@@ -301,7 +301,9 @@
                         <button class="btn-edit">Edytuj</button>
                     </a>
 
-                    <form method="POST" action="/dyplomacja/organizacja/{{ o.ORG_ID }}/delete">
+                    <form method="POST"
+                        action="/dyplomacja/organizacja/{{ o.ORG_ID }}/delete"
+                        onsubmit="return confirmDelete()">
                         <button class="btn-delete">Usuń</button>
                     </form>
 
@@ -371,5 +373,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+</script>
+<script>
+function confirmDelete() {
+    return confirm(
+        "Usunięcie organizacji spowoduje jej całkowite usunięcie z bazy danych systemu ZEUS.\n\n" +
+        "Zamiast ją usuwać, możesz usunąć z niej wszystkie państwa członkowskie i zmienić status na \"nieaktywna\"."
+    );
+}
 </script>
 {% endblock %}
