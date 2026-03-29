@@ -12,16 +12,16 @@
     <style>
         :root {
             --zeus-blue: #5d7dce;
-            --zeus-dark: #1f2a44;
-            --zeus-bg: #fafafa;
+            --zeus-dark: #1a252f;
+            --zeus-bg: #f4f7f9;
             --zeus-card-bg: #ffffff;
             --zeus-text: #2c3e50;
-            --zeus-border: #dcdcdc;
+            --zeus-border: #e1e5ea;
         }
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: var(--zeus-bg);
             color: var(--zeus-text);
         }
@@ -31,40 +31,47 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 28px;
-            background: #ffffff;
+            padding: 12px 30px;
+            background: var(--zeus-card-bg);
             border-bottom: 1px solid var(--zeus-border);
         }
 
-        .zeus-left { display: flex; align-items: center; gap: 16px; }
-        .zeus-logo img { height: 76px; }
+        .zeus-left { display: flex; align-items: center; gap: 20px; }
+        .zeus-logo img { height: 65px; transition: 0.2s; }
+        .zeus-logo img:hover { transform: scale(1.02); }
 
-        .zeus-info-stack { display: flex; flex-direction: column; gap: 2px; }
-        .zeus-role { font-size: 0.85rem; }
-        .zeus-versions-link a { font-size: 0.85em; color: #555; text-decoration: underline; cursor: pointer; }
+        .zeus-user-box { display: flex; flex-direction: column; line-height: 1.2; }
+        .zeus-role { font-size: 0.85rem; color: #64748b; }
+        .zeus-role strong { color: var(--zeus-blue); }
+        .zeus-change-link { font-size: 0.75rem; color: #94a3b8; text-decoration: underline !important; }
 
-        /* ================= NEWS BAR (FIXED) ================= */
+        /* ================= NEWS BAR (Slower & Smoother) ================= */
         .news-bar {
-            background-color: #0b1f3a;
-            color: white;
-            overflow: hidden;
-            white-space: nowrap;
-            height: 32px;
+            background: var(--zeus-dark);
+            color: #fff;
+            height: 34px;
             display: flex;
             align-items: center;
-            margin: 0 40px;
-            border-radius: 10px;
-            border: 4px solid #3f6491;
+            overflow: hidden;
+            margin: 0 30px;
+            border-radius: 17px;
             flex: 1;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .news-track {
             display: inline-block;
+            white-space: nowrap;
             padding-left: 100%;
-            animation: scrollNews 120s linear infinite;
+            animation: scrollNews 60s linear infinite; /* Wolniejszy ruch: 60 sekund */
         }
 
-        .news-item { margin-right: 80px; }
+        .news-bar:hover .news-track {
+            animation-play-state: paused; /* Pauza po najechaniu myszką */
+        }
+
+        .news-item { margin-right: 100px; font-size: 0.85rem; letter-spacing: 0.3px; }
 
         @keyframes scrollNews {
             from { transform: translateX(0); }
@@ -72,79 +79,82 @@
         }
 
         /* ================= NAVIGATION ================= */
-        .zeus-nav {
+        .zeus-nav-bar {
+            background: white;
+            border-bottom: 1px solid var(--zeus-border);
             display: flex;
             justify-content: center;
+            padding: 0 10px;
             flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px 20px;
-            background: #ffffff;
+        }
+
+        .zeus-nav-bar a {
+            color: #64748b;
+            text-decoration: none !important;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .zeus-nav-bar a:hover { color: var(--zeus-blue); background: #f8fafc; }
+        .zeus-nav-bar a.active {
+            color: var(--zeus-blue);
+            border-bottom-color: var(--zeus-blue);
+            background: #f1f5f9;
+        }
+
+        /* ================= STATS & CLOCK ================= */
+        .entenda-stats {
+            background: #fff;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.8rem;
+            color: #64748b;
             border-bottom: 1px solid var(--zeus-border);
         }
 
-        .zeus-nav a {
-            color: #333;
-            font-weight: 600;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: background 0.15s ease;
-        }
-
-        .zeus-nav a:hover { background: #e6e6e6; color: #000; }
-        .zeus-nav a.active { background: var(--zeus-blue); color: white; }
-
-        /* ================= STATS BAR ================= */
-        .entenda-stats {
-            text-align: center;
-            font-size: 13px;
-            padding: 8px 10px;
-            background: #f5f7fb;
-            border-bottom: 1px solid #e2e6f0;
-        }
-
-        /* ================= CLOCK ================= */
-        .entenda-clock-wrapper { display: flex; align-items: center; gap: 14px; }
+        .entenda-clock-wrapper { display: flex; align-items: center; gap: 15px; }
         .entenda-clock {
+            background: #fff;
+            padding: 6px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--zeus-border);
             font-weight: 800;
-            font-size: 22px;
-            padding: 6px 14px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.9);
-            box-shadow: 0 0 8px rgba(0,120,255,0.35);
-        }
-        .event-generator-btn {
-            background: #b09926;
-            color: white;
-            font-weight: 700;
-            padding: 7px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
+            font-size: 1.1rem;
+            color: var(--zeus-dark);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        main.container { max-width: 1600px; margin: 30px auto; }
-        #zeus-toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        .btn-gen {
+            background: #b09926;
+            color: white !important;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none !important;
+        }
+
+        main.container { max-width: 1400px; margin: 30px auto; min-height: 80vh; }
     </style>
 </head>
 <body>
 
-<div class="zeus-topbar">
+<header class="zeus-topbar">
     <div class="zeus-left">
         <a class="zeus-logo" href="{{ url_for('home_page') }}">
-            <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}">
+            <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}" alt="ZEUS">
         </a>
-        <div class="zeus-info-stack">
+        <div class="zeus-user-box">
             {% if session.rola %}
-            <div class="zeus-role">
-                Rola: <strong>{{ session.rola|capitalize }}</strong> | 
-                <a href="{{ url_for('wejscie') }}" style="text-decoration: underline;">Zmień</a>
-            </div>
+                <span class="zeus-role">Rola: <strong>{{ session.rola|capitalize }}</strong></span>
+                <a href="{{ url_for('wejscie') }}" class="zeus-change-link">Zmień uprawnienia</a>
             {% endif %}
-            <div class="zeus-versions-link">
-                <a href="{{ url_for('zeus_versions') }}">ⓘ Informacje o zmianach</a>
-            </div>
+            <a href="{{ url_for('zeus_versions') }}" style="font-size: 0.7rem; color: #94a3b8; margin-top: 3px;">
+                <i class="fas fa-history"></i> Historia zmian
+            </a>
         </div>
     </div>
 
@@ -153,35 +163,30 @@
             {% if latest_events %}
                 {% for e in latest_events %}
                     <span class="news-item">
-                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}] {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
-                    </span>
-                {% endfor %}
-                {% for e in latest_events %}
-                    <span class="news-item">
-                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}] {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
+                        <strong style="color: #f1c40f;">{{ e.data_entenda.strftime('%Y-%m-%d') }}</strong>: 
+                        {{ e.opis_wygenerowany or "Nowe zdarzenie w rejestrze..." }} •
                     </span>
                 {% endfor %}
             {% else %}
-                <span class="news-item">System ZEUS gotowy. Brak nowych zdarzeń w archiwum.</span>
+                <span class="news-item">System operacyjny ZEUS – Stabilny • Brak nowych komunikatów •</span>
             {% endif %}
         </div>
     </div>
 
     <div class="entenda-clock-wrapper">
-        <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">⚡ Generator zdarzeń</a>
-        <div class="entenda-clock">{{ ENTENDA_DATE }} CE</div>
+        <a href="{{ url_for('zdarzenia_list') }}" class="btn-gen">⚡ GENERATOR</a>
+        <div class="entenda-clock">{{ ENTENDA_DATE }} <small>CE</small></div>
     </div>
-</div>
+</header>
 
 <div class="entenda-stats">
-    Entenda to <strong>{{ E_WORLD_POP }}</strong> ludzi, 
-    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach, 
-    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach, 
-    <strong>{{ E_WORLD_REGIONS }}</strong> regionach 
-    i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
+    Świat: <strong>{{ E_WORLD_POP }}</strong> ludzi • 
+    <strong>{{ E_WORLD_COUNTRIES }}</strong> państw • 
+    <strong>{{ E_WORLD_REGIONS }}</strong> regionów • 
+    <strong>{{ E_WORLD_CITIES }}</strong> miast
 </div>
 
-<nav class="zeus-nav">
+<nav class="zeus-nav-bar">
     {% for endpoint, label in [
         ('home_page','Strona główna'),
         ('mapy','Mapy'),
@@ -196,7 +201,9 @@
         ('pliki','Pliki'),
         ('info','Info')
     ] %}
-    <a href="{{ url_for(endpoint) }}" class="{% if request.endpoint == endpoint %}active{% endif %}">{{ label }}</a>
+    <a href="{{ url_for(endpoint) }}" class="{% if request.endpoint == endpoint %}active{% endif %}">
+        {{ label }}
+    </a>
     {% endfor %}
 </nav>
 
@@ -204,17 +211,17 @@
     {% block content %}{% endblock %}
 </main>
 
-<div id="zeus-toast-container"></div>
+<div id="zeus-toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;"></div>
 
 <script>
-function zeusToast(message) {
-    const container = document.getElementById("zeus-toast-container");
-    const toast = document.createElement("div");
-    toast.style.cssText = "background:#1f2a44;color:#fff;padding:10px 14px;border-radius:8px;margin-top:10px;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
-}
+    function zeusToast(message) {
+        const container = document.getElementById("zeus-toast-container");
+        const t = document.createElement("div");
+        t.style.cssText = "background:#1a252f;color:#fff;padding:12px 20px;border-radius:8px;margin-top:10px;box-shadow:0 10px 15px rgba(0,0,0,0.2);border-left:4px solid #5d7dce;font-size:0.9rem;";
+        t.innerHTML = `<i class="fas fa-info-circle mr-2"></i> ${message}`;
+        container.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+    }
 </script>
 
 </body>
