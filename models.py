@@ -693,7 +693,8 @@ class OrganizacjaMiedzynarodowa(db.Model):
     czlonkowie = db.relationship(
         "OrganizacjaPanstwo",
         backref="organizacja",
-        lazy=True
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     siedziba = db.Column(db.String(255))
@@ -705,7 +706,7 @@ class OrganizacjaPanstwo(db.Model):
 
     org_id = db.Column(
         db.Integer,
-        db.ForeignKey("dict_org_miedzy.ORG_ID"),
+        db.ForeignKey("dict_org_miedzy.ORG_ID", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -722,23 +723,10 @@ class OrganizacjaPanstwo(db.Model):
 
     czy_aktywny = db.Column(db.Boolean, default=True)
 
-    # 🔗 relacja do państwa
     panstwo = db.relationship(
         "Panstwo",
         backref="organizacje",
         lazy=True
-    )
-
-    organizacje = db.relationship(
-        "OrganizacjaPanstwo",
-        backref="organizacja",
-        cascade="all, delete-orphan"
-    )
-
-    org_id = db.Column(
-        db.Integer,
-        db.ForeignKey("organizacje.id", ondelete="CASCADE"),
-        nullable=False
     )
 
 #------------------------------------------------#
