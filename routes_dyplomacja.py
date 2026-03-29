@@ -310,12 +310,56 @@ def init_dyplomacja_routes(app):
     def organizacje_view():
 
         kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
-        organizacje = OrganizacjaMiedzynarodowa.query.all()
+        organizacje = OrganizacjaMiedzynarodowa.query.order_by(
+            OrganizacjaMiedzynarodowa.org_nazwa
+        ).all()
+
+        # 🔽 PARAMETRY Z FORMULARZA
+        panstwo_id = request.args.get("panstwo_id", type=int)
+        org_id = request.args.get("org_id", type=int)
+        status = request.args.get("status")
+
+        query = OrganizacjaMiedzynarodowa.query
+
+        # 🔽 FILTR: organizacja
+        if org_id:
+            query = query.filter_by(ORG_ID=org_id)
+
+        # 🔽 FILTR: status
+        if status == "1":
+            query = query.filter_by(czy_aktywna=True)
+        elif status == "0":
+            query = query.filter_by(czy_aktywna=False)
+
+        orgs = query.order_by(OrganizacjaMiedzynarodowa.org_nazwa).all()
+
+        results = []
+
+        for org in orgs:
+
+            members = (
+                OrganizacjaPanstwo.query
+                .filter_by(org_id=org.ORG_ID)
+                .options(joinedload(OrganizacjaPanstwo.panstwo))
+                .all()
+            )
+
+            # 🔽 FILTR: państwo (ważne!)
+            if panstwo_id:
+                exists = any(m.panstwo_id == panstwo_id for m in members)
+                if not exists:
+                    continue
+
+            # 🔽 wrzucamy members do obiektu
+            org.members = members
+
+            results.append(org)
 
         return render_template(
             "dyplomacja_organizacje_miedzynarodowe.html",
             kontynenty=kontynenty,
-            organizacje=organizacje
+            organizacje=organizacje,
+            results=results
         )
 
 

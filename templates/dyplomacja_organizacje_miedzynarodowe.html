@@ -123,6 +123,13 @@
 .btn-back:hover {
     background-color: #1a252f;
 }
+
+.flag-region {
+        height: 30px;
+        width: auto;
+        border: 1px solid #000;
+        border-radius: 2px;
+    }
 </style>
 
 <div class="org-container">
@@ -221,8 +228,11 @@
                         <div>
 
                             <!-- 🔥 TU MUSISZ MIEĆ TAK SAMO JAK W REGION_FORM -->
-                            <img src="{{ url_for('flaga_panstwa', filename=m.panstwo.panstwo_flaga) }}"
-                                 class="flag-icon">
+                            <img
+                        src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                        class="flag-region"
+                        onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
+                    >
 
                             {{ m.panstwo.panstwo_nazwa }}
 
