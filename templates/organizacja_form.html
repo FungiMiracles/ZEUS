@@ -189,6 +189,15 @@ textarea {
 .status-czlonek { color: #2ecc71; }
 .status-byly_czlonek { color: #7f8c8d; }
 .status-zawieszony { color: #ca982c; }
+
+.btn-restore {
+    background: #2c73d2;
+    color: white;
+}
+
+.btn-restore:hover {
+    background: #1f5bb5;
+}
 </style>
 
 <div class="org-container">
@@ -218,6 +227,13 @@ textarea {
                 <div class="value-box">{{ org.org_typ }}</div>
             </div>
 
+            <div class="form-row">
+                <label>Siedziba</label>
+                <div class="value-box">
+                    {{ org.siedziba or "Brak danych" }}
+                </div>
+            </div>
+
             <div>
                 <label>Status</label>
                 <div class="value-box">
@@ -236,46 +252,64 @@ textarea {
         <h2>Członkowie</h2>
 
         {% for m in members %}
-        <div class="org-member">
+            <div class="org-member">
 
-            <img
-                src="{{ url_for('static', filename='flags/' + m.panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
-                class="flag-region"
-                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
-            >
+                <img
+                    src="{{ url_for('static', filename='flags/' + m.panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                    class="flag-region"
+                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
+                >
 
-            <span class="member-name">
-                {{ m.panstwo.panstwo_nazwa }} | 
-            </span>
+                <span class="member-name">
+                    {{ m.panstwo.panstwo_nazwa }} |
+                </span>
 
-            <span class="member-status status-{{ m.status_czlonkostwa }}">
-                Status: ({{ m.status_czlonkostwa }})
-            </span>
+                <span class="member-status status-{{ m.status_czlonkostwa }}">
+                    Status: ({{ m.status_czlonkostwa }})
+                </span>
 
-            {% if m.status_czlonkostwa == "czlonek" %}
-            <div class="member-actions">
+                <div class="member-actions">
 
-                <form method="POST"
-                    action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
-                    style="display:inline;"
-                    onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
+                    {% if m.status_czlonkostwa == "czlonek" %}
 
-                    <button class="btn-action btn-leave">Opuść</button>
-                </form>
+                        <form method="POST"
+                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
+                            onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
 
-                <form method="POST"
-                    action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/suspend"
-                    style="display:inline;"
-                    onsubmit="return confirm('Czy na pewno chcesz zawiesić członkostwo?');">
+                            <button class="btn-action btn-leave">Opuść</button>
+                        </form>
 
-                    <button class="btn-action btn-suspend">Zawieś</button>
-                </form>
+                        <form method="POST"
+                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/suspend"
+                            onsubmit="return confirm('Czy na pewno chcesz zawiesić członkostwo?');">
+
+                            <button class="btn-action btn-suspend">Zawieś</button>
+                        </form>
+
+                    {% elif m.status_czlonkostwa == "zawieszony" %}
+
+                        <form method="POST"
+                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/unsuspend"
+                            onsubmit="return confirm('Przywrócić członkostwo państwa?');">
+
+                            <button class="btn-action btn-restore">Wycofaj zawieszenie</button>
+                        </form>
+
+                    {% elif m.status_czlonkostwa == "byly_czlonek" %}
+
+                        <form method="POST"
+                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/rejoin"
+                            onsubmit="return confirm('Czy państwo ma ponownie dołączyć do organizacji?');">
+
+                            <button class="btn-action btn-restore">Dołącz ponownie</button>
+                        </form>
+
+                    {% endif %}
+
+                </div>
 
             </div>
-            {% endif %}
-
-        </div>
-        {% endfor %}
+            {% endfor %}
 
     </div>
 

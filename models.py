@@ -349,6 +349,10 @@ class Historia(db.Model):
         }
     
         return MAPA_EPOK.get(self.epoka, "Nieznana epoka")
+    
+    @property
+    def status_label(self):
+        return "AKTYWNA" if self.aktywna else "NIEAKTYWNA"
 
 
     # =========================================================
@@ -691,6 +695,8 @@ class OrganizacjaMiedzynarodowa(db.Model):
         backref="organizacja",
         lazy=True
     )
+
+    siedziba = db.Column(db.String(255))
 
 class OrganizacjaPanstwo(db.Model):
     __tablename__ = "organizacja_per_panstwo"

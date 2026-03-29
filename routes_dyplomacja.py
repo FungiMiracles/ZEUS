@@ -451,6 +451,7 @@ def init_dyplomacja_routes(app):
             org.org_skrot = request.form.get("org_skrot")
             org.org_typ = request.form.get("org_typ")
             org.org_opis = request.form.get("org_opis")
+            siedziba = request.form.get("siedziba")
 
             org.czy_aktywna = True if request.form.get("czy_aktywna") == "on" else False
 
@@ -517,8 +518,6 @@ def init_dyplomacja_routes(app):
             except Exception:
                 flash("Niepoprawny format daty.", "error")
                 return redirect(request.url)
-            
-            data_dolaczenia = datetime.strptime(data_raw, "%Y-%m-%d")
 
             # ❗ walidacja
             if not panstwo_id:
@@ -559,11 +558,8 @@ def init_dyplomacja_routes(app):
             kontynenty=kontynenty
         )
     
-    @property
-    def status_label(self):
-        return "AKTYWNA" if self.aktywna else "NIEAKTYWNA"
-    
     @app.route("/dyplomacja/organizacja/add", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
     def organizacja_add():
 
         if request.method == "POST":
@@ -573,6 +569,7 @@ def init_dyplomacja_routes(app):
             typ = request.form.get("org_typ")
             opis = request.form.get("org_opis")
             aktywna = True if request.form.get("czy_aktywna") else False
+            siedziba = request.form.get("siedziba")
 
             if not nazwa:
                 flash("Podaj nazwę organizacji.", "error")
@@ -583,7 +580,8 @@ def init_dyplomacja_routes(app):
                 org_skrot=skrot,
                 org_typ=typ,
                 org_opis=opis,
-                czy_aktywna=aktywna
+                czy_aktywna=aktywna,
+                siedziba=siedziba
             )
 
             db.session.add(org)
@@ -595,6 +593,7 @@ def init_dyplomacja_routes(app):
         return render_template("organizacja_form_add.html")
     
     @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/leave", methods=["POST"])
+    @wymaga_roli("wszechmocny")
     def organizacja_member_leave(org_id, panstwo_id):
 
         rel = OrganizacjaPanstwo.query.filter_by(
@@ -604,16 +603,17 @@ def init_dyplomacja_routes(app):
 
         if not rel:
             flash("Nie znaleziono członka organizacji.", "error")
-            return redirect(request.referrer)
+            return redirect(request.referrer or url_for("organizacje_view"))
 
         rel.status_czlonkostwa = "byly_czlonek"
 
         db.session.commit()
 
         flash("Państwo opuściło organizację.", "success")
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("organizacje_view"))
     
     @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/suspend", methods=["POST"])
+    @wymaga_roli("wszechmocny")
     def organizacja_member_suspend(org_id, panstwo_id):
 
         rel = OrganizacjaPanstwo.query.filter_by(
@@ -623,14 +623,54 @@ def init_dyplomacja_routes(app):
 
         if not rel:
             flash("Nie znaleziono członka organizacji.", "error")
-            return redirect(request.referrer)
+            return redirect(request.referrer or url_for("organizacje_view"))
 
         rel.status_czlonkostwa = "zawieszony"
 
         db.session.commit()
 
         flash("Członkostwo państwa zostało zawieszone.", "success")
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("organizacje_view"))
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/unsuspend", methods=["POST"])
+    @wymaga_roli("wszechmocny")
+    def organizacja_member_unsuspend(org_id, panstwo_id):
+
+        rel = OrganizacjaPanstwo.query.filter_by(
+            org_id=org_id,
+            panstwo_id=panstwo_id
+        ).first()
+
+        if not rel:
+            flash("Nie znaleziono członka organizacji.", "error")
+            return redirect(request.referrer or url_for("organizacje_view"))
+
+        rel.status_czlonkostwa = "czlonek"
+
+        db.session.commit()
+
+        flash("Zawieszenie zostało wycofane.", "success")
+        return redirect(request.referrer or url_for("organizacje_view"))
+    
+    @app.route("/dyplomacja/organizacja/<int:org_id>/member/<int:panstwo_id>/rejoin", methods=["POST"])
+    @wymaga_roli("wszechmocny")
+    def organizacja_member_rejoin(org_id, panstwo_id):
+
+        rel = OrganizacjaPanstwo.query.filter_by(
+            org_id=org_id,
+            panstwo_id=panstwo_id
+        ).first()
+
+        if not rel:
+            flash("Nie znaleziono członka organizacji.", "error")
+            return redirect(request.referrer or url_for("organizacje_view"))
+
+        rel.status_czlonkostwa = "czlonek"
+
+        db.session.commit()
+
+        flash("Państwo ponownie dołączyło do organizacji.", "success")
+        return redirect(request.referrer or url_for("organizacje_view"))
     
 
     
