@@ -451,7 +451,7 @@ def init_dyplomacja_routes(app):
             org.org_skrot = request.form.get("org_skrot")
             org.org_typ = request.form.get("org_typ")
             org.org_opis = request.form.get("org_opis")
-            siedziba = request.form.get("siedziba")
+            org.siedziba = request.form.get("siedziba")
 
             org.czy_aktywna = True if request.form.get("czy_aktywna") == "on" else False
 

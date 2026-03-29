@@ -272,7 +272,7 @@
                     <b>Członkowie:</b><br>
 
                     {% for m in o.members %}
-                        {% if m.status_czlonkostwa == "czlonek" %}
+                        {% if m.status_czlonkostwa and m.status_czlonkostwa.strip().lower() == "czlonek" %}
 
                             <div class="org-member">
 
