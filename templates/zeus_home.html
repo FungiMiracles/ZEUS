@@ -133,6 +133,42 @@
     gap: 10px;
 }
 
+/* Nowoczesne karty z efektem uniesienia */
+.zeus-card {
+    background: #ffffff;
+    border: none; /* Rezygnujemy z ramki na rzecz cienia */
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.zeus-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Stylizacja pól formularza - mniej "ciężkie" */
+.zeus-card input, .zeus-card select {
+    border: 1px solid #e1e5ea;
+    background: #f8f9fa;
+    padding: 10px;
+    transition: border-color 0.2s;
+}
+
+.zeus-card input:focus {
+    border-color: #5d7dce;
+    outline: none;
+    background: #fff;
+}
+
+/* Sekcja Dodawania jako Grid 3-kolumnowy (dla spójności) */
+.zeus-add-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
 /* ============================================================
    MOBILE / TABLET
 ============================================================ */
