@@ -473,7 +473,10 @@ def init_dyplomacja_routes(app):
         org = OrganizacjaMiedzynarodowa.query.get_or_404(org_id)
 
         # 🔍 sprawdzenie czy są członkowie
-        members_exist = OrganizacjaPanstwo.query.filter_by(org_id=org_id).first()
+        members_exist = OrganizacjaPanstwo.query.filter(
+            OrganizacjaPanstwo.org_id == org_id,
+            OrganizacjaPanstwo.status_czlonkostwa != "byly_czlonek"
+        ).first()
 
         if members_exist:
             flash(
