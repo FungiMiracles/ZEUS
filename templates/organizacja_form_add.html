@@ -83,6 +83,45 @@
     background: #fdecea;
     color: #c0392b;
 }
+
+.form-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.country-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px 12px;
+    margin-top: 6px;
+}
+
+.country-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.country-item input {
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.country-item:hover {
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 2px 4px;
+}
 </style>
 
 <div class="form-container">
@@ -126,28 +165,26 @@
             <textarea name="org_opis"></textarea>
         </div>
 
-        <div class="form-group">
+        <div class="form-group form-checkbox">
             <label>
                 <input type="checkbox" name="czy_aktywna" checked>
-                Organizacja aktywna
+                <span>Organizacja aktywna</span>
             </label>
         </div>
 
         <div class="form-group">
             <label>Państwa członkowskie</label>
 
-            {% for k in kontynenty %}
-                <div style="margin-bottom:10px; border-top:1px solid #ddd; padding-top:8px;">
-                    <b>{{ k.kontynent_nazwa }}</b><br>
+            <div class="country-list">
 
-                    {% for p in panstwa_by_kontynent[k.kontynent_id] %}
-                        <label style="display:inline-block; width:200px;">
-                            <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
-                            {{ p.panstwo_nazwa }}
-                        </label>
-                    {% endfor %}
-                </div>
-            {% endfor %}
+                {% for p in panstwa_by_kontynent[k.kontynent_id] %}
+                    <label class="country-item">
+                        <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
+                        <span>{{ p.panstwo_nazwa }}</span>
+                    </label>
+                {% endfor %}
+
+            </div>
         </div>
 
         <div class="form-actions">
