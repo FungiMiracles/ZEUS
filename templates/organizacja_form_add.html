@@ -167,6 +167,35 @@
     padding: 2px 4px;
 }
 
+/* 🔥 HARD FIX — izolacja od base_layout + bootstrap */
+.country-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100%;
+}
+
+/* 🔥 checkbox */
+.country-item input[type="checkbox"] {
+    margin: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+/* 🔥 label */
+.country-item label {
+    display: inline !important;
+    margin: 0 !important;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* 🔥 absolutne zablokowanie rozjeżdżania */
+.country-item * {
+    float: none !important;
+    position: static !important;
+}
+
 </style>
 
 <div class="form-container">
