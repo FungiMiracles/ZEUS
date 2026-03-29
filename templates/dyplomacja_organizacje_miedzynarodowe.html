@@ -11,13 +11,6 @@
     color: #2c3e50;
 }
 
-.org-results {
-    margin-top: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
 /* ===== FILTER ===== */
 .org-filter {
     background: #ffffff;
@@ -67,6 +60,12 @@
 }
 
 /* ===== RESULTS ===== */
+.org-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .org-card {
     background: #ffffff;
     border-radius: 12px;
@@ -105,147 +104,158 @@
 .btn-view { background: #5d7dce; color:white; }
 .btn-edit { background: #3498db; color:white; }
 .btn-delete { background: #e74c3c; color:white; }
+
+/* ===== FLAGI ===== */
+.flag-icon {
+    width: 22px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* ===== BACK BUTTON ===== */
+.btn-back {
+    background-color: #2c3e50;
+    color: white;
+}
+.btn-back:hover {
+    background-color: #1a252f;
+}
 </style>
 
 <div class="org-container">
 
-    <!-- ===== FILTER ===== -->
-    <div class="org-filter">
+    <!-- ===== FILTER (GET FORM) ===== -->
+    <form method="GET" class="org-filter">
+
         <h2>Organizacje międzynarodowe</h2>
 
         <div class="org-filter-grid">
 
-            <!-- kontynent -->
             <div>
                 <label>Kontynent</label>
-                <select id="kontynentSelect">
+                <select name="kontynent_id" id="kontynentSelect">
                     <option value="">— wybierz —</option>
                     {% for k in kontynenty %}
-                    <option value="{{ k.kontynent_id }}">{{ k.kontynent_nazwa }}</option>
+                    <option value="{{ k.kontynent_id }}"
+                        {% if request.args.get('kontynent_id') == k.kontynent_id|string %}selected{% endif %}>
+                        {{ k.kontynent_nazwa }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
 
-            <!-- państwo -->
             <div>
                 <label>Państwo</label>
-                <select id="panstwoSelect" disabled>
-                    <option>— wybierz kontynent —</option>
-                </select>
-            </div>
-
-            <!-- organizacja -->
-            <div>
-                <label>Organizacja</label>
-                <select id="orgSelect">
+                <select name="panstwo_id" id="panstwoSelect">
                     <option value="">— wszystkie —</option>
-                    {% for o in organizacje %}
-                    <option value="{{ o.ORG_ID }}">{{ o.org_nazwa }}</option>
+                    {% for p in panstwa %}
+                    <option value="{{ p.PANSTWO_ID }}"
+                        {% if request.args.get('panstwo_id') == p.PANSTWO_ID|string %}selected{% endif %}>
+                        {{ p.panstwo_nazwa }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
 
-            <!-- checkboxy -->
+            <div>
+                <label>Organizacja</label>
+                <select name="org_id">
+                    <option value="">— wszystkie —</option>
+                    {% for o in organizacje %}
+                    <option value="{{ o.ORG_ID }}"
+                        {% if request.args.get('org_id') == o.ORG_ID|string %}selected{% endif %}>
+                        {{ o.org_nazwa }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div>
                 <label>Status</label>
-                <div>
-                    <input type="checkbox" id="activeOnly"> aktywne
-                    <input type="checkbox" id="inactiveOnly"> nieaktywne
-                </div>
+                <select name="status">
+                    <option value="">— wszystkie —</option>
+                    <option value="1" {% if request.args.get('status') == "1" %}selected{% endif %}>AKTYWNA</option>
+                    <option value="0" {% if request.args.get('status') == "0" %}selected{% endif %}>NIEAKTYWNA</option>
+                </select>
             </div>
 
         </div>
 
         <div style="text-align:center; margin-top:18px;">
-            <button id="searchBtn" class="btn-main">Szukaj</button>
+            <button type="submit" class="btn-main">Szukaj</button>
         </div>
-    </div>
 
-    <!-- ===== RESULTS ===== -->
-    <div id="results" class="org-results"></div>
+    </form>
 
-</div>
+    <!-- ===== RESULTS (JINJA, NIE JS) ===== -->
+    <div class="org-results">
 
-<script>
-const kontynentSelect = document.getElementById("kontynentSelect");
-const panstwoSelect = document.getElementById("panstwoSelect");
-const orgSelect = document.getElementById("orgSelect");
-const results = document.getElementById("results");
-const activeOnly = document.getElementById("activeOnly");
-const inactiveOnly = document.getElementById("inactiveOnly");
+        {% if results and results|length > 0 %}
 
-kontynentSelect.addEventListener("change", () => {
+            {% for o in results %}
+            <div class="org-card">
 
-    const id = kontynentSelect.value;
-    panstwoSelect.innerHTML = "<option>— wybierz —</option>";
+                <div class="org-header">
+                    {{ o.org_nazwa }} ({{ o.org_skrot }})
+                </div>
 
-    if (!id) return;
+                <div>{{ o.org_typ }}</div>
 
-    fetch(`/api/dyplomacja/panstwa?kontynent_id=${id}`)
-    .then(r => r.json())
-    .then(data => {
-        data.forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.id;
-            opt.textContent = p.nazwa;
-            panstwoSelect.appendChild(opt);
-        });
-        panstwoSelect.disabled = false;
-    });
-});
+                <div>{{ o.org_opis or "" }}</div>
 
-document.getElementById("searchBtn").addEventListener("click", () => {
-
-    const params = new URLSearchParams();
-
-    if (panstwoSelect.value) params.append("panstwo_id", panstwoSelect.value);
-    if (orgSelect.value) params.append("org_id", orgSelect.value);
-    if (activeOnly.checked) params.append("active", "1");
-    if (inactiveOnly.checked) params.append("inactive", "1");
-
-    fetch(`/api/dyplomacja/organizacje?${params}`)
-    .then(r => r.json())
-    .then(data => {
-
-        results.innerHTML = "";
-
-        if (!data.length) {
-            results.innerHTML = "<div>Brak wyników</div>";
-            return;
-        }
-
-        data.forEach(o => {
-
-            const div = document.createElement("div");
-            div.className = "org-card";
-
-            const members = o.czlonkowie.map(p => p).join(", ");
-
-            div.innerHTML = `
-                <div class="org-header">${o.nazwa} (${o.skrot})</div>
-                <div>${o.typ}</div>
-                <div>${o.opis || ""}</div>
-                <div>Status: 
-                    <span class="${o.aktywna ? 'org-active-yes':'org-active-no'}">
-                        ${o.aktywna ? 'TAK':'NIE'}
+                <div>
+                    Status:
+                    <span class="{{ 'org-active-yes' if o.czy_aktywna else 'org-active-no' }}">
+                        {{ "AKTYWNA" if o.czy_aktywna else "NIEAKTYWNA" }}
                     </span>
                 </div>
-                <div class="org-members"><b>Członkowie:</b> ${members}</div>
+
+                <!-- ===== CZŁONKOWIE + FLAGI ===== -->
+                <div class="org-members">
+                    <b>Członkowie:</b><br>
+
+                    {% for m in o.members %}
+                        <div>
+
+                            <!-- 🔥 TU MUSISZ MIEĆ TAK SAMO JAK W REGION_FORM -->
+                            <img src="{{ url_for('flaga_panstwa', filename=m.panstwo.panstwo_flaga) }}"
+                                 class="flag-icon">
+
+                            {{ m.panstwo.panstwo_nazwa }}
+
+                        </div>
+                    {% endfor %}
+
+                </div>
 
                 <div class="org-actions">
-                    <button onclick="window.location.href='/dyplomacja/organizacja/${o.id}'" class="btn-view">Wyświetl</button>
-                    <button onclick="window.location.href='/dyplomacja/organizacja/${o.id}/edit'" class="btn-edit">Edytuj</button>
-                    <form method="POST" action="/dyplomacja/organizacja/${o.id}/delete" style="display:inline;">
+
+                    <a href="/dyplomacja/organizacja/{{ o.ORG_ID }}">
+                        <button class="btn-view">Wyświetl</button>
+                    </a>
+
+                    <a href="/dyplomacja/organizacja/{{ o.ORG_ID }}/edit">
+                        <button class="btn-edit">Edytuj</button>
+                    </a>
+
+                    <form method="POST" action="/dyplomacja/organizacja/{{ o.ORG_ID }}/delete">
                         <button class="btn-delete">Usuń</button>
                     </form>
+
                 </div>
-            `;
 
-            results.appendChild(div);
-        });
+            </div>
+            {% endfor %}
 
-    });
-});
-</script>
+        {% else %}
+            <div>Brak wyników</div>
+        {% endif %}
+
+    </div>
+
+</div>
 
 {% endblock %}
