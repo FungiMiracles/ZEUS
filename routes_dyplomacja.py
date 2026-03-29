@@ -313,7 +313,7 @@ def init_dyplomacja_routes(app):
         organizacje = OrganizacjaMiedzynarodowa.query.all()
 
         return render_template(
-            "organizacje_miedzynarodowe.html",
+            "dyplomacja_organizacje_miedzynarodowe.html",
             kontynenty=kontynenty,
             organizacje=organizacje
         )
