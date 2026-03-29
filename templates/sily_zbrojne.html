@@ -1,109 +1,42 @@
 {% extends 'base_layout.html' %}
 {% block title %}Siły zbrojne{% endblock %}
 {% block content %}
-
-<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-<p style="margin-left: auto; text-align: center; margin-top:15px; font-size: 22px; font-weight: 700;">
-    Siły zbrojne
-</p>
-<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-
-
 <style>
-/* ============================================
-   ZEUS – Siły zbrojne (kafelki)
-============================================ */
-
-.army-container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-}
-
-/* GRID KAFELKÓW */
-.army-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 22px;
-    padding: 10px;
-}
-
-/* KAFELKI */
-.army-tile {
-    background: linear-gradient(135deg, #c0392b, #a72f22);
-    color: white;
-    padding: 28px 22px;
-    border-radius: 14px;
-    text-decoration: none;
-    font-size: 1.15em;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-    transition: 0.25s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    min-height: 150px;
-    position: relative;
-    overflow: hidden;
-}
-
-/* IKONY W KAFELKU */
-.army-tile .icon {
-    font-size: 40px;
-    margin-bottom: 14px;
-    opacity: 0.9;
-}
-
-/* HOVER — wojskowy, mocniejszy */
-.army-tile:hover {
-    background: linear-gradient(135deg, #96281b, #7b1f16);
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
-    color: white;
-    text-decoration: none;
-}
-
+    .army-header { text-align: center; margin: 20px 0 40px; }
+    .army-header h2 { font-weight: 800; color: #c0392b; text-transform: uppercase; }
+    
+    .army-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+    .army-card {
+        background: #fff; border: 2px solid #f2f2f2; border-radius: 12px; padding: 35px 20px;
+        text-align: center; text-decoration: none !important; transition: 0.3s;
+        display: flex; flex-direction: column; align-items: center; position: relative;
+    }
+    .army-card i { font-size: 3rem; color: #c0392b; margin-bottom: 15px; }
+    .army-card h5 { color: #2c3e50; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; }
+    .army-card:hover { border-color: #c0392b; background: #fff9f9; transform: translateY(-5px); }
+    
+    .badge-admin { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; background: #c0392b; color: white; padding: 2px 8px; border-radius: 10px; }
 </style>
 
-
-<div class="army-container">
-
-    <div class="army-grid">
-
-        <!-- PRZEGLĄD -->
-        <a href="{{ url_for('sily_zbrojne_list') }}" class="army-tile">
-            <div class="icon">🛡️</div>
-            Przeglądaj informacje o zasobach wojskowych państw
-        </a>
-
-        <!-- PORÓWNANIE -->
-        <a href="{{ url_for('porownywarka_panstw') }}" class="army-tile">
-            <div class="icon">⚔️</div>
-            Porównaj zasoby wojskowe państw
-        </a>
-
-
-        <!-- DODAWANIE -->
-
-        {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-
-        <a class="army-tile" href="{{ url_for('wojsko_form_add') }}">
-            <div class="icon">➕</div>
-            Dodaj dane o zasobach wojskowych państw
-        </a>
-
-        {% else %}
-
-        <a class="army-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-            <div class="icon">➕</div>
-            Dodaj dane o zasobach wojskowych państw
-        </a>
-
-        {% endif %}
-
-    </div>
+<div class="army-header">
+    <h2><i class="fas fa-shield-alt mr-2"></i> Potencjał Militarny</h2>
 </div>
 
+<div class="army-grid">
+    <a href="{{ url_for('sily_zbrojne_list') }}" class="army-card">
+        <i class="fas fa-list-ul"></i>
+        <h5>Przegląd Zasobów</h5>
+    </a>
+    <a href="{{ url_for('porownywarka_panstw') }}" class="army-card">
+        <i class="fas fa-balance-scale"></i>
+        <h5>Porównywarka Państw</h5>
+    </a>
+    {% if session.rola == "wszechmocny" %}
+    <a href="{{ url_for('sily_zbrojne_add') }}" class="army-card">
+        <span class="badge-admin">ADMIN</span>
+        <i class="fas fa-plus-circle"></i>
+        <h5>Zarządzaj Jednostkami</h5>
+    </a>
+    {% endif %}
+</div>
 {% endblock %}

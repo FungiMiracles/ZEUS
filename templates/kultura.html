@@ -1,83 +1,33 @@
 {% extends 'base_layout.html' %}
-{% block title %}
-Kultura
-{% endblock %}
+{% block title %}Kultura{% endblock %}
 {% block content %}
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
-        Kultura
-    </p>
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
-
-
-<!-- ===================== STYLING ===================== -->
 <style>
-.kult-tiles {
-    max-width: 900px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    padding: 10px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-}
-
-.kult-tile {
-    background: linear-gradient(135deg, #d4a017, #b58500); /* ciemniejsze złoto/żółty */
-    border-radius: 14px;
-    padding: 34px 22px;
-    text-align: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.15em;
-    min-height: 160px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    text-decoration: none !important;
-    border: 1px solid #9d6e00;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-    transition: 0.25s;
-}
-
-/* Ikonki */
-.kult-tile .icon {
-    font-size: 45px;
-    margin-bottom: 14px;
-    opacity: 0.95;
-}
-
-/* Hover */
-.kult-tile:hover {
-    background: linear-gradient(135deg, #b58500, #8a6500);
-    box-shadow: 0 7px 20px rgba(0,0,0,0.25);
-    transform: translateY(-6px) scale(1.03);
-    color: white;
-}
+    .kult-header { text-align: center; margin: 20px 0 40px; }
+    .kult-header h2 { font-weight: 800; color: #d4a017; }
+    
+    .kult-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+    .kult-card {
+        background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 40px;
+        text-align: center; text-decoration: none !important; transition: 0.3s;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .kult-card i { font-size: 3rem; color: #d4a017; margin-bottom: 15px; }
+    .kult-card h5 { color: #444; font-weight: 700; }
+    .kult-card:hover { border-color: #d4a017; box-shadow: 0 10px 20px rgba(212, 160, 23, 0.1); background: #fffdf5; }
 </style>
 
-
-<!-- ===================== KAFELKI ===================== -->
-<div class="kult-tiles">
-
-    <a class="kult-tile" href="{{ url_for('religia_home') }}">
-        <div class="icon">✨</div>
-        Religie i wierzenia
-    </a>
-
-    <a class="kult-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
-        <div class="icon">🎨</div>
-        Literatura i sztuka [niedostępne]
-    </a>
-
-    <a class="kult-tile" href="{{ url_for('kultura_jezyki') }}">
-        <div class="icon">🗣️</div>
-        Języki
-    </a>
-
+<div class="kult-header">
+    <h2><i class="fas fa-theater-masks mr-2"></i> Kultura i Dziedzictwo</h2>
 </div>
 
+<div class="kult-grid">
+    <a href="{{ url_for('religie_list') }}" class="kult-card">
+        <i class="fas fa-pray"></i>
+        <h5>Religie i Wyznania</h5>
+    </a>
+    <a href="{{ url_for('jezyki_list') }}" class="kult-card">
+        <i class="fas fa-language"></i>
+        <h5>Języki Świata</h5>
+    </a>
+</div>
 {% endblock %}
