@@ -4,7 +4,6 @@
 {% block content %}
 
 <style>
-
 /* ================= CONTAINER ================= */
 .form-container {
     max-width: 700px;
@@ -20,42 +19,135 @@
 .form-container h2 {
     text-align: center;
     margin-bottom: 20px;
+    color: #333;
 }
 
 /* ================= FORM ================= */
 .form-group {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .form-group label {
     font-weight: 700;
     font-size: 0.85em;
     display: block;
-    margin-bottom: 3px;
+    margin-bottom: 5px;
+    color: #444;
 }
 
-.form-group input,
+.form-group input[type="text"],
 .form-group textarea {
     width: 100%;
-    padding: 8px 10px;
+    padding: 10px;
     border-radius: 6px;
     border: 1px solid #b4b9be;
+    box-sizing: border-box; /* Zapewnia, że padding nie rozpycha inputa */
+}
+
+/* ================= CHECKBOX (AKTYWNA) ================= */
+.form-checkbox-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 15px 0;
+    cursor: pointer;
+}
+
+.form-checkbox-main input {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-checkbox-main span {
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+/* ================= PAŃSTWA (GRID) ================= */
+.country-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.country-section {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.country-title {
+    font-weight: 800;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.country-list {
+    display: grid;
+    /* Trzy kolumny, które dzielą miejsce po równo */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 8px 12px;
+}
+
+/* Styl pojedynczego elementu (Checkbox + Nazwa) */
+.country-item {
+    display: flex !important;
+    align-items: center !important; /* Centrowanie w pionie */
+    gap: 8px !important;
+    padding: 4px;
+    transition: background 0.2s;
+    border-radius: 4px;
+    overflow: hidden; /* Zapobiega wychodzeniu tekstu */
+}
+
+.country-item:hover {
+    background: #f0f4f8;
+}
+
+/* Reset stylów dla checkboxa wewnątrz listy */
+.country-item input[type="checkbox"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0; /* Checkbox nigdy się nie zgniata */
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Reset stylów dla labela (kluczowe przy Bootstrapie) */
+.country-item label {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 500 !important;
+    font-size: 0.85em !important;
+    cursor: pointer;
+    white-space: nowrap;      /* Tekst w jednej linii */
+    overflow: hidden;         /* Przycięcie jeśli za długie */
+    text-overflow: ellipsis;  /* Wielokropek jeśli nazwa jest bardzo długa */
+    display: inline-block !important;
+    line-height: 1.2 !important;
 }
 
 /* ================= BUTTONS ================= */
 .form-actions {
-    margin-top: 20px;
+    margin-top: 30px;
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .btn {
-    padding: 10px 16px;
+    padding: 10px 25px;
     border-radius: 6px;
     font-weight: 600;
     border: none;
     cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9em;
 }
 
 .btn-primary {
@@ -63,139 +155,14 @@
     color: white;
 }
 
-.btn-primary:hover {
-    background: #154e91;
-}
+.btn-primary:hover { background: #154e91; }
 
 .btn-secondary {
-    background: #af1515;
-    color: white;
+    background: #e0e0e0;
+    color: #444;
 }
 
-.btn-secondary:hover {
-    background: #600101;
-}
-
-/* ================= ALERT ================= */
-.alert {
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-.alert-error {
-    background: #fdecea;
-    color: #c0392b;
-}
-
-/* ================= CHECKBOX (AKTYWNA) ================= */
-.form-checkbox {
-    display: flex;
-    justify-content: flex-start;
-}
-
-.form-checkbox label {
-    display: flex !important;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.form-checkbox input[type="checkbox"] {
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
-/* ================= PAŃSTWA ================= */
-
-/* wrapper */
-.country-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* sekcja */
-.country-section {
-    border-top: 1px solid #e0e0e0;
-    padding-top: 6px;
-}
-
-/* tytuł kontynentu */
-.country-title {
-    font-weight: 700;
-    font-size: 0.9em;
-    margin-bottom: 6px;
-}
-
-/* GRID — KLUCZOWE */
-.country-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
-    gap: 4px 16px;
-}
-
-/* element */
-.country-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85em;
-    line-height: 1.2;
-}
-
-/* checkbox */
-.country-item input {
-    margin: 0;
-    flex-shrink: 0;
-}
-
-/* label */
-.country-item label {
-    margin: 0;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-/* hover */
-.country-item:hover {
-    background: #f1f5f9;
-    border-radius: 4px;
-    padding: 2px 4px;
-}
-
-/* 🔥 HARD FIX — izolacja od base_layout + bootstrap */
-.country-item {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    width: 100%;
-}
-
-/* 🔥 checkbox */
-.country-item input[type="checkbox"] {
-    margin: 0 !important;
-    display: inline-block !important;
-    vertical-align: middle !important;
-}
-
-/* 🔥 label */
-.country-item label {
-    display: inline !important;
-    margin: 0 !important;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-/* 🔥 absolutne zablokowanie rozjeżdżania */
-.country-item * {
-    float: none !important;
-    position: static !important;
-}
-
+.btn-secondary:hover { background: #d0d0d0; }
 </style>
 
 <div class="form-container">
@@ -248,28 +215,20 @@
 
         <div class="form-group">
             <label>Państwa członkowskie</label>
-
             <div class="country-wrapper">
-
                 {% for k in kontynenty %}
-
                     <div class="country-section">
                         <div class="country-title">{{ k.kontynent_nazwa }}</div>
-
                         <div class="country-list">
-
                             {% for p in panstwa_by_kontynent[k.kontynent_id] %}
                                 <div class="country-item">
                                     <input type="checkbox" id="p{{ p.PANSTWO_ID }}" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
                                     <label for="p{{ p.PANSTWO_ID }}">{{ p.panstwo_nazwa }}</label>
                                 </div>
                             {% endfor %}
-
                         </div>
                     </div>
-
                 {% endfor %}
-
             </div>
         </div>
 
