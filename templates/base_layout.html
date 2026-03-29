@@ -13,15 +13,15 @@
         :root {
             --zeus-blue: #5d7dce;
             --zeus-dark: #1f2a44;
-            --zeus-bg: #f4f7f9;
+            --zeus-bg: #fafafa;
             --zeus-card-bg: #ffffff;
             --zeus-text: #2c3e50;
-            --zeus-border: #e1e5ea;
+            --zeus-border: #dcdcdc;
         }
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background: var(--zeus-bg);
             color: var(--zeus-text);
         }
@@ -31,63 +31,40 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 30px;
-            background: var(--zeus-card-bg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 12px 28px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--zeus-border);
         }
 
-        .zeus-left { display: flex; align-items: center; gap: 20px; }
-        .zeus-logo img { height: 60px; transition: transform 0.2s; }
-        .zeus-logo img:hover { transform: scale(1.05); }
+        .zeus-left { display: flex; align-items: center; gap: 16px; }
+        .zeus-logo img { height: 76px; }
 
-        .zeus-role-badge {
-            background: #eef2ff;
-            color: var(--zeus-blue);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            border: 1px solid #d0d7f7;
-        }
+        .zeus-info-stack { display: flex; flex-direction: column; gap: 2px; }
+        .zeus-role { font-size: 0.85rem; }
+        .zeus-versions-link a { font-size: 0.85em; color: #555; text-decoration: underline; cursor: pointer; }
 
-        /* ================= CLOCK & DATE ================= */
-        .entenda-clock-wrapper { display: flex; align-items: center; gap: 15px; }
-        
-        .entenda-clock {
-            font-family: 'Courier New', monospace;
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--zeus-dark);
-            background: #fff;
-            padding: 5px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--zeus-border);
-        }
-
-        /* ================= NEWS BAR ================= */
+        /* ================= NEWS BAR (FIXED) ================= */
         .news-bar {
-            background: var(--zeus-dark);
-            color: rgba(255,255,255,0.8);
+            background-color: #0b1f3a;
+            color: white;
+            overflow: hidden;
+            white-space: nowrap;
             height: 32px;
             display: flex;
             align-items: center;
-            font-size: 0.8rem;
-            overflow: hidden;
-            margin: 0 20px;
-            border-radius: 16px;
+            margin: 0 40px;
+            border-radius: 10px;
+            border: 4px solid #3f6491;
             flex: 1;
         }
 
         .news-track {
             display: inline-block;
-            white-space: nowrap;
             padding-left: 100%;
-            animation: scrollNews 40s linear infinite;
+            animation: scrollNews 120s linear infinite;
         }
+
+        .news-item { margin-right: 80px; }
 
         @keyframes scrollNews {
             from { transform: translateX(0); }
@@ -95,156 +72,133 @@
         }
 
         /* ================= NAVIGATION ================= */
-        .zeus-nav-container {
-            background: white;
-            border-bottom: 1px solid var(--zeus-border);
-            padding: 0 20px;
-        }
-
         .zeus-nav {
             display: flex;
             justify-content: center;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 5px;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--zeus-border);
         }
 
         .zeus-nav a {
-            color: #64748b;
-            text-decoration: none !important;
-            padding: 12px 18px;
+            color: #333;
             font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            display: block;
-            border-bottom: 3px solid transparent;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: background 0.15s ease;
         }
 
-        .zeus-nav a:hover {
-            color: var(--zeus-blue);
-            background: #f8fafc;
-        }
+        .zeus-nav a:hover { background: #e6e6e6; color: #000; }
+        .zeus-nav a.active { background: var(--zeus-blue); color: white; }
 
-        .zeus-nav a.active {
-            color: var(--zeus-blue);
-            border-bottom-color: var(--zeus-blue);
-        }
-
-        /* ================= STATS MINI-BAR ================= */
-        .mini-stats-bar {
-            background: #fdfdfd;
+        /* ================= STATS BAR ================= */
+        .entenda-stats {
             text-align: center;
-            padding: 6px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            border-bottom: 1px solid var(--zeus-border);
-        }
-        .mini-stats-bar strong { color: var(--zeus-text); }
-
-        /* ================= TOASTS ================= */
-        #zeus-toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
+            font-size: 13px;
+            padding: 8px 10px;
+            background: #f5f7fb;
+            border-bottom: 1px solid #e2e6f0;
         }
 
-        .zeus-toast {
-            background: var(--zeus-dark);
-            color: white;
-            padding: 12px 20px;
+        /* ================= CLOCK ================= */
+        .entenda-clock-wrapper { display: flex; align-items: center; gap: 14px; }
+        .entenda-clock {
+            font-weight: 800;
+            font-size: 22px;
+            padding: 6px 14px;
             border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--zeus-blue);
-            animation: slideIn 0.3s ease-out;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 8px rgba(0,120,255,0.35);
+        }
+        .event-generator-btn {
+            background: #b09926;
+            color: white;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
         }
 
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* ================= MAIN CONTAINER ================= */
-        main.container {
-            max-width: 1400px;
-            margin: 25px auto;
-            min-height: 80vh;
-        }
-
-        /* MOBILE NAVIGATION TOGGLE */
-        .nav-toggle { display: none; background: none; border: none; font-size: 1.5rem; }
-
-        @media (max-width: 1024px) {
-            .zeus-nav { display: none; flex-direction: column; }
-            .zeus-nav.show { display: flex; }
-            .nav-toggle { display: block; margin: 10px auto; }
-            .news-bar { display: none; }
-        }
+        main.container { max-width: 1600px; margin: 30px auto; }
+        #zeus-toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
     </style>
 </head>
 <body>
 
-<header class="zeus-topbar">
+<div class="zeus-topbar">
     <div class="zeus-left">
         <a class="zeus-logo" href="{{ url_for('home_page') }}">
-            <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}" alt="ZEUS Logo">
+            <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}">
         </a>
-        {% if session.rola %}
-        <div class="zeus-role-badge">
-            <i class="fas fa-user-shield mr-1"></i> {{ session.rola }}
+        <div class="zeus-info-stack">
+            {% if session.rola %}
+            <div class="zeus-role">
+                Rola: <strong>{{ session.rola|capitalize }}</strong> | 
+                <a href="{{ url_for('wejscie') }}" style="text-decoration: underline;">Zmień</a>
+            </div>
+            {% endif %}
+            <div class="zeus-versions-link">
+                <a href="{{ url_for('zeus_versions') }}">ⓘ Informacje o zmianach</a>
+            </div>
         </div>
-        {% endif %}
     </div>
 
     <div class="news-bar">
         <div class="news-track">
             {% if latest_events %}
                 {% for e in latest_events %}
-                    <span class="mx-4"><i class="far fa-calendar-alt mr-1"></i> {{ e.data_entenda.strftime('%Y-%m-%d') }}: {{ e.opis_wygenerated or "Zdarzenie systemowe" }}</span>
+                    <span class="news-item">
+                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}] {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
+                    </span>
+                {% endfor %}
+                {% for e in latest_events %}
+                    <span class="news-item">
+                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}] {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
+                    </span>
                 {% endfor %}
             {% else %}
-                <span class="mx-4">Cisza w świecie Entendy... Wszystkie systemy operacyjne stabilne.</span>
+                <span class="news-item">System ZEUS gotowy. Brak nowych zdarzeń w archiwum.</span>
             {% endif %}
         </div>
     </div>
 
     <div class="entenda-clock-wrapper">
-        <a href="{{ url_for('zdarzenia_list') }}" class="btn btn-sm btn-outline-warning font-weight-bold mr-2">
-            <i class="fas fa-bolt"></i>
-        </a>
-        <div class="entenda-clock">
-            {{ ENTENDA_DATE }} <small>CE</small>
-        </div>
+        <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">⚡ Generator zdarzeń</a>
+        <div class="entenda-clock">{{ ENTENDA_DATE }} CE</div>
     </div>
-</header>
-
-<div class="mini-stats-bar">
-    <i class="fas fa-globe-europe"></i> Świat: <strong>{{ E_WORLD_POP }}</strong> obywateli • 
-    <strong>{{ E_WORLD_COUNTRIES }}</strong> państw • 
-    <strong>{{ E_WORLD_CITIES }}</strong> miast
 </div>
 
-<div class="zeus-nav-container">
-    <button class="nav-toggle" onclick="toggleNav()"><i class="fas fa-bars"></i></button>
-    <nav class="zeus-nav" id="mainNav">
-        {% for endpoint, label, icon in [
-            ('home_page', 'Dashboard', 'fa-th-large'),
-            ('mapy', 'Mapy', 'fa-map-marked-alt'),
-            ('historia', 'Kroniki', 'fa-book'),
-            ('kultura', 'Kultura', 'fa-theater-masks'),
-            ('sily_zbrojne', 'Militaria', 'fa-shield-alt'),
-            ('gospodarka', 'Ekonomia', 'fa-chart-line'),
-            ('dyplomacja', 'Dyplomacja', 'fa-handshake'),
-            ('info', 'System', 'fa-info-circle')
-        ] %}
-        <a href="{{ url_for(endpoint) }}" class="{% if request.endpoint == endpoint %}active{% endif %}">
-            <i class="fas {{ icon }} mr-1"></i> {{ label }}
-        </a>
-        {% endfor %}
-    </nav>
+<div class="entenda-stats">
+    Entenda to <strong>{{ E_WORLD_POP }}</strong> ludzi, 
+    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach, 
+    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach, 
+    <strong>{{ E_WORLD_REGIONS }}</strong> regionach 
+    i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
 </div>
+
+<nav class="zeus-nav">
+    {% for endpoint, label in [
+        ('home_page','Strona główna'),
+        ('mapy','Mapy'),
+        ('historia','Historia'),
+        ('kultura','Kultura'),
+        ('sily_zbrojne','Siły zbrojne'),
+        ('gospodarka','Gospodarka'),
+        ('demografia','Demografia'),
+        ('natura','Natura'),
+        ('dyplomacja','Dyplomacja'),
+        ('artykuly','Artykuły'),
+        ('pliki','Pliki'),
+        ('info','Info')
+    ] %}
+    <a href="{{ url_for(endpoint) }}" class="{% if request.endpoint == endpoint %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+</nav>
 
 <main class="container">
     {% block content %}{% endblock %}
@@ -253,21 +207,14 @@
 <div id="zeus-toast-container"></div>
 
 <script>
-    function toggleNav() {
-        document.getElementById("mainNav").classList.toggle("show");
-    }
-
-    function zeusToast(message, type = "info") {
-        const container = document.getElementById("zeus-toast-container");
-        const toast = document.createElement("div");
-        toast.className = `zeus-toast toast-${type}`;
-        toast.innerHTML = `<i class="fas fa-info-circle mr-2"></i> ${message}`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 500);
-        }, 4000);
-    }
+function zeusToast(message) {
+    const container = document.getElementById("zeus-toast-container");
+    const toast = document.createElement("div");
+    toast.style.cssText = "background:#1f2a44;color:#fff;padding:10px 14px;border-radius:8px;margin-top:10px;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
 </script>
 
 </body>
