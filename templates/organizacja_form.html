@@ -284,17 +284,17 @@ textarea {
                     {% if m.status_czlonkostwa == "czlonek" %}
 
                         <form method="POST"
-                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
-                            onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
-
-                            <button class="btn-action btn-leave">Opuść</button>
-                        </form>
-
-                        <form method="POST"
                             action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/suspend"
                             onsubmit="return confirm('Czy na pewno chcesz zawiesić członkostwo?');">
 
                             <button class="btn-action btn-suspend">Zawieś</button>
+                        </form>
+
+                        <form method="POST"
+                            action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
+                            onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
+
+                            <button class="btn-action btn-leave">Opuść</button>
                         </form>
 
                     {% elif m.status_czlonkostwa == "zawieszony" %}
