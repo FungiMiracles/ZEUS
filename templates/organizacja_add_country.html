@@ -117,17 +117,29 @@ textarea {
 .btn-primary:hover { background: #154e91; }
 
 .btn-secondary {
-    background: #ecf0f1;
-    border: 1px solid #bdc3c7;
+    background: #af1515;
+    border: 1px solid #af1515;
 }
 
 .btn-secondary:hover {
-    background: #3498db;
-    color: white;
+    background: #600101;
+    color: #ffffff;
 }
 </style>
 
 <div class="org-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <div class="header">
         <h1>Dodaj państwo</h1>
