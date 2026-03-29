@@ -128,24 +128,15 @@
 
     <h2>Dodaj nową organizację</h2>
 
-    {% for k in kontynenty %}
-
-        <div style="margin-bottom:10px;">
-            <b>{{ k.kontynent_nazwa }}</b>
-
-            <div class="country-list">
-
-                {% for p in panstwa_by_kontynent[k.kontynent_id] %}
-                    <label class="country-item">
-                        <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
-                        <span>{{ p.panstwo_nazwa }}</span>
-                    </label>
-                {% endfor %}
-
-            </div>
-        </div>
-
-    {% endfor %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form method="POST">
 
@@ -186,11 +177,23 @@
 
             <div class="country-list">
 
-                {% for p in panstwa_by_kontynent[k.kontynent_id] %}
-                    <label class="country-item">
-                        <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
-                        <span>{{ p.panstwo_nazwa }}</span>
-                    </label>
+                {% for k in kontynenty %}
+
+                    <div style="margin-bottom:10px;">
+                        <b>{{ k.kontynent_nazwa }}</b>
+
+                        <div class="country-list">
+
+                            {% for p in panstwa_by_kontynent[k.kontynent_id] %}
+                                <label class="country-item">
+                                    <input type="checkbox" name="panstwa_ids" value="{{ p.PANSTWO_ID }}">
+                                    <span>{{ p.panstwo_nazwa }}</span>
+                                </label>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+
                 {% endfor %}
 
             </div>
