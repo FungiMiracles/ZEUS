@@ -1,140 +1,99 @@
-{% extends 'base_layout.html' %}
+﻿{% extends 'base_layout.html' %}
 {% block title %}Historia{% endblock %}
 
 {% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Historia
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
 <style>
-    .module-header {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-    .module-header h2 {
-        font-weight: 800;
-        color: var(--zeus-dark);
-        letter-spacing: -1px;
-    }
-    .module-header p { color: #64748b; font-size: 1rem; }
+.history-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
 
-    .zeus-grid-tiles {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-        padding: 10px;
-    }
+.history-tile {
+    background: linear-gradient(135deg, #8b5a2b, #6f451f);
+    color: white;
+    padding: 32px 20px;
+    border-radius: 14px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
 
-    .tile-card {
-        background: #ffffff;
-        border: 1px solid #e1e5ea;
-        border-radius: 16px;
-        padding: 30px 20px;
-        text-align: center;
-        text-decoration: none !important;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-    }
+.history-tile .icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    opacity: 0.95;
+}
 
-    /* Akcent dla Historii (brąz/złoto) */
-    .tile-card i {
-        font-size: 2.5rem;
-        color: #8b5a2b;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
-    }
+.history-tile:hover {
+    background: linear-gradient(135deg, #6f451f, #563416);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    color: white;
+    text-decoration: none;
+}
 
-    .tile-card h5 {
-        color: var(--zeus-dark);
-        font-weight: 700;
-        margin-bottom: 8px;
-        font-size: 1.1rem;
-    }
+.history-tile.locked {
+    cursor: not-allowed;
+    opacity: 0.82;
+}
 
-    .tile-card span {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        line-height: 1.4;
-    }
-
-    .tile-card:hover {
-        transform: translateY(-5px);
-        border-color: #8b5a2b;
-        box-shadow: 0 12px 20px -5px rgba(139, 90, 43, 0.2);
+@media (max-width: 768px) {
+    .history-tiles {
+        gap: 14px;
+        padding: 0;
     }
 
-    .tile-card:hover i {
-        transform: scale(1.1);
+    .history-tile {
+        min-height: 132px;
+        padding: 22px 16px;
+        font-size: 1rem;
+        border-radius: 12px;
     }
 
-    .tile-locked {
-        background: #f8fafc;
-        cursor: not-allowed;
-        opacity: 0.7;
+    .history-tile .icon {
+        font-size: 34px;
+        margin-bottom: 10px;
     }
-    .tile-locked i { color: #94a3b8; }
-
-    @media (max-width: 768px) {
-        .module-header {
-            margin-bottom: 24px;
-        }
-
-        .module-header h2 {
-            font-size: 1.6rem;
-            line-height: 1.2;
-        }
-
-        .module-header p {
-            font-size: 0.95rem;
-            margin-bottom: 0;
-        }
-
-        .zeus-grid-tiles {
-            gap: 14px;
-            padding: 0;
-        }
-
-        .tile-card {
-            padding: 22px 16px;
-            border-radius: 12px;
-        }
-
-        .tile-card i {
-            font-size: 2rem;
-            margin-bottom: 12px;
-        }
-
-        .tile-card h5 {
-            font-size: 1rem;
-        }
-    }
+}
 </style>
 
-<div class="module-header">
-    <h2><i class="fas fa-scroll mr-2"></i> Historia</h2>
-    <p>Przegląd wydarzeń, kronik i procesów historycznych świata Entendy.</p>
-</div>
+<div class="history-tiles">
 
-<div class="zeus-grid-tiles">
-
-    <a href="{{ url_for('historia_lista') }}" class="tile-card">
-        <i class="fas fa-book-open"></i>
-        <h5>Wydarzenia historyczne</h5>
-        <span>Pełna lista wydarzeń wraz z opisami i kontekstem.</span>
+    <a href="{{ url_for('historia_lista') }}" class="history-tile">
+        <div class="icon"><i class="fas fa-landmark"></i></div>
+        Wydarzenia historyczne
     </a>
 
     {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-    <a href="{{ url_for('historia_dodaj') }}" class="tile-card">
-        <i class="fas fa-plus-circle"></i>
-        <h5>Dodaj wydarzenie</h5>
-        <span>Twórz nowe wpisy do kronik świata.</span>
+    <a href="{{ url_for('historia_dodaj') }}" class="history-tile">
+        <div class="icon"><i class="fas fa-feather-alt"></i></div>
+        Dodaj wydarzenie
     </a>
     {% else %}
-    <div class="tile-card tile-locked" onclick="zeusToast('Twoja rola nie pozwala na dodawanie wydarzeń')">
-        <i class="fas fa-lock"></i>
-        <h5>Dodaj wydarzenie</h5>
-        <span>Funkcja dostępna dla twórców i administratorów.</span>
-    </div>
+    <a href="#" class="history-tile locked" onclick="event.preventDefault(); zeusToast('Twoja rola nie pozwala na dodawanie wydarzeń')">
+        <div class="icon"><i class="fas fa-lock"></i></div>
+        Dodaj wydarzenie
+    </a>
     {% endif %}
 
 </div>

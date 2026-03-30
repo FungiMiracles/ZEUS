@@ -1,62 +1,84 @@
-{% extends 'base_layout.html' %}
+﻿{% extends 'base_layout.html' %}
 {% block title %}Mapy{% endblock %}
+
 {% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Mapy
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
 <style>
-    .map-header { text-align: center; margin: 20px 0 40px; }
-    .map-header h2 { font-weight: 800; color: #2980b9; text-transform: uppercase; }
-    
-    .map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-    .map-card {
-        background: #fff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 25px;
-        text-align: center; text-decoration: none !important; transition: 0.3s;
-        display: flex; flex-direction: column; align-items: center;
+.map-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+.map-tile {
+    background: linear-gradient(135deg, #1d4ed8, #163ea9);
+    color: white;
+    padding: 32px 20px;
+    border-radius: 14px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
+
+.map-tile .icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    opacity: 0.95;
+}
+
+.map-tile:hover {
+    background: linear-gradient(135deg, #163ea9, #102f7f);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    color: white;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .map-tiles {
+        gap: 14px;
+        padding: 0;
     }
-    .map-card i { font-size: 2rem; color: #3498db; margin-bottom: 12px; }
-    .map-card h5 { color: #34495e; font-size: 1rem; font-weight: 700; margin: 0; }
-    .map-card:hover { transform: scale(1.05); border-color: #3498db; background: #f0f7ff; }
 
-    @media (max-width: 768px) {
-        .map-header {
-            margin: 10px 0 24px;
-        }
-
-        .map-header h2 {
-            font-size: 1.45rem;
-            line-height: 1.2;
-        }
-
-        .map-grid {
-            gap: 14px;
-        }
-
-        .map-card {
-            padding: 18px 14px;
-            border-radius: 12px;
-        }
-
-        .map-card i {
-            font-size: 1.7rem;
-            margin-bottom: 10px;
-        }
-
-        .map-card h5 {
-            font-size: 0.98rem;
-        }
+    .map-tile {
+        min-height: 132px;
+        padding: 22px 16px;
+        font-size: 1rem;
+        border-radius: 12px;
     }
+
+    .map-tile .icon {
+        font-size: 34px;
+        margin-bottom: 10px;
+    }
+}
 </style>
 
-<div class="map-header">
-    <h2><i class="fas fa-map-marked-alt mr-2"></i> Atlas Świata</h2>
-</div>
-
-<div class="map-grid">
-    {% for path, label in [('mapy_swiata','Mapy Świata'), ('mapy_kao','Mapy Kao'), ('mapy_beifa','Mapy Beify'), 
-                           ('mapy_anzinia','Mapy Anzinii'), ('mapy_peryfa','Mapy Peryfy'), 
-                           ('mapy_wyspy_wieksze','Wyspy Większe'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze')] %}
-    <a href="{{ url_for(path) }}" class="map-card">
-        <i class="fas fa-map"></i>
-        <h5>{{ label }}</h5>
+<div class="map-tiles">
+    {% for path, label, icon in [('mapy_swiata','Mapy Świata','fas fa-globe-europe'), ('mapy_kao','Mapy Kao','fas fa-mountain'), ('mapy_beifa','Mapy Beify','fas fa-water'), ('mapy_anzinia','Mapy Anzinii','fas fa-compass'), ('mapy_peryfa','Mapy Peryfy','fas fa-route'), ('mapy_wyspy_wieksze','Wyspy Większe','fas fa-umbrella-beach'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','fas fa-map-signs')] %}
+    <a href="{{ url_for(path) }}" class="map-tile">
+        <div class="icon"><i class="{{ icon }}"></i></div>
+        {{ label }}
     </a>
     {% endfor %}
 </div>
+
 {% endblock %}
