@@ -3,51 +3,51 @@
 
 {% block content %}
 <style>
-.module-header { text-align: center; margin-bottom: 40px; }
+    .module-header { text-align: center; margin-bottom: 40px; }
 
-.zeus-grid-tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 10px;
-}
+    .zeus-grid-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 10px;
+    }
 
-.tile-card {
-    background: #ffffff;
-    border: 1px solid #e1e5ea;
-    border-radius: 16px;
-    padding: 30px 20px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
-}
+    .tile-card {
+        background: #ffffff;
+        border: 1px solid #e1e5ea;
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
+    }
 
-.tile-card i {
-    font-size: 2.5rem;
-    color: #ff8c2b;
-    margin-bottom: 15px;
-    transition: transform 0.3s ease;
-}
+    .tile-card i {
+        font-size: 2.5rem;
+        color: #ff8c2b;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
 
-.tile-card h5 { font-weight: 700; margin-bottom: 8px; }
-.tile-card span { font-size: 0.85rem; color: #94a3b8; }
+    .tile-card h5 { font-weight: 700; margin-bottom: 8px; }
+    .tile-card span { font-size: 0.85rem; color: #94a3b8; }
 
-.tile-card:hover {
-    transform: translateY(-5px);
-    border-color: #ff8c2b;
-    box-shadow: 0 12px 20px -5px rgba(255,140,43,0.25);
-}
-.tile-card:hover i { transform: scale(1.1); }
+    .tile-card:hover {
+        transform: translateY(-5px);
+        border-color: #ff8c2b;
+        box-shadow: 0 12px 20px -5px rgba(255,140,43,0.25);
+    }
+    .tile-card:hover i { transform: scale(1.1); }
 
-.tile-locked { background: #f8fafc; opacity: 0.7; cursor: not-allowed; }
-.tile-locked i { color: #94a3b8; }
+    .tile-locked { background: #f8fafc; opacity: 0.7; cursor: not-allowed; }
+    .tile-locked i { color: #94a3b8; }
 </style>
 
 <div class="module-header">
     <h2><i class="fas fa-globe-europe mr-2"></i> Dyplomacja</h2>
-    <p>Relacje, sojusze i organizacje międzynarodowe.</p>
+    <p>Relacje międzynarodowe i układ sił.</p>
 </div>
 
 <div class="zeus-grid-tiles">
@@ -61,19 +61,13 @@
     <a href="{{ url_for('dyplomacja_sojusze') }}" class="tile-card">
         <i class="fas fa-handshake"></i>
         <h5>Sojusze</h5>
-        <span>Bloki i układy.</span>
+        <span>Bloki i układy międzynarodowe.</span>
     </a>
 
-    <a href="{{ url_for('organizacje_list') }}" class="tile-card">
+    <div class="tile-card tile-locked">
         <i class="fas fa-landmark"></i>
         <h5>Organizacje</h5>
-        <span>Organizacje międzynarodowe.</span>
-    </a>
-
-    <div class="tile-card tile-locked" onclick="zeusToast('Ta opcja nie jest jeszcze dostępna');">
-        <i class="fas fa-fist-raised"></i>
-        <h5>Konflikty</h5>
-        <span>Moduł w budowie.</span>
+        <span>Instytucje międzynarodowe.</span>
     </div>
 
 </div>

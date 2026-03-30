@@ -1,9 +1,11 @@
 {% extends 'base_layout.html' %}
-{% block title %}Dyplomacja{% endblock %}
+{% block title %}Gospodarka{% endblock %}
 
 {% block content %}
 <style>
     .module-header { text-align: center; margin-bottom: 40px; }
+    .module-header h2 { font-weight: 800; color: var(--zeus-dark); letter-spacing: -1px; }
+    .module-header p { color: #64748b; font-size: 1rem; }
 
     .zeus-grid-tiles {
         display: grid;
@@ -18,6 +20,7 @@
         border-radius: 16px;
         padding: 30px 20px;
         text-align: center;
+        text-decoration: none !important;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -26,7 +29,7 @@
 
     .tile-card i {
         font-size: 2.5rem;
-        color: #ff8c2b;
+        color: #2c73d2;
         margin-bottom: 15px;
         transition: transform 0.3s ease;
     }
@@ -36,38 +39,29 @@
 
     .tile-card:hover {
         transform: translateY(-5px);
-        border-color: #ff8c2b;
-        box-shadow: 0 12px 20px -5px rgba(255,140,43,0.25);
+        border-color: #2c73d2;
+        box-shadow: 0 12px 20px -5px rgba(44,115,210,0.2);
     }
     .tile-card:hover i { transform: scale(1.1); }
-
-    .tile-locked { background: #f8fafc; opacity: 0.7; cursor: not-allowed; }
-    .tile-locked i { color: #94a3b8; }
 </style>
 
 <div class="module-header">
-    <h2><i class="fas fa-globe-europe mr-2"></i> Dyplomacja</h2>
-    <p>Relacje międzynarodowe i układ sił.</p>
+    <h2><i class="fas fa-chart-line mr-2"></i> Gospodarka</h2>
+    <p>Dane ekonomiczne, analiza i rozwój państw.</p>
 </div>
 
 <div class="zeus-grid-tiles">
 
-    <a href="{{ url_for('dyplomacja_list') }}" class="tile-card">
-        <i class="fas fa-globe"></i>
-        <h5>Relacje</h5>
-        <span>Stosunki między państwami.</span>
+    <a href="{{ url_for('gospodarka_list') }}" class="tile-card">
+        <i class="fas fa-coins"></i>
+        <h5>Dane gospodarcze</h5>
+        <span>Przegląd wskaźników ekonomicznych państw.</span>
     </a>
 
-    <a href="{{ url_for('dyplomacja_sojusze') }}" class="tile-card">
-        <i class="fas fa-handshake"></i>
-        <h5>Sojusze</h5>
-        <span>Bloki i układy międzynarodowe.</span>
-    </a>
-
-    <div class="tile-card tile-locked">
-        <i class="fas fa-landmark"></i>
-        <h5>Organizacje</h5>
-        <span>Instytucje międzynarodowe.</span>
+    <div class="tile-card" onclick="zeusToast('Moduł w budowie')">
+        <i class="fas fa-balance-scale"></i>
+        <h5>Porównanie</h5>
+        <span>Analiza i zestawienie gospodarek.</span>
     </div>
 
 </div>
