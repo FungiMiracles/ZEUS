@@ -482,6 +482,30 @@ main.container {
         font-size: 0.85rem;
         padding: 6px 12px;
         border-radius: 10px;
+    }
+}
+
+/* =====================================================
+   🔥 FINAL MOBILE FIX — KAFELKI
+===================================================== */
+@media (max-width: 768px) {
+
+    body .cards-container,
+    body .gosp-tiles {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        width: 100% !important;
+    }
+
+    body .card,
+    body .gosp-tile {
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+    }
+
+}
 </style>
 
 </head>
