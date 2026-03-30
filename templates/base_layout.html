@@ -279,12 +279,20 @@ main.container {
             <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}">
         </a>
 
-        {% if session.rola %}
-        <div class="zeus-role">
-            Rola: <strong>{{ session.rola|capitalize }}</strong> |
-            <a href="{{ url_for('wejscie') }}">Zmień</a>
+        <div>
+            {% if session.rola %}
+            <div class="zeus-role">
+                Rola: <strong>{{ session.rola|capitalize }}</strong> |
+                <a href="{{ url_for('wejscie') }}">Zmień</a>
+            </div>
+            {% endif %}
+
+            <div class="zeus-versions-link">
+                <a href="{{ url_for('zeus_versions') }}">
+                    ⓘ Informacje o zmianach
+                </a>
+            </div>
         </div>
-        {% endif %}
     </div>
 
     <!-- NEWS -->
