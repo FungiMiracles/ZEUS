@@ -26,9 +26,9 @@ body {
 ===================================================== */
 .zeus-topbar {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
 }
 
 .zeus-left {
@@ -92,25 +92,25 @@ body {
    NEWS BAR — POPRAWIONA
 ===================================================== */
 .news-bar {
-    background: #0b1f3a;
+    width: 100%;
+    min-width: 0;          /* 🔥 KLUCZOWE dla scrolla */
     overflow: hidden;
+
+    background: #0b1f3a;
     height: 36px;
     display: flex;
     align-items: center;
-    border-radius: 10px;
-    padding: 0 10px;
-}
 
-.news-bar {
-    flex: 1;
-    max-width: 640px;
-    margin: 0 24px;
+    border-radius: 10px;
+    padding: 0 12px;
 }
 
 .news-track {
     display: inline-block;
     white-space: nowrap;
-    animation: scrollNews 130s linear infinite;
+
+    padding-left: 100%;
+    animation: scrollNews 80s linear infinite;
 }
 
 /* ⛔ PAUZA NA HOVER */
@@ -120,13 +120,38 @@ body {
 
 .news-item {
     display: inline-block;
-    margin-right: 60px;
+    margin-right: 50px;
+
     color: #e6ecff;
     font-size: 14px;
 
     background: rgba(255,255,255,0.05);
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 10px;
+}
+
+.news-bar::before,
+.news-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    z-index: 2;
+}
+
+.news-bar::before {
+    left: 0;
+    background: linear-gradient(to right, #0b1f3a, transparent);
+}
+
+.news-bar::after {
+    right: 0;
+    background: linear-gradient(to left, #0b1f3a, transparent);
+}
+
+.news-bar {
+    position: relative;
 }
 
 /* 🔥 DATA */
