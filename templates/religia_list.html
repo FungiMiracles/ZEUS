@@ -251,6 +251,49 @@
     background: transparent;
 }
 
+.btn-zeus {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* PRIMARY (Szukaj, Wyświetl, Edytuj) */
+.btn-zeus-primary {
+    background: linear-gradient(135deg, #5f6fff, #9a7cff);
+    color: white;
+    box-shadow:
+        0 0 15px rgba(140, 160, 255, 0.9),
+        0 0 28px rgba(140, 160, 255, 0.5);
+}
+
+.btn-zeus-primary:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 0 28px rgba(180, 200, 255, 1),
+        0 0 50px rgba(180, 200, 255, 0.7);
+}
+
+/* DANGER (Usuń) */
+.btn-zeus-danger {
+    background: linear-gradient(135deg, #a34a4a, #ff6a6a);
+    color: white;
+    box-shadow:
+        0 0 15px rgba(255, 120, 120, 0.6),
+        0 0 28px rgba(255, 120, 120, 0.35);
+}
+
+.btn-zeus-danger:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 0 25px rgba(255, 150, 150, 0.8),
+        0 0 45px rgba(255, 120, 120, 0.5);
+}
+
 /* == WIDOK MOBILNY == */
 
 @media (max-width: 768px) {
@@ -414,7 +457,7 @@
         <!-- ===== PRZYCISKI ===== -->
         <div class="religia-filters-buttons">
 
-            <button type="submit" class="religia-view-btn">
+            <button type="submit" class="btn-zeus btn-zeus-primary">
                 Szukaj
             </button>
 
@@ -467,14 +510,14 @@
                 <td style="text-align:right; white-space:nowrap;">
 
                     <a href="{{ url_for('religia_form', religia_id=r.religia_id) }}"
-                    class="religia-view-btn">
+                    class="btn-zeus btn-zeus-primary">
                         Wyświetl
                     </a>
                     
                 {% if session.rola == "wszechmocny" %}
 
                     <a href="{{ url_for('religia_edit', religia_id=r.religia_id) }}"
-                    class="religia-view-btn"
+                    class="btn-zeus btn-zeus-primary"
                     style="margin-left:8px;">
                         Edytuj
                     </a>
@@ -485,7 +528,7 @@
                         onsubmit="return confirm('Czy na pewno chcesz usunąć tę religię?');">
 
                         <button type="submit"
-                                class="religia-view-btn"
+                                class="btn-zeus btn-zeus-danger"
                                 style="background:linear-gradient(135deg,#a34a4a,#ff6a6a);">
                             Usuń
                         </button>
@@ -495,14 +538,14 @@
                 {% else %}
 
                     <a href="#"
-                    class="religia-view-btn"
+                    class="btn-zeus btn-zeus-primary"
                     style="margin-left:8px;"
                     onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję'); return false;">
                         Edytuj
                     </a>
 
                     <button type="button"
-                            class="religia-view-btn"
+                            class="btn-zeus btn-zeus-danger"
                             style="margin-left:8px; background:linear-gradient(135deg,#a34a4a,#ff6a6a);"
                             onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                         Usuń

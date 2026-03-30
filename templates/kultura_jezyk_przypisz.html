@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
         panstwo.disabled = true;
         panstwo.innerHTML = "<option>Ładowanie...</option>";
 
-        fetch(`/api/kultura/panstwa_by_kontynent?kontynent=${encodeURIComponent(kontynent.value)}`)
+        fetch(`/api/kultura/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent.value)}`)
             .then(r => r.json())
             .then(data => {
                 panstwo.disabled = false;

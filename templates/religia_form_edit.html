@@ -124,11 +124,11 @@
         <!-- TYP -->
         <div class="religia-form-group">
             <label>Typ religii</label>
-            <select name="religia_typ">
-                {% for t in ["monoteistyczna","politeistyczna","henoteistyczna","panteistyczna","nonteistyczna"] %}
-                    <option value="{{ t }}"
-                        {% if religia.religia_typ == t %}selected{% endif %}>
-                        {{ t }}
+            <select name="religia_typ_id" required>
+                {% for t in religia_typy %}
+                    <option value="{{ t.religia_typ_id }}"
+                        {% if religia.religia_typ_id == t.religia_typ_id %}selected{% endif %}>
+                        {{ t.nazwa }}
                     </option>
                 {% endfor %}
             </select>

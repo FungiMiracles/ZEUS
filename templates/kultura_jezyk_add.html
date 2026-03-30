@@ -173,10 +173,14 @@ Kultura — Dodaj język
                 <input name="jezyk_kod" maxlength="2" style="text-transform: uppercase;">
             </div>
 
-           <div class="form-row">
-                <label>Rodzina językowa</label>
-                <input name="jezyk_rodzina" placeholder="np. indoeuropejska, uralska, tungijska">
-           </div>
+           <select name="jezyk_rodzina_id" required>
+                <option value="">— wybierz —</option>
+                {% for r in rodziny %}
+                    <option value="{{ r.jezyk_rodzina_id }}">
+                        {{ r.nazwa }}
+                    </option>
+                {% endfor %}
+            </select>
 
             <!-- PRZYKŁAD PL -->
             <div class="form-row">

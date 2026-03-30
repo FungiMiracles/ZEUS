@@ -1,4 +1,4 @@
-import random
+﻿import random
 from datetime import datetime, timedelta
 from engine.clock import get_current_entenda_date, ENTENDA_START
 from sqlalchemy import extract, func
@@ -73,13 +73,13 @@ def generate_events():
 
         generated_total += created
 
-        # przejdź do następnego miesiąca
+        # przejdĹş do nastÄ™pnego miesiÄ…ca
         if current_month.month == 12:
             current_month = datetime(current_month.year + 1, 1, 1)
         else:
             current_month = datetime(current_month.year, current_month.month + 1, 1)
 
-    print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
+    print(f"[ZEUS] wygenerowano {generated_total} zdarzeĹ„")
 
     return generated_total
 
@@ -92,7 +92,7 @@ def apply_global_regeneration():
 
     db.session.commit()
 
-    print("[ZEUS] wykonano roczną regenerację infrastruktury")
+    print("[ZEUS] wykonano rocznÄ… regeneracjÄ™ infrastruktury")
 
 def apply_yearly_regeneration_if_needed(current_date):
 
@@ -201,10 +201,10 @@ def random_day_in_month(month_date):
 
     current_entenda = get_current_entenda_date()
 
-    # liczba dni w miesiącu
+    # liczba dni w miesiÄ…cu
     days = calendar.monthrange(month_date.year, month_date.month)[1]
 
-    # jeżeli to bieżący miesiąc symulacji
+    # jeĹĽeli to bieĹĽÄ…cy miesiÄ…c symulacji
     if month_date.year == current_entenda.year and month_date.month == current_entenda.month:
         max_day = current_entenda.day
     else:
@@ -755,14 +755,14 @@ def try_generate_heatwave(region, target_date):
 
 def try_generate_wildfire(region, target_date):
 
-    # 1. Warunek: region leśny
+    # 1. Warunek: region leĹ›ny
     if not (
-        region.region_typ_nadrzedny == 8 or
-        region.region_typ_podrzedny == 17
+        region.region_typ_nadrz_id == 8 or
+        region.region_typ_podrz_id == 17
     ):
         return None
 
-    # 2. Warunek: czy w tym miesiącu był upał skala 4 lub 5
+    # 2. Warunek: czy w tym miesiÄ…cu byĹ‚ upaĹ‚ skala 4 lub 5
     heatwave = (
         db.session.query(Zdarzenie)
         .filter(Zdarzenie.region_id == region.region_id)
@@ -781,7 +781,7 @@ def try_generate_wildfire(region, target_date):
     if cooldown_block("pozar_lasu", region.region_id, target_date):
         return None
 
-    # 4. Prawdopodobieństwo (możesz dostroić później)
+    # 4. PrawdopodobieĹ„stwo (moĹĽesz dostroiÄ‡ pĂłĹşniej)
     prob = 0.0015
 
     if random.random() > prob:
@@ -791,7 +791,7 @@ def try_generate_wildfire(region, target_date):
     victims = 0
     scale = heatwave.skala
 
-    # 6. Miasto (Twój nowy standard)
+    # 6. Miasto (TwĂłj nowy standard)
     miasto = get_random_valid_city(region.region_id)
 
     if not miasto:
@@ -823,7 +823,7 @@ def try_generate_building_fire(region, target_date):
     if cooldown_block("pozar_budynku", region.region_id, target_date):
         return None
 
-    # skala + prawdopodobieństwo + ofiary
+    # skala + prawdopodobieĹ„stwo + ofiary
     if infra > 80:
         prob = 0.0010
         scale = 1
@@ -854,7 +854,7 @@ def try_generate_building_fire(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    # miasto (Twój standard)
+    # miasto (TwĂłj standard)
     miasto = get_random_valid_city(region.region_id)
 
     if not miasto:
@@ -883,7 +883,7 @@ def try_generate_power_outage(region, target_date):
     if cooldown_block("przerwa_w_dost_prod", region.region_id, target_date):
         return None
 
-    # skala + prawdopodobieństwo + ofiary
+    # skala + prawdopodobieĹ„stwo + ofiary
     if infra > 80:
         prob = 0.000
         scale = 1
@@ -919,7 +919,7 @@ def try_generate_power_outage(region, target_date):
     if not miasto:
         return None
 
-    # ❗ brak miasta — to event regionalny
+    # âť— brak miasta â€” to event regionalny
     return Zdarzenie(
         zdarzenie_typ="przerwa_w_dost_prod",
         panstwo_id=region.panstwo_id,

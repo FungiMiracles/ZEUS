@@ -444,6 +444,15 @@ class Jezyk(db.Model):
     przyklad_polski = db.Column(db.Text)
     przyklad_docelowy = db.Column(db.Text)
 
+    jezyk_id = db.Column(db.Integer, primary_key=True)
+
+    jezyk_rodzina_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_jezyk_rodzina.jezyk_rodzina_id")
+    )
+
+    jezyk_rodzina = db.relationship("DictJezykRodzina")
+
     opis = db.Column(db.Text)
 
     def __repr__(self):
@@ -524,6 +533,15 @@ class Religia(db.Model):
 
     religia_obraz = deferred(db.Column(db.LargeBinary))
     religia_obraz_mime = db.Column(db.String(100))
+
+    religia_id = db.Column(db.Integer, primary_key=True)
+
+    religia_typ_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_religia_typ.religia_typ_id")
+    )
+
+    religia_typ = db.relationship("DictReligiaTyp")
 
     # Self-FK: religia nadrzędna (NULL = religia główna)
     religia_nadrzedna_id = db.Column(
@@ -787,3 +805,16 @@ class DictStosunkiStan(db.Model):
 
     stan_id = db.Column(db.Integer, primary_key=True)
     stan_nazwa = db.Column(db.String(50), nullable=False)
+
+class DictReligiaTyp(db.Model):
+    __tablename__ = "dict_religia_typ"
+
+    religia_typ_id = db.Column(db.Integer, primary_key=True)
+    nazwa = db.Column(db.String(100), unique=True, nullable=False)
+
+
+class DictJezykRodzina(db.Model):
+    __tablename__ = "dict_jezyk_rodzina"
+
+    jezyk_rodzina_id = db.Column(db.Integer, primary_key=True)
+    nazwa = db.Column(db.String(100), unique=True, nullable=False)
