@@ -125,6 +125,61 @@ textarea {
     background: #600101;
     color: #600101;
 }
+
+@media (max-width: 768px) {
+    .org-container {
+        margin: 16px auto;
+        padding-bottom: 24px;
+    }
+
+    .header {
+        margin: 12px 0 20px 0;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .section-box {
+        padding: 16px 14px;
+        border-radius: 10px;
+    }
+
+    .section-box h2 {
+        font-size: 1.05rem;
+    }
+
+    .section-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .section-grid input,
+    .section-grid select,
+    textarea {
+        font-size: 16px;
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+
+    .action-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-row .btn,
+    .action-row a {
+        width: 100%;
+    }
+
+    .action-row .btn {
+        width: 100%;
+    }
+}
 </style>
 
 <div class="org-container">

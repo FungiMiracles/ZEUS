@@ -196,6 +196,70 @@
     position: static !important;
 }
 
+@media (max-width: 768px) {
+    .form-container {
+        margin: 18px auto;
+        padding: 18px 14px;
+        border-radius: 10px;
+    }
+
+    .form-container h2 {
+        font-size: 1.35rem;
+        margin-bottom: 16px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px;
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+    }
+
+    .country-section {
+        padding-top: 10px;
+    }
+
+    .country-title {
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+    }
+
+    .country-list {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .country-item {
+        padding: 6px 4px;
+        font-size: 0.95rem;
+        align-items: flex-start !important;
+    }
+
+    .country-item:hover {
+        padding: 6px 4px;
+    }
+
+    .country-item label {
+        line-height: 1.35;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions .btn,
+    .form-actions a {
+        width: 100%;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
 </style>
 
 <div class="form-container">

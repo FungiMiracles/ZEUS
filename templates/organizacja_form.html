@@ -198,6 +198,86 @@ textarea {
 .btn-restore:hover {
     background: #1f5bb5;
 }
+
+@media (max-width: 768px) {
+    .org-container {
+        margin: 16px auto;
+        padding-bottom: 24px;
+    }
+
+    .header {
+        margin: 12px 0 20px 0;
+    }
+
+    .header h1 {
+        font-size: 1.45rem;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .section-box {
+        padding: 16px 14px;
+        border-radius: 10px;
+    }
+
+    .section-box h2 {
+        font-size: 1.05rem;
+    }
+
+    .section-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .org-member {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 0;
+    }
+
+    .flag-region {
+        height: 24px;
+    }
+
+    .member-name,
+    .member-status {
+        width: calc(100% - 36px);
+    }
+
+    .member-actions {
+        margin-left: 0;
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .member-actions form,
+    .member-actions .btn-action {
+        width: 100%;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .action-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-row .btn,
+    .action-row a {
+        width: 100%;
+    }
+
+    .action-row .btn {
+        width: 100%;
+    }
+}
 </style>
 
 <div class="org-container">
