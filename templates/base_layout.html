@@ -25,12 +25,10 @@ body {
    TOP BAR
 ===================================================== */
 .zeus-topbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 28px;
-    background: #ffffff;
-    border-bottom: 1px solid #dcdcdc;
+    gap: 24px;
 }
 
 .zeus-left {
@@ -103,10 +101,16 @@ body {
     padding: 0 10px;
 }
 
+.news-bar {
+    flex: 1;
+    max-width: 640px;
+    margin: 0 24px;
+}
+
 .news-track {
     display: inline-block;
     white-space: nowrap;
-    animation: scrollNews 220s linear infinite;
+    animation: scrollNews 130s linear infinite;
 }
 
 /* ⛔ PAUZA NA HOVER */
@@ -280,7 +284,7 @@ main.container {
         </a>
 
         <div class="entenda-clock">
-            {{ ENTENDA_MONTH }}.{{ ENTENDA_YEAR }}
+            {{ ENTENDA_MONTH|int }}.{{ ENTENDA_YEAR }}
         </div>
 
     </div>
