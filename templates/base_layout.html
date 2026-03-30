@@ -19,6 +19,21 @@ body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: #f6f8fb;
     color: #2c3e50;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
 }
 
 /* =====================================================
@@ -194,6 +209,8 @@ main.container {
     max-width: 1600px;
     margin: 30px auto;
     width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 /* =====================================================
@@ -318,16 +335,24 @@ main.container {
 ===================================================== */
 @media (max-width: 768px) {
 
+    body {
+        overflow-x: hidden;
+    }
+
     /* TOPBAR */
     .zeus-topbar {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        padding: 12px 12px 0;
     }
 
     .zeus-left {
         justify-content: center;
         text-align: center;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
     }
 
     .zeus-logo img {
@@ -342,6 +367,7 @@ main.container {
     .news-bar {
         height: 32px;
         border-radius: 8px;
+        order: 3;
     }
 
     .news-item {
@@ -357,6 +383,8 @@ main.container {
     .entenda-clock-wrapper {
         justify-content: center;
         gap: 10px;
+        width: 100%;
+        order: 2;
     }
 
     .entenda-clock {
@@ -381,27 +409,81 @@ main.container {
         border-radius: 10px;
     }
 
+    main.container {
+        margin: 20px auto;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
     /* CARDS */
     .cards-container,
     .gosp-tiles,
+    .art-tiles,
+    .demo-tiles,
+    .dyp-tiles,
+    .nature-tiles,
+    .info-tiles,
+    .kult-tiles,
+    .pliki-tiles,
+    .religia-tiles,
+    .zeus-grid-tiles,
+    .army-grid,
+    .map-grid,
     body .cards-container,
-    body .gosp-tiles {
-        display: flex !important;
-        flex-direction: column !important;
+    body .gosp-tiles,
+    body .art-tiles,
+    body .demo-tiles,
+    body .dyp-tiles,
+    body .nature-tiles,
+    body .info-tiles,
+    body .kult-tiles,
+    body .pliki-tiles,
+    body .religia-tiles,
+    body .zeus-grid-tiles,
+    body .army-grid,
+    body .map-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
         gap: 16px !important;
         width: 100% !important;
-        padding: 0 10px;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
     .card,
     .gosp-tile,
+    .art-tile,
+    .demo-tile,
+    .dyp-tile,
+    .nature-tile,
+    .info-tile,
+    .kult-tile,
+    .pliki-tile,
+    .religia-tile,
+    .tile-card,
+    .army-tile,
+    .map-card,
     body .card,
-    body .gosp-tile {
+    body .gosp-tile,
+    body .art-tile,
+    body .demo-tile,
+    body .dyp-tile,
+    body .nature-tile,
+    body .info-tile,
+    body .kult-tile,
+    body .pliki-tile,
+    body .religia-tile,
+    body .tile-card,
+    body .army-tile,
+    body .map-card {
         width: 100% !important;
         max-width: none !important;
         flex: none !important;
         padding: 16px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        min-height: unset !important;
     }
 
     .card img {
@@ -410,7 +492,17 @@ main.container {
     }
 
     .card h3,
-    .gosp-tile h4 {
+    .gosp-tile h4,
+    .art-tile h4,
+    .demo-tile h4,
+    .dyp-tile h4,
+    .nature-tile h4,
+    .info-tile h4,
+    .kult-tile h4,
+    .pliki-tile h4,
+    .religia-tile h4,
+    .map-card h5,
+    .tile-card h5 {
         font-size: 1.05rem;
     }
 
@@ -432,7 +524,18 @@ main.container {
     }
 
     .card:hover,
-    .gosp-tile:hover {
+    .gosp-tile:hover,
+    .art-tile:hover,
+    .demo-tile:hover,
+    .dyp-tile:hover,
+    .nature-tile:hover,
+    .info-tile:hover,
+    .kult-tile:hover,
+    .pliki-tile:hover,
+    .religia-tile:hover,
+    .tile-card:hover,
+    .army-tile:hover,
+    .map-card:hover {
         transform: none;
     }
 }
