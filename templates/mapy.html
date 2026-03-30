@@ -21,7 +21,7 @@
 }
 
 .map-tile {
-    background: linear-gradient(135deg, #1d4ed8, #163ea9);
+    background: linear-gradient(135deg, #2578d8, #1259aa);
     color: white;
     padding: 32px 20px;
     border-radius: 14px;
@@ -74,7 +74,7 @@
 </style>
 
 <div class="map-tiles">
-    {% for path, label, icon in [('mapy_swiata','Mapy Świata','🌍'), ('mapy_kao','Mapy Kao','🗺️'), ('mapy_beifa','Mapy Beify','🌊'), ('mapy_anzinia','Mapy Anzinii','🧭'), ('mapy_peryfa','Mapy Peryfy','📍'), ('mapy_wyspy_wieksze','Wyspy Większe','🏝️'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','🧩')] %}
+    {% for path, label, icon in [('mapy_swiata','Mapy Świata','🌍'), ('mapy_kao','Mapy Kao','🌍'), ('mapy_beifa','Mapy Beify','🌍'), ('mapy_anzinia','Mapy Anzinii','🌍'), ('mapy_peryfa','Mapy Peryfy','🌍'), ('mapy_wyspy_wieksze','Wyspy Większe','🌍'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','🌍')] %}
     <a href="{{ url_for(path) }}" class="map-tile">
         <div class="icon">{{ icon }}</div>
         {{ label }}
