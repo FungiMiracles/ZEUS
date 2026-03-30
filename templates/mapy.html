@@ -14,6 +14,35 @@
     .map-card i { font-size: 2rem; color: #3498db; margin-bottom: 12px; }
     .map-card h5 { color: #34495e; font-size: 1rem; font-weight: 700; margin: 0; }
     .map-card:hover { transform: scale(1.05); border-color: #3498db; background: #f0f7ff; }
+
+    @media (max-width: 768px) {
+        .map-header {
+            margin: 10px 0 24px;
+        }
+
+        .map-header h2 {
+            font-size: 1.45rem;
+            line-height: 1.2;
+        }
+
+        .map-grid {
+            gap: 14px;
+        }
+
+        .map-card {
+            padding: 18px 14px;
+            border-radius: 12px;
+        }
+
+        .map-card i {
+            font-size: 1.7rem;
+            margin-bottom: 10px;
+        }
+
+        .map-card h5 {
+            font-size: 0.98rem;
+        }
+    }
 </style>
 
 <div class="map-header">

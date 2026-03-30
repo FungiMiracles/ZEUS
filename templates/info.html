@@ -11,20 +11,8 @@ Informacje
 
 
 <!-- ===================== BLOK TEKSTU Z .MD ===================== -->
-<div style="
-    max-width: 1200px;
-    margin: 40px auto 20px auto;
-    padding: 30px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    font-size: 18px;
-    line-height: 1.6;
-">
-    <pre style="
-        white-space: pre-wrap;
-        font-family: 'Segoe UI', Tahoma, sans-serif;
-    ">{{ info_text }}</pre>
+<div class="info-content">
+    <pre class="info-pre">{{ info_text }}</pre>
 </div>
 
 
@@ -74,6 +62,52 @@ Informacje
     transform: translateY(-5px) scale(1.03);
     box-shadow: 0 8px 18px rgba(0,0,0,0.18);
     color: #333;
+}
+
+.info-content {
+    max-width: 1200px;
+    margin: 40px auto 20px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.info-pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+@media (max-width: 768px) {
+    .info-content {
+        margin: 24px auto 18px auto;
+        padding: 18px 14px;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+
+    .info-tiles {
+        gap: 14px;
+        padding: 0;
+        margin-bottom: 36px;
+    }
+
+    .info-tile {
+        min-height: 96px;
+        padding: 18px 14px;
+        font-size: 0.95rem;
+        border-radius: 10px;
+    }
+
+    .info-tile .icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
 }
 </style>
 
