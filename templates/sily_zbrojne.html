@@ -1,113 +1,109 @@
 {% extends 'base_layout.html' %}
 {% block title %}Siły zbrojne{% endblock %}
-
 {% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="margin-left: auto; text-align: center; margin-top:15px; font-size: 22px; font-weight: 700;">
+    Siły zbrojne
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+
+
 <style>
-    .module-header {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-    .module-header h2 {
-        font-weight: 800;
-        color: var(--zeus-dark);
-        letter-spacing: -1px;
-    }
-    .module-header p { color: #64748b; font-size: 1rem; }
+/* ============================================
+   ZEUS – Siły zbrojne (kafelki)
+============================================ */
 
-    .zeus-grid-tiles {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-        padding: 10px;
-    }
+.army-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
 
-    .tile-card {
-        background: #ffffff;
-        border: 1px solid #e1e5ea;
-        border-radius: 16px;
-        padding: 30px 20px;
-        text-align: center;
-        text-decoration: none !important;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-    }
+/* GRID KAFELKÓW */
+.army-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 22px;
+    padding: 10px;
+}
 
-    /* Akcent dla armii (czerwony) */
-    .tile-card i {
-        font-size: 2.5rem;
-        color: #c0392b;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
-    }
+/* KAFELKI */
+.army-tile {
+    background: linear-gradient(135deg, #c0392b, #a72f22);
+    color: white;
+    padding: 28px 22px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-size: 1.15em;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    transition: 0.25s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 150px;
+    position: relative;
+    overflow: hidden;
+}
 
-    .tile-card h5 {
-        color: var(--zeus-dark);
-        font-weight: 700;
-        margin-bottom: 8px;
-        font-size: 1.1rem;
-    }
+/* IKONY W KAFELKU */
+.army-tile .icon {
+    font-size: 40px;
+    margin-bottom: 14px;
+    opacity: 0.9;
+}
 
-    .tile-card span {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        line-height: 1.4;
-    }
+/* HOVER — wojskowy, mocniejszy */
+.army-tile:hover {
+    background: linear-gradient(135deg, #96281b, #7b1f16);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    color: white;
+    text-decoration: none;
+}
 
-    .tile-card:hover {
-        transform: translateY(-5px);
-        border-color: #c0392b;
-        box-shadow: 0 12px 20px -5px rgba(192, 57, 43, 0.25);
-    }
-
-    .tile-card:hover i {
-        transform: scale(1.1);
-    }
-
-    .tile-locked {
-        background: #f8fafc;
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-    .tile-locked i { color: #94a3b8; }
 </style>
 
-<div class="module-header">
-    <h2><i class="fas fa-shield-alt mr-2"></i> Siły zbrojne</h2>
-    <p>Analiza potencjału militarnego, zasobów i porównania państw.</p>
-</div>
 
-<div class="zeus-grid-tiles">
+<div class="army-container">
 
-    <a href="{{ url_for('sily_zbrojne_list') }}" class="tile-card">
-        <i class="fas fa-shield-alt"></i>
-        <h5>Zasoby wojskowe</h5>
-        <span>Przegląd potencjału militarnego wszystkich państw.</span>
-    </a>
+    <div class="army-grid">
 
-    <a href="{{ url_for('porownywarka_panstw') }}" class="tile-card">
-        <i class="fas fa-crosshairs"></i>
-        <h5>Porównywarka</h5>
-        <span>Porównuj siłę militarną państw w jednym widoku.</span>
-    </a>
+        <!-- PRZEGLĄD -->
+        <a href="{{ url_for('sily_zbrojne_list') }}" class="army-tile">
+            <div class="icon">🛡️</div>
+            Przeglądaj informacje o zasobach wojskowych państw
+        </a>
 
-    {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-    <a href="{{ url_for('wojsko_form_add') }}" class="tile-card">
-        <i class="fas fa-plus-circle"></i>
-        <h5>Dodaj dane</h5>
-        <span>Wprowadź nowe informacje o zasobach wojskowych.</span>
-    </a>
-    {% else %}
-    <div class="tile-card tile-locked" onclick="zeusToast('Twoja rola nie pozwala na tę akcję')">
-        <i class="fas fa-lock"></i>
-        <h5>Dodaj dane</h5>
-        <span>Funkcja dostępna dla uprawnionych użytkowników.</span>
+        <!-- PORÓWNANIE -->
+        <a href="{{ url_for('porownywarka_panstw') }}" class="army-tile">
+            <div class="icon">⚔️</div>
+            Porównaj zasoby wojskowe państw
+        </a>
+
+
+        <!-- DODAWANIE -->
+
+        {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+
+        <a class="army-tile" href="{{ url_for('wojsko_form_add') }}">
+            <div class="icon">➕</div>
+            Dodaj dane o zasobach wojskowych państw
+        </a>
+
+        {% else %}
+
+        <a class="army-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            <div class="icon">➕</div>
+            Dodaj dane o zasobach wojskowych państw
+        </a>
+
+        {% endif %}
+
     </div>
-    {% endif %}
-
 </div>
 
 {% endblock %}

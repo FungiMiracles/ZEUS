@@ -1,256 +1,308 @@
 {% extends 'base_layout.html' %}
-{% block title %}ZEUS – Centrum Zarządzania{% endblock %}
+{% block title %}ZEUS – Strona główna{% endblock %}
 
 {% block content %}
 
 <style>
 /* ============================================================
-   ZEUS v2 — MODERN ADMIN DASHBOARD
+   ZEUS — STRONA GŁÓWNA (COMPACT ADMIN)
 ============================================================ */
 
-:root {
-    --primary: #5d7dce;
-    --primary-dark: #315eb8;
-    --success: #27ae60;
-    --bg-light: #f4f7f9;
-    --text-main: #2c3e50;
-    --shadow: 0 4px 20px rgba(0,0,0,0.06);
-}
-
 .zeus-home {
-    max-width: 1200px;
-    margin: 20px auto;
-    font-family: "Segoe UI", Roboto, sans-serif;
-    color: var(--text-main);
-    padding: 0 15px;
+    max-width: 1400px;
+    margin: 15px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
 }
 
-/* ===== DASHBOARD STATS ===== */
-.zeus-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 25px;
-}
+/* ===== OPIS ===== */
 
-.stat-card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+.zeus-intro {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    font-size: 0.9em;
+    line-height: 1.4;
     text-align: center;
-    border-bottom: 3px solid var(--primary);
 }
-
-.stat-card span { display: block; font-size: 0.8em; color: #7f8c8d; text-transform: uppercase; }
-.stat-card strong { font-size: 1.6em; color: var(--primary); }
 
 /* ===== SEKCJE ===== */
-.zeus-section { margin-bottom: 35px; }
+
+.zeus-section {
+    margin-bottom: 22px;
+}
 
 .zeus-section h3 {
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 1.05em;
+    font-weight: 800;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e1e5ea;
+    padding-bottom: 4px;
 }
 
-<<<<<<< HEAD
-.zeus-section h3::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #e1e5ea;
-}
+/* ===== GRID ===== */
 
-/* ===== GRID & KARTY ===== */
 .zeus-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 16px;
 }
+
+/* ===== KARTY ===== */
 
 .zeus-card {
     background: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid #d3d7dc;
+    border-radius: 8px;
+    padding: 12px 14px;
 }
 
-.zeus-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+/* ===== IKONY ===== */
+
+.zeus-card .icon {
+    text-align: center;
+    margin-bottom: 6px;
 }
 
-/* ===== IKONY & TYTUŁY ===== */
-.zeus-card .icon { text-align: center; margin-bottom: 15px; }
-.zeus-card .icon img { width: 50px; height: 50px; object-fit: contain; }
-.zeus-card h4 { text-align: center; margin-bottom: 15px; font-size: 1.1em; }
+.zeus-card .icon img {
+    width: 54px;
+    opacity: 0.9;
+}
 
-/* ===== FORMULARZE ===== */
-.zeus-card label { font-size: 0.75em; font-weight: 700; color: #7f8c8d; margin-top: 8px; display: block; }
+/* ===== TYTUŁ ===== */
 
-.zeus-card input, .zeus-card select {
+.zeus-card h4 {
+    text-align: center;
+    font-size: 0.95em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+/* ===== FORM ===== */
+
+.zeus-card label {
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-top: 6px;
+    display: block;
+}
+
+.zeus-card input,
+.zeus-card select {
     width: 100%;
-    padding: 8px 10px;
-    margin-top: 4px;
-    border-radius: 6px;
-    border: 1px solid #dcdde1;
-    background: #fdfdfd;
-    font-size: 0.9em;
-    box-sizing: border-box;
+    padding: 6px 8px;
+    border-radius: 5px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.8em;
 }
-
-.zeus-card input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
 /* ===== BUTTONS ===== */
-.btn-zeus {
-    margin-top: auto;
-    padding: 10px;
-    border-radius: 6px;
+
+.zeus-card button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 7px;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 5px;
     border: none;
-    font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-    text-decoration: none;
-    font-size: 0.9em;
+    color: white;
 }
 
-.btn-search { background: var(--primary); color: white; margin-top: 15px; }
-.btn-search:hover { background: var(--primary-dark); }
+.btn-search { background-color: #5d7dce; }
+.btn-search:hover { background-color: #315eb8; }
 
-.btn-add-card { background: var(--success); color: white; width: 100%; }
-.btn-add-card:hover { background: #1e8749; }
+.btn-add { background-color: #27ae60; }
+.btn-add:hover { background-color: #1e8749; }
 
-.btn-disabled { background: #bdc3c7 !important; cursor: not-allowed; opacity: 0.7; }
-=======
+.btn-disabled {
+    background-color: #95a5a6;
+    opacity: 0.75;
+}
+
+/* ============================================================
+   DODAWANIE — JEDEN UKŁAD DLA WSZYSTKICH RÓL
+============================================================ */
+
+.zeus-add-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 /* ============================================================
    MOBILE / TABLET
 ============================================================ */
->>>>>>> parent of 4c38a03 (Update zeus_home.html)
 
-/* RWD */
-@media (max-width: 992px) { .zeus-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .zeus-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
 
+    .zeus-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .zeus-card {
+        width: 100%;
+    }
+
+    .zeus-card .icon img {
+        width: 48px;
+    }
+
+    .zeus-card input,
+    .zeus-card select {
+        font-size: 0.85em;
+    }
+}
 </style>
 
 <div class="zeus-home">
 
-    <div class="zeus-stats">
-        <div class="stat-card">
-            <span>Państwa</span>
-            <strong>{{ E_WORLD_COUNTRIES }}</strong> </div>
-        <div class="stat-card">
-            <span>Regiony</span>
-            <strong>{{ E_WORLD_REGIONS }}</strong> </div>
-        <div class="stat-card">
-            <span>Miasta</span>
-            <strong>{{ E_WORLD_CITIES }}</strong> </div>
-        <div class="stat-card">
-            <span>Ludność świata</span>
-            <strong>{{ E_WORLD_POP }}</strong> </div>
+    <!-- OPIS -->
+    <div class="zeus-intro">
+        Zeus to system administracyjny, symulacyjny i encyklopedia fikcyjnego świata Entendy.
     </div>
 
+    <!-- ================= WYSZUKIWANIE ================= -->
+
     <div class="zeus-section">
-        <h3><i class="fas fa-search"></i> Wyszukiwanie</h3>
+        <h3>Wyszukiwanie</h3>
+
         <div class="zeus-grid">
-            
+
+            <!-- PAŃSTWA -->
             <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='Wyszukiwarka.png') }}"></div>
+                <div class="icon">
+                    <img src="{{ url_for('static', filename='Wyszukiwarka.png') }}">
+                </div>
                 <h4>Państwa</h4>
+
                 <form action="{{ url_for('wyniki_wyszukiwania') }}" method="GET">
                     <label>Kontynent</label>
-                    <select name="kontynent_id">
-                        <option value="">— Wszystkie —</option>
+                    <select name="kontynent_id" id="kontynentSelect">
+                        <option value="">— brak —</option>
+
                         {% for k in kontynenty %}
-                            <option value="{{ k.kontynent_id }}">{{ k.kontynent_nazwa }}</option>
+                            <option value="{{ k.kontynent_id }}">
+                                {{ k.kontynent_nazwa }}
+                            </option>
                         {% endfor %}
+
                     </select>
-                    
+
                     <label>Nazwa państwa</label>
-                    <input type="text" name="panstwo_nazwa" placeholder="np. Entenda...">
-                    
-                    <button type="submit" class="btn-zeus btn-search">Szukaj Państwa</button>
+                    <input type="text" name="panstwo_nazwa">
+
+                    <label>Kod państwa (ECC)</label>
+                    <input type="text" name="panstwo_kod">
+
+                    <button class="btn-search">Szukaj</button>
                 </form>
             </div>
 
+            <!-- REGIONY -->
             <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='region.png') }}"></div>
+                <div class="icon">
+                    <img src="{{ url_for('static', filename='region.png') }}">
+                </div>
                 <h4>Regiony</h4>
+
                 <form action="{{ url_for('wyniki_wyszukiwania_region') }}" method="GET">
                     <label>Nazwa państwa</label>
-                    <input type="text" name="panstwo_nazwa" placeholder="Szukaj w kraju...">
-                    
+                    <input type="text" name="panstwo_nazwa">
+
                     <label>Nazwa regionu</label>
-                    <input type="text" name="region_nazwa" placeholder="np. Mazowsze...">
-                    
-                    <button type="submit" class="btn-zeus btn-search">Szukaj Regionu</button>
+                    <input type="text" name="region_nazwa">
+
+                    <button class="btn-search">Szukaj</button>
                 </form>
             </div>
 
+            <!-- MIASTA -->
             <div class="zeus-card">
-                <div class="icon"><img src="{{ url_for('static', filename='miasto2.png') }}"></div>
+                <div class="icon">
+                    <img src="{{ url_for('static', filename='miasto2.png') }}">
+                </div>
                 <h4>Miasta</h4>
+
                 <form action="{{ url_for('wyniki_wyszukiwania_miasto') }}" method="GET">
                     <label>Nazwa miasta</label>
-                    <input type="text" name="miasto_nazwa" placeholder="np. Warszawa...">
-                    
-                    <label>Kod (ECIC)</label>
-                    <input type="text" name="miasto_kod" placeholder="np. WAW...">
-                    
-                    <button type="submit" class="btn-zeus btn-search">Szukaj Miasta</button>
+                    <input type="text" name="miasto_nazwa">
+
+                    <label>Kod miasta (ECIC)</label>
+                    <input type="text" name="miasto_kod">
+
+                    <label>Nazwa państwa</label>
+                    <input type="text" name="panstwo_nazwa">
+
+                    <button class="btn-search">Szukaj</button>
                 </form>
             </div>
 
         </div>
     </div>
 
+    <!-- ================= DODAWANIE ================= -->
+
     {% set can_add = session.rola in ["tworzyciel", "wszechmocny"] %}
+
     <div class="zeus-section">
-        <h3><i class="fas fa-plus-circle"></i> Szybkie Dodawanie</h3>
-        <div class="zeus-grid">
-            
-            <div class="zeus-card" style="text-align: center;">
-                <div class="icon"><img src="{{ url_for('static', filename='Dodaj.png') }}"></div>
-                <h4>Nowe Państwo</h4>
-                <p style="font-size: 0.8em; color: #7f8c8d; margin-bottom: 15px;">Zdefiniuj nowe granice i suwerenność.</p>
-                <button class="btn-zeus btn-add-card {% if not can_add %}btn-disabled{% endif %}"
-                        onclick="{% if can_add %}window.location.href='{{ url_for('panstwo_add_form') }}'{% else %}zeusToast('Brak uprawnień'){% endif %}">
-                    Uruchom Kreator
-                </button>
+        <h3>Dodawanie</h3>
+
+        <div class="zeus-card">
+
+            <div class="icon">
+                <img src="{{ url_for('static', filename='Dodaj.png') }}">
             </div>
 
-            <div class="zeus-card" style="text-align: center;">
-                <div class="icon"><img src="{{ url_for('static', filename='Dodaj.png') }}"></div>
-                <h4>Nowy Region</h4>
-                <p style="font-size: 0.8em; color: #7f8c8d; margin-bottom: 15px;">Podziel terytorium na jednostki admin.</p>
-                <button class="btn-zeus btn-add-card {% if not can_add %}btn-disabled{% endif %}"
-                        onclick="{% if can_add %}window.location.href='{{ url_for('region_add_form') }}'{% else %}zeusToast('Brak uprawnień'){% endif %}">
-                    Dodaj Region
-                </button>
-            </div>
+            <h4>Dodaj element</h4>
 
-            <div class="zeus-card" style="text-align: center;">
-                <div class="icon"><img src="{{ url_for('static', filename='Dodaj.png') }}"></div>
-                <h4>Nowe Miasto</h4>
-                <p style="font-size: 0.8em; color: #7f8c8d; margin-bottom: 15px;">Załóż nowy ośrodek miejski w systemie.</p>
-                <button class="btn-zeus btn-add-card {% if not can_add %}btn-disabled{% endif %}"
-                        onclick="{% if can_add %}window.location.href='{{ url_for('miasto_form_add') }}'{% else %}zeusToast('Brak uprawnień'){% endif %}">
-                    Dodaj Miasto
-                </button>
-            </div>
+            <div class="zeus-add-actions">
 
+                <button type="button"
+                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        onclick="
+                        {% if can_add %}
+                            window.location.href='{{ url_for('panstwo_add_form') }}'
+                        {% else %}
+                            zeusToast('Twoja obecna rola nie pozwala na tę akcję')
+                        {% endif %}
+                        ">
+                    Dodaj państwo
+                </button>
+
+                <button type="button"
+                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        onclick="
+                        {% if can_add %}
+                            window.location.href='{{ url_for('region_add_form') }}'
+                        {% else %}
+                            zeusToast('Twoja obecna rola nie pozwala na tę akcję')
+                        {% endif %}
+                        ">
+                    Dodaj region
+                </button>
+
+                <button type="button"
+                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        onclick="
+                        {% if can_add %}
+                            window.location.href='{{ url_for('miasto_form_add') }}'
+                        {% else %}
+                            zeusToast('Twoja obecna rola nie pozwala na tę akcję')
+                        {% endif %}
+                        ">
+                    Dodaj miasto
+                </button>
+
+            </div>
         </div>
     </div>
 
-    <footer style="text-align:center; padding: 20px; font-size:0.8em; color:#bdc3c7;">
+    <footer style="text-align:center; font-size:0.75em; color:#7f8c8d; margin:12px 0;">
         ZEUS © 2026 | Ostatnie wydanie: W2.MAR.26
     </footer>
 

@@ -2,67 +2,78 @@
 {% block title %}Gospodarka{% endblock %}
 
 {% block content %}
+
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Gospodarka
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+
 <style>
-    .module-header { text-align: center; margin-bottom: 40px; }
-    .module-header h2 { font-weight: 800; color: var(--zeus-dark); letter-spacing: -1px; }
-    .module-header p { color: #64748b; font-size: 1rem; }
+/* ============================================
+   ZEUS – Gospodarka (fioletowe kafelki)
+============================================ */
 
-    .zeus-grid-tiles {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-        padding: 10px;
-    }
+.gosp-tiles {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
 
-    .tile-card {
-        background: #ffffff;
-        border: 1px solid #e1e5ea;
-        border-radius: 16px;
-        padding: 30px 20px;
-        text-align: center;
-        text-decoration: none !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
-    }
+.gosp-tile {
+    background: linear-gradient(135deg, #2c73d2, #215ca9); /* nowy kolor: fiolet */
+    border-radius: 14px;
+    padding: 34px 22px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15em;
+    min-height: 160px;
 
-    .tile-card i {
-        font-size: 2.5rem;
-        color: #2c73d2;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
-    }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-    .tile-card h5 { font-weight: 700; margin-bottom: 8px; }
-    .tile-card span { font-size: 0.85rem; color: #94a3b8; }
+    text-decoration: none !important;
+    border: 1px solid #2c73d2;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: 0.25s;
+}
 
-    .tile-card:hover {
-        transform: translateY(-5px);
-        border-color: #2c73d2;
-        box-shadow: 0 12px 20px -5px rgba(44,115,210,0.2);
-    }
-    .tile-card:hover i { transform: scale(1.1); }
+/* IKONA */
+.gosp-tile .icon {
+    font-size: 42px;
+    margin-bottom: 14px;
+    opacity: 0.95;
+}
+
+/* HOVER */
+.gosp-tile:hover {
+    background: linear-gradient(135deg, #2c73d2, #11417f);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    color: white;
+}
 </style>
 
-<div class="module-header">
-    <h2><i class="fas fa-chart-line mr-2"></i> Gospodarka</h2>
-    <p>Dane ekonomiczne, analiza i rozwój państw.</p>
-</div>
 
-<div class="zeus-grid-tiles">
+<div class="gosp-tiles">
 
-    <a href="{{ url_for('gospodarka_list') }}" class="tile-card">
-        <i class="fas fa-coins"></i>
-        <h5>Dane gospodarcze</h5>
-        <span>Przegląd wskaźników ekonomicznych państw.</span>
+    <a class="gosp-tile" href="{{ url_for('gospodarka_list') }}">
+        <div class="icon">📊</div>
+        Przeglądaj dane gospodarcze państw
     </a>
 
-    <div class="tile-card" onclick="zeusToast('Moduł w budowie')">
-        <i class="fas fa-balance-scale"></i>
-        <h5>Porównanie</h5>
-        <span>Analiza i zestawienie gospodarek.</span>
-    </div>
+    <a class="gosp-tile" href="{{ url_for('gospodarka_porownaj') }}">
+        <div class="icon">📈</div>
+        Porównaj dane gospodarcze państw
+    </a>
 
 </div>
 
