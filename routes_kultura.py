@@ -19,7 +19,53 @@ def init_kultura_routes(app):
     # ===============================
     @app.route("/kultura/jezyki")
     def kultura_jezyki():
-        return render_template("kultura_jezyki.html")
+
+        kontynent_id = request.args.get("kontynent_id", type=int)
+        panstwo_id = request.args.get("panstwo", type=int)
+        jezyk_id = request.args.get("jezyk", type=int)
+
+        query = db.session.query(Jezyk)
+
+        if jezyk_id:
+            query = query.filter(Jezyk.jezyk_id == jezyk_id)
+
+        if panstwo_id:
+            query = query.join(
+                JezykiPerPanstwo,
+                (JezykiPerPanstwo.jezyk_urzedowy1 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy2 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy3 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy1 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy2 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy3 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy4 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy5 == Jezyk.jezyk_id)
+            ).filter(JezykiPerPanstwo.panstwo_id == panstwo_id)
+
+        if kontynent_id:
+            query = query.join(
+                JezykiPerPanstwo,
+                (JezykiPerPanstwo.jezyk_urzedowy1 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy2 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy3 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy1 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy2 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy3 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy4 == Jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy5 == Jezyk.jezyk_id)
+            ).join(
+                Panstwo, Panstwo.PANSTWO_ID == JezykiPerPanstwo.panstwo_id
+            ).filter(Panstwo.kontynent_id == kontynent_id)
+
+        wyniki = query.distinct().order_by(Jezyk.jezyk_nazwa.asc()).all()
+
+        return render_template(
+            "kultura_jezyki.html",
+            wyniki=wyniki,
+            selected_kontynent=kontynent_id,
+            selected_panstwo=panstwo_id,
+            selected_jezyk=jezyk_id
+        )
 
     # ===============================
     # API – PAŃSTWA
@@ -193,7 +239,16 @@ def init_kultura_routes(app):
 
         jezyk = Jezyk.query.get_or_404(jezyk_id)
 
-        powiazania = JezykiPerPanstwo.query.all()
+        powiazania = JezykiPerPanstwo.query.filter(
+            (JezykiPerPanstwo.jezyk_urzedowy1 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_urzedowy2 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_urzedowy3 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_mniejszosciowy1 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_mniejszosciowy2 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_mniejszosciowy3 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_mniejszosciowy4 == jezyk_id) |
+            (JezykiPerPanstwo.jezyk_mniejszosciowy5 == jezyk_id)
+        ).all()
 
         for p in powiazania:
             for field in [
@@ -270,7 +325,7 @@ def init_kultura_routes(app):
                 )
 
             # ===== SPRAWDZENIE CZY JUŻ ISTNIEJE PROFIL =====
-            profil = JezykPerPanstwo.query.filter_by(
+            profil = JezykiPerPanstwo.query.filter_by(
                 panstwo_id=int(panstwo_id)
             ).first()
 
@@ -284,7 +339,7 @@ def init_kultura_routes(app):
                 )
 
             # ===== ZAPIS =====
-            profil = JezykPerPanstwo(
+            profil = JezykiPerPanstwo.query.filter_by(
                 panstwo_id=int(panstwo_id),
 
                 jezyk_urzedowy1=int(urzedowe[0]) if urzedowe[0] else None,
