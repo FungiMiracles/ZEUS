@@ -173,6 +173,7 @@
     align-items: center !important;
     gap: 6px !important;
     width: 100%;
+    min-width: 0;
 }
 
 /* 🔥 checkbox */
@@ -184,10 +185,15 @@
 
 /* 🔥 label */
 .country-item label {
-    display: inline !important;
+    display: block !important;
     margin: 0 !important;
     font-weight: 500;
     cursor: pointer;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* 🔥 absolutne zablokowanie rozjeżdżania */
@@ -235,6 +241,7 @@
         padding: 6px 4px;
         font-size: 0.95rem;
         align-items: flex-start !important;
+        min-width: 0;
     }
 
     .country-item:hover {
@@ -243,6 +250,12 @@
 
     .country-item label {
         line-height: 1.35;
+        display: block !important;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .form-actions {
