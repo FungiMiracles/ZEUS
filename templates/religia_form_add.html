@@ -120,11 +120,12 @@
 
         <div class="religia-form-group">
             <label>Typ religii</label>
-            <select name="religia_typ">
+            <select name="religia_typ_id" required>
                 <option value="">— wybierz —</option>
-                {% for t in ["monoteistyczna","politeistyczna","henoteistyczna","panteistyczna","nonteistyczna"] %}
-                    <option value="{{ t }}" {% if form_data.religia_typ == t %}selected{% endif %}>
-                        {{ t }}
+                {% for t in religia_typy %}
+                    <option value="{{ t.religia_typ_id }}"
+                        {% if form_data.religia_typ_id == t.religia_typ_id|string %}selected{% endif %}>
+                        {{ t.nazwa }}
                     </option>
                 {% endfor %}
             </select>
@@ -135,8 +136,8 @@
             <select name="religia_nadrzedna_id">
                 <option value="">— brak —</option>
                 {% for r in religie %}
-                    <option value="{{ r.religia_id }}">
-                        {{ r.religia_nazwa }}
+                    <option value="{{ r.religia_id }}"
+                        {% if form_data.religia_nadrzedna_id == r.religia_id|string %}selected{% endif %}>
                     </option>
                 {% endfor %}
             </select>

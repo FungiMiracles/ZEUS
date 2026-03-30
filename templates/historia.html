@@ -1,86 +1,108 @@
-{% extends 'base_layout.html' %}
-{% block title %}
-Historia
-{% endblock %}
+﻿{% extends 'base_layout.html' %}
+{% block title %}Historia{% endblock %}
+
 {% block content %}
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
-        Historia
-    </p>
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
 
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p class="history-title" style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Historia
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
 
-<!-- ===================== STYLING ===================== -->
 <style>
-.hist-tiles {
+.history-tiles {
     max-width: 900px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
     padding: 10px;
     font-family: 'Segoe UI', Tahoma, sans-serif;
 }
 
-.hist-tile {
-    background: linear-gradient(135deg, #8b5a2b, #6e4420); /* brąz */
+.history-tile {
+    background: linear-gradient(135deg, #8b5a2b, #6f451f);
+    color: white;
+    padding: 32px 20px;
     border-radius: 14px;
-    padding: 34px 22px;
     text-align: center;
-    color: #fff;
+    text-decoration: none;
     font-weight: 700;
     font-size: 1.15em;
     min-height: 160px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    text-decoration: none !important;
-    border: 1px solid #5a361a;
     box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     transition: 0.25s;
 }
 
-/* Ikony */
-.hist-tile .icon {
-    font-size: 45px;
-    margin-bottom: 14px;
+.history-tile .icon {
+    font-size: 42px;
+    margin-bottom: 12px;
     opacity: 0.95;
+    line-height: 1;
 }
 
-/* Hover */
-.hist-tile:hover {
-    background: linear-gradient(135deg, #6e4420, #523217);
-    box-shadow: 0 7px 20px rgba(0,0,0,0.28);
-    transform: translateY(-6px) scale(1.03);
+.history-tile:hover {
+    background: linear-gradient(135deg, #6f451f, #563416);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
     color: white;
+    text-decoration: none;
+}
+
+.history-tile.locked {
+    cursor: not-allowed;
+    opacity: 0.82;
+}
+
+@media (max-width: 768px) {
+    .history-title {
+        margin-top: 12px !important;
+        font-size: 20px !important;
+        line-height: 1.2;
+    }
+
+    .history-tiles {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 0;
+    }
+
+    .history-tile {
+        min-height: 132px;
+        padding: 22px 16px;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
+
+    .history-tile .icon {
+        font-size: 34px;
+        margin-bottom: 10px;
+    }
 }
 </style>
 
+<div class="history-tiles">
 
-<!-- ===================== KAFELKI ===================== -->
-<div class="hist-tiles">
+    <a href="{{ url_for('historia_lista') }}" class="history-tile">
+        <div class="icon">📜</div>
+        Wydarzenia historyczne
+    </a>
 
-<a class="hist-tile" href="{{ url_for('historia_lista') }}">
-    <div class="icon">📜</div>
-    Przeglądaj wydarzenia historyczne
-</a>
-
-{% if session.rola in ["tworzyciel", "wszechmocny"] %}
-<a class="hist-tile" href="{{ url_for('historia_dodaj') }}">
-    <div class="icon">➕</div>
-    Dodaj nowe wydarzenie historyczne
-</a>
-{% else %}
-<a class="hist-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-    <div class="icon">➕</div>
-    Dodaj nowe wydarzenie historyczne
-</a>
-
-{% endif %}
-
+    {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+    <a href="{{ url_for('historia_dodaj') }}" class="history-tile">
+        <div class="icon">✍️</div>
+        Dodaj wydarzenie
+    </a>
+    {% else %}
+    <a href="#" class="history-tile locked" onclick="event.preventDefault(); zeusToast('Twoja rola nie pozwala na dodawanie wydarzeń')">
+        <div class="icon">🔒</div>
+        Dodaj wydarzenie
+    </a>
+    {% endif %}
 
 </div>
 

@@ -398,14 +398,14 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             
             <div class="filter-group">
                 <label>Państwo</label>
-                <select name="panstwo_nazwa" id="panstwo-select">
+                <select name="panstwo_id" id="panstwo-select">
                     <option value="">— wszystkie —</option>
                 </select>
             </div>
             
             <div class="filter-group">
                 <label>Region</label>
-                <select name="region_nazwa" id="region-select">
+                <select name="region_id" id="region-select">
                     <option value="">— wszystkie —</option>
                 </select>
             </div>
@@ -713,7 +713,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
 <script>
     const SELECTED_KONTYNENT = "{{ selected_kontynent or '' }}";
     const SELECTED_PANSTWO   = "{{ selected_panstwo_nazwa or '' }}";
-    const SELECTED_REGION    = "{{ selected_region_nazwa or '' }}";
+    const SELECTED_REGION = "{{ selected_region_id or '' }}";
 </script>
                             
 <script>
@@ -738,7 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!kontynent) return;
 
-        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
+        fetch(`/api/panstwa?kontynent=${encodeURIComponent(kontynent)}`)
             .then(res => res.json())
             .then(data => {
                 data.forEach(p => {
@@ -765,7 +765,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!panstwo) return;
 
-        fetch(`/api/regiony?panstwo_nazwa=${encodeURIComponent(panstwo)}`)
+        fetch(`/api/regiony?panstwo_id=${encodeURIComponent(panstwo)}`)
             .then(res => res.json())
             .then(data => {
                 data.forEach(r => {

@@ -1,14 +1,13 @@
-import random
+﻿import random
 from datetime import datetime, timedelta
 from engine.clock import get_current_entenda_date, ENTENDA_START
-from sqlalchemy import extract
+from sqlalchemy import extract, func
 from apscheduler.schedulers.background import BackgroundScheduler
 import calendar
 
 from extensions import db
 from models import Zdarzenie, Region, Panstwo, Miasto
 from engine.selectors import select_regions
-
 from engine.template_selector import select_template
 from engine.event_renderer import render_event_description
 
@@ -20,7 +19,11 @@ from engine.effects import (
     apply_avalanche_effect,
     apply_volcano_effect,
     apply_coldwave_effect,
-    apply_heatwave_effect
+    apply_heatwave_effect,
+    apply_region_regeneration,
+    apply_building_fire_effect,
+    apply_power_outage_effect,
+    apply_air_disaster_effect
 )
 
 #----------------------------------------------------------#
@@ -29,11 +32,16 @@ MAX_EVENTS_PER_MONTH = 20
 
 MAX_EVENTS_PER_REGION_PER_MONTH = 2
 
-MAX_EVENTS_PER_DAY = 2
+MAX_EVENTS_PER_DAY = 3
+
+LAST_REGEN_YEAR = None
 
 #----------------------------------------------------------#
 
+scheduler = None
+
 def start_event_scheduler(app):
+    global scheduler
 
     scheduler = BackgroundScheduler()
 
@@ -42,8 +50,7 @@ def start_event_scheduler(app):
             print("[ZEUS] scheduler tick")
             generate_events()
 
-    scheduler.add_job(job, "interval", minutes=30)
-
+    scheduler.add_job(job, "interval", minutes=60)
     scheduler.start()
 
 #----------------------------------------------------------#
@@ -51,6 +58,8 @@ def start_event_scheduler(app):
 def generate_events():
 
     current_entenda = get_current_entenda_date()
+
+    apply_yearly_regeneration_if_needed(current_entenda)
 
     last_generated = get_last_generated_entenda_date()
 
@@ -66,15 +75,38 @@ def generate_events():
 
         generated_total += created
 
-        # przejdź do następnego miesiąca
+        # przejdĹş do nastÄ™pnego miesiÄ…ca
         if current_month.month == 12:
             current_month = datetime(current_month.year + 1, 1, 1)
         else:
             current_month = datetime(current_month.year, current_month.month + 1, 1)
 
-    print(f"[ZEUS] wygenerowano {generated_total} zdarzeń")
+    print(f"[ZEUS] wygenerowano {generated_total} zdarzeĹ„")
 
     return generated_total
+
+def apply_global_regeneration():
+
+    regions = Region.query.all()
+
+    for r in regions:
+        apply_region_regeneration(r)
+
+    db.session.commit()
+
+    print("[ZEUS] wykonano rocznÄ… regeneracjÄ™ infrastruktury")
+
+def apply_yearly_regeneration_if_needed(current_date):
+
+    global LAST_REGEN_YEAR
+
+    if LAST_REGEN_YEAR is None:
+        LAST_REGEN_YEAR = current_date.year
+        return
+
+    if current_date.year > LAST_REGEN_YEAR:
+        LAST_REGEN_YEAR = current_date.year
+        apply_global_regeneration()
 
 #----------------------------------------------------------#
 
@@ -109,7 +141,11 @@ def generate_events_for_month(month_date):
             (try_generate_avalanche, apply_avalanche_effect),
             (try_generate_volcano, apply_volcano_effect),
             (try_generate_coldwave, apply_coldwave_effect),
-            (try_generate_heatwave, apply_heatwave_effect)
+            (try_generate_heatwave, apply_heatwave_effect),
+            (try_generate_wildfire, None),
+            (try_generate_building_fire, apply_building_fire_effect),
+            (try_generate_power_outage, apply_power_outage_effect),
+            (try_generate_air_disaster, apply_air_disaster_effect)
         ]
 
         random.shuffle(events)
@@ -131,7 +167,8 @@ def generate_events_for_month(month_date):
                 else:
                     event.opis_wygenerowany = None
 
-                effect(region, event.skala, event.ilosc_ofiar)
+                if effect:
+                    effect(region, event.skala, event.ilosc_ofiar)
 
                 db.session.add(event)
 
@@ -166,10 +203,10 @@ def random_day_in_month(month_date):
 
     current_entenda = get_current_entenda_date()
 
-    # liczba dni w miesiącu
+    # liczba dni w miesiÄ…cu
     days = calendar.monthrange(month_date.year, month_date.month)[1]
 
-    # jeżeli to bieżący miesiąc symulacji
+    # jeĹĽeli to bieĹĽÄ…cy miesiÄ…c symulacji
     if month_date.year == current_entenda.year and month_date.month == current_entenda.month:
         max_day = current_entenda.day
     else:
@@ -198,6 +235,61 @@ def get_day_event_count(date):
     return (
         db.session.query(Zdarzenie)
         .filter(Zdarzenie.data_entenda == date)
+        .count()
+    )
+
+#----------------------------------------------------------#
+
+def get_random_valid_city(region_id):
+    return (
+        Miasto.query
+        .filter_by(region_id=region_id)
+        .filter(~func.lower(Miasto.miasto_nazwa).like("miasto techniczne%"))
+        .order_by(func.rand())
+        .first()
+    )
+
+#----------------------------------------------------------#
+
+def compute_victims(region, victims_range):
+
+    base = random.randint(*victims_range)
+
+    pop = (
+        region.region_ludnosc_pozamiejska
+        or region.region_populacja
+        or 0
+    )
+
+    factor = (pop / 1_000_000) ** 0.65
+
+    victims = int(base * factor)
+
+    return max(victims, 0)
+
+#----------------------------------------------------------#
+
+def get_last_generated_entenda_date():
+
+    last = (
+        db.session.query(Zdarzenie)
+        .order_by(Zdarzenie.data_entenda.desc())
+        .first()
+    )
+
+    if last and last.data_entenda:
+        return last.data_entenda
+
+    return ENTENDA_START
+
+#----------------------------------------------------------#
+
+def get_month_event_count(date):
+
+    return (
+        db.session.query(Zdarzenie)
+        .filter(extract("year", Zdarzenie.data_entenda) == date.year)
+        .filter(extract("month", Zdarzenie.data_entenda) == date.month)
         .count()
     )
 
@@ -243,18 +335,16 @@ def try_generate_earthquake(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="trzesienie_ziemi",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -303,18 +393,16 @@ def try_generate_train_disaster(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="katastrofa_kolejowa",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -363,18 +451,16 @@ def try_generate_road_disaster(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="katastrofa_w_ruchu_ladowym",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -423,18 +509,16 @@ def try_generate_flood(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="powodz",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -483,18 +567,16 @@ def try_generate_avalanche(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="lawina",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -543,18 +625,16 @@ def try_generate_volcano(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="erupcja_wulkanu",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -603,18 +683,16 @@ def try_generate_coldwave(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="fala_mrozu",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -663,18 +741,16 @@ def try_generate_heatwave(region, target_date):
 
     victims = compute_victims(region, victims_range)
 
-    miasto = (
-        Miasto.query
-        .filter_by(region_id=region.region_id)
-        .order_by(db.func.rand())
-        .first()
-    )
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
 
     return Zdarzenie(
         zdarzenie_typ="fala_upalu",
         panstwo_id=region.panstwo_id,
         region_id=region.region_id,
-        miasto_id=miasto.miasto_id if miasto else None,
+        miasto_id=miasto.miasto_id,
         skala=scale,
         ilosc_ofiar=victims,
         data_rzeczywista=datetime.utcnow(),
@@ -683,43 +759,211 @@ def try_generate_heatwave(region, target_date):
 
 #----------------------------------------------------------#
 
-def compute_victims(region, victims_range):
+def try_generate_wildfire(region, target_date):
 
-    base = random.randint(*victims_range)
+    # 1. Warunek: region leĹ›ny
+    if not (
+        region.region_typ_nadrz_id == 8 or
+        region.region_typ_podrz_id == 17
+    ):
+        return None
 
-    pop = region.region_populacja or 0
-
-    factor = (pop / 1_000_000) ** 0.65
-
-    victims = int(base * factor)
-
-    return max(victims, 0)
-
-#----------------------------------------------------------#
-
-def get_last_generated_entenda_date():
-
-    last = (
+    # 2. Warunek: czy w tym miesiÄ…cu byĹ‚ upaĹ‚ skala 4 lub 5
+    heatwave = (
         db.session.query(Zdarzenie)
-        .order_by(Zdarzenie.data_entenda.desc())
+        .filter(Zdarzenie.region_id == region.region_id)
+        .filter(Zdarzenie.zdarzenie_typ == "fala_upalu")
+        .filter(Zdarzenie.skala >= 4)
+        .filter(extract("year", Zdarzenie.data_entenda) == target_date.year)
+        .filter(extract("month", Zdarzenie.data_entenda) == target_date.month)
+        .order_by(Zdarzenie.skala.desc())  # bierzemy najmocniejszy
         .first()
     )
 
-    if last and last.data_entenda:
-        return last.data_entenda
+    if not heatwave:
+        return None
 
-    from engine.clock import ENTENDA_START
-    return ENTENDA_START
+    # 3. Cooldown
+    if cooldown_block("pozar_lasu", region.region_id, target_date):
+        return None
 
-#----------------------------------------------------------#
+    # 4. PrawdopodobieĹ„stwo (moĹĽesz dostroiÄ‡ pĂłĹşniej)
+    prob = 0.0015
 
-def get_month_event_count(date):
+    if random.random() > prob:
+        return None
 
-    return (
-        db.session.query(Zdarzenie)
-        .filter(extract("year", Zdarzenie.data_entenda) == date.year)
-        .filter(extract("month", Zdarzenie.data_entenda) == date.month)
-        .count()
+    # 5. Brak ofiar (na razie)
+    victims = 0
+    scale = heatwave.skala
+
+    # 6. Miasto (TwĂłj nowy standard)
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
+
+    return Zdarzenie(
+        zdarzenie_typ="pozar_lasu",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
     )
 
 #----------------------------------------------------------#
+
+#----------------------------------------------------------#
+
+def try_generate_building_fire(region, target_date):
+
+    infra = region.region_stan_infra_mieszkalnej or 100
+
+    # brak sensu przy bardzo dobrej infrastrukturze
+    if infra >= 90:
+        return None
+
+    if cooldown_block("pozar_budynku", region.region_id, target_date):
+        return None
+
+    # skala + prawdopodobieĹ„stwo + ofiary
+    if infra > 80:
+        prob = 0.0010
+        scale = 1
+        victims_range = (0, 0)
+
+    elif infra > 65:
+        prob = 0.0020
+        scale = 2
+        victims_range = (0, 1)
+
+    elif infra > 50:
+        prob = 0.0030
+        scale = 3
+        victims_range = (0, 2)
+
+    elif infra > 30:
+        prob = 0.0035
+        scale = 4
+        victims_range = (0, 4)
+
+    else:
+        prob = 0.0040
+        scale = 5
+        victims_range = (0, 10)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    # miasto (TwĂłj standard)
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
+
+    return Zdarzenie(
+        zdarzenie_typ="pozar_budynku",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_power_outage(region, target_date):
+
+    infra = region.region_stan_infra_energetycznej or 100
+
+    if infra >= 90:
+        return None
+
+    if cooldown_block("przerwa_w_dost_prod", region.region_id, target_date):
+        return None
+
+    # skala + prawdopodobieĹ„stwo + ofiary
+    if infra > 80:
+        prob = 0.000
+        scale = 1
+        victims_range = (0, 0)
+
+    elif infra > 65:
+        prob = 0.001
+        scale = 2
+        victims_range = (0, 0)
+
+    elif infra > 50:
+        prob = 0.0010
+        scale = 3
+        victims_range = (0, 0)
+
+    elif infra > 30:
+        prob = 0.0020
+        scale = 4
+        victims_range = (1, 15)
+
+    else:
+        prob = 0.0030
+        scale = 5
+        victims_range = (16, 30)
+
+    if random.random() > prob:
+        return None
+
+    victims = compute_victims(region, victims_range)
+
+    miasto = get_random_valid_city(region.region_id)
+
+    if not miasto:
+        return None
+
+    # âť— brak miasta â€” to event regionalny
+    return Zdarzenie(
+        zdarzenie_typ="przerwa_w_dost_prod",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto.miasto_id,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )
+
+#----------------------------------------------------------#
+
+def try_generate_air_disaster(region, target_date):
+
+    if cooldown_block("katastrofa_lotnicza", region.region_id, target_date):
+        return None
+
+    prob = 0.0001
+    scale = 5
+    victims_range = (250, 400)
+
+    if random.random() > prob:
+        return None
+
+    victims = random.randint(250, 400)
+
+    miasto = get_random_valid_city(region.region_id)
+
+    miasto_id = miasto.miasto_id if miasto else None
+
+    return Zdarzenie(
+        zdarzenie_typ="katastrofa_lotnicza",
+        panstwo_id=region.panstwo_id,
+        region_id=region.region_id,
+        miasto_id=miasto_id,
+        skala=scale,
+        ilosc_ofiar=victims,
+        data_rzeczywista=datetime.utcnow(),
+        data_entenda=target_date
+    )

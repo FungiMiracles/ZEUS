@@ -325,7 +325,7 @@ Kultura — Języki
 
     <!-- ===== FILTRY ===== -->
     <div class="filter-box">
-        <form method="POST" action="{{ url_for('kultura_jezyki_search') }}">
+        <form method="GET">
 
             <div class="filters-grid">
 
@@ -334,12 +334,12 @@ Kultura — Języki
                     <label><strong>Kontynent</strong></label>
                     <select id="filter-kontynent" name="kontynent_id" class="form-control">
                         <option value="">— wszystkie kontynenty —</option>
-                        <option value="1" {% if selected_kontynent == "Kao" %}selected{% endif %}>Kao</option>
-                        <option value="2" {% if selected_kontynent == "Beifa" %}selected{% endif %}>Beifa</option>
-                        <option value="3" {% if selected_kontynent == "Anzinia" %}selected{% endif %}>Anzinia</option>
-                        <option value="6" {% if selected_kontynent == "Peryfa" %}selected{% endif %}>Peryfa</option>
-                        <option value="4" {% if selected_kontynent == "Wyspy Większe" %}selected{% endif %}>Wyspy Większe</option>
-                        <option value="5" {% if selected_kontynent == "Wyspy Mniejsze" %}selected{% endif %}>Wyspy Mniejsze</option>
+                        <option value="1" {% if selected_kontynent == 1 %}selected{% endif %}>Kao</option>
+                        <option value="2" {% if selected_kontynent == 2 %}selected{% endif %}>Beifa</option>
+                        <option value="3" {% if selected_kontynent == 3 %}selected{% endif %}>Anzinia</option>
+                        <option value="6" {% if selected_kontynent == 6 %}selected{% endif %}>Peryfa</option>
+                        <option value="4" {% if selected_kontynent == 4 %}selected{% endif %}>Wyspy Większe</option>
+                        <option value="5" {% if selected_kontynent == 5 %}selected{% endif %}>Wyspy Mniejsze</option>
                     </select>
                 </div>
 
@@ -395,7 +395,7 @@ Kultura — Języki
     </div>
 
     <!-- ===== WYNIKI ===== -->
-    {% if wyniki is defined %}
+    {% if wyniki %}
         <div class="results-box">
 
             {% if wyniki %}
@@ -410,6 +410,10 @@ Kultura — Języki
                                 </span>
                             {% endif %}
                         </h3>
+
+                        <p style="font-size:0.85em; color:#666;">
+                            Rodzina: {{ j.jezyk_rodzina or "—" }}
+                        </p>
 
                         <table class="lang-table">
                             <tr>

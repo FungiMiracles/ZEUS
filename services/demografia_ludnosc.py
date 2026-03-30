@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from models import Panstwo, Region, Miasto
+from models import Panstwo, Region, Miasto, DictKontynent
 from extensions import db
 
 
@@ -16,7 +16,7 @@ def format_populacja(n):
 def licz_dane_kontynentu(kontynent):
 
     # ===== PAŃSTWA NA KONTYNENCIE =====
-    panstwa = Panstwo.query.filter_by(kontynent=kontynent).all()
+    panstwa = Panstwo.query.filter_by(kontynent_id=kontynent).all()
     if not panstwa:
         return None
 
@@ -87,10 +87,12 @@ def licz_dane_kontynentu(kontynent):
         for m in top_miasta_raw
     ]
 
+    kont = DictKontynent.query.get(kontynent)
+
     # ===== ZWROT =====
     return {
         "typ": "kontynent",
-        "nazwa": kontynent,
+        "nazwa": kont.kontynent_nazwa if kont else "Nieznany kontynent",
         "populacja": populacja,
         "powierzchnia": powierzchnia,
         "gestosc": gestosc,
@@ -102,39 +104,3 @@ def licz_dane_kontynentu(kontynent):
         "srednia_region": srednia_region,
         "top_miasta": top_miasta,
     }
-
-def licz_dane_panstwa(panstwo_id):
-    from extensions import db
-    from models import Panstwo, Region, Miasto
-    from sqlalchemy import func
-
-    panstwo = Panstwo.query.get(panstwo_id)
-    if not panstwo:
-        return None
-
-    regiony = (
-        db.session.query(
-            Region.region_populacja,
-            Region.region_ludnosc_pozamiejska,
-            func.coalesce(func.sum(Miasto.miasto_populacja), 0)
-        )
-        .outerjoin(Miasto, Miasto.region_id == Region.region_id)
-        .filter(Region.panstwo_id == panstwo_id)
-        .group_by(Region.region_id)
-        .all()
-    )
-
-    populacja = sum(r[0] or 0 for r in regiony)
-    ludnosc_miejska = sum(r[2] or 0 for r in regiony)
-    ludnosc_pozamiejska = sum(r[1] or 0 for r in regiony)
-
-    return {
-        "panstwo": panstwo.panstwo_nazwa,
-        "populacja": populacja,
-        "ludnosc_miejska": ludnosc_miejska,
-        "ludnosc_pozamiejska": ludnosc_pozamiejska,
-        "urbanizacja": round(
-            (ludnosc_miejska / populacja) * 100, 2
-        ) if populacja else 0
-    }
-

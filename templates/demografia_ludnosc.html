@@ -136,6 +136,33 @@
     font-weight: 600;
 }
 
+.demografia-map-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0 20px 0;
+}
+
+.demografia-map {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #f9fbff;
+}
+
+.demografia-flag {
+    width: 48px;
+    height: 32px;
+    object-fit: cover;
+    border: 1px solid #000;
+}
+
+.demografia-country-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 /* ===== MOBILE ===== */
 
 @media (max-width: 768px) {
@@ -280,8 +307,16 @@
     {% elif tryb == "panstwo" %}
 
       <div class="data-box">
-          <h2>{{ dane.nazwa }}</h2>
-      
+          {% set flag_path = 'flags/' + dane.nazwa|replace(' ', '_') + '.jpg' %}
+
+            <div class="demografia-country-header">
+                <img class="demografia-flag"
+                    src="{{ url_for('static', filename=flag_path) }}"
+                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+
+                <h2>{{ dane.nazwa }}</h2>
+            </div>
+
           <div class="data-grid">
               <div class="data-item"><span class="label">Populacja</span><span class="value">{{ dane.populacja | spacenum }}</span></div>
               <div class="data-item"><span class="label">Powierzchnia</span><span class="value">{{ dane.powierzchnia | spacenum }} km²</span></div>
@@ -325,25 +360,27 @@
 const kontynentSelect = document.querySelector('select[name="kontynent_id"]');
 const panstwoSelect = document.querySelector('select[name="panstwo_id"]');
 
-kontynentSelect.addEventListener("change", () => {
-    const kontynent = kontynentSelect.value;
+if (kontynentSelect && panstwoSelect) {
+    kontynentSelect.addEventListener("change", () => {
+        const kontynent = kontynentSelect.value;
 
-    panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
+        panstwoSelect.innerHTML = '<option value="">— wszystkie —</option>';
 
-    if (!kontynent) return;
+        if (!kontynent) return;
 
-    fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
-        .then(res => res.json())
-        .then(data => {
-            data.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.id;
-                opt.textContent = p.nazwa;
-                panstwoSelect.appendChild(opt);
-            });
-        })
-        .catch(err => console.error(err));
-});
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+                    panstwoSelect.appendChild(opt);
+                });
+            })
+            .catch(err => console.error(err));
+    });
+}
 </script>
 
 {% endblock %}

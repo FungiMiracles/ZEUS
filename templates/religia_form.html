@@ -276,7 +276,7 @@
     <div class="religia-view-header">
         <h1>{{ religia.religia_nazwa }}</h1>
         <div class="sub">
-            Typ: {{ religia.religia_typ }}
+            Typ: {{ religia.religia_typ.nazwa if religia.religia_typ else "—" }}
             {% if religia.nadrzedna %}
                 • Religia nadrzędna: {{ religia.religia_nadrzedna.religia_nazwa }}
             {% endif %}

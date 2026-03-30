@@ -11,7 +11,7 @@ from extensions import db
 from models import Panstwo, Region, Miasto, DictKontynent
 from permissions import wymaga_roli
 from sqlalchemy import func
-from services.demografia_ludnosc import licz_dane_kontynentu, licz_dane_panstwa
+from services.demografia_ludnosc import licz_dane_kontynentu
 import random
 from datetime import datetime
 
@@ -26,7 +26,7 @@ def init_demografia_routes(app):
     def demografia_kalkulator():
 
         kontynent = request.args.get("kontynent", type=int)
-        panstwo_id = request.args.get("panstwo_id")
+        panstwo_id = request.args.get("panstwo_id", type=int)
 
         kontynenty = (
             DictKontynent.query
@@ -46,7 +46,7 @@ def init_demografia_routes(app):
                 .all()
             )
 
-        if panstwo_id and panstwo_id.isdigit():
+        if panstwo_id:
             panstwo = Panstwo.query.get(int(panstwo_id))
             if panstwo:
                 regiony = (
@@ -235,7 +235,7 @@ def init_demografia_routes(app):
     def demografia_ludnosc():
 
         kontynent = request.args.get("kontynent_id", type=int)
-        panstwo_id = request.args.get("panstwo_id")
+        panstwo_id = request.args.get("panstwo_id", type=int)
 
         # lista kontynentów
         kontynenty = (
@@ -261,8 +261,8 @@ def init_demografia_routes(app):
             dane = licz_dane_kontynentu(kontynent)
             tryb = "kontynent"
 
-        elif kontynent and panstwo_id and panstwo_id.isdigit():
-            dane = licz_dane_panstwa(int(panstwo_id))
+        elif kontynent and panstwo_id:
+            dane = licz_dane_panstwa(panstwo_id)
             tryb = "panstwo"
 
         return render_template(
@@ -274,8 +274,6 @@ def init_demografia_routes(app):
             dane=dane,
             tryb=tryb
         )
-
-    from datetime import datetime
 
     @app.route("/demografia/kalkulator/<int:panstwo_id>/zapisz", methods=["POST"])
     def demografia_kalkulator_zapisz(panstwo_id):
@@ -399,7 +397,7 @@ def init_demografia_routes(app):
     
     @app.route("/api/regiony_by_panstwo")
     def api_regiony_by_panstwo():
-        panstwo_id = request.args.get("panstwo_id")
+        panstwo_id = request.args.get("panstwo_id", type=int)
         if not panstwo_id or not panstwo_id.isdigit():
             return jsonify([])
 

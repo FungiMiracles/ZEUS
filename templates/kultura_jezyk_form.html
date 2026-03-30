@@ -162,7 +162,7 @@ Kultura — {{ jezyk.jezyk_nazwa }}
         <div class="field">
             <label>Rodzina językowa</label>
             <div class="value">
-                {{ jezyk.jezyk_rodzina or "—" }}
+                {{ jezyk.jezyk_rodzina.nazwa if jezyk.jezyk_rodzina else "—" }}
             </div>
         </div>
     </div>

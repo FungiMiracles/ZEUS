@@ -258,8 +258,13 @@
     .extra-event {
         display: none;
     }
-    
 
+    .regen {
+    color: #27ae60;
+    }
+    .regen.negative {
+        color: #e74c3c;
+    }
 @media (max-width: 768px) {
 
     /* ===== KONTAINER ===== */
@@ -669,35 +674,60 @@
         </div>
 
         <div class="region-card">
-            <div class="region-card-label">Infrastruktura kolejowa</div>
+            <div class="region-card-label">
+                Infrastruktura kolejowa
+                {% if region.procreg_infra_kolejowa is not none %}
+                    <span class="regen">(+{{ "%.1f"|format(region.procreg_infra_kolejowa) }}%)</span>
+                {% endif %}
+            </div>
             <div class="region-card-value">
                 {{ region.region_stan_infra_kolejowej if region.region_stan_infra_kolejowej is not none else "Brak danych" }} / 100
             </div>
         </div>
 
         <div class="region-card">
-            <div class="region-card-label">Infrastruktura drogowa</div>
+            <div class="region-card-label">
+                Infrastruktura drogowa
+                {% if region.procreg_infra_drogowa is not none %}
+                    <span class="regen">(+{{ "%.1f"|format(region.procreg_infra_drogowa) }}%)</span>
+                {% endif %}
+            </div>
             <div class="region-card-value">
                 {{ region.region_stan_infra_drogowej if region.region_stan_infra_drogowej is not none else "Brak danych" }} / 100
             </div>
         </div>
 
         <div class="region-card">
-            <div class="region-card-label">Infrastruktura energetyczna</div>
+            <div class="region-card-label">
+                Infrastruktura energetyczna
+                {% if region.procreg_infra_energetyczna is not none %}
+                    <span class="regen">(+{{ "%.1f"|format(region.procreg_infra_energetyczna) }}%)</span>
+                {% endif %}
+            </div>
             <div class="region-card-value">
                 {{ region.region_stan_infra_energetycznej if region.region_stan_infra_energetycznej is not none else "Brak danych" }} / 100
             </div>
         </div>
 
         <div class="region-card">
-            <div class="region-card-label">Infrastruktura mieszkaniowa</div>
+            <div class="region-card-label">
+                Infrastruktura mieszkaniowa
+                {% if region.procreg_infra_mieszkaniowa is not none %}
+                    <span class="regen">(+{{ "%.1f"|format(region.procreg_infra_mieszkaniowa) }}%)</span>
+                {% endif %}
+            </div>
             <div class="region-card-value">
                 {{ region.region_stan_infra_mieszkalnej if region.region_stan_infra_mieszkalnej is not none else "Brak danych" }} / 100
             </div>
         </div>
 
         <div class="region-card">
-            <div class="region-card-label">Infrastruktura portowa</div>
+            <div class="region-card-label">
+                Infrastruktura portowa
+                {% if region.polozenie and region.polozenie.kod == "nadmorski" and region.procreg_infra_portowa is not none %}
+                    <span class="regen">(+{{ "%.1f"|format(region.procreg_infra_portowa) }}%)</span>
+                {% endif %}
+            </div>
             <div class="region-card-value">
                 {% if region.polozenie and region.polozenie.kod == "nadmorski" %}
                     {{ region.region_stan_infra_portowej if region.region_stan_infra_portowej is not none else "Brak danych" }} / 100
@@ -708,9 +738,6 @@
         </div>
 
     </div>
-
-
-
 
     <!-- Miasta w regionie -->
     <h2 style="font-size:1.4em; color:#2c3e50; margin-bottom:15px;">

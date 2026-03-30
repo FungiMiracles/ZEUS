@@ -215,198 +215,171 @@
 </div>
 
 <script>
-const kontynentSelect = document.getElementById("kontynentSelect");
-const panstwoSelect = document.getElementById("panstwoSelect");
-const relacjaFilter = document.getElementById("relacjaFilter");
-const stanFilter = document.getElementById("stanFilter");
-const sojList = document.getElementById("sojuszeResults");
+document.addEventListener("DOMContentLoaded", () => {
 
-const RELACJA_MAP = {
-    sojusznicze: {
-        label: "Sojusznicze",
-        class: "rel-green"
-    },
-    partnerskie_strategiczne: {
-        label: "Partnerskie strategiczne",
-        class: "rel-green"
-    },
-    partnerskie: {
-        label: "Partnerskie",
-        class: "rel-green"
-    },
-    przyjazne: {
-        label: "Przyjazne",
-        class: "rel-green"
-    },
-    dobre: {
-        label: "Dobre",
-        class: "rel-green"
-    },
-    neutralne: {
-        label: "Neutralne",
-        class: "rel-grey"
-    },
-    chlodne: {
-        label: "Chłodne",
-        class: "rel-orange"
-    },
-    zle: {
-        label: "Złe",
-        class: "rel-red"
-    },
-    napiete: {
-        label: "Napięte",
-        class: "rel-red"
-    },
-    wrogie: {
-        label: "Wrogie",
-        class: "rel-red"
-    },
-    egzystencjalnie_wrogie: {
-        label: "Egzystencjalnie wrogie",
-        class: "rel-red"
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const initialPanstwo = urlParams.get("panstwo_id");
+    const initialKontynent = urlParams.get("kontynent_id");
+
+    const kontynentSelect = document.getElementById("kontynentSelect");
+    const panstwoSelect = document.getElementById("panstwoSelect");
+    const relacjaFilter = document.getElementById("relacjaFilter");
+    const stanFilter = document.getElementById("stanFilter");
+    const sojList = document.getElementById("sojuszeResults");
+    const searchBtn = document.getElementById("sojSearchBtn");
+
+    const RELACJA_MAP = {
+        sojusznicze: { label: "Sojusznicze", class: "rel-green" },
+        partnerskie_strategiczne: { label: "Partnerskie strategiczne", class: "rel-green" },
+        partnerskie: { label: "Partnerskie", class: "rel-green" },
+        przyjazne: { label: "Przyjazne", class: "rel-green" },
+        dobre: { label: "Dobre", class: "rel-green" },
+        neutralne: { label: "Neutralne", class: "rel-grey" },
+        chlodne: { label: "Chłodne", class: "rel-orange" },
+        zle: { label: "Złe", class: "rel-red" },
+        napiete: { label: "Napięte", class: "rel-red" },
+        wrogie: { label: "Wrogie", class: "rel-red" },
+        egzystencjalnie_wrogie: { label: "Egzystencjalnie wrogie", class: "rel-red" }
+    };
+
+    const STAN_MAP = {
+        pokoj: { label: "Pokój", class: "rel-green" },
+        zawieszenie_broni: { label: "Zawieszenie broni", class: "rel-orange" },
+        konflikt_dyplomatyczny: { label: "Konflikt dyplomatyczny", class: "rel-orange" },
+        wojna_handlowa: { label: "Wojna handlowa", class: "rel-orange" },
+        wojna_informacyjna: { label: "Wojna informacyjna", class: "rel-orange" },
+        wojna_hybrydowa: { label: "Wojna hybrydowa", class: "rel-red" },
+        konflikt_kinetyczny_zamrozony: { label: "Konflikt kinetyczny (zamrożony)", class: "rel-red" },
+        wojna_kinetyczna: { label: "Wojna kinetyczna", class: "rel-red" },
+        okupacja: { label: "Okupacja", class: "rel-red" }
+    };
+
+    function toKey(v) {
+        if (!v) return "";
+        return v
+            .toLowerCase()
+            .replace(/ /g, "_")
+            .replace(/[ąćęłńóśżź]/g, c => ({
+                "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ż":"z","ź":"z"
+            }[c]));
     }
-};
 
-const STAN_MAP = {
-    pokoj: {
-        label: "Pokój",
-        class: "rel-green"
-    },
-    zawieszenie_broni: {
-        label: "Zawieszenie broni",
-        class: "rel-orange"
-    },
-    konflikt_dyplomatyczny: {
-        label: "Konflikt dyplomatyczny",
-        class: "rel-orange"
-    },
-    wojna_handlowa: {
-        label: "Wojna handlowa",
-        class: "rel-orange"
-    },
-    wojna_informacyjna: {
-        label: "Wojna informacyjna",
-        class: "rel-orange"
-    },
-    wojna_hybrydowa: {
-        label: "Wojna hybrydowa",
-        class: "rel-red"
-    },
-    konflikt_kinetyczny_zamrozony: {
-        label: "Konflikt kinetyczny (zamrożony)",
-        class: "rel-red"
-    },
-    wojna_kinetyczna: {
-        label: "Wojna kinetyczna",
-        class: "rel-red"
-    },
-    okupacja: {
-        label: "Okupacja",
-        class: "rel-red"
-    }
-};
+    // =========================
+    // ŁADOWANIE PAŃSTW
+    // =========================
+    kontynentSelect.addEventListener("change", () => {
 
-function toKey(v) {
-    if (!v) return "";
-    return v
-        .toLowerCase()
-        .replace(/ /g, "_")
-        .replace(/[ąćęłńóśżź]/g, c => ({
-            "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ż":"z","ź":"z"
-        }[c]));
-}
+        const kontynent = parseInt(kontynentSelect.value);
 
-kontynentSelect.addEventListener("change", () => {
-    const kontynent = kontynentSelect.value;
+        panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
+        panstwoSelect.disabled = true;
+        sojList.innerHTML = "";
 
-    panstwoSelect.innerHTML = '<option value="">— wybierz —</option>';
-    panstwoSelect.disabled = true;
-    sojList.innerHTML = "";
+        if (!kontynent) return;
 
-    if (!kontynent) return;
+        fetch(`/api/dyplomacja/panstwa?kontynent_id=${encodeURIComponent(kontynent)}`)
+            .then(res => res.json())
+            .then(data => {
 
-    fetch(`/api/dyplomacja/panstwa?kontynent_id=${encodeURIComponent(kontynent)}`)
-        .then(res => res.json())
-        .then(data => {
-            console.log("PAŃSTWA:", data);
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+                    panstwoSelect.appendChild(opt);
+                });
 
-            data.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.id;
-                opt.textContent = p.nazwa;
-                panstwoSelect.appendChild(opt);
+                panstwoSelect.disabled = false;
+
+                // 🔥 ustawienie państwa po fetchu
+                if (initialPanstwo) {
+                    panstwoSelect.value = initialPanstwo;
+
+                    // 🔥 klik dopiero po ustawieniu
+                    setTimeout(() => {
+                        searchBtn.click();
+                    }, 0);
+                }
+            })
+            .catch(err => {
+                console.error("Błąd API:", err);
             });
-
-            // 🔑 TO JEST KLUCZOWE
-            panstwoSelect.disabled = false;
-        })
-        .catch(err => {
-            console.error("Błąd API:", err);
-        });
-});
-
-const searchBtn = document.getElementById("sojSearchBtn");
-
-searchBtn.addEventListener("click", () => {
-    const panstwoId = panstwoSelect.value;
-    const relacja = relacjaFilter.value;
-    const stan = stanFilter.value;
-
-    sojList.innerHTML = "";
-
-    if (!panstwoId) {
-        sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Wybierz państwo.</div>";
-        return;
-    }
-
-    const params = new URLSearchParams({
-        panstwo_id: panstwoId
     });
 
-    if (relacja) params.append("relacja", relacja);
-    if (stan) params.append("stan", stan);
+    // =========================
+    // WYSZUKIWANIE
+    // =========================
+    searchBtn.addEventListener("click", () => {
 
-    fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.length === 0) {
-                sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Brak relacji.</div>";
-                return;
-            }
+        const panstwoId = panstwoSelect.value;
+        const relacja = relacjaFilter.value;
+        const stan = stanFilter.value;
 
-            data.forEach(r => {
-                const card = document.createElement("div");
-                card.className = "soj-card";
-            
-                const relKey = toKey(r.relacja);
-                const stanKey = toKey(r.stan);
+        sojList.innerHTML = "";
 
-                const rel = RELACJA_MAP[relKey] || {
-                    label: r.relacja,
-                    class: "rel-grey"
-                };
+        if (!panstwoId) {
+            sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Wybierz państwo.</div>";
+            return;
+        }
 
-                const stanObj = STAN_MAP[stanKey] || {
-                    label: r.stan,
-                    class: "rel-grey"
-                };
-            
-                card.innerHTML = `
-                    <div class="soj-country">${r.panstwo_nazwa}</div>
-                    <div class="soj-badge ${rel.class}">${rel.label}</div>
-                    <div class="soj-badge ${stanObj.class}">${stanObj.label}</div>
-                `;
-            
-                sojList.appendChild(card);
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            sojList.innerHTML = "<div>Błąd pobierania danych.</div>";
+        const params = new URLSearchParams({
+            panstwo_id: panstwoId
         });
+
+        if (relacja) params.append("relacja", relacja);
+        if (stan) params.append("stan", stan);
+
+        fetch(`/api/dyplomacja/sojusze?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.length === 0) {
+                    sojList.innerHTML = "<div style='text-align:center; font-weight:700;'>Brak relacji.</div>";
+                    return;
+                }
+
+                data.forEach(r => {
+
+                    const card = document.createElement("div");
+                    card.className = "soj-card";
+
+                    const relKey = toKey(r.relacja || "");
+                    const stanKey = toKey(r.stan || "");
+
+                    const rel = RELACJA_MAP[relKey] || {
+                        label: r.relacja,
+                        class: "rel-grey"
+                    };
+
+                    const stanObj = STAN_MAP[stanKey] || {
+                        label: r.stan,
+                        class: "rel-grey"
+                    };
+
+                    card.innerHTML = `
+                        <div class="soj-country">${r.panstwo_nazwa}</div>
+                        <div class="soj-badge ${rel.class}">${rel.label}</div>
+                        <div class="soj-badge ${stanObj.class}">${stanObj.label}</div>
+                    `;
+
+                    sojList.appendChild(card);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                sojList.innerHTML = "<div>Błąd pobierania danych.</div>";
+            });
+    });
+
+    // =========================
+    // START (URL CONTEXT)
+    // =========================
+    if (initialKontynent) {
+        kontynentSelect.value = initialKontynent;
+        kontynentSelect.dispatchEvent(new Event("change"));
+    }
+
 });
 </script>
-
 
 {% endblock %}

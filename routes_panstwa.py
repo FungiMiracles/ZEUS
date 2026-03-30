@@ -81,7 +81,7 @@ def init_panstwa_routes(app):
         nazwa = request.args.get("panstwo_nazwa")
         kod = request.args.get("panstwo_kod")
 
-        ustroj = request.args.get("panstwo_ustroj")
+        ustroj_id = request.args.get("ustroj_id", type=int)
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
         powierzchnia = request.args.get("panstwo_powierzchnia")
@@ -92,6 +92,9 @@ def init_panstwa_routes(app):
         pkb_pc_od = request.args.get("pkb_pc_od")
         pkb_pc_do = request.args.get("pkb_pc_do")
         czy_suwerenny = request.args.get("czy_suwerenny")
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
 
         kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
@@ -106,8 +109,8 @@ def init_panstwa_routes(app):
         if kod:
             query = query.filter(Panstwo.panstwo_kod.like(f"%{kod}%"))
 
-        if ustroj:
-            query = query.filter(Panstwo.panstwo_ustroj.like(f"%{ustroj}%"))
+        if ustroj_id:
+            query = query.filter(Panstwo.ustroj_id == ustroj_id)
 
         if populacja_od:
             query = query.filter(Panstwo.panstwo_populacja >= int(populacja_od))
@@ -155,6 +158,7 @@ def init_panstwa_routes(app):
             results=results,
             pagination=pagination,
             total=total,
+            ustroje=ustroje,
             args=args,
             kontynenty=kontynenty,
             empty=len(results) == 0
@@ -165,7 +169,39 @@ def init_panstwa_routes(app):
     @app.route("/panstwo/<int:panstwo_id>")
     def panstwo_form(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
-    
+
+        regiony = p.regiony  # 🔥 TO MUSI BYĆ
+
+        infra_sum = 0
+        infra_count = 0
+
+        for r in regiony:
+
+            if r.region_stan_infra_kolejowej is not None:
+                infra_sum += r.region_stan_infra_kolejowej
+                infra_count += 1
+
+            if r.region_stan_infra_drogowej is not None:
+                infra_sum += r.region_stan_infra_drogowej
+                infra_count += 1
+
+            if r.region_stan_infra_energetycznej is not None:
+                infra_sum += r.region_stan_infra_energetycznej
+                infra_count += 1
+
+            if r.region_stan_infra_mieszkalnej is not None:
+                infra_sum += r.region_stan_infra_mieszkalnej
+                infra_count += 1
+
+            # 🔥 KLUCZOWE — porty tylko poza inlandem
+            if r.region_polozenie_id and r.region_polozenie_id != 1:
+                if r.region_stan_infra_portowej is not None:
+                    infra_sum += r.region_stan_infra_portowej
+                    infra_count += 1
+                    
+
+        infra_avg = round(infra_sum / infra_count, 1) if infra_count > 0 else None
+            
         miasta = (
             Miasto.query
             .filter_by(panstwo_id=panstwo_id)
@@ -185,7 +221,8 @@ def init_panstwa_routes(app):
             miasta=miasta,
             profil_jezykowy=profil_jezykowy,
             ustroje=ustroje,
-            ostatnia_edycja=p.opis_updated_at  # opcjonalne, patrz niżej
+            ostatnia_edycja=p.opis_updated_at,  # opcjonalne, patrz niżej
+            infra_avg=infra_avg
         )
 
     # ================= DODAWANIE PAŃSTWA =================
@@ -221,7 +258,7 @@ def init_panstwa_routes(app):
             czy_suwerenny = request.form.get("czy_suwerenny")
 
             required_fields = [
-                nazwa, pelna, kod, ustroj, stolica,
+                nazwa, pelna, kod, ustroj_id, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
                 kontynent_id_raw, powierzchnia, czy_suwerenny
@@ -366,7 +403,7 @@ def init_panstwa_routes(app):
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
                 p.kontynent_id = int(form.get("kontynent_id"))
-                p.panstwo_ustroj = form.get("panstwo_ustroj")
+                p.ustroj_id = int(form.get("ustroj_id"))
                 p.panstwo_stolica = form.get("panstwo_stolica")
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
                 p.panstwo_waluta = form.get("panstwo_waluta")

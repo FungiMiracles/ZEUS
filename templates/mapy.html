@@ -1,113 +1,92 @@
-{% extends 'base_layout.html' %}
-{% block title %}
-Mapy
-{% endblock %}
+﻿{% extends 'base_layout.html' %}
+{% block title %}Mapy{% endblock %}
+
 {% block content %}
+
 <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+<p class="map-title" style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
     Mapy
 </p>
 <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
 
-
-<!-- ===================== STYLING ===================== -->
 <style>
 .map-tiles {
-    max-width: 1050px;
+    max-width: 900px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 24px;
-    padding: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 10px;
     font-family: 'Segoe UI', Tahoma, sans-serif;
 }
 
 .map-tile {
-    background: linear-gradient(135deg, #72b7ff, #5aa7ff); /* jaśniejszy niebieski */
+    background: linear-gradient(135deg, #2578d8, #1b6ac4);
+    color: white;
+    padding: 32px 20px;
     border-radius: 14px;
-    padding: 34px 22px;
     text-align: center;
-    color: #fff;
+    text-decoration: none;
     font-weight: 700;
-    font-size: 1.1em;
-    min-height: 155px;
-
+    font-size: 1.15em;
+    min-height: 160px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    text-decoration: none !important;
-    border: 1px solid #3f8dd4;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     transition: 0.25s;
 }
 
-/* Ikona */
 .map-tile .icon {
     font-size: 42px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     opacity: 0.95;
+    line-height: 1;
 }
 
-/* Hover */
 .map-tile:hover {
-    background: linear-gradient(135deg, #5aa7ff, #3d8fe0);
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #163ea9, #102f7f);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
     color: white;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .map-title {
+        margin-top: 12px !important;
+        font-size: 20px !important;
+        line-height: 1.2;
+    }
+
+    .map-tiles {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 0;
+    }
+
+    .map-tile {
+        min-height: 132px;
+        padding: 22px 16px;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
+
+    .map-tile .icon {
+        font-size: 34px;
+        margin-bottom: 10px;
+    }
 }
 </style>
 
-
-<!-- ===================== KAFELKI ===================== -->
 <div class="map-tiles">
-
-    <a class="map-tile" href="{{ url_for('mapy_swiata') }}">
-        <div class="icon">🗺️</div>
-        Mapy Świata
+    {% for path, label, icon in [('mapy_swiata','Mapy Świata','🌍'), ('mapy_kao','Mapy Kao','🌍'), ('mapy_beifa','Mapy Beify','🌍'), ('mapy_anzinia','Mapy Anzinii','🌍'), ('mapy_peryfa','Mapy Peryfy','🌍'), ('mapy_wyspy_wieksze','Wyspy Większe','🌍'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','🌍')] %}
+    <a href="{{ url_for(path) }}" class="map-tile">
+        <div class="icon">{{ icon }}</div>
+        {{ label }}
     </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_kao') }}">
-        <div class="icon">🗺️</div>
-        Mapy Kao
-    </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_beifa') }}">
-        <div class="icon">🗺️</div>
-        Mapy Beify 
-    </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_anzinia') }}">
-        <div class="icon">🗺️</div>
-        Mapy Anzinii
-    </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_peryfa') }}">
-        <div class="icon">🗺️</div>
-        Mapy Peryfy
-    </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_wyspy_wieksze') }}">
-        <div class="icon">🗺️</div>
-        Mapy Wysp Większych 
-    </a>
-
-    <a class="map-tile" href="{{ url_for('mapy_wyspy_mniejsze') }}">
-        <div class="icon">🗺️</div>
-        Mapy Wysp Mniejszych 
-    </a>
-
-    <a class="map-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
-        <div class="icon">🎯</div>
-        Mapy Tematyczne [niedostępne]
-    </a>
-
-    <a class="map-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
-        <div class="icon">🎯</div>
-        Inne Mapy [niedostępne]
-    </a>
-
+    {% endfor %}
 </div>
 
 {% endblock %}

@@ -17,20 +17,33 @@
 body {
     margin: 0;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: #fafafa;
+    background: #f6f8fb;
     color: #2c3e50;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
 }
 
 /* =====================================================
    TOP BAR
 ===================================================== */
 .zeus-topbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 28px;
-    background: #ffffff;
-    border-bottom: 1px solid #dcdcdc;
+    gap: 20px;
 }
 
 .zeus-left {
@@ -45,82 +58,127 @@ body {
 
 .zeus-role {
     font-size: 0.85rem;
-    white-space: nowrap;
 }
-
-.zeus-versions-link {
-    margin-top: 4px;
-}
-
-.zeus-versions-link a {
-    font-size: 0.85em;
-    color: #555;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.zeus-versions-link a:hover {
-    color: #2c3e50;
-    text-decoration: underline;
-}
-
 
 /* =====================================================
-   CLOCK
+   CLOCK + GENERATOR
 ===================================================== */
-.entenda-clock {
-    font-weight: 800;
-    font-size: 22px;
-    padding: 6px 14px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.9);
-    box-shadow: 0 0 8px rgba(0,120,255,0.35);
-}
-
-.ent-month { color: #0057ff; }
-.ent-year  { color: #e60000; }
-
 .entenda-clock-wrapper {
     display: flex;
     align-items: center;
     gap: 14px;
 }
 
-.event-generator-btn {
-    background: #b09926;
-    color: white;
-    font-weight: 700;
-    padding: 7px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 14px;
+.entenda-clock {
+    font-weight: 800;
+    font-size: 22px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 0 10px rgba(0,120,255,0.25);
+}
 
-    box-shadow: 0 0 8px rgba(240, 137, 19, 0.35);
-    transition: background 0.15s ease, transform 0.1s ease;
+.event-generator-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #ffcc33, #ff8c00);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(255,140,0,0.4);
+    transition: all 0.2s ease;
 }
 
 .event-generator-btn:hover {
-    background: #93801f;
-    color: white;
-    transform: none;
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 6px 16px rgba(255,140,0,0.6);
     text-decoration: none;
 }
 
 /* =====================================================
-   STATS BAR  (⬅ TU MA BYĆ HAMBURGER POD SPODEN)
+   NEWS BAR
+===================================================== */
+.news-bar {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    background: #0b1f3a;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    padding: 0 12px;
+    position: relative;
+}
+
+.news-track {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: scrollNews 80s linear infinite;
+}
+
+.news-bar:hover .news-track {
+    animation-play-state: paused;
+}
+
+.news-item {
+    display: inline-block;
+    margin-right: 50px;
+    color: #e6ecff;
+    font-size: 14px;
+    background: rgba(255,255,255,0.05);
+    padding: 6px 12px;
+    border-radius: 10px;
+}
+
+.news-bar::before,
+.news-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    z-index: 2;
+}
+
+.news-bar::before {
+    left: 0;
+    background: linear-gradient(to right, #0b1f3a, transparent);
+}
+
+.news-bar::after {
+    right: 0;
+    background: linear-gradient(to left, #0b1f3a, transparent);
+}
+
+.news-date {
+    font-weight: 700;
+    color: #ffb300;
+}
+
+@keyframes scrollNews {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+
+/* =====================================================
+   STATS
 ===================================================== */
 .entenda-stats {
     text-align: center;
     font-size: 13px;
-    padding: 6px 10px 12px 10px;
-    background: #f5f7fb;
+    padding: 8px 10px;
+    background: #eef2f7;
     border-bottom: 1px solid #e2e6f0;
-
-    position: relative; /* ⬅ punkt odniesienia dla hamburgera */
 }
 
 /* =====================================================
-   NAVIGATION
+   NAV
 ===================================================== */
 .zeus-nav {
     display: flex;
@@ -136,30 +194,12 @@ body {
     font-weight: 600;
     text-decoration: none;
     padding: 8px 14px;
-    border-radius: 6px;
-    transition: background 0.15s ease, color 0.15s ease;
+    border-radius: 8px;
+    transition: 0.2s;
 }
 
 .zeus-nav a:hover {
-    background: #e6e6e6;
-    color: #000;
-}
-
-/* =====================================================
-   HAMBURGER
-   - NIE FIXED
-   - NIE CENTER EKRANU
-   - POD STATYSTYKĄ ENTENDA
-===================================================== */
-.nav-toggle {
-    display: none;                /* desktop: ukryty */
-    background: none;
-    border: none;
-    font-size: 1.6rem;
-    cursor: pointer;
-
-    margin: 8px auto 4px auto;    /* ⬅ POD TEKSTEM */
-    color: #2c3e50;
+    background: #e9edf5;
 }
 
 /* =====================================================
@@ -168,204 +208,338 @@ body {
 main.container {
     max-width: 1600px;
     margin: 30px auto;
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 /* =====================================================
-   TOASTS — NOWA WERSJA (ZGODNA Z WYMAGANIAMI)
+   TOASTS
 ===================================================== */
 #zeus-toast-container {
     position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 9999;
-
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 .zeus-toast {
     background: #1f2a44;
     color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-weight: 400;
-   
-   box-shadow: 0 6px 14px rgba(0,0,0,0.25);
-
-    /* ⬇️ START ANIMACJI */
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
     opacity: 0;
     transform: translateY(10px);
     animation: toast-in 0.25s ease-out forwards;
 }
 
 @keyframes toast-in {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-@keyframes toast-out {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-}
-
-.flash-container {
-    max-width: 1200px;
-    margin: 10px auto;
-}
-
-.flash {
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.flash-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.flash-error {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.news-bar {
-    background-color: #0b1f3a;
-    color: white;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 100%;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    margin: 0 40px;
-}
-
-.news-track {
-    display: inline-block;
-    padding-left: 100%;
-    animation: scrollNews 260s linear infinite;
-}
-
-.news-item {
-    margin-right: 80px;
-}
-
-@keyframes scrollNews {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-100%);
     }
 }
 
 /* =====================================================
-   MOBILE & TABLET
+   CARD
+===================================================== */
+.card {
+    border-radius: 12px !important;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12) !important;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+   VERSIONS LINK
+===================================================== */
+.zeus-versions-link {
+    margin-top: 4px;
+}
+
+.zeus-versions-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #5f6b7a;
+    background: #eef2f7;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.zeus-versions-link a:hover {
+    background: #e2e8f0;
+    color: #2c3e50;
+}
+
+.zeus-versions-link a:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,120,255,0.25);
+}
+
+/* =====================================================
+   NAV TOGGLE
+===================================================== */
+.nav-toggle {
+    display: none;
+}
+
+/* =====================================================
+   TABLET / MOBILE NAV
 ===================================================== */
 @media (max-width: 1023px) {
 
-    .zeus-topbar {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    /* hamburger widoczny na mobile */
     .nav-toggle {
         display: block;
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        margin: 8px auto;
+        cursor: pointer;
     }
-   
-   /* WRAPPER decyduje o wysokości */
+
     .zeus-nav-wrapper {
         display: grid;
         grid-template-rows: 0fr;
-        transition: grid-template-rows 0.35s ease;
+        transition: grid-template-rows 0.3s ease;
     }
 
     .zeus-nav-wrapper.show {
         grid-template-rows: 1fr;
     }
 
-    .zeus-nav.show {
-        transform: scaleY(1);
-        opacity: 1;
-    }
-
     .zeus-nav {
         overflow: hidden;
-
-        display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-
-        background: #ffffff;
-        border-bottom: 1px solid #dcdcdc;
+        gap: 6px;
     }
 
     .zeus-nav a {
         width: 100%;
         text-align: center;
-        padding: 12px 20px;
+        padding: 12px;
+        border-radius: 6px;
     }
 }
+
 /* =====================================================
-   MOBILE (MAŁE EKRANY)
+   MOBILE
 ===================================================== */
 @media (max-width: 768px) {
 
+    body {
+        overflow-x: hidden;
+    }
+
+    /* TOPBAR */
     .zeus-topbar {
-        flex-direction: column;
-        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 12px 0;
     }
 
-    .news-bar {
-        margin: 0;
-        width: 100%;
-    }
-
-    .news-bar {
-        flex: 1;
-        min-width: 0;
-    }
-
-    /* toast na środku dołu */
-    #toast-container {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        align-items: center;
-    }
-
-    .toast {
-        width: calc(100vw - 12px);
-        max-width: none;
-
-        max-height: 55px;     /* ⬅ więcej miejsca */
-        padding: 8px 12px;
-
-        font-size: 0.9rem;
-        line-height: 1.25;
-
+    .zeus-left {
+        justify-content: center;
         text-align: center;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .zeus-logo img {
+        height: 58px;
+    }
+
+    .zeus-role {
+        font-size: 0.8rem;
+    }
+
+    /* NEWS */
+    .news-bar {
+        height: 32px;
+        border-radius: 8px;
+        order: 3;
+    }
+
+    .news-item {
+        font-size: 12.5px;
+        padding: 5px 10px;
+    }
+
+    .news-track {
+        animation: scrollNews 120s linear infinite;
+    }
+
+    /* CLOCK */
+    .entenda-clock-wrapper {
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        order: 2;
+    }
+
+    .entenda-clock {
+        font-size: 18px;
+        padding: 5px 10px;
+    }
+
+    .event-generator-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
+
+    /* VERSIONS */
+    .zeus-versions-link {
+        text-align: center;
+    }
+
+    .zeus-versions-link a {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 10px;
+    }
+
+    main.container {
+        margin: 20px auto;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* CARDS */
+    .cards-container,
+    .gosp-tiles,
+    .art-tiles,
+    .demo-tiles,
+    .dyp-tiles,
+    .nature-tiles,
+    .info-tiles,
+    .kult-tiles,
+    .pliki-tiles,
+    .religia-tiles,
+    .zeus-grid-tiles,
+    .army-grid,
+    .map-grid,
+    body .cards-container,
+    body .gosp-tiles,
+    body .art-tiles,
+    body .demo-tiles,
+    body .dyp-tiles,
+    body .nature-tiles,
+    body .info-tiles,
+    body .kult-tiles,
+    body .pliki-tiles,
+    body .religia-tiles,
+    body .zeus-grid-tiles,
+    body .army-grid,
+    body .map-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .card,
+    .gosp-tile,
+    .art-tile,
+    .demo-tile,
+    .dyp-tile,
+    .nature-tile,
+    .info-tile,
+    .kult-tile,
+    .pliki-tile,
+    .religia-tile,
+    .tile-card,
+    .army-tile,
+    .map-card,
+    body .card,
+    body .gosp-tile,
+    body .art-tile,
+    body .demo-tile,
+    body .dyp-tile,
+    body .nature-tile,
+    body .info-tile,
+    body .kult-tile,
+    body .pliki-tile,
+    body .religia-tile,
+    body .tile-card,
+    body .army-tile,
+    body .map-card {
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        min-height: unset !important;
+    }
+
+    .card img {
+        width: 110px !important;
+        margin-bottom: 10px;
+    }
+
+    .card h3,
+    .gosp-tile h4,
+    .art-tile h4,
+    .demo-tile h4,
+    .dyp-tile h4,
+    .nature-tile h4,
+    .info-tile h4,
+    .kult-tile h4,
+    .pliki-tile h4,
+    .religia-tile h4,
+    .map-card h5,
+    .tile-card h5 {
+        font-size: 1.05rem;
+    }
+
+    .card input,
+    .card select {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    .card button,
+    .gosp-tile a {
+        padding: 12px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+
+    .button-group {
+        gap: 8px;
+    }
+
+    .card:hover,
+    .gosp-tile:hover,
+    .art-tile:hover,
+    .demo-tile:hover,
+    .dyp-tile:hover,
+    .nature-tile:hover,
+    .info-tile:hover,
+    .kult-tile:hover,
+    .pliki-tile:hover,
+    .religia-tile:hover,
+    .tile-card:hover,
+    .army-tile:hover,
+    .map-card:hover {
+        transform: none;
     }
 }
 </style>
-
 
 </head>
 
@@ -373,17 +547,20 @@ main.container {
 
 <!-- TOP -->
 <div class="zeus-topbar">
+
     <div class="zeus-left">
         <a class="zeus-logo" href="{{ url_for('home_page') }}">
             <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}">
         </a>
 
-        {% if session.rola %}
-        <div class="zeus-role">
-            Rola: <strong>{{ session.rola|capitalize }}</strong> |
-            <a href="{{ url_for('wejscie') }}">Zmień</a>
-
+        <div>
+            {% if session.rola %}
+            <div class="zeus-role">
+                Rola: <strong>{{ session.rola|capitalize }}</strong> |
+                <a href="{{ url_for('wejscie') }}">Zmień</a>
+            </div>
             {% endif %}
+
             <div class="zeus-versions-link">
                 <a href="{{ url_for('zeus_versions') }}">
                     ⓘ Informacje o zmianach
@@ -392,55 +569,48 @@ main.container {
         </div>
     </div>
 
+    <!-- NEWS -->
     <div class="news-bar">
         <div class="news-track">
             {% if latest_events %}
                 {% for e in latest_events %}
                     <span class="news-item">
-                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
-                        {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
-                    </span>
-                {% endfor %}
-
-                {% for e in latest_events %}
-                    <span class="news-item">
-                        [{{ e.data_entenda.strftime('%Y-%m-%d') }}]
-                        {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }} •
+                        <span class="news-date">[{{ e.data_entenda.strftime('%Y-%m-%d') }}]</span>
+                        {{ e.opis_wygenerowany or "Brak opisu zdarzenia" }}
                     </span>
                 {% endfor %}
             {% endif %}
         </div>
     </div>
 
+    <!-- CLOCK + BUTTON -->
     <div class="entenda-clock-wrapper">
 
-    <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">
-        ⚡ Generator zdarzeń
-    </a>
+        <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">
+            ⚡
+        </a>
 
-    <div class="entenda-clock">
-        {{ ENTENDA_DATE }} CE
+        <div class="entenda-clock">
+            {{ ENTENDA_DATE }} CE
+        </div>
     </div>
 
-    </div>
 </div>
 
 <!-- STATS -->
 <div class="entenda-stats">
-    Entenda to <strong>{{ E_WORLD_POP }}</strong> ludzi,
-    na <strong>{{ E_WORLD_CONTINENTS }}</strong> kontynentach,
-    w <strong>{{ E_WORLD_COUNTRIES }}</strong> krajach,
-    <strong>{{ E_WORLD_REGIONS }}</strong> regionach
-    i <strong>{{ E_WORLD_CITIES }}</strong> miastach.
+    Entenda: <strong>{{ E_WORLD_POP }}</strong> ludzi •
+    <strong>{{ E_WORLD_COUNTRIES }}</strong> państw •
+    <strong>{{ E_WORLD_REGIONS }}</strong> regionów •
+    <strong>{{ E_WORLD_CITIES }}</strong> miast
 </div>
 
 <hr>
 <button class="nav-toggle" onclick="toggleNav()">☰</button>
 <hr>
 
-<!-- NAV -->
 <div class="zeus-nav-wrapper" id="zeusNavWrapper">
-<nav class="zeus-nav">
+    <nav class="zeus-nav">
     {% for endpoint, label in [
         ('home_page','Strona główna'),
         ('mapy','Mapy'),
@@ -458,33 +628,21 @@ main.container {
     <a href="{{ url_for(endpoint) }}">{{ label }}</a>
     {% endfor %}
 </nav>
-</div>
 
 <main class="container">
 {% block content %}{% endblock %}
 </main>
 
 <script>
-function toggleNav() {
-    document.getElementById("zeusNavWrapper").classList.toggle("show");
-}
-</script>
-      
-<script>
-function zeusToast(message, type = "info") {
+function zeusToast(message) {
     const container = document.getElementById("zeus-toast-container");
-    if (!container) return;
-
     const toast = document.createElement("div");
-    toast.className = `zeus-toast zeus-toast-${type}`;
+    toast.className = "zeus-toast";
     toast.textContent = message;
 
     container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.classList.add("out");
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
+    setTimeout(() => toast.remove(), 4000);
 }
 </script>
 
@@ -492,3 +650,8 @@ function zeusToast(message, type = "info") {
 
 </body>
 </html>
+<script>
+function toggleNav() {
+    document.getElementById("zeusNavWrapper").classList.toggle("show");
+}
+</script>

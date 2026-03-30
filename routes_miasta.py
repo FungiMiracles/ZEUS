@@ -23,24 +23,26 @@ def init_miasta_routes(app):
     
         return jsonify([
             {
-                "panstwo_nazwa": p.panstwo_nazwa
+                "id": p.PANSTWO_ID,
+                "nazwa": p.panstwo_nazwa
             }
             for p in panstwa
         ])
 
     @app.route("/api/regiony")
     def api_regiony():
-        panstwo_nazwa = request.args.get("panstwo_nazwa")
-    
+        panstwo_id = request.args.get("panstwo_id", type=int)
+
         query = Region.query.join(Panstwo)
-    
-        if panstwo_nazwa:
-            query = query.filter(Panstwo.panstwo_nazwa == panstwo_nazwa)
+
+        if panstwo_id:
+            query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
     
         regiony = query.order_by(Region.region_nazwa).all()
     
         return jsonify([
             {
+                "region_id": r.region_id,
                 "region_nazwa": r.region_nazwa
             }
             for r in regiony
@@ -177,15 +179,15 @@ def init_miasta_routes(app):
     def wyniki_wyszukiwania_miasto():
         miasto_nazwa = request.args.get("miasto_nazwa")
         miasto_kod = request.args.get("miasto_kod")
-        panstwo_nazwa = request.args.get("panstwo_nazwa")
-        region_nazwa = request.args.get("region_nazwa")
+        panstwo_id = request.args.get("panstwo_id", type=int)
+        region_id = request.args.get("region_id", type=int)
         czy_na_mapie = request.args.get("czy_na_mapie")
         miasto_typ = request.args.get("miasto_typ")
         sort_populacja = request.args.get("sort_populacja")
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
         bez_regionu = request.args.get("bez_regionu")
-        kontynent = request.args.get("kontynent")
+        kontynent = request.args.get("kontynent_id", type=int)
     
         page = request.args.get("page", 1, type=int)
         per_page = 25
@@ -212,8 +214,8 @@ def init_miasta_routes(app):
         if miasto_kod:
             query = query.filter(Miasto.miasto_kod.like(f"%{miasto_kod}%"))
     
-        if panstwo_nazwa:
-            query = query.filter(Panstwo.panstwo_nazwa.like(f"%{panstwo_nazwa}%"))
+        if panstwo_id:
+            query = query.filter(Panstwo.PANSTWO_ID == panstwo_id)
 
         if bez_regionu == "1":
             query = query.filter(
@@ -222,8 +224,8 @@ def init_miasta_routes(app):
                     Miasto.region_id == 0
                 )
             )
-        elif region_nazwa:
-            query = query.filter(Region.region_nazwa.like(f"%{region_nazwa}%"))
+        elif region_id:
+            query = query.filter(Miasto.region_id == region_id)
     
         if czy_na_mapie in ("TAK", "NIE"):
             query = query.filter(Miasto.czy_na_mapie == czy_na_mapie)
@@ -287,9 +289,9 @@ def init_miasta_routes(app):
         if kontynent:
             regiony_query = regiony_query.filter(Panstwo.kontynent_id == kontynent)
 
-        if panstwo_nazwa:
+        if panstwo_id:
             regiony_query = regiony_query.filter(
-                Panstwo.panstwo_nazwa == panstwo_nazwa
+                Panstwo.PANSTWO_ID == panstwo_id
             )
 
         regiony = regiony_query.order_by(Region.region_nazwa).all()
@@ -315,8 +317,8 @@ def init_miasta_routes(app):
             regiony=regiony,
 
             selected_kontynent=kontynent,
-            selected_panstwo_nazwa=panstwo_nazwa,
-            selected_region_nazwa=region_nazwa
+            selected_panstwo_nazwa=panstwo_id,
+            selected_region_id=region_id
         )
 
     # --------------------------------

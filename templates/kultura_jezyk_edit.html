@@ -117,12 +117,14 @@ Kultura — Edytuj język
             </div>
 
             <!-- RODZINA -->
-            <div class="form-row">
-                <label>Rodzina językowa</label>
-                <input name="jezyk_rodzina"
-                       value="{{ jezyk.jezyk_rodzina or '' }}"
-                       placeholder="np. indoeuropejska">
-            </div>
+            <select name="jezyk_rodzina_id" required>
+                {% for r in rodziny %}
+                    <option value="{{ r.jezyk_rodzina_id }}"
+                        {% if jezyk.jezyk_rodzina_id == r.jezyk_rodzina_id %}selected{% endif %}>
+                        {{ r.nazwa }}
+                    </option>
+                {% endfor %}
+            </select>
 
             <!-- PRZYKŁAD PL -->
             <div class="form-row">

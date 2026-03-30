@@ -101,6 +101,12 @@ class Region(db.Model):
     region_typ_podrz_id = db.Column(db.Integer, db.ForeignKey("dict_region_typy.id"))
     typ_podrz = db.relationship("DictRegionTyp", foreign_keys=[region_typ_podrz_id])
 
+    procreg_infra_drogowa = db.Column(db.Float)
+    procreg_infra_kolejowa = db.Column(db.Float)
+    procreg_infra_energetyczna = db.Column(db.Float)
+    procreg_infra_mieszkaniowa = db.Column(db.Float)
+    procreg_infra_portowa = db.Column(db.Float)
+
 class Miasto(db.Model):
     __tablename__ = "miasta"
 
@@ -343,6 +349,10 @@ class Historia(db.Model):
         }
     
         return MAPA_EPOK.get(self.epoka, "Nieznana epoka")
+    
+    @property
+    def status_label(self):
+        return "AKTYWNA" if self.aktywna else "NIEAKTYWNA"
 
 
     # =========================================================
@@ -434,6 +444,15 @@ class Jezyk(db.Model):
     przyklad_polski = db.Column(db.Text)
     przyklad_docelowy = db.Column(db.Text)
 
+    jezyk_id = db.Column(db.Integer, primary_key=True)
+
+    jezyk_rodzina_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_jezyk_rodzina.jezyk_rodzina_id")
+    )
+
+    jezyk_rodzina = db.relationship("DictJezykRodzina")
+
     opis = db.Column(db.Text)
 
     def __repr__(self):
@@ -514,6 +533,15 @@ class Religia(db.Model):
 
     religia_obraz = deferred(db.Column(db.LargeBinary))
     religia_obraz_mime = db.Column(db.String(100))
+
+    religia_id = db.Column(db.Integer, primary_key=True)
+
+    religia_typ_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_religia_typ.religia_typ_id")
+    )
+
+    religia_typ = db.relationship("DictReligiaTyp")
 
     # Self-FK: religia nadrzędna (NULL = religia główna)
     religia_nadrzedna_id = db.Column(
@@ -644,6 +672,81 @@ class ZdarzenieSzablon(db.Model):
 
     created_at = db.Column(db.DateTime, default=db.func.now())
 
+class RegionalDataChange(db.Model):
+    __tablename__ = "regional_data_change"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    region_id = db.Column(db.Integer, db.ForeignKey("regiony.region_id"), nullable=False)
+
+    data_entenda = db.Column(db.Date, nullable=False)
+    data_rzeczywista = db.Column(db.DateTime, nullable=False)
+
+    source = db.Column(db.String(20), nullable=False)
+    event_id = db.Column(db.Integer, nullable=True)
+
+    delta_ludnosc_pozamiejska = db.Column(db.Integer, default=0)
+
+    delta_infra_drogowa = db.Column(db.Float, default=0)
+    delta_infra_kolejowa = db.Column(db.Float, default=0)
+    delta_infra_energetyczna = db.Column(db.Float, default=0)
+    delta_infra_mieszkaniowa = db.Column(db.Float, default=0)
+    delta_infra_portowa = db.Column(db.Float, default=0)
+
+class OrganizacjaMiedzynarodowa(db.Model):
+    __tablename__ = "dict_org_miedzy"
+
+    ORG_ID = db.Column(db.Integer, primary_key=True)
+
+    org_nazwa = db.Column(db.String(255), nullable=False)
+    org_skrot = db.Column(db.String(50))
+    org_typ = db.Column(db.String(100))
+    org_opis = db.Column(db.Text)
+
+    czy_aktywna = db.Column(db.Boolean, default=True)
+
+    data_utworzenia = db.Column(db.DateTime, default=db.func.now())
+
+    # 🔗 relacja do państw
+    czlonkowie = db.relationship(
+        "OrganizacjaPanstwo",
+        backref="organizacja",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    siedziba = db.Column(db.String(255))
+
+class OrganizacjaPanstwo(db.Model):
+    __tablename__ = "organizacja_per_panstwo"
+
+    ID = db.Column(db.Integer, primary_key=True)
+
+    org_id = db.Column(
+        db.Integer,
+        db.ForeignKey("dict_org_miedzy.ORG_ID", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    panstwo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("panstwa.PANSTWO_ID"),
+        nullable=False
+    )
+
+    status_czlonkostwa = db.Column(db.String(50), nullable=False)
+
+    data_dolaczenia = db.Column(db.DateTime, default=db.func.now())
+    data_opuszczenia = db.Column(db.DateTime, nullable=True)
+
+    czy_aktywny = db.Column(db.Boolean, default=True)
+
+    panstwo = db.relationship(
+        "Panstwo",
+        backref="organizacje",
+        lazy=True
+    )
+
 #------------------------------------------------#
 # SŁOWNIKI #
 #------------------------------------------------#
@@ -702,3 +805,16 @@ class DictStosunkiStan(db.Model):
 
     stan_id = db.Column(db.Integer, primary_key=True)
     stan_nazwa = db.Column(db.String(50), nullable=False)
+
+class DictReligiaTyp(db.Model):
+    __tablename__ = "dict_religia_typ"
+
+    religia_typ_id = db.Column(db.Integer, primary_key=True)
+    nazwa = db.Column(db.String(100), unique=True, nullable=False)
+
+
+class DictJezykRodzina(db.Model):
+    __tablename__ = "dict_jezyk_rodzina"
+
+    jezyk_rodzina_id = db.Column(db.Integer, primary_key=True)
+    nazwa = db.Column(db.String(100), unique=True, nullable=False)
