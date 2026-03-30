@@ -4,7 +4,7 @@
 {% block content %}
 
 <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+<p class="history-title" style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
     Historia
 </p>
 <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
@@ -59,7 +59,14 @@
 }
 
 @media (max-width: 768px) {
+    .history-title {
+        margin-top: 12px !important;
+        font-size: 20px !important;
+        line-height: 1.2;
+    }
+
     .history-tiles {
+        grid-template-columns: 1fr;
         gap: 14px;
         padding: 0;
     }
