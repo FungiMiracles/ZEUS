@@ -398,7 +398,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             
             <div class="filter-group">
                 <label>Państwo</label>
-                <select name="panstwo_nazwa" id="panstwo-select">
+                <select name="panstwo_id" id="panstwo-select">
                     <option value="">— wszystkie —</option>
                 </select>
             </div>
@@ -713,7 +713,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
 <script>
     const SELECTED_KONTYNENT = "{{ selected_kontynent or '' }}";
     const SELECTED_PANSTWO   = "{{ selected_panstwo_nazwa or '' }}";
-    const SELECTED_REGION    = "{{ selected_region_nazwa or '' }}";
+    const SELECTED_REGION = "{{ selected_region_id or '' }}";
 </script>
                             
 <script>

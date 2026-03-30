@@ -166,28 +166,38 @@ def init_panstwa_routes(app):
     def panstwo_form(panstwo_id):
         p = Panstwo.query.get_or_404(panstwo_id)
 
-        regiony = p.regiony
+        regiony = p.regiony  # 🔥 TO MUSI BYĆ
 
-        infra_values = []
+        infra_sum = 0
+        infra_count = 0
 
         for r in regiony:
-            vals = [
-                r.region_stan_infra_kolejowej,
-                r.region_stan_infra_drogowej,
-                r.region_stan_infra_energetycznej,
-                r.region_stan_infra_mieszkalnej,
-                r.region_stan_infra_portowej,
-            ]
 
-            # filtrujemy None
-            vals = [v for v in vals if v is not None]
+            if r.region_stan_infra_kolejowej is not None:
+                infra_sum += r.region_stan_infra_kolejowej
+                infra_count += 1
 
-            if vals:
-                infra_values.append(sum(vals) / len(vals))
+            if r.region_stan_infra_drogowej is not None:
+                infra_sum += r.region_stan_infra_drogowej
+                infra_count += 1
 
-        # średnia dla państwa
-        infra_avg = round(sum(infra_values) / len(infra_values), 1) if infra_values else None
-    
+            if r.region_stan_infra_energetycznej is not None:
+                infra_sum += r.region_stan_infra_energetycznej
+                infra_count += 1
+
+            if r.region_stan_infra_mieszkalnej is not None:
+                infra_sum += r.region_stan_infra_mieszkalnej
+                infra_count += 1
+
+            # 🔥 KLUCZOWE — porty tylko poza inlandem
+            if r.region_polozenie_id and r.region_polozenie_id != 1:
+                if r.region_stan_infra_portowej is not None:
+                    infra_sum += r.region_stan_infra_portowej
+                    infra_count += 1
+                    
+
+        infra_avg = round(infra_sum / infra_count, 1) if infra_count > 0 else None
+            
         miasta = (
             Miasto.query
             .filter_by(panstwo_id=panstwo_id)
@@ -389,7 +399,7 @@ def init_panstwa_routes(app):
                 p.panstwo_pelna_nazwa = form.get("panstwo_pelna_nazwa")
                 p.panstwo_kod = form.get("panstwo_kod")
                 p.kontynent_id = int(form.get("kontynent_id"))
-                p.panstwo_ustroj = form.get("panstwo_ustroj")
+                p.ustroj_id = int(form.get("ustroj_id"))
                 p.panstwo_stolica = form.get("panstwo_stolica")
                 p.panstwo_powierzchnia = int(form.get("panstwo_powierzchnia"))
                 p.panstwo_waluta = form.get("panstwo_waluta")

@@ -317,8 +317,8 @@ def init_miasta_routes(app):
             regiony=regiony,
 
             selected_kontynent=kontynent,
-            selected_panstwo_nazwa=panstwo_nazwa,
-            selected_region_nazwa=region_nazwa
+            selected_panstwo_nazwa=panstwo_id,
+            selected_region_id=region_id
         )
 
     # --------------------------------
