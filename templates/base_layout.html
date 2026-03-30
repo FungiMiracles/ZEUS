@@ -252,6 +252,100 @@ main.container {
 }
 
 /* =====================================================
+   ZEUS VERSIONS LINK (UI CONSISTENT)
+===================================================== */
+
+.zeus-versions-link {
+    margin-top: 4px;
+}
+
+/* główny styl */
+.zeus-versions-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 4px 10px;
+    border-radius: 8px;
+
+    font-size: 0.78rem;
+    font-weight: 500;
+
+    color: #5f6b7a;
+    background: #eef2f7;
+
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+/* hover desktop */
+.zeus-versions-link a:hover {
+    background: #e2e8f0;
+    color: #2c3e50;
+}
+
+/* lekki focus (keyboard / accessibility) */
+.zeus-versions-link a:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,120,255,0.25);
+}
+
+@media (max-width: 768px) {
+
+    /* ===== KAFELKI (uniwersalne) ===== */
+    .cards-container,
+    .gosp-tiles {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        padding: 0 10px;
+    }
+
+    /* ===== POJEDYNCZY KAFELEK ===== */
+    .card,
+    .gosp-tile {
+        width: 100% !important;
+        max-width: none !important;
+
+        border-radius: 12px;
+        padding: 16px;
+
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    /* ===== OBRAZKI W KAFELKACH ===== */
+    .card img {
+        width: 110px !important;
+        margin-bottom: 10px;
+    }
+
+    /* ===== TEKST ===== */
+    .card h3,
+    .gosp-tile h4 {
+        font-size: 1.05rem;
+    }
+
+    /* ===== INPUTY ===== */
+    .card input,
+    .card select {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    /* ===== BUTTONY ===== */
+    .card button,
+    .gosp-tile a {
+        padding: 12px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+
+    /* ===== BUTTON GROUP ===== */
+    .button-group {
+        gap: 8px;
+    }
+}
+/* =====================================================
    MOBILE
 ===================================================== */
 @media (max-width: 768px) {
@@ -308,7 +402,7 @@ main.container {
     }
 
     .news-track {
-        animation: scrollNews 60s linear infinite; /* szybciej na mobile */
+        animation: scrollNews 120s linear infinite;
     }
 }
 
@@ -370,6 +464,24 @@ main.container {
         border-radius: 6px;
     }
 }
+
+@media (max-width: 768px) {
+    .card:hover,
+    .gosp-tile:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .zeus-versions-link {
+        text-align: center;
+    }
+
+    .zeus-versions-link a {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 10px;
 </style>
 
 </head>
