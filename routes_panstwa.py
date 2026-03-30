@@ -92,6 +92,9 @@ def init_panstwa_routes(app):
         pkb_pc_od = request.args.get("pkb_pc_od")
         pkb_pc_do = request.args.get("pkb_pc_do")
         czy_suwerenny = request.args.get("czy_suwerenny")
+        ustroje = DictPanstwoUstroj.query.order_by(
+            DictPanstwoUstroj.ustroj_nazwa
+        ).all()
 
         kontynenty = DictKontynent.query.order_by(DictKontynent.kontynent_nazwa).all()
 
@@ -155,6 +158,7 @@ def init_panstwa_routes(app):
             results=results,
             pagination=pagination,
             total=total,
+            ustroje=ustroje,
             args=args,
             kontynenty=kontynenty,
             empty=len(results) == 0
@@ -254,7 +258,7 @@ def init_panstwa_routes(app):
             czy_suwerenny = request.form.get("czy_suwerenny")
 
             required_fields = [
-                nazwa, pelna, kod, ustroj, stolica,
+                nazwa, pelna, kod, ustroj_id, stolica,
                 populacja, pkb, pkb_pc,
                 waluta, religia,
                 kontynent_id_raw, powierzchnia, czy_suwerenny
