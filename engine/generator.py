@@ -944,7 +944,7 @@ def try_generate_air_disaster(region, target_date):
     if cooldown_block("katastrofa_lotnicza", region.region_id, target_date):
         return None
 
-    prob = 0.0010
+    prob = 0.0001
     scale = 5
     victims_range = (250, 400)
 
