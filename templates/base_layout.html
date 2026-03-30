@@ -63,21 +63,17 @@ body {
     box-shadow: 0 0 10px rgba(0,120,255,0.25);
 }
 
-/* ⚡ NOWY BUTTON */
 .event-generator-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 38px;
     height: 38px;
-
     background: linear-gradient(135deg, #ffcc33, #ff8c00);
     color: white;
     border-radius: 10px;
     text-decoration: none;
     font-size: 18px;
-
     box-shadow: 0 4px 10px rgba(255,140,0,0.4);
     transition: all 0.2s ease;
 }
@@ -89,31 +85,28 @@ body {
 }
 
 /* =====================================================
-   NEWS BAR — POPRAWIONA
+   NEWS BAR
 ===================================================== */
 .news-bar {
     width: 100%;
-    min-width: 0;          /* 🔥 KLUCZOWE dla scrolla */
+    min-width: 0;
     overflow: hidden;
-
     background: #0b1f3a;
     height: 36px;
     display: flex;
     align-items: center;
-
     border-radius: 10px;
     padding: 0 12px;
+    position: relative;
 }
 
 .news-track {
     display: inline-block;
     white-space: nowrap;
-
     padding-left: 100%;
     animation: scrollNews 80s linear infinite;
 }
 
-/* ⛔ PAUZA NA HOVER */
 .news-bar:hover .news-track {
     animation-play-state: paused;
 }
@@ -121,10 +114,8 @@ body {
 .news-item {
     display: inline-block;
     margin-right: 50px;
-
     color: #e6ecff;
     font-size: 14px;
-
     background: rgba(255,255,255,0.05);
     padding: 6px 12px;
     border-radius: 10px;
@@ -150,11 +141,6 @@ body {
     background: linear-gradient(to left, #0b1f3a, transparent);
 }
 
-.news-bar {
-    position: relative;
-}
-
-/* 🔥 DATA */
 .news-date {
     font-weight: 700;
     color: #ffb300;
@@ -207,10 +193,11 @@ body {
 main.container {
     max-width: 1600px;
     margin: 30px auto;
+    width: 100%;
 }
 
 /* =====================================================
-   TOASTS — LEKKI UPGRADE
+   TOASTS
 ===================================================== */
 #zeus-toast-container {
     position: fixed;
@@ -224,9 +211,7 @@ main.container {
     color: #fff;
     padding: 12px 16px;
     border-radius: 12px;
-
     box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-
     opacity: 0;
     transform: translateY(10px);
     animation: toast-in 0.25s ease-out forwards;
@@ -240,7 +225,7 @@ main.container {
 }
 
 /* =====================================================
-   SUBTLE CARD IMPROVEMENT
+   CARD
 ===================================================== */
 .card {
     border-radius: 12px !important;
@@ -252,183 +237,46 @@ main.container {
 }
 
 /* =====================================================
-   ZEUS VERSIONS LINK (UI CONSISTENT)
+   VERSIONS LINK
 ===================================================== */
-
 .zeus-versions-link {
     margin-top: 4px;
 }
 
-/* główny styl */
 .zeus-versions-link a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-
     padding: 4px 10px;
     border-radius: 8px;
-
     font-size: 0.78rem;
     font-weight: 500;
-
     color: #5f6b7a;
     background: #eef2f7;
-
     text-decoration: none;
     transition: all 0.15s ease;
 }
 
-/* hover desktop */
 .zeus-versions-link a:hover {
     background: #e2e8f0;
     color: #2c3e50;
 }
 
-/* lekki focus (keyboard / accessibility) */
 .zeus-versions-link a:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0,120,255,0.25);
 }
 
-@media (max-width: 768px) {
-
-    /* ===== KAFELKI (uniwersalne) ===== */
-    .cards-container,
-    .gosp-tiles {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 16px !important;
-        padding: 0 10px;
-    }
-
-    /* ===== POJEDYNCZY KAFELEK ===== */
-    .card,
-    .gosp-tile {
-        width: 100% !important;
-        max-width: none !important;
-
-        border-radius: 12px;
-        padding: 16px;
-
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    /* ===== OBRAZKI W KAFELKACH ===== */
-    .card img {
-        width: 110px !important;
-        margin-bottom: 10px;
-    }
-
-    /* ===== TEKST ===== */
-    .card h3,
-    .gosp-tile h4 {
-        font-size: 1.05rem;
-    }
-
-    /* ===== INPUTY ===== */
-    .card input,
-    .card select {
-        font-size: 0.95rem;
-        padding: 10px;
-    }
-
-    /* ===== BUTTONY ===== */
-    .card button,
-    .gosp-tile a {
-        padding: 12px;
-        font-size: 0.95rem;
-        border-radius: 8px;
-    }
-
-    /* ===== BUTTON GROUP ===== */
-    .button-group {
-        gap: 8px;
-    }
-}
 /* =====================================================
-   MOBILE
+   NAV TOGGLE
 ===================================================== */
-@media (max-width: 768px) {
-
-    .zeus-topbar {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .news-bar {
-        width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .zeus-topbar {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-        padding: 10px 12px;
-    }
-
-    .zeus-left {
-        justify-content: center;
-        text-align: center;
-    }
-
-    .zeus-logo img {
-        height: 58px;
-    }
-
-    .zeus-role {
-        font-size: 0.8rem;
-    }
-
-    .zeus-versions-link {
-        margin-top: 4px;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .news-bar {
-        width: 100%;
-        height: 32px;
-        border-radius: 8px;
-    }
-
-    .news-item {
-        font-size: 12.5px;
-        padding: 5px 10px;
-    }
-
-    .news-track {
-        animation: scrollNews 120s linear infinite;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .entenda-clock-wrapper {
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .entenda-clock {
-        font-size: 18px;
-        padding: 5px 10px;
-    }
-
-    .event-generator-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 16px;
-    }
-}
-
 .nav-toggle {
     display: none;
 }
 
+/* =====================================================
+   TABLET / MOBILE NAV
+===================================================== */
 @media (max-width: 1023px) {
 
     .nav-toggle {
@@ -465,15 +313,64 @@ main.container {
     }
 }
 
+/* =====================================================
+   MOBILE
+===================================================== */
 @media (max-width: 768px) {
-    .card:hover,
-    .gosp-tile:hover {
-        transform: none;
+
+    /* TOPBAR */
+    .zeus-topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
     }
-}
 
-@media (max-width: 768px) {
+    .zeus-left {
+        justify-content: center;
+        text-align: center;
+    }
 
+    .zeus-logo img {
+        height: 58px;
+    }
+
+    .zeus-role {
+        font-size: 0.8rem;
+    }
+
+    /* NEWS */
+    .news-bar {
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .news-item {
+        font-size: 12.5px;
+        padding: 5px 10px;
+    }
+
+    .news-track {
+        animation: scrollNews 120s linear infinite;
+    }
+
+    /* CLOCK */
+    .entenda-clock-wrapper {
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .entenda-clock {
+        font-size: 18px;
+        padding: 5px 10px;
+    }
+
+    .event-generator-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
+
+    /* VERSIONS */
     .zeus-versions-link {
         text-align: center;
     }
@@ -483,28 +380,61 @@ main.container {
         padding: 6px 12px;
         border-radius: 10px;
     }
-}
 
-/* =====================================================
-   🔥 FINAL MOBILE FIX — KAFELKI
-===================================================== */
-@media (max-width: 768px) {
-
+    /* CARDS */
+    .cards-container,
+    .gosp-tiles,
     body .cards-container,
     body .gosp-tiles {
         display: flex !important;
         flex-direction: column !important;
         gap: 16px !important;
         width: 100% !important;
+        padding: 0 10px;
     }
 
+    .card,
+    .gosp-tile,
     body .card,
     body .gosp-tile {
         width: 100% !important;
         max-width: none !important;
         flex: none !important;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
 
+    .card img {
+        width: 110px !important;
+        margin-bottom: 10px;
+    }
+
+    .card h3,
+    .gosp-tile h4 {
+        font-size: 1.05rem;
+    }
+
+    .card input,
+    .card select {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    .card button,
+    .gosp-tile a {
+        padding: 12px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+
+    .button-group {
+        gap: 8px;
+    }
+
+    .card:hover,
+    .gosp-tile:hover {
+        transform: none;
+    }
 }
 </style>
 
