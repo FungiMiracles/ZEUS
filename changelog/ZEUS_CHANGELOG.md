@@ -2,17 +2,45 @@ __Wydanie W3.MAR.26 (30.03.2026)__
 
 Zmiany:
 
-Z1.W3.MAR.26 [Formularz państwa] Dodanie rozwijalnego menu pozwalającego na przejście do poszczególnych modułów w kontekście wyświetlanego państwa.
+Z1.W3.MAR.26 [Państwa] Na formularzu państwa wprowadzono menu rozwijalne (hamburger), umożliwiające dostęp do kluczowych akcji i modułów systemu, takich jak: powrót do wyników wyszukiwania, edycja i usuwanie państwa, kalkulator demograficzny, dane ludnościowe, sojusze i bloki, dane gospodarcze oraz siły zbrojne.
 
-Z2.W3.MAR.26 [Formularz państwa] Zmiana wyglądu formularza państwa na spójny ze stylistyką formularza regionu.
+Z2.W3.MAR.26 [Państwa] Przebudowano układ formularza państwa – dotychczasowe menu boczne zostało zastąpione systemem kafelków z granatowym obramowaniem, spójnym wizualnie z formularzem regionu.
 
-Z3.W3.MAR.26 [Formularz państwa] Dodanie informacji o poziomie rozwoju infrastrukturalnego państwa w raz z oznaczeniami kolorystycznymi.
+Z3.W3.MAR.26 [Państwa] Dodano wskaźnik poziomu rozwoju infrastrukturalnego państwa, wyliczany jako średnia wartości infrastruktury we wszystkich regionach. Wskaźnik prezentowany jest pod PKB per capita i oznaczony kolorystycznie w zależności od poziomu (od czerwonego do ciemnozielonego).
 
-Z10.W3.MAR.26 [Ludność i populacja] Dodanie flagi państwa obok nagłówka z nazwą państwa.
+Z4.W3.MAR.26 [Generator Zdarzeń] Rozszerzono model danych regionów o parametry regeneracji infrastruktury (drogi, kolej, energia, mieszkalnictwo, porty). Wartości te są widoczne na formularzu regionu jako dane systemowe.
+
+Z5.W3.MAR.26 [Generator Zdarzeń] Dodano mechanizm inicjalizacji parametrów regeneracji infrastruktury na podstawie danych ekonomicznych (m.in. PKB), umożliwiający automatyczne wypełnienie nowych pól.
+
+Z6.W3.MAR.26 [Generator Zdarzeń] Wprowadzono system konsekwencji zdarzeń oraz automatyczną regenerację infrastruktury regionalnej. Zdarzenia wpływają na stan infrastruktury oraz zmniejszają populację pozamiejską o liczbę ofiar.
+
+Z7.W3.MAR.26 [Generator Zdarzeń] Wprowadzono ograniczenie wykluczające miasta techniczne z procesu generowania zdarzeń.
+
+Z8.W3.MAR.26 [Generator Zdarzeń] Rozszerzono bazę szablonów opisów zdarzeń o nowe scenariusze dla katastrof kolejowych, zdarzeń drogowych, powodzi oraz fal mrozu.
+
+Z9.W3.MAR.26 [Generator Zdarzeń] Dodano nowe typy zdarzeń: pożar lasu, pożar budynku, przerwa w dostawie prądu oraz katastrofa lotnicza wraz z pełnym wsparciem szablonów i logiki generowania.
+
+Z10.W3.MAR.26 [Ludność i populacja] Na ekranie danych demograficznych państw dodano prezentację flagi państwa obok jego nazwy.
+
+Z11.W3.MAR.26 [Organizacje międzynarodowe] Wprowadzono nowy moduł organizacji międzynarodowych, obejmujący słownik organizacji oraz relacje członkostwa państw.
+
+Z12.W3.MAR.26 [Organizacje międzynarodowe] Dodano modele danych oraz backend obsługujący organizacje międzynarodowe i ich relacje z państwami.
+
+Z13.W3.MAR.26 [Organizacje międzynarodowe] Udostępniono ekran organizacji międzynarodowych z możliwością przeglądania organizacji, ich członków oraz wyszukiwania powiązań państw z organizacjami.
+
+Z14.W3.MAR.26 [Organizacje międzynarodowe] Dodano operacje zarządzania organizacjami: tworzenie, usuwanie, zawieszanie organizacji oraz zarządzanie członkostwem państw.
+
+Z15.W3.MAR.26 [Strona Główna] Zaktualizowano wygląd paska wiadomości – dodano zaokrąglenia oraz obramowanie w kolorze jasnoszarym.
+
+Z17.W3.MAR.26 [Religia] Wprowadzono słownik typów religii oraz powiązanie go z tabelą religii. Backend oraz formularze zostały dostosowane do obsługi nowej struktury.
+
+Z18.W3.MAR.26 [Język] Wprowadzono słownik rodzin językowych oraz powiązanie z tabelą języków. Zaktualizowano modele, backend oraz formularze.
+
+Z19.W3.MAR.26 [Religia] Ujednolicono wygląd przycisków w module religijnym (m.in. „usuń” i „szukaj”).
 
 Poprawki:
 
-Z20.W3.MAR.26 [Poprawki błędów] Naprawa błędów 036, 038, 039, 040, 041.
+P1.W3.MAR.26 [System] Naprawiono błędy oznaczone numerami 036, 038, 039, 040 oraz 041 zgodnie z listą błędów.
 
 __Wydanie W2.MAR.26 (13.03.2026)__
 
