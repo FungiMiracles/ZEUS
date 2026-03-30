@@ -42,6 +42,7 @@
     font-size: 42px;
     margin-bottom: 12px;
     opacity: 0.95;
+    line-height: 1;
 }
 
 .map-tile:hover {
@@ -73,9 +74,9 @@
 </style>
 
 <div class="map-tiles">
-    {% for path, label, icon in [('mapy_swiata','Mapy Świata','fas fa-globe-europe'), ('mapy_kao','Mapy Kao','fas fa-mountain'), ('mapy_beifa','Mapy Beify','fas fa-water'), ('mapy_anzinia','Mapy Anzinii','fas fa-compass'), ('mapy_peryfa','Mapy Peryfy','fas fa-route'), ('mapy_wyspy_wieksze','Wyspy Większe','fas fa-umbrella-beach'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','fas fa-map-signs')] %}
+    {% for path, label, icon in [('mapy_swiata','Mapy Świata','🌍'), ('mapy_kao','Mapy Kao','🗺️'), ('mapy_beifa','Mapy Beify','🌊'), ('mapy_anzinia','Mapy Anzinii','🧭'), ('mapy_peryfa','Mapy Peryfy','📍'), ('mapy_wyspy_wieksze','Wyspy Większe','🏝️'), ('mapy_wyspy_mniejsze','Wyspy Mniejsze','🧩')] %}
     <a href="{{ url_for(path) }}" class="map-tile">
-        <div class="icon"><i class="{{ icon }}"></i></div>
+        <div class="icon">{{ icon }}</div>
         {{ label }}
     </a>
     {% endfor %}

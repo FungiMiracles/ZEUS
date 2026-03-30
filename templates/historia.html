@@ -42,6 +42,7 @@
     font-size: 42px;
     margin-bottom: 12px;
     opacity: 0.95;
+    line-height: 1;
 }
 
 .history-tile:hover {
@@ -80,18 +81,18 @@
 <div class="history-tiles">
 
     <a href="{{ url_for('historia_lista') }}" class="history-tile">
-        <div class="icon"><i class="fas fa-landmark"></i></div>
+        <div class="icon">📜</div>
         Wydarzenia historyczne
     </a>
 
     {% if session.rola in ["tworzyciel", "wszechmocny"] %}
     <a href="{{ url_for('historia_dodaj') }}" class="history-tile">
-        <div class="icon"><i class="fas fa-feather-alt"></i></div>
+        <div class="icon">✍️</div>
         Dodaj wydarzenie
     </a>
     {% else %}
     <a href="#" class="history-tile locked" onclick="event.preventDefault(); zeusToast('Twoja rola nie pozwala na dodawanie wydarzeń')">
-        <div class="icon"><i class="fas fa-lock"></i></div>
+        <div class="icon">🔒</div>
         Dodaj wydarzenie
     </a>
     {% endif %}
