@@ -42,7 +42,9 @@ def init_kultura_routes(app):
                 (JezykiPerPanstwo.jezyk_mniejszosciowy5 == Jezyk.jezyk_id)
             ).filter(JezykiPerPanstwo.panstwo_id == panstwo_id)
 
-        if kontynent_id:
+        joined = False
+
+        if panstwo_id or kontynent_id:
             query = query.join(
                 JezykiPerPanstwo,
                 (JezykiPerPanstwo.jezyk_urzedowy1 == Jezyk.jezyk_id) |
@@ -53,7 +55,16 @@ def init_kultura_routes(app):
                 (JezykiPerPanstwo.jezyk_mniejszosciowy3 == Jezyk.jezyk_id) |
                 (JezykiPerPanstwo.jezyk_mniejszosciowy4 == Jezyk.jezyk_id) |
                 (JezykiPerPanstwo.jezyk_mniejszosciowy5 == Jezyk.jezyk_id)
-            ).join(
+            )
+            joined = True
+
+        if panstwo_id:
+            query = query.filter(JezykiPerPanstwo.panstwo_id == panstwo_id)
+
+        if kontynent_id:
+            if not joined:
+                query = query.join(JezykiPerPanstwo, ...)
+            query = query.join(
                 Panstwo, Panstwo.PANSTWO_ID == JezykiPerPanstwo.panstwo_id
             ).filter(Panstwo.kontynent_id == kontynent_id)
 
@@ -315,6 +326,10 @@ def init_kultura_routes(app):
                     errors.append("Niepoprawny język.")
                     break
 
+                if not Jezyk.query.get(int(j_id)):
+                    errors.append("Język nie istnieje.")
+                    break
+
             if errors:
                 return render_template(
                     "kultura_jezyk_przypisz.html",
@@ -339,7 +354,7 @@ def init_kultura_routes(app):
                 )
 
             # ===== ZAPIS =====
-            profil = JezykiPerPanstwo.query.filter_by(
+            profil = JezykiPerPanstwo(
                 panstwo_id=int(panstwo_id),
 
                 jezyk_urzedowy1=int(urzedowe[0]) if urzedowe[0] else None,

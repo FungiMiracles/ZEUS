@@ -260,10 +260,15 @@ def init_armia_routes(app):
 
         wojsko = Wojsko.query.filter_by(panstwo_id=panstwo.PANSTWO_ID).first()
 
+        kontynent = None
+        if panstwo.kontynent_id:
+            k = DictKontynent.query.get(panstwo.kontynent_id)
+            kontynent = k.kontynent_nazwa if k else None
+
         return jsonify({
             "id": panstwo.PANSTWO_ID,
             "nazwa": panstwo.panstwo_nazwa,
-            "kontynent": panstwo.kontynent_id,
+            "kontynent": kontynent,
             "populacja": panstwo.panstwo_populacja or 0,
 
             "wojsko": {

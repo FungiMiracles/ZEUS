@@ -81,7 +81,7 @@ def init_panstwa_routes(app):
         nazwa = request.args.get("panstwo_nazwa")
         kod = request.args.get("panstwo_kod")
 
-        ustroj = request.args.get("panstwo_ustroj")
+        ustroj_id = request.args.get("ustroj_id", type=int)
         populacja_od = request.args.get("populacja_od")
         populacja_do = request.args.get("populacja_do")
         powierzchnia = request.args.get("panstwo_powierzchnia")
@@ -106,8 +106,8 @@ def init_panstwa_routes(app):
         if kod:
             query = query.filter(Panstwo.panstwo_kod.like(f"%{kod}%"))
 
-        if ustroj:
-            query = query.filter(Panstwo.panstwo_ustroj.like(f"%{ustroj}%"))
+        if ustroj_id:
+            query = query.filter(Panstwo.ustroj_id == ustroj_id)
 
         if populacja_od:
             query = query.filter(Panstwo.panstwo_populacja >= int(populacja_od))
