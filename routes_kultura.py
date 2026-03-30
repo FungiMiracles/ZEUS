@@ -210,3 +210,102 @@ def init_kultura_routes(app):
 
         flash("Język usunięty.", "success")
         return redirect(url_for("kultura_jezyki"))
+    
+    # ===============================
+    # PRZYPISANIE
+    # ===============================
+    
+    @app.route("/kultura/jezyki/przypisz", methods=["GET", "POST"])
+    @wymaga_roli("wszechmocny")
+    def kultura_jezyk_przypisz():
+
+        panstwa = Panstwo.query.order_by(Panstwo.panstwo_nazwa).all()
+        jezyki = Jezyk.query.order_by(Jezyk.jezyk_nazwa).all()
+
+        if request.method == "POST":
+
+            panstwo_id = request.form.get("panstwo_id")
+
+            # języki urzędowe
+            urzedowe = [
+                request.form.get("jezyk_urzedowy1"),
+                request.form.get("jezyk_urzedowy2"),
+                request.form.get("jezyk_urzedowy3"),
+            ]
+
+            # języki mniejszościowe
+            mniejszosciowe = [
+                request.form.get("jezyk_mniejszosciowy1"),
+                request.form.get("jezyk_mniejszosciowy2"),
+                request.form.get("jezyk_mniejszosciowy3"),
+                request.form.get("jezyk_mniejszosciowy4"),
+                request.form.get("jezyk_mniejszosciowy5"),
+            ]
+
+            errors = []
+
+            # ===== WALIDACJA PAŃSTWA =====
+            if not panstwo_id or not panstwo_id.isdigit():
+                errors.append("Wybierz poprawne państwo.")
+
+            # ===== WALIDACJA DUPLIKATÓW =====
+            wszystkie = [j for j in urzedowe + mniejszosciowe if j]
+
+            if len(wszystkie) != len(set(wszystkie)):
+                errors.append("Nie można przypisać tego samego języka więcej niż raz.")
+
+            # ===== WALIDACJA ISTNIENIA JĘZYKÓW =====
+            for j_id in wszystkie:
+                if not j_id.isdigit():
+                    errors.append("Niepoprawny język.")
+                    break
+
+            if errors:
+                return render_template(
+                    "kultura_jezyk_przypisz.html",
+                    panstwa=panstwa,
+                    jezyki=jezyki,
+                    error=" ".join(errors),
+                    form_data=request.form
+                )
+
+            # ===== SPRAWDZENIE CZY JUŻ ISTNIEJE PROFIL =====
+            profil = JezykPerPanstwo.query.filter_by(
+                panstwo_id=int(panstwo_id)
+            ).first()
+
+            if profil:
+                return render_template(
+                    "kultura_jezyk_przypisz.html",
+                    panstwa=panstwa,
+                    jezyki=jezyki,
+                    error="To państwo ma już przypisane języki.",
+                    form_data=request.form
+                )
+
+            # ===== ZAPIS =====
+            profil = JezykPerPanstwo(
+                panstwo_id=int(panstwo_id),
+
+                jezyk_urzedowy1=int(urzedowe[0]) if urzedowe[0] else None,
+                jezyk_urzedowy2=int(urzedowe[1]) if urzedowe[1] else None,
+                jezyk_urzedowy3=int(urzedowe[2]) if urzedowe[2] else None,
+
+                jezyk_mniejszosciowy1=int(mniejszosciowe[0]) if mniejszosciowe[0] else None,
+                jezyk_mniejszosciowy2=int(mniejszosciowe[1]) if mniejszosciowe[1] else None,
+                jezyk_mniejszosciowy3=int(mniejszosciowe[2]) if mniejszosciowe[2] else None,
+                jezyk_mniejszosciowy4=int(mniejszosciowe[3]) if mniejszosciowe[3] else None,
+                jezyk_mniejszosciowy5=int(mniejszosciowe[4]) if mniejszosciowe[4] else None,
+            )
+
+            db.session.add(profil)
+            db.session.commit()
+
+            return redirect(url_for("kultura_jezyki"))
+
+        return render_template(
+            "kultura_jezyk_przypisz.html",
+            panstwa=panstwa,
+            jezyki=jezyki,
+            form_data={}
+        )
