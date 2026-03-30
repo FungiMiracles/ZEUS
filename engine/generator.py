@@ -38,7 +38,10 @@ LAST_REGEN_YEAR = None
 
 #----------------------------------------------------------#
 
+scheduler = None
+
 def start_event_scheduler(app):
+    global scheduler
 
     scheduler = BackgroundScheduler()
 
@@ -47,8 +50,7 @@ def start_event_scheduler(app):
             print("[ZEUS] scheduler tick")
             generate_events()
 
-    scheduler.add_job(job, "interval", minutes=30)
-
+    scheduler.add_job(job, "interval", minutes=1)
     scheduler.start()
 
 #----------------------------------------------------------#
@@ -253,7 +255,11 @@ def compute_victims(region, victims_range):
 
     base = random.randint(*victims_range)
 
-    pop = region.region_populacja or 0
+    pop = (
+        region.region_ludnosc_pozamiejska
+        or region.region_populacja
+        or 0
+    )
 
     factor = (pop / 1_000_000) ** 0.65
 
