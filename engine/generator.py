@@ -28,11 +28,11 @@ from engine.effects import (
 
 #----------------------------------------------------------#
 
-MAX_EVENTS_PER_MONTH = 40
+MAX_EVENTS_PER_MONTH = 20
 
 MAX_EVENTS_PER_REGION_PER_MONTH = 2
 
-MAX_EVENTS_PER_DAY = 5
+MAX_EVENTS_PER_DAY = 3
 
 LAST_REGEN_YEAR = None
 
@@ -50,7 +50,7 @@ def start_event_scheduler(app):
             print("[ZEUS] scheduler tick")
             generate_events()
 
-    scheduler.add_job(job, "interval", minutes=1)
+    scheduler.add_job(job, "interval", minutes=60)
     scheduler.start()
 
 #----------------------------------------------------------#
