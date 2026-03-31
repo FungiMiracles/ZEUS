@@ -38,7 +38,6 @@
 
 .country-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 14px 8px;
     border-bottom: 1px solid #d3d7dc;
@@ -55,6 +54,11 @@
     flex-direction: column;
 }
 
+.country-main {
+    flex: 1;
+    min-width: 0;
+}
+
 .country-name {
     display: flex;
     align-items: center;
@@ -66,6 +70,12 @@
 .country-meta {
     font-size: 0.85em;
     color: #7f8c8d;
+}
+
+.country-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;   /* 🔥 najważniejsze */
 }
 
 /* ===== PRAWA STRONA (AKCJE) ===== */
@@ -80,6 +90,12 @@
     cursor: pointer;
     text-decoration: none;
     color: #ffffff;
+}
+
+.country-actions a,
+.country-actions button {
+    white-space: nowrap;   /* 🔥 blokuje łamanie */
+    padding: 6px 8px;
 }
 
 /* Kolory akcji */
