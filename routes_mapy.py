@@ -37,3 +37,10 @@ def init_mapy_routes(app):
     @app.route("/mapy/wyspy_mniejsze")
     def mapy_wyspy_mniejsze():
         return render_template("mapy_mniejsze.html")
+    
+    @app.route("/mapy_swiata")
+    def mapy_swiata():
+        with open("static/maps/mapa_swiata.svg", encoding="utf-8") as f:
+            svg_content = f.read()
+
+        return render_template("mapy_swiata.html", svg_content=svg_content)

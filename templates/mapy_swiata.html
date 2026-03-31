@@ -140,8 +140,8 @@
     </div>
 
     <div class="svg-area" id="svg_area">
-      <div id="img_container">
-        {% include "maps/mapa_swiata.svg" %}
+      <div id="img_container" class="img-inner">
+        {{ svg_content | safe }}
       </div>
 
       <div class="overlay-ui" id="overlay">
