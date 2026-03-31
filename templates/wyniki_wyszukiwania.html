@@ -282,121 +282,77 @@
 
 @media (max-width: 768px) {
 
-  /* ===== WIERSZ ===== */
+  .wyniki-panstw {
+    padding: 0 12px;
+  }
+
   .country-row {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+    min-width: 0;
   }
 
-  /* ===== TREŚĆ ===== */
   .country-main {
+    min-width: 0;
     font-size: 0.95em;
   }
 
   .country-name {
-    font-size: 1.05em;
-    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 1.05em;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .country-meta {
     font-size: 0.85em;
+    line-height: 1.4;
   }
 
-  /* ===== AKCJE — GRID, NIE FLEX ===== */
   .country-actions {
     width: 100%;
+    min-width: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
-  /* ===== WSZYSTKIE PRZYCISKI IDENTYCZNE ===== */
   .country-actions a,
   .country-actions button,
-  .country-actions form {
+  .country-actions form,
+  .delete-form {
+    display: block;
     width: 100%;
+    min-width: 0;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .country-actions a,
   .country-actions button {
-    display: block;
+    padding: 7px 4px;
+    font-size: 0.78em;
     text-align: center;
-    font-size: 0.8em;
-    padding: 8px 0;
-    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .country-actions form {
-    margin: 0;
+  .zeus-filter-box {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .region-flash {
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .region-flash-item {
-        max-width: 100%;
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-weight: 600;
-    }
-
-.wyniki-panstw {
-    max-width: 1100px;
-    margin: 25px auto;
-    padding: 0 12px;   /* 🔥 KLUCZOWE */
+  .zeus-filter-box .filter-actions button {
+    font-size: 0.9em;
+    padding: 10px 0;
+  }
 }
 
-
-
-.country-actions form {
-    display: block;   /* 🔥 ważne */
-}
-
-.country-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    width: 100%;
-}
-
-.country-actions a,
-.country-actions button {
-    width: 100%;
-    min-width: 0;      /* 🔥 KLUCZ */
-    padding: 6px 4px;  /* mniej paddingu */
-    font-size: 0.8em;
-}
-
-.country-actions form {
-    display: block;
-    width: 100%;
-}
-
-.delete-form {
-    display: block;
-    width: 100%;
-}
-
-.country-row {
-    min-width: 0;
-}
-
-.country-main {
-    min-width: 0;
-}
-
-.country-name {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-}
-   
 </style>
 
 <div class="wyniki-panstw">
@@ -725,3 +681,4 @@ updateAdvanced();
 </script>
 
 {% endblock %}
+
