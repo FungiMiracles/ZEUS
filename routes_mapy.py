@@ -1,4 +1,3 @@
-# routes_mapy.py
 from flask import render_template
 from permissions import wymaga_roli
 
