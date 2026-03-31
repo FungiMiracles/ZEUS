@@ -8,11 +8,6 @@ def init_mapy_routes(app):
     @app.route("/mapy")
     def mapy():
         return render_template("mapy.html")
-
-    # ✔️ Nowa trasa – mapa świata
-    @app.route("/mapy_swiata")
-    def mapy_swiata():
-        return render_template("mapy_swiata.html")
     
     @app.route("/mapy/kao")
     def mapy_kao():
