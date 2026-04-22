@@ -1,3 +1,11 @@
+__ZEUS 1.1.4.26 (19.04.2026)__
+
+Zmiany:
+
+Architektura systemu ZEUS została w całości przeniesiona na dedykowany serwer ZEUS. Zamknięty został system ZEUS na Railway.
+
+Od tego momentu ZEUS wersje ZEUS będą oznaczane w inny sposób: ZEUS 1.3.3.26 (1 generacja, 3 wydanie, 3 miesiąc, rok 2026).
+
 __Wydanie W3.MAR.26 (30.03.2026)__
 
 Zmiany:

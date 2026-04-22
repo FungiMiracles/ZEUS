@@ -30,6 +30,8 @@ from routes_religia import init_religia_routes
 from routes_api import init_api_routes
 from routes_zdarzenia import init_zdarzenia_routes
 from engine.generator import start_event_scheduler
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 # ─────────────────────────────────────────
 #  STAŁE KALENDARZA ENTENDY
@@ -173,7 +175,7 @@ def create_app():
     def forbidden(e):
         return render_template("403.html"), 403
     
-    start_event_scheduler(app)  # ODBLOKOWUJE/ZABLOKOWUJE GENERATOR ZDARZEŃ
+   # start_event_scheduler(app)  # ODBLOKOWUJE/ZABLOKOWUJE GENERATOR ZDARZEŃ
 
     return app
 
@@ -184,4 +186,6 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
+
+print("FINAL DB:", app.config["SQLALCHEMY_DATABASE_URI"])
