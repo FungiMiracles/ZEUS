@@ -30,3 +30,7 @@ html body.game-app.game-navy.game-civic .game-mobile-toggle{display:none}
   html body.game-app.game-navy.game-civic .game-nav-links.is-open{display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;max-height:75dvh;overflow-y:auto}
   html body.game-app.game-navy.game-civic .game-nav-links.is-open>a,html body.game-app.game-navy.game-civic .game-nav-links.is-open>button{width:100%}
 }
+/* 13 Nov 2026: tło głównych ekranów gry #F0F4FA (zamiast zielonkawego #f3f3ed) */
+html body.game-app.game-navy.game-civic{--shell-bg:#F0F4FA;background:#F0F4FA}
+html body.game-app.game-navy.game-civic .game-workspace,html body.game-app.game-navy.game-civic .game-main{background:#F0F4FA}
+html body.game-app.game-navy.game-civic :is(.game-topbar,.game-country-summary,.game-world-stats){background:#F0F4FA;border-color:#d3dce9}
