@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-1') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-2') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -114,7 +114,6 @@
       </svg>
       <div class="sidebar-pie-center"><span>Do wydania</span><strong>{{ game_budget_overview['items']|sum(attribute='remaining')|game_money }}</strong></div>
     </div>
-    <ul class="sidebar-legend">{% for segment in segments %}<li><i style="background:{{ segment.color }}"></i>{{ segment.label }}</li>{% endfor %}</ul>
     {% else %}<p class="sidebar-empty">Brak zatwierdzonego planu na bieżące półrocze.</p>{% endif %}
   </section>
   {% endif %}

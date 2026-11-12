@@ -1,5 +1,5 @@
 /* 13 Nov 2026: stały lewy pasek gry w kolorystyce granatu (#1E3A5F), jak górne menu. */
-html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar){display:grid;grid-template-columns:268px minmax(0,1fr);align-items:start}
+html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar){display:grid;grid-template-columns:322px minmax(0,1fr);align-items:start}
 html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-navigation{grid-column:1/-1}
 .game-sidebar{position:sticky;top:0;align-self:start;height:100dvh;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:16px 14px 24px;
   background:linear-gradient(180deg,#1E3A5F,#172f4e);color:#e8eff8;border-right:1px solid #0f2238;scrollbar-width:thin;scrollbar-color:#4d6f98 transparent}
@@ -8,7 +8,7 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
 .game-sidebar .sidebar-flag strong{font-size:16px;letter-spacing:.03em;color:#fff}
 .game-sidebar .sidebar-block{padding:14px 0;border-bottom:1px solid #ffffff1f}
 .game-sidebar .sidebar-block:last-child{border-bottom:0}
-.game-sidebar h2{margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#b9cbe2}
+.game-sidebar h2{margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff}
 .game-sidebar .sidebar-pie{position:relative;width:180px;max-width:100%;margin:0 auto}
 .game-sidebar .sidebar-pie svg{display:block;width:100%;height:auto;overflow:visible}
 .game-sidebar .sidebar-pie-slice{stroke:#1E3A5F;stroke-width:1.5;cursor:pointer;transition:transform .12s,filter .12s;transform-origin:90px 90px;outline:none}
@@ -16,9 +16,6 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
 .game-sidebar .sidebar-pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
 .game-sidebar .sidebar-pie-center span{font-size:10px;color:#b9cbe2;text-transform:uppercase;letter-spacing:.08em}
 .game-sidebar .sidebar-pie-center strong{font-size:14px;color:#fff;max-width:96px;line-height:1.25}
-.game-sidebar .sidebar-legend{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;margin:12px 0 0;padding:0;list-style:none;font-size:10.5px;color:#d6e2f0}
-.game-sidebar .sidebar-legend li{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.game-sidebar .sidebar-legend i{flex:0 0 9px;width:9px;height:9px;border-radius:2px}
 .game-sidebar .sidebar-empty{margin:0;font-size:12px;color:#d6e2f0}
 .game-sidebar .sidebar-stats{display:grid;gap:8px;margin:0}
 .game-sidebar .sidebar-stats div{display:flex;flex-direction:column;gap:1px;padding:7px 9px;border:1px solid #ffffff24;border-radius:6px;background:#ffffff0d}
@@ -29,7 +26,7 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
 .game-sidebar .warehouse-crate{position:relative;display:block;height:74px;padding:0;outline:none;border-bottom:8px solid #8a5f33;box-shadow:0 5px 0 -1px #5e3f20,0 8px 6px -4px #0007;cursor:default}
 .game-sidebar .warehouse-crate .crate-box{position:absolute;left:50%;bottom:2px;width:60px;height:60px;transform:translateX(-50%);
   background:linear-gradient(160deg,#a8743f,#7d5129 60%,#5f3c1d);-webkit-mask:var(--crate-shape) center/contain no-repeat;mask:var(--crate-shape) center/contain no-repeat;transition:transform .15s}
-.game-sidebar .warehouse-crate .crate-icon{position:absolute;z-index:1;left:50%;bottom:18px;transform:translateX(-50%);width:28px;height:28px;padding:3px;box-sizing:border-box;object-fit:contain;
+.game-sidebar .warehouse-crate .crate-icon{position:absolute;z-index:1;left:50%;bottom:15px;transform:translateX(-50%);width:34px;height:34px;padding:3px;box-sizing:border-box;object-fit:contain;
   background:#fffaf0;border:1px solid #6b4824;border-radius:5px;box-shadow:0 1px 3px #0004;transition:transform .15s}
 .game-sidebar .warehouse-crate:hover .crate-box,.game-sidebar .warehouse-crate:focus-visible .crate-box{transform:translateX(-50%) translateY(-3px)}
 .game-sidebar .warehouse-crate:hover .crate-icon,.game-sidebar .warehouse-crate:focus-visible .crate-icon{transform:translateX(-50%) translateY(-3px)}
