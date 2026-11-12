@@ -1,0 +1,114 @@
+{% extends "game/game_base_layout.html" %}
+
+{% block title %}Finanse państwa — ZEUS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/game_finanse.css', v='20261025-8') }}">
+{% endblock %}
+
+{% block content %}
+
+{% include "game/_finanse_form.html" %}
+{% include "game/_loans.html" %}
+
+<section class="game-panel finance-history">
+    <div class="game-panel-heading">Historia okresów budżetowych</div>
+
+    <div class="game-panel-body">
+        {% if finance_history %}
+        <div class="finance-table-scroll">
+            <table class="finance-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Okres</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Transza</th>
+                        <th scope="col">Rezerwa końcowa</th>
+                        <th scope="col">Szczegóły</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in finance_history %}
+                    <tr>
+                        <th scope="row">
+                            {{ row.year }} /
+                            {{ 'I' if row.period == 1 else 'II' }}
+                        </th>
+
+                        <td>
+                            {% if row.status == 'APPROVED' %}
+                                Zatwierdzony
+                                {% if row.approval_mode == 'AUTO_REPEAT' %}
+                                    automatycznie
+                                {% endif %}
+                            {% elif row.status == 'SKIPPED' %}
+                                Pominięty
+                            {% else %}
+                                Oczekuje
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if row.tax_total is not none %}
+                            <span data-finance-history-money="{{ row.tax_total }}">
+                                {{ row.tax_total }}
+                            </span>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if row.closing_reserve is not none %}
+                            <span data-finance-history-money="{{ row.closing_reserve }}">
+                                {{ row.closing_reserve }}
+                            </span>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if row.budget_id %}
+                            <button type="button"
+                                    class="finance-button finance-secondary"
+                                    data-finance-history="{{ row.budget_id }}">
+                                Pokaż plan
+                            </button>
+                            {% elif row.skip_details %}
+                                {{ row.skip_details }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>Brak zapisanych okresów budżetowych.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="game-panel"
+         id="finance-history-detail"
+         data-finance-history-detail
+         aria-live="polite"
+         hidden>
+    <div class="game-panel-heading">Szczegóły historycznego budżetu</div>
+    <div class="game-panel-body" data-finance-history-content></div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static',filename='js/game_loans.js',v='20261108-ui17') }}" defer></script>
+<script src="{{ url_for(
+    'static',
+    filename='js/game_finanse.js', benefit_version='20261106',
+    v='20261110-trust-1'
+) }}" defer></script>
+{% endblock %}

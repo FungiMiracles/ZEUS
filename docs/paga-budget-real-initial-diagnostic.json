@@ -1,0 +1,79 @@
+{
+  "real_model": true,
+  "database": "sqlite:///:memory:",
+  "correction_scenario": false,
+  "steps": [
+    {
+      "operation": "initial_finance_read",
+      "result": {
+        "status": 200,
+        "audit_id": 1,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.page:GET\", \"result\": {\"state\": {\"approved\": false, \"year\": 2990, \"period\": 1, \"has_previous\": false, \"pit_rate\": \"5.00\", \"cit_rate\": \"0.00\", \"shares\": {\"administration\": \"0.00\", \"infrastructure\": \"0.00\", \"armed_forces\": \"0.00\", \"social_policy\": \"0.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"education\": \"0.00\", \"research\": \"0.00\", \"security_services\": \"0.00\", \"propaganda\": \"0.00\", \"reserve\": \"100.00\"}, \"tax_total\": \"735798750.00\", \"budget_total\": \"735798750.00\", \"opening_reserve\": \"0.00\", \"closing_reserve\": \"735798750.00\", \"allocations\": {\"administration\": \"0.00\", \"infrastructure\": \"0.00\", \"armed_forces\": \"0.00\", \"social_policy\": \"0.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"education\": \"0.00\", \"research\": \"0.00\", \"security_services\": \"0.00\", \"propaganda\": \"0.00\", \"reserve\": \"735798750.00\"}, \"benefits\": {\"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}, \"carry_in\": \"0\"}, \"tax_penalty\": 0, \"revenue_basis\": {\"algorithm_version\": 5, \"working_population\": 600000, \"gdp_per_capita\": \"50000\", \"unemployment_percent\": \"5.0\", \"infrastructure\": \"50\", \"satisfaction\": 60, \"stability\": 70, \"education\": 80, \"public_health\": 75, \"crime\": 8, \"trust\": 61}}, \"categories\": [{\"code\": \"administration\", \"name\": \"administration\", \"is_reserve\": false}, {\"code\": \"infrastructure\", \"name\": \"infrastructure\", \"is_reserve\": false}, {\"code\": \"armed_forces\", \"name\": \"armed_forces\", \"is_reserve\": false}, {\"code\": \"social_policy\", \"name\": \"social_policy\", \"is_reserve\": false}, {\"code\": \"environment\", \"name\": \"environment\", \"is_reserve\": false}, {\"code\": \"healthcare\", \"name\": \"healthcare\", \"is_reserve\": false}, {\"code\": \"education\", \"name\": \"education\", \"is_reserve\": false}, {\"code\": \"research\", \"name\": \"Badania i rozwój\", \"is_reserve\": false}, {\"code\": \"security_services\", \"name\": \"security_services\", \"is_reserve\": false}, {\"code\": \"propaganda\", \"name\": \"propaganda\", \"is_reserve\": false}, {\"code\": \"reserve\", \"name\": \"reserve\", \"is_reserve\": true}], \"error\": null, \"guidance\": \"Stawki i udziały w procentach. Najpierw preview z planem i uzasadnieniem, potem approve z uzasadnieniem; ZEUS dobiera okres i token.\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 2190
+        }
+      }
+    },
+    {
+      "decision": {
+        "operation_id": "game_finance.preview:POST",
+        "path": {},
+        "data": {
+          "pit_rate": 15.0,
+          "shares": {
+            "administration": 5.0,
+            "infrastructure": 15.0,
+            "armed_forces": 10.0,
+            "social_policy": 20.0,
+            "environment": 5.0,
+            "healthcare": 10.0,
+            "education": 10.0,
+            "research": 5.0,
+            "security_services": 5.0,
+            "propaganda": 2.0,
+            "reserve": 13.0
+          },
+          "repeat_previous": false,
+          "rationale": "Planuje podatek 15% (z 5%) aby sfinansować krytyczne świadczenia dla seniorów i dzieci oraz inwestycje w infrastrukturę i edukację. Udziały w sektorach społecznych i technologicznych zwiększają stabilność i rozwój gospodarczy, co jest kluczowe dla interesów PAGA. Rezerwa zostanie zmniejszona, ale konieczne jest finansowanie bieżących potrzeb."
+        }
+      },
+      "memory": "Plan budżetu zatwierdzony po ocenie.",
+      "result": {
+        "status": 200,
+        "audit_id": 2,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.preview:POST\", \"result\": {\"plan\": {\"approved\": false, \"year\": 2990, \"period\": 1, \"has_previous\": false, \"pit_rate\": \"15.00\", \"cit_rate\": \"0.00\", \"shares\": {\"administration\": \"5.00\", \"armed_forces\": \"10.00\", \"education\": \"10.00\", \"environment\": \"5.00\", \"healthcare\": \"10.00\", \"infrastructure\": \"15.00\", \"propaganda\": \"2.00\", \"research\": \"5.00\", \"reserve\": \"13.00\", \"security_services\": \"5.00\", \"social_policy\": \"20.00\"}, \"tax_total\": \"2207396250.00\", \"budget_total\": \"2207396250.00\", \"opening_reserve\": \"0.00\", \"closing_reserve\": \"286961512.50\", \"allocations\": {\"administration\": \"110369812.50\", \"armed_forces\": \"220739625.00\", \"education\": \"220739625.00\", \"environment\": \"110369812.50\", \"healthcare\": \"220739625.00\", \"infrastructure\": \"331109437.50\", \"propaganda\": \"44147925.00\", \"research\": \"110369812.50\", \"reserve\": \"286961512.50\", \"security_services\": \"110369812.50\", \"social_policy\": \"441479250.00\"}, \"benefits\": {\"carry_in\": \"0\", \"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}}, \"tax_penalty\": 0, \"revenue_basis\": {\"algorithm_version\": 5, \"crime\": 8, \"education\": 80, \"gdp_per_capita\": \"50000\", \"infrastructure\": \"50\", \"public_health\": 75, \"satisfaction\": 60, \"stability\": 70, \"trust\": 61, \"unemployment_percent\": \"5.0\", \"working_population\": 600000}}, \"units\": \"Stawki i udziały w procentach: 5 = 5%, 0.05 = 0.05%.\", \"next\": \"Oceń dochody, oczekiwania świadczeń, inwestycje i PAGA. Popraw plan przez preview albo zatwierdź przez approve z rationale.\", \"baseline\": {\"pit_rate\": \"5.00\", \"tax_total\": \"735798750.00\", \"budget_total\": \"735798750.00\", \"benefits\": {\"carry_in\": \"0\", \"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}}}, \"change_in_tax_revenue\": \"1471597500.00\", \"change_in_tax_revenue_percent\": \"200\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 1803
+        }
+      }
+    },
+    {
+      "decision": {
+        "operation_id": "game_finance.approve:POST",
+        "path": {},
+        "data": {
+          "rationale": "Plan podatkowy 15% generuje 2-milionowy wzrost dochodów, co pozwala sfinansować oczekiwane świadczenia dla seniorów i dzieci oraz kluczowe inwestycje w infrastrukturę i edukację. Udziały w sektorach społecznych i technologicznych bezpośrednio wspierają interesy PAGA: stabilność społeczna, rozwój gospodarczy i przetrwanie państwa. Zmniejszenie rezerwy jest uzasadnione koniecznością finansowania bieżących wydatków."
+        }
+      },
+      "memory": null,
+      "result": {
+        "status": 200,
+        "audit_id": 3,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.approve:POST\", \"result\": {\"already_approved\": false, \"budget_id\": 1, \"ok\": true}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 127
+        }
+      }
+    }
+  ],
+  "budgets": 1,
+  "assessments": 1,
+  "passed": false,
+  "harness_error": "Initial diagnostic: AttributeError in reporting saved tax rate after one budget and one assessment had been persisted. Reporting code corrected; final acceptance is rerun."
+}

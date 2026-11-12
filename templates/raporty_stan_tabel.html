@@ -1,0 +1,500 @@
+{% extends "base_layout.html" %}
+{% block title %}Stan uzupełnienia tabel i raporty{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — RAPORTY
+============================================================ */
+
+.raporty-container {
+    max-width: 1200px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.raporty-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.raporty-header h1 {
+    font-size: 2em;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.raporty-header p {
+    color: #6b7785;
+    font-size: 0.95em;
+}
+
+/* ============================================================
+   GRID
+============================================================ */
+
+.raporty-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+/* ============================================================
+   CARD
+============================================================ */
+
+.raport-card {
+    background: #ffffff;
+    border: 1px solid #d9dee5;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.raport-title {
+    font-size: 0.9em;
+    font-weight: 700;
+    line-height: 1.3;
+    min-height: 42px;
+    margin-bottom: 10px;
+}
+
+.raport-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.raport-count {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+
+.raport-percent {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.9em;
+}
+
+.gauge {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gauge::before {
+    content: "";
+
+    position: absolute;
+
+    width: 68px;
+    height: 68px;
+
+    background: white;
+    border-radius: 50%;
+}
+
+.gauge-label {
+    position: relative;
+    z-index: 2;
+
+    font-size: 0.8em;
+    font-weight: 800;
+}
+
+.fill-low {
+    border-top-color: #27ae60;
+    border-right-color: #27ae60;
+}
+
+.fill-medium {
+    border-top-color: #f39c12;
+    border-right-color: #f39c12;
+}
+
+.fill-high {
+    border-top-color: #e74c3c;
+    border-right-color: #e74c3c;
+}
+
+.export-bar {
+    margin-top: 28px;
+    background: linear-gradient(135deg, #243949, #517fa4);
+    border-radius: 16px;
+    padding: 22px;
+    color: white;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.export-info h2 {
+    margin: 0 0 6px 0;
+    font-size: 1.2em;
+    font-weight: 800;
+}
+
+.export-info p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95em;
+}
+
+.export-btn {
+    background: white;
+    color: #243949;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: 0.2s ease;
+    white-space: nowrap;
+}
+
+.export-btn:hover {
+    background: #ecf0f1;
+    transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   PROGRESS
+============================================================ */
+
+.progress-wrapper {
+    width: 100%;
+    height: 12px;
+    background: #e9edf2;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.25s ease;
+}
+
+/* ============================================================
+   KOLORY
+============================================================ */
+
+.bad-low {
+    background: #d4edda;
+    color: #155724;
+}
+
+.bad-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.bad-high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.bar-low {
+    background: linear-gradient(90deg, #27ae60, #6ddf8f);
+}
+
+.bar-medium {
+    background: linear-gradient(90deg, #f39c12, #ffd36e);
+}
+
+.bar-high {
+    background: linear-gradient(90deg, #e74c3c, #ff8a7f);
+}
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.raport-summary {
+    margin-top: 30px;
+    background: #ffffff;
+    border: 1px solid #d9dee5;
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.raport-summary h2 {
+    font-size: 1.2em;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.summary-value {
+    font-size: 2.5em;
+    font-weight: 800;
+    color: #2c3e50;
+}
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    .raporty-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .raport-card {
+        padding: 16px;
+    }
+
+    .raport-count {
+        font-size: 1.8em;
+    }
+
+    .raporty-header h1 {
+        font-size: 1.5em;
+    }
+
+    .summary-value {
+        font-size: 2em;
+    }
+
+    .export-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .export-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<div class="raporty-container">
+
+    <div class="raporty-header">
+        <h1>Stan uzupełnienia tabel i raporty</h1>
+
+        <p>
+            Raport jakości i kompletności danych systemu ZEUS
+        </p>
+    </div>
+
+    <div class="raporty-grid">
+
+        {% for r in raport %}
+
+            {% set pct = r.percent %}
+
+            {% if pct < 10 %}
+                {% set badge_class = "bad-low" %}
+                {% set bar_class = "bar-low" %}
+            {% elif pct < 30 %}
+                {% set badge_class = "bad-medium" %}
+                {% set bar_class = "bar-medium" %}
+            {% else %}
+                {% set badge_class = "bad-high" %}
+                {% set bar_class = "bar-high" %}
+            {% endif %}
+
+            <div class="raport-card">
+
+                <div class="raport-title">
+                    {{ r.label }}
+                </div>
+
+                <div class="raport-top">
+
+                    <div class="raport-count">
+                        {{ r.count }}
+                    </div>
+
+                    <div class="raport-percent {{ badge_class }}">
+                        {{ r.percent }}%
+                    </div>
+
+                </div>
+
+                <div class="gauge"
+                    style="
+                        background:
+                        conic-gradient(
+                            {% if pct < 10 %}
+                                #27ae60
+                            {% elif pct < 30 %}
+                                #f39c12
+                            {% else %}
+                                #e74c3c
+                            {% endif %}
+                            {{ pct * 3.6 }}deg,
+                            #e9edf2 0deg
+                        );
+                    ">
+
+                    <div class="gauge-label">
+                        {{ r.percent }}%
+                    </div>
+
+                </div>
+                
+            </div>
+
+        {% endfor %}
+                
+    </div>
+
+        <div class="export-bar">
+
+        <div class="export-info">
+            <h2>Raport zmian parametrów regionalnych</h2>
+
+            <p>
+            Pobierz pełny raport zmian w parametrach regionalnych wywołanych przez Generator Zdarzeń.
+            </p>
+        </div>
+
+        <a href="{{ url_for('export_region_state_history') }}"
+                    class="export-btn">
+                        Eksportuj do XLSX
+        </a>
+
+        </div>
+
+        <!-- ========================================= -->
+        <!-- HISTORIA POPULACJI PAŃSTW -->
+        <!-- ========================================= -->
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian populacji w państwach Entendy</h2>
+
+                <p>
+                Pobierz pełny raport historycznych zmian populacji państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_historia_populacji_panstw') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+        <!-- ========================================= -->
+        <!-- HISTORIA PKB -->
+        <!-- ========================================= -->
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian PKB w państwach Entendy</h2>
+
+                <p>
+                Pobierz pełny raport zmian PKB państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_pkb_state_history') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+        <!-- ========================================= -->
+        <!-- HISTORIA PKB PER CAPITA -->
+        <!-- ========================================= -->
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian PKB per capita w państwach Entendy</h2>
+
+                <p>
+                Pobierz pełny raport zmian PKB per capita państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_pkbpc_state_history') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+        <!-- ========================================= -->
+        <!-- HISTORIA SPOŁECZEŃSTWA -->
+        <!-- ========================================= -->
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian społecznych w państwach Entendy</h2>
+
+                <p>
+                Pobierz pełny raport zmian parametrów społecznych państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_spoleczenstwo_state_history') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian we współczynniku wzrostu PKB państw Entendy</h2>
+
+                <p>
+                    Pobierz pełny raport historycznych zmian współczynnika wzrostu PKB państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_procent_wzrostu_state_history') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+        <div class="export-bar">
+
+            <div class="export-info">
+                <h2>Raport zmian średniego przyrostu naturalnego państw Entendy</h2>
+
+                <p>
+                    Pobierz pełny raport historycznych zmian średniego przyrostu naturalnego państw Entendy.
+                </p>
+            </div>
+
+            <a href="{{ url_for('export_roczny_przyrost_state_history') }}"
+            class="export-btn">
+                Eksportuj do XLSX
+            </a>
+
+        </div>
+
+</div>
+
+{% endblock %}

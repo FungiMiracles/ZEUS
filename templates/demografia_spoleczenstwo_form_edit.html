@@ -1,0 +1,262 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj społeczeństwo – {{ panstwo.panstwo_nazwa }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* ============================================================
+   ZEUS — EDYCJA SPOŁECZEŃSTWA
+============================================================ */
+
+.spol-edit {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #f4f6f8;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    padding-bottom: 40px;
+}
+
+.spol-edit .header {
+    text-align: center;
+    margin: 25px 0 30px 0;
+}
+
+.spol-edit h1 {
+    font-size: 2em;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* SEKCJE */
+
+.section-box {
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #d3d7dc;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.section-box h2 {
+    font-size: 1.3em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #34495e;
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 20px;
+}
+
+.section-grid label {
+    font-weight: 700;
+    font-size: 0.9em;
+    color: #2c3e50;
+}
+
+/* INPUTY */
+
+.section-grid input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    background: #ffffff;
+    font-weight: 600;
+}
+
+/* BUTTONY */
+
+.action-row {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-big {
+    padding: 10px 22px;
+    font-size: 1.05em;
+    border-radius: 8px;
+    margin: 0 6px;
+    font-weight: 600;
+}
+
+.btn-save {
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none !important;
+    border: none;
+}
+.btn-save:hover {
+    background-color: #1e8749;
+    color: white;
+    text-decoration: none !important;
+    border: none;
+}
+
+.btn-cancel {
+    background-color: #c73424;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+.btn-cancel:hover {
+    background-color: #96271b;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
+/* FLAGA */
+
+.flag {
+    width: 70px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+/* ============================================================
+   MOBILE – EDIT
+============================================================ */
+
+@media (max-width: 768px) {
+
+    /* CONTAINER */
+    .spol-edit {
+        padding: 0 10px;
+    }
+
+    /* HEADER */
+    .spol-edit h1 {
+        font-size: 1.5em;
+    }
+
+    .flag {
+        width: 60px;
+    }
+
+    /* SEKCJE */
+    .section-box {
+        padding: 15px;
+    }
+
+    .section-box h2 {
+        font-size: 1.1em;
+    }
+
+    /* GRID → 1 KOLUMNA */
+    .section-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* LABEL */
+    .section-grid label {
+        font-size: 0.85em;
+    }
+
+    /* INPUT */
+    .section-grid input {
+        padding: 10px;
+        font-size: 1em;
+    }
+
+    /* BUTTONY */
+    .action-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .btn-big {
+        width: 100%;
+        font-size: 1em;
+        padding: 12px;
+    }
+
+}
+</style>
+
+<div class="spol-edit">
+
+<div class="header">
+    <img class="flag"
+         src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ', '_') + '.jpg') }}">
+    <h1>{{ panstwo.panstwo_nazwa }}</h1>
+    <div>ID: {{ panstwo.PANSTWO_ID }}</div>
+</div>
+
+<form method="POST">
+
+    {% set s = s or None %}
+
+    <!-- ================= POZYTYWNE ================= -->
+    <div class="section-box">
+        <h2>Wskaźniki społeczne</h2>
+
+        <div class="section-grid">
+
+            <div><label>Stabilność społeczna</label><input type="number" min="0" max="100" name="stabilnosc_spoleczna" value="{{ s.stabilnosc_spoleczna if s else '' }}"></div>
+            <div><label>Zadowolenie społeczne</label><input type="number" min="0" max="100" name="zadowolenie_spoleczne" value="{{ s.zadowolenie_spoleczne if s else '' }}"></div>
+            <div><label>Edukacja</label><input type="number" min="0" max="100" name="poziom_edukacji" value="{{ s.poziom_edukacji if s else '' }}"></div>
+
+            <div><label>Świadomość społeczna</label><input type="number" min="0" max="100" name="swiadomosc_spoleczna" value="{{ s.swiadomosc_spoleczna if s else '' }}"></div>
+            <div><label>Zaufanie do władzy</label><input type="number" min="0" max="100" name="zaufanie_do_wladzy" value="{{ s.zaufanie_do_wladzy if s else '' }}"></div>
+            <div><label>Spójność społeczna</label><input type="number" min="0" max="100" name="spojnosc_spoleczna" value="{{ s.spojnosc_spoleczna if s else '' }}"></div>
+
+            <div><label>Tożsamość narodowa</label><input type="number" min="0" max="100" name="tozsamosc_narodowa" value="{{ s.tozsamosc_narodowa if s else '' }}"></div>
+            <div><label>Konserwatyzm społeczny</label><input type="number" min="0" max="100" name="konserwatyzm_spoleczny" value="{{ s.konserwatyzm_spoleczny if s else '' }}"></div>
+            <div><label>Otwartość społeczna</label><input type="number" min="0" max="100" name="otwartosc_spoleczna" value="{{ s.otwartosc_spoleczna if s else '' }}"></div>
+            <div><label>Zdrowie publiczne</label><input type="number" min="0" max="100" name="zdrowie_publiczne" value="{{ s.zdrowie_publiczne if s else '' }}"></div>
+
+        </div>
+    </div>
+
+    <!-- ================= NEGATYWNE ================= -->
+    <div class="section-box">
+        <h2>Czynniki ryzyka społecznego</h2>
+
+        <div class="section-grid">
+
+            <div><label>Nierówności społeczne</label><input type="number" min="0" max="100" name="nierownosci_spoleczne" value="{{ s.nierownosci_spoleczne if s else '' }}"></div>
+            <div><label>Napięcia religijne</label><input type="number" min="0" max="100" name="napiecia_religijne" value="{{ s.napiecia_religijne if s else '' }}"></div>
+            <div><label>Napięcia etniczne</label><input type="number" min="0" max="100" name="napiecia_etniczne" value="{{ s.napiecia_etniczne if s else '' }}"></div>
+
+            <div><label>Napięcia klasowe</label><input type="number" min="0" max="100" name="napiecia_klasowe" value="{{ s.napiecia_klasowe if s else '' }}"></div>
+            <div><label>Przestępczość</label><input type="number" min="0" max="100" name="przestepczosc" value="{{ s.przestepczosc if s else '' }}"></div>
+            <div><label>Radykalizacja</label><input type="number" min="0" max="100" name="radykalizacja_spoleczna" value="{{ s.radykalizacja_spoleczna if s else '' }}"></div>
+
+        </div>
+    </div>
+
+    <div class="section-box">
+        <h2>Czynniki ryzyka zdrowotnego</h2>
+
+        <div class="section-grid">
+
+            <div><label>Spożycie alkoholu</label><input type="number" min="0" max="100" name="spozycie_alkoholu" value="{{ s.spozycie_alkoholu if s else '' }}"></div>
+            <div><label>Spożycie narkotyków</label><input type="number" min="0" max="100" name="spozycie_narkotykow" value="{{ s.spozycie_narkotykow if s else '' }}"></div>
+
+        </div>
+    </div>
+
+    <!-- BUTTONY -->
+    <div class="action-row">
+        <button type="submit" class="btn-big btn-save">Zapisz</button>
+
+        <a href="{{ url_for(
+            'demografia_spoleczenstwo_lista',
+            kontynent=kontynent
+        ) }}"
+        class="btn-big btn-cancel">
+            Anuluj
+        </a>
+    </div>
+
+</form>
+
+</div>
+
+{% endblock %}

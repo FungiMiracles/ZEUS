@@ -1,0 +1,11 @@
+.diplomacy-map-column { min-width: 0; display: grid; gap: 18px; }
+.diplomacy-proposals h2 { font-size: 18px; margin: 0; }
+.diplomacy-proposal-group + .diplomacy-proposal-group { margin-top: 24px; }
+.diplomacy-proposal-group h3 { text-align: left; font-size: 16px; }
+.diplomacy-proposal-card { padding: 14px; border: 1px solid #cad9c0; border-radius: 5px; margin-top: 12px; overflow-wrap: anywhere; }
+.diplomacy-proposal-card p { margin: 0 0 10px; }
+.diplomacy-proposal-card form { display: flex; flex-wrap: wrap; gap: 10px; }
+.diplomacy-proposal-card form button { min-height: 44px; padding: 9px 16px; }
+.game-app.game-navy.game-civic .diplomacy-proposal-card button[value=accept] { background: #3d7051; color: #fff; border-color: #3d7051; }
+.game-app.game-navy.game-civic .diplomacy-proposal-card button[value=reject] { background: #f6e6e1; color: #85382c; border-color: #c8a49b; }
+.diplomacy-proposal-card [data-proposal-result] { flex-basis: 100%; }

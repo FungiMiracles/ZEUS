@@ -4,6 +4,44 @@
 {% block content %}
 
 <style>
+
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
+
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 .org-container {
     max-width: 1200px;
     margin: 20px auto 40px auto;
@@ -49,16 +87,6 @@
     font-size: 0.9em;
 }
 
-.btn-main {
-    padding: 10px 22px;
-    border-radius: 8px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    background-color: #2c73d2;
-    color: white;
-}
-
 /* ===== RESULTS ===== */
 .org-results {
     display: flex;
@@ -101,10 +129,6 @@
     cursor: pointer;
 }
 
-.btn-view { background: #5d7dce; color:white; }
-.btn-edit { background: #3498db; color:white; }
-.btn-delete { background: #e74c3c; color:white; }
-
 /* ===== FLAGI ===== */
 .flag-icon {
     width: 22px;
@@ -117,15 +141,6 @@
 
 .org-members div {
     margin-bottom: 6px;
-}
-
-/* ===== BACK BUTTON ===== */
-.btn-back {
-    background-color: #2c3e50;
-    color: white;
-}
-.btn-back:hover {
-    background-color: #1a252f;
 }
 
 .flag-region {
@@ -152,6 +167,27 @@
 .alert-error {
     background: #f8d7da;
     color: #721c24;
+}
+
+.org-more-chip {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 6px;
+
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    background: #eef2f7;
+    border: 1px solid #cfd7e2;
+
+    font-size: 0.8em;
+    font-weight: 700;
+
+    color: #34495e;
 }
 
 @media (max-width: 768px) {
@@ -284,13 +320,19 @@
 
         <div style="text-align:center; margin-top:18px; display:flex; justify-content:center; gap:10px;">
 
-            <button type="submit" class="btn-main">Szukaj</button>
+            <button type="submit" class="btn-zeus btn-search">Szukaj</button>
 
+            {% if session.rola in ["tworzyciel", "wszechmocny"] %}
             <a href="/dyplomacja/organizacja/add">
-                <button type="button" class="btn-main" style="background:#27ae60;">
+                <button type="button" class="btn-zeus btn-add">
                     Dodaj nową organizację
                 </button>
             </a>
+            {% else %}
+                <button type="button" class="btn-zeus btn-add" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                    Dodaj nową organizację
+                </button>
+            {% endif %}
 
         </div>
 
@@ -323,43 +365,66 @@
 
                 <!-- ===== CZŁONKOWIE + FLAGI ===== -->
                 <div class="org-members">
+
                     <b>Członkowie:</b><br>
+
+                    {% set members = [] %}
 
                     {% for m in o.members %}
                         {% if m.status_czlonkostwa and m.status_czlonkostwa.strip().lower() == "czlonek" %}
-
-                            <div class="org-member">
-
-                                <img
-                                    src="{{ url_for('static', filename='flags/' + m.panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
-                                    class="flag-region"
-                                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
-                                >
-
-                                {{ m.panstwo.panstwo_nazwa }}
-
-                            </div>
-
+                            {% set _ = members.append(m) %}
                         {% endif %}
                     {% endfor %}
+
+                    {% for m in members[:10] %}
+
+                        <div class="org-member">
+
+                            <img
+                                src="{{ url_for('static', filename='flags/' + m.panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                                class="flag-region"
+                                onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'"
+                            >
+
+                            {{ m.panstwo.panstwo_nazwa }}
+
+                        </div>
+
+                    {% endfor %}
+
+                    {% if members|length > 10 %}
+
+                        <div class="org-more-chip">
+                            +{{ members|length - 10 }}
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
                 <div class="org-actions">
 
                     <a href="/dyplomacja/organizacja/{{ o.ORG_ID }}">
-                        <button class="btn-view">Wyświetl</button>
+                        <button class="btn-zeus btn-view">Wyświetl</button>
                     </a>
-
+                    
+                    {% if session.rola == "wszechmocny" %}
                     <a href="/dyplomacja/organizacja/{{ o.ORG_ID }}/edit">
-                        <button class="btn-edit">Edytuj</button>
+                        <button class="btn-zeus btn-edit">Edytuj</button>
                     </a>
+                    {% else %}
+                        <button class="btn-zeus btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj</button>
+                    {% endif %}
 
+                    {% if session.rola == "wszechmocny" %}
                     <form method="POST"
                         action="/dyplomacja/organizacja/{{ o.ORG_ID }}/delete"
                         onsubmit="return confirmDelete()">
-                        <button class="btn-delete">Usuń</button>
+                        <button class="btn-zeus btn-delete">Usuń</button>
                     </form>
+                    {% else %}
+                        <button class="btn-zeus btn-delete" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Usuń</button>
+                    {% endif %}
 
                 </div>
 

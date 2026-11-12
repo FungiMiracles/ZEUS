@@ -190,29 +190,35 @@
 
 /* ================= PRZYCISKI ================= */
 .btn-zeus {
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 0.85em;
     font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
     cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-zeus-edit {
-    background: linear-gradient(90deg, #4171d1);
-    color: white;
-}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
 
-.btn-zeus-save {
-    background-color: #4171d1;
-    color: white;
-}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
 
-.btn-zeus-cancel {
-    background-color: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    color: #2c3e50;
-}
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 
 .dropdown-container {
     position: relative;
@@ -277,7 +283,7 @@
 .panstwo-grid {
     display: grid;
     gap: 12px;
-    margin-bottom: 35px;
+    margin-bottom: 10px;
 }
 
 .panstwo-grid-3x1 {
@@ -301,8 +307,8 @@
 
 .panstwo-card-label {
     font-size: 1.15em;
-    font-weight: 800;
-    color: #2f4fa3;
+    font-weight: 650;
+    color: #091739;
     margin-bottom: 6px;
 }
 
@@ -406,6 +412,8 @@
     line-height: 1.2;   /* 🔥 poprawia pionowe wyrównanie */
 }
 
+
+
 /* ============================================================
    MOBILE (≤767px) — JEDYNE MIEJSCE SKŁADANIA KOLUMN
 ============================================================ */
@@ -500,12 +508,12 @@
    }
    
    .country-description {
-    text-indent: 0;
-}
+        text-indent: 0;
+    }
 
-   .country-description p:first-child {
-    margin-top: 0;
-}
+    .country-description p:first-child {
+        margin-top: 0;
+    }
 
     .panstwo-grid-3x2 {
         grid-template-columns: 1fr;
@@ -578,6 +586,31 @@
         overflow-x: hidden;
     }
 
+    #leadershipHistoryModal .modal-dialog {
+        margin: .5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    #leadershipHistoryModal .modal-content {
+        border-radius: 10px;
+    }
+
+    #leadershipHistoryModal .modal-body {
+        padding: 12px;
+        overflow-x: auto;
+    }
+
+    #leadershipHistoryModal table {
+        font-size: 0.82rem;
+        min-width: 650px;
+    }
+
+    #leadershipHistoryModal th,
+    #leadershipHistoryModal td {
+        padding: 8px;
+        white-space: nowrap;
+    }
+
 }
 </style>
 
@@ -606,12 +639,30 @@
                     <div id="dropdownMenu" class="dropdown-menu">
 
                     <a href="{{ url_for('wyniki_wyszukiwania') }}">Wróć do wyników wyszukiwania</a>
-
+                    {% if session.rola == "wszechmocny" %}
                     <a href="/panstwo/{{ p.PANSTWO_ID }}/edit">Edytuj państwo</a>
 
                     <form action="{{ url_for('usun_panstwo', panstwo_id=p.PANSTWO_ID) }}" method="POST" style="margin:0;">
                         <button type="submit" class="dropdown-delete">Usuń państwo</button>
                     </form>
+                    {% else %}
+                    <a href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj państwo</a>
+
+                    <button type="submit" class="dropdown-delete" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Usuń państwo</button>
+
+                    {% endif %}
+
+                    <hr>
+
+                    <a href="{{ url_for('wyniki_wyszukiwania_region',
+                        panstwo_id=p.PANSTWO_ID) }}">
+                        Przejdź do listy regionów
+                    </a>
+
+                    <a href="{{ url_for('wyniki_wyszukiwania_miasto',
+                        panstwo_id=p.PANSTWO_ID) }}">
+                        Przejdź do listy miast
+                    </a>
 
                     <hr>
 
@@ -638,6 +689,15 @@
                     <a href="{{ url_for('wojsko_form', panstwo_id=p.PANSTWO_ID) }}">
                         Siły zbrojne
                     </a>
+
+                    <a href="{{ url_for('demografia_spoleczenstwo_form',
+                        panstwo_id=p.PANSTWO_ID) }}">
+                        Informacje o społeczeństwie
+                    </a>
+
+                    <hr>
+
+                    <a href="{{ url_for('panstwo_dziennik_ustaw', panstwo_id=p.PANSTWO_ID) }}">Dziennik ustaw</a>
                 </div>
             </div>
 
@@ -668,9 +728,13 @@
             {% set mapa_path = 'maps/' + p.panstwo_nazwa|replace(' ', '_') + '.jpg' %}
 
             <div class="panstwo-map-wrapper">
+                {% if secession_map_missing %}
+                    <p>Brak mapy państwa.</p>
+                {% else %}
                 <img class="panstwo-map-large"
                     src="{{ url_for('static', filename=mapa_path) }}"
                     onerror="this.src='{{ url_for('static', filename='maps/default.png') }}'">
+                {% endif %}
             </div>
 
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
@@ -696,7 +760,7 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Stolica</div>
-                        <div class="panstwo-card-value">{{ p.panstwo_stolica }}</div>
+                        <div class="panstwo-card-value">{{ stolica.miasto_nazwa if stolica else "Brak" }}</div>
                     </div>
 
                     <div class="panstwo-card">
@@ -706,11 +770,92 @@
                         </div>
                     </div>
 
+                    {% if przyrost_avg is not none %}
+                        {% set przyrost_color =
+                            'green' if przyrost_avg > 0 else
+                            '#e74c3c'
+                        %}
+                    {% else %}
+                        {% set przyrost_color = '#7f8c8d' %}
+                    {% endif %}
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">Roczny procent zmiany ludności</div>
+                        <div class="panstwo-card-value"
+                            style="color: {{ przyrost_color }}; font-weight:700;">
+
+                            {% if przyrost_avg is not none %}
+                                {% if przyrost_avg > 0 %}
+                                   +{{ przyrost_avg }} %
+                                {% else %}
+                                    {{ przyrost_avg }} %
+                                {% endif %}
+                            {% else %}
+                                Brak danych
+                            {% endif %}
+
+                        </div>
+                    </div>
+
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Ustrój</div>
                         <div class="panstwo-card-value">
                             {{ p.ustroj.ustroj_nazwa if p.ustroj else "Brak danych" }}
                         </div>
+                        <hr>
+                        {% if p.kadencja_przywodcy is not none %}
+                        <div class="panstwo-card-value">
+                            Długość kadencji przywódcy: {{ p.kadencja_przywodcy if p.kadencja_przywodcy else "Brak danych"}} lata
+                        </div>
+                        {% else %}
+                        <div class="panstwo-card-value">
+                            Brak danych o długości kadencji przywódcy.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="panstwo-card">
+                        {% if aktualny_przywodca %}
+
+                        <div class="panstwo-card-value">
+
+                            <strong>
+                                Urzędujący {{ aktualny_przywodca.typ.przywodca_typ }}:
+                            </strong>
+
+                            {{ aktualny_przywodca.przywodca_imie }}
+                            {{ aktualny_przywodca.przywodca_nazwisko }}
+
+                            <br>
+
+                            <small>
+
+                                {{ aktualny_przywodca.data_entenda_od.strftime("%Y-%m-%d") }}
+                                -
+                                {{ aktualny_przywodca.data_entenda_do.strftime("%Y-%m-%d") }}
+
+                            </small>
+
+                        </div>
+
+                        <button
+                            class="btn-zeus btn-search"
+                            style="margin-top: 20px;"
+                            onclick="showLeadershipHistory({{ p.PANSTWO_ID }})">
+
+                            Historia przywódców
+
+                        </button>
+
+                        {% else %}
+
+                        <div class="panstwo-card-value">
+
+                            Brak urzędującego przywódcy.
+
+                        </div>
+
+                        {% endif %}
                     </div>
 
                     <div class="panstwo-card">
@@ -720,7 +865,9 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">Język</div>
-                        <div class="panstwo-card-value">{{ p.panstwo_jezyk }}</div>
+                        <div class="panstwo-card-value">
+                                {{ jezyki_lista | join(", ") if jezyki_lista else "Brak danych"}}
+                        </div>
                     </div>
 
                     <div class="panstwo-card">
@@ -745,7 +892,7 @@
 
                     <div class="panstwo-card">
                         <div class="panstwo-card-label">PKB per capita</div>
-                        <div class="panstwo-card-value">{{ "{:,}".format(p.panstwo_PKB_per_capita).replace(",", " ") }} ROI</div>
+                        <div class="panstwo-card-value">{{ pkb_per_capita | spacenum if pkb_per_capita is not none else "—" }} ROI</div>
                     </div>
 
                     {% if infra_avg is not none %}
@@ -773,6 +920,66 @@
 
                         </div>
                     </div>
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">
+                            Status niezależności
+                        </div>
+
+                        <div class="panstwo-card-value">
+                            {% if p.czy_suwerenny == "TAK" %}
+                                Suwerenny
+                            {% else %}
+                                Niesuwerenny
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if p.czy_suwerenny == "NIE" and zwierzch_panstwo %}
+
+                    <div class="panstwo-card">
+                        <div class="panstwo-card-label">
+                            Państwo zwierzchnicze
+                        </div>
+
+                        <div class="panstwo-card-value">
+
+                            {% set zw_flag_path =
+                                'flags/' +
+                                zwierzch_panstwo.panstwo_nazwa|replace(' ', '_')
+                                + '.jpg'
+                            %}
+
+                            <div style="
+                                display:flex;
+                                align-items:center;
+                                gap:10px;
+                            ">
+
+                                <img
+                                    src="{{ url_for('static', filename=zw_flag_path) }}"
+                                    style="
+                                        width:40px;
+                                        height:26px;
+                                        object-fit:cover;
+                                        border:1px solid #ccc;
+                                        border-radius:4px;
+                                    "
+                                    onerror="
+                                        this.src='{{ url_for('static',
+                                        filename='flags/default.png') }}'
+                                    "
+                                >
+
+                                <span>
+                                    {{ zwierzch_panstwo.panstwo_nazwa }}
+                                </span>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {% endif %}
 
                 </div>
 
@@ -806,16 +1013,8 @@
 
                         <div style="margin-top:8px;">
                             <a href="{{ url_for('miasto_form', miasto_id=m.miasto_id) }}"
-                            style="
-                                display:inline-block;
-                                padding:6px 10px;
-                                background:#2f4fa3;
-                                color:white;
-                                border-radius:5px;
-                                text-decoration:none;
-                                font-size:0.85em;
-                            ">
-                                Przejdź →
+                            class="btn-zeus btn-search">
+                                Przejdź
                             </a>
                         </div>
 
@@ -828,6 +1027,107 @@
                     Brak miast przypisanych do tego państwa.
                 </p>
                 {% endif %}
+
+                <div class="panstwo-section">
+                    <h3 style="margin-top:30px;">Członkostwo w organizacjach międzynarodowych</h3>
+                    <hr>
+
+                    {% if organizacje %}
+
+                        <div class="panstwo-grid panstwo-grid-1col">
+
+                            {% for op in organizacje[:3] %}
+                            <div class="panstwo-card">
+
+                                <div class="panstwo-card-label">
+                                    {{ op.organizacja.org_nazwa if op.organizacja else "Brak" }}
+                                </div>
+
+                                <div class="panstwo-card-value">
+                                    Status:
+                                        {% if op.status_czlonkostwa == "czlonek" %}
+                                            członek
+                                        {% elif op.status_czlonkostwa == "byly_czlonek" %}
+                                            były członek
+                                        {% elif op.status_czlonkostwa == "zawieszony" %}
+                                            zawieszony
+                                        {% else %}
+                                            {{ op.status_czlonkostwa }}
+                                        {% endif %}
+                                </div>
+
+                                <div style="margin-top:8px;">
+                                    <a href="{{ url_for('organizacja_form', org_id=op.org_id) }}"
+                                    class="btn-zeus btn-search">
+                                        Przejdź
+                                    </a>
+                                </div>
+
+                            </div>
+                            {% endfor %}
+
+                        </div>
+
+                        {% if organizacje|length > 3 %}
+                        <div class="org-expand" style="text-align:center; margin-top:0px; margin-bottom: 10px;">
+                            <button onclick="toggleOrgs()" class="btn-zeus btn-zeus-cancel">
+                                ▼ Pokaż więcej
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <div id="org-list-full" style="display:none;">
+
+                            <div class="panstwo-grid panstwo-grid-1col">
+
+                                {% for op in organizacje[3:] %}
+                                <div class="panstwo-card">
+
+                                    <div class="panstwo-card-label">
+                                        {{ op.organizacja.org_nazwa }}
+                                    </div>
+
+                                    <div class="panstwo-card-value">
+                                        Status:
+                                        {% if op.status_czlonkostwa == "czlonek" %}
+                                            członek
+                                        {% elif op.status_czlonkostwa == "byly_czlonek" %}
+                                            były członek
+                                        {% elif op.status_czlonkostwa == "zawieszony" %}
+                                            zawieszony
+                                        {% else %}
+                                            {{ op.status_czlonkostwa }}
+                                        {% endif %}
+                                    </div>
+
+                                    <div style="margin-top:8px;">
+                                        <a href="{{ url_for('organizacja_form', org_id=op.org_id) }}"
+                                        style="
+                                                display:inline-block;
+                                                padding:6px 10px;
+                                                background:#2f4fa3;
+                                                color:white;
+                                                border-radius:5px;
+                                                text-decoration:none;
+                                                font-size:0.85em;
+                                        ">
+                                            Przejdź →
+                                        </a>
+                                    </div>
+
+                                </div>
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% else %}
+                        <div class="empty">
+                            Państwo nie należy do żadnej organizacji.
+                        </div>
+                    {% endif %}
+                </div>
 
         </div>
 
@@ -855,13 +1155,13 @@
                                 <span class="opis-title">Informacje szczegółowe</span>
                                 {% if session.rola in ["tworzyciel", "wszechmocny"] %}
                                     <button type="button"
-                                            id="btn-opis-edit"
-                                            class="btn-zeus btn-zeus-edit">
+                                            id="btn-edit"
+                                            class="btn-zeus btn-edit">
                                         Edytuj informacje szczegółowe
                                     </button>
                                 {% else %}
                                     <button type="button"
-                                            class="btn-zeus btn-zeus-edit btn-zeus-disabled"
+                                            class="btn-zeus btn-edit"
                                             onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                                         Edytuj informacje szczegółowe
                                     </button>
@@ -885,7 +1185,7 @@
                             <!-- PODGLĄD -->
                             <div id="opis-view">
                                 {% if p.panstwo_opis %}
-                                    <div class="country-description">{{ p.panstwo_opis | trim | safe }}</div>
+                                    <div class="country-description">{{ opis_html }}</div>
                                 {% else %}
                                     <p class="no-desc">Brak informacji szczegółowych.</p>
                                 {% endif %}
@@ -910,12 +1210,12 @@
 
                                     <div class="opis-actions">
                                         <button type="submit"
-                                                class="btn-zeus btn-zeus-save">
+                                                class="btn-zeus btn-save">
                                             Zapisz
                                         </button>
                                         <button type="button"
-                                                id="btn-opis-cancel"
-                                                class="btn-zeus btn-zeus-cancel">
+                                                id="btn-cancel"
+                                                class="btn-zeus btn-cancel">
                                             Anuluj
                                         </button>
                                     </div>
@@ -934,8 +1234,8 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const btnEdit = document.getElementById("btn-opis-edit");
-    const btnCancel = document.getElementById("btn-opis-cancel");
+    const btnEdit = document.getElementById("btn-edit");
+    const btnCancel = document.getElementById("btn-cancel");
     const view = document.getElementById("opis-view");
     const edit = document.getElementById("opis-edit");
 
@@ -969,6 +1269,21 @@ window.onclick = function(event) {
         if (menu && menu.style.display === "block") {
             menu.style.display = "none";
         }
+    }
+}
+</script>
+
+<script>
+function toggleOrgs(){
+    const full = document.getElementById("org-list-full");
+    const btn = document.querySelector(".org-expand button");
+
+    if (full.style.display === "none"){
+        full.style.display = "block";
+        btn.innerText = "▲ Zwiń";
+    } else {
+        full.style.display = "none";
+        btn.innerText = "▼ Pokaż więcej";
     }
 }
 </script>

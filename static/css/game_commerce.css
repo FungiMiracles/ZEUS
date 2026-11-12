@@ -1,0 +1,24 @@
+.commerce-layout { display:grid; grid-template-columns:minmax(280px,1fr) minmax(0,2fr); gap:20px; }
+.commerce-panel { padding:20px; margin:18px 0; }
+.commerce-panel label,#trade-buy-dialog label { display:block; margin:12px 0; }
+.commerce-panel input,.commerce-panel select,#trade-buy-dialog select { display:block; box-sizing:border-box; width:100%; padding:9px; margin-top:6px; }
+#trade-map { height:clamp(480px,75vh,850px); background:#e7edf5; isolation:isolate; }
+#trade-exclusions { max-height:200px; overflow:auto; }
+#trade-exclusions label { display:flex; gap:8px; align-items:center; }
+#trade-exclusions input { width:auto; margin:0; }
+.commerce-card { border:1px solid #d8e0e9; padding:14px; border-radius:9px; margin:12px 0; }
+.commerce-card progress { width:100%; }
+.commerce-actions { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }
+#trade-error,#trade-buy-error,#mining-error { color:#c12727; font-weight:600; }
+.trade-ship-icon { width:32px; height:32px; background:white; border:1px solid #244984; border-radius:5px; }
+.trade-ship-icon img { width:30px; height:30px; }
+.leaflet-tooltip.commerce-tooltip { white-space:normal; width:max-content; max-width:min(280px,calc(100vw - 40px)); overflow-wrap:anywhere; }
+.mine-symbol { position:relative; width:34px; height:34px; background:white; border:1px solid #244984; border-radius:6px; }
+.mine-symbol>img:first-child { width:32px; height:32px; }
+.mine-symbol .mine-resource-icon { position:absolute; right:-10px; bottom:-7px; width:20px; height:20px; padding:2px; background:white; border:1px solid #244984; border-radius:50%; }
+.mining-controls label { display:block; margin:12px 0; }
+.mining-controls select { width:100%; padding:9px; margin-top:6px; }
+#mining-cancel[hidden] { display:none; }
+@media(max-width:900px) { .commerce-layout { grid-template-columns:1fr; } }
+
+.commerce-mine-symbol{position:relative;width:36px;height:36px;background:white;border-radius:5px}.commerce-mine-symbol img:first-child{width:34px;height:34px}.commerce-mine-symbol img:last-child{position:absolute;right:-8px;bottom:-5px;width:20px;height:20px;border-radius:50%;background:white}.commerce-stat{border:1px solid #d8e0e9;border-radius:9px;padding:15px;margin:12px 0}.commerce-stat progress{width:100%}#mine-message{color:#244984}#mine-dialog{max-width:480px;border:1px solid #b7c8dd;border-radius:10px;padding:24px}#mine-form button{padding:10px;margin:10px}#mine-form button[type=submit]{background:#207437;color:white}#mine-cancel{background:#b62e2e;color:white}#mine-region,#mine-resource{margin:8px;padding:8px}

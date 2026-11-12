@@ -96,22 +96,27 @@
     display: inline-block;
 }
 
-.btn-edit-relation {
-    display: inline-block;
-    padding: 10px 18px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #5d7dce, #3f5fbf);
-    color: #ffffff;
-    font-weight: 800;
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
     text-decoration: none;
-    font-size: 0.9em;
-    transition: 0.2s;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-edit-relation:hover {
-    background: linear-gradient(135deg, #4b6acb, #2f4ea6);
-    transform: translateY(-2px);
-}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
 
 /* ===================== KOLORY ===================== */
 
@@ -119,6 +124,14 @@
 .rel-grey  { background: #ecf0f1; color: #2c3e50; }
 .rel-orange{ background: #ffe5c2; color: #8a4b00; }
 .rel-red   { background: #f8d7da; color: #721c24; }
+
+.dyp-select-box input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.9em;
+}
 
 /* ===================== MOBILE ===================== */
 
@@ -135,6 +148,76 @@
     .relation-value {
         width: 100%;
         text-align: center;
+    }
+
+    #historyModal > div {
+        width: calc(100% - 8px) !important;
+        max-width: calc(100% - 8px) !important;
+        margin: 4px auto !important;
+        padding: 8px !important;
+        max-height: calc(100vh - 8px) !important;
+    }
+
+    #historyModal h3 {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    #historyTable {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: 0.62rem;
+    }
+
+    #historyTable th,
+    #historyTable td {
+        padding: 2px;
+        line-height: 1.1;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        vertical-align: middle;
+    }
+
+    #historyTable th {
+        font-size: 0.60rem;
+    }
+
+    /* szerokości kolumn */
+
+    #historyTable th:nth-child(1),
+    #historyTable td:nth-child(1) {
+        width: 16%;
+    }
+
+    #historyTable th:nth-child(2),
+    #historyTable td:nth-child(2) {
+        width: 16%;
+    }
+
+    #historyTable th:nth-child(3),
+    #historyTable td:nth-child(3) {
+        width: 17%;
+    }
+
+    #historyTable th:nth-child(4),
+    #historyTable td:nth-child(4) {
+        width: 13%;
+    }
+
+    #historyTable th:nth-child(5),
+    #historyTable td:nth-child(5) {
+        width: 19%;
+    }
+
+    #historyTable th:nth-child(6),
+    #historyTable td:nth-child(6) {
+        width: 19%;
+    }
+
+    #closeHistoryModal {
+        width: 100%;
     }
 }
 </style>
@@ -160,37 +243,47 @@
     <div class="dyp-filter-box">
         <div class="dyp-filter-title">Porównanie stosunków dyplomatycznych</div>
 
-        <div class="dyp-filter-grid">
+        <div class="dyp-select-box">
+            <label>Państwo 1</label>
 
-            <div class="dyp-select-box">
-                <label>Państwo 1</label>
-                <select id="panstwo1">
-                    <option value="">— wybierz —</option>
-                    {% for p in panstwa %}
-                        <option value="{{ p.PANSTWO_ID }}"
-                                data-flag="{{ p.panstwo_nazwa }}">
-                            {{ p.panstwo_nazwa }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <div class="flag-preview" id="flag1"></div>
-            </div>
+            <input
+                type="text"
+                id="panstwo1"
+                list="panstwa-list"
+                placeholder="Wpisz nazwę lub ID państwa"
+                autocomplete="off"
+            >
 
-            <div class="dyp-select-box">
-                <label>Państwo 2</label>
-                <select id="panstwo2">
-                    <option value="">— wybierz —</option>
-                    {% for p in panstwa %}
-                        <option value="{{ p.PANSTWO_ID }}"
-                                data-flag="{{ p.panstwo_nazwa }}">
-                            {{ p.panstwo_nazwa }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <div class="flag-preview" id="flag2"></div>
-            </div>
-
+            <div class="flag-preview" id="flag1"></div>
         </div>
+
+        <div class="dyp-select-box">
+            <label>Państwo 2</label>
+
+            <input
+                type="text"
+                id="panstwo2"
+                list="panstwa-list"
+                placeholder="Wpisz nazwę lub ID państwa"
+                autocomplete="off"
+            >
+
+            <div class="flag-preview" id="flag2"></div>
+        </div>
+
+        <datalist id="panstwa-list">
+            {% for p in panstwa %}
+                <option
+                    value="{{ p.PANSTWO_ID }}"
+                    label="{{ p.panstwo_nazwa }}">
+                    {{ p.panstwo_nazwa }}
+                </option>
+
+                <option
+                    value="{{ p.panstwo_nazwa }}">
+                </option>
+            {% endfor %}
+        </datalist>
     </div>
 
     <!-- ===================== WYNIK ===================== -->
@@ -211,12 +304,85 @@
        {% if session.rola == "wszechmocny" %}
        <div style="margin-top:16px; text-align:center;">
            <a id="editRelationBtn"
-              class="btn-edit-relation"
+              class="btn-zeus btn-edit"
               href="#">
                Modyfikuj relacje
            </a>
+            <button
+            id="historyRelationBtn"
+            class="btn-zeus btn-edit"
+            type="button"
+            style="margin-left:8px;">
+            Historia zmian
+            </button>
        </div>
        {% endif %}
+
+</div>
+<div id="historyModal"
+     style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.45);
+        z-index:9999;
+     ">
+
+    <div style="
+        background:#fff;
+        width:1100px;
+        max-width:95%;
+        margin:60px auto;
+        border-radius:10px;
+        padding:20px;
+        max-height:80vh;
+        overflow:auto;
+    ">
+
+        <h3>Historia zmian stosunków dyplomatycznych</h3>
+
+        <table class="table table-striped" id="historyTable">
+
+            <thead>
+
+                <tr>
+
+                    <th>Państwo</th>
+
+                    <th>Państwo</th>
+
+                    <th>Relacja</th>
+
+                    <th>Stan</th>
+
+                    <th>Data zmiany w Entendzie</th>
+
+                    <th>Data zmiany</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            </tbody>
+
+        </table>
+
+        <div style="text-align:right;margin-top:15px;">
+
+            <button
+                id="closeHistoryModal"
+                class="btn-zeus btn-edit">
+
+                Zamknij
+
+            </button>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
@@ -246,6 +412,16 @@ const RELACJA_LABELS = {
     egzystencjalnie_wrogie: "Egzystencjalnie wrogie",
 };
 
+const PANSTWA = [
+    {% for p in panstwa %}
+    {
+        id: "{{ p.PANSTWO_ID }}",
+        nazwa: {{ p.panstwo_nazwa|tojson }},
+        pagaConfigured: {{ (p.PANSTWO_ID in (paga_ids|default([])))|tojson }}
+    },
+    {% endfor %}
+];
+
 function toKey(v) {
     if (!v) return "";
     return v
@@ -254,6 +430,18 @@ function toKey(v) {
         .replace(/[ąćęłńóśżź]/g, c => ({
             "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ż":"z","ź":"z"
         }[c]));
+}
+
+function resolveCountry(value) {
+
+    if (!value) return null;
+
+    const lower = value.trim().toLowerCase();
+
+    return PANSTWA.find(p =>
+        p.id === lower ||
+        p.nazwa.toLowerCase() === lower
+    );
 }
    
 const relacjeGreen = [
@@ -299,76 +487,162 @@ function colorClassStan(v) {
     return "rel-grey";
 }
 
-const p1 = document.getElementById("panstwo1");
-const p2 = document.getElementById("panstwo2");
+const p1Input = document.getElementById("panstwo1");
+const p2Input = document.getElementById("panstwo2");
 
-function updateFlag(select, target) {
-    const opt = select.selectedOptions[0];
-    if (!opt) {
+function updateFlag(input, target) {
+
+    const country = resolveCountry(input.value);
+
+    if (!country) {
         target.innerHTML = "";
         return;
     }
 
-    const rawName = opt.textContent.trim();
-    const fileName = rawName.replaceAll(" ", "_");
+    const fileName = country.nazwa.replace(/ /g, "_");
 
-    target.innerHTML = `<img src="/static/flags/${fileName}.jpg">`;
+    const flag=document.createElement('img');
+    flag.src='/static/flags/'+fileName+'.jpg';flag.alt=country.nazwa;
+    flag.title=country.nazwa+(country.pagaConfigured?'\nSkonfigurowano w PAGA':'');
+    target.replaceChildren(flag);
 }
 
 function updateRelation() {
+
     const card = document.getElementById("relationCard");
 
-    if (!p1.value || !p2.value || p1.value === p2.value) {
+    const country1 = resolveCountry(p1Input.value);
+    const country2 = resolveCountry(p2Input.value);
+
+    if (!country1 || !country2) {
         card.style.display = "none";
         return;
     }
 
-    // ===== PRZYCISK EDYCJI =====
-    const editBtn = document.getElementById("editRelationBtn");
-    if (editBtn) {
-        editBtn.href = `/dyplomacja/edit/${p1.value}/${p2.value}`;
+    if (country1.id === country2.id) {
+        card.style.display = "none";
+        return;
     }
 
-    // ===== POBRANIE RELACJI =====
-    fetch(`/api/dyplomacja?p1=${p1.value}&p2=${p2.value}`)
+    const editBtn = document.getElementById("editRelationBtn");
+
+    if (editBtn) {
+        editBtn.href =
+            `/dyplomacja/edit/${country1.id}/${country2.id}`;
+    }
+
+    fetch(`/api/dyplomacja?p1=${country1.id}&p2=${country2.id}`)
         .then(r => r.json())
         .then(d => {
+
             const rel = document.getElementById("relacjaValue");
             const stan = document.getElementById("stanValue");
 
             const relKey = toKey(d.relacja);
             const stanKey = toKey(d.stan);
 
-            rel.textContent = RELACJA_LABELS[relKey] ?? d.relacja;
-            stan.textContent = STAN_LABELS[stanKey] ?? d.stan;
+            rel.textContent =
+                RELACJA_LABELS[relKey] ?? d.relacja;
 
-            rel.className = "relation-value " + colorClassRelacja(relKey);
-            stan.className = "relation-value " + colorClassStan(stanKey);
+            stan.textContent =
+                STAN_LABELS[stanKey] ?? d.stan;
+
+            rel.className =
+                "relation-value " + colorClassRelacja(relKey);
+
+            stan.className =
+                "relation-value " + colorClassStan(stanKey);
 
             card.style.display = "block";
         });
 }
 
-[p1, p2].forEach(sel => {
-    sel.addEventListener("change", () => {
+[p1Input, p2Input].forEach(input => {
 
-        updateFlag(p1, document.getElementById("flag1"));
-        updateFlag(p2, document.getElementById("flag2"));
+    input.addEventListener("input", () => {
 
-        if (!p1.value || !p2.value) {
+        updateFlag(p1Input, document.getElementById("flag1"));
+        updateFlag(p2Input, document.getElementById("flag2"));
+
+        const country1 = resolveCountry(p1Input.value);
+        const country2 = resolveCountry(p2Input.value);
+
+        if (!country1 || !country2) {
             document.getElementById("relationCard").style.display = "none";
             return;
         }
 
-        if (p1.value === p2.value) {
+        if (country1.id === country2.id) {
+
             zeusToast("Nie możesz porównywać państwa z samym sobą");
+
             document.getElementById("relationCard").style.display = "none";
+
             return;
         }
 
         updateRelation();
     });
 });
+
+const historyBtn = document.getElementById("historyRelationBtn");
+
+if (historyBtn) {
+
+    historyBtn.addEventListener("click", () => {
+
+        const c1 = resolveCountry(p1Input.value);
+        const c2 = resolveCountry(p2Input.value);
+
+        if (!c1 || !c2)
+            return;
+
+        fetch(`/api/dyplomacja/historia?p1=${c1.id}&p2=${c2.id}`)
+
+            .then(r => r.json())
+
+            .then(rows => {
+
+                const tbody = document.querySelector(
+                    "#historyTable tbody"
+                );
+
+                tbody.innerHTML = "";
+
+                rows.forEach(r => {
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.panstwo1}</td>
+                            <td>${r.panstwo2}</td>
+                            <td>${r.relacja}</td>
+                            <td>${r.stan}</td>
+                            <td>${r.data_entenda}</td>
+                            <td>${r.data_rzeczywista}</td>
+                        </tr>
+                    `;
+
+                });
+
+                document.getElementById(
+                    "historyModal"
+                ).style.display = "block";
+
+            });
+
+    });
+
+}
+
+document
+    .getElementById("closeHistoryModal")
+    .addEventListener("click", () => {
+
+        document.getElementById(
+            "historyModal"
+        ).style.display = "none";
+
+    });
 </script>
 
 {% endblock %}

@@ -3,18 +3,6 @@
 Informacje
 {% endblock %}
 {% block content %}
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
-    <p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
-        Informacje
-    </p>
-    <hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
-
-
-<!-- ===================== BLOK TEKSTU Z .MD ===================== -->
-<div class="info-content">
-    <pre class="info-pre">{{ info_text }}</pre>
-</div>
-
 
 <!-- ===================== STYLING KAFELKÓW ===================== -->
 <style>
@@ -111,6 +99,16 @@ Informacje
 }
 </style>
 
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:1px;">
+<p style="text-align: center; margin-top:15px; font-size:22px; font-weight:700;">
+    Informacje
+</p>
+<hr style="border:none; height:1px; background-color:#b3b3b3; margin-top:1px; margin-bottom:25px;">
+
+<!-- ===================== BLOK TEKSTU Z .MD ===================== -->
+<div class="info-content">
+    <pre class="info-pre">{{ info_text }}</pre>
+</div>
 
 <!-- ===================== KAFELKI POD TEKSTEM ===================== -->
 <div class="info-tiles">
@@ -126,6 +124,4 @@ Informacje
     </a>
 
 </div>
-
-
 {% endblock %}

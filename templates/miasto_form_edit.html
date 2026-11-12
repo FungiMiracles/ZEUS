@@ -108,6 +108,26 @@
                         </select>
                     </td>
                 </tr>
+                <tr>
+                    <td style="padding:10px;">Miasto portowe</td>
+                    <td style="padding:10px;">
+                        <select name="czy_portowe" style="width:100%; padding:6px;">
+                            <option value="TAK"
+                                {% if (form_data and form_data.czy_portowe == "TAK") 
+                                      or (not form_data and miasto.czy_portowe == "TAK") %}
+                                    selected
+                                {% endif %}
+                            >TAK</option>
+                
+                            <option value="NIE"
+                                {% if (form_data and form_data.czy_portowe == "NIE") 
+                                      or (not form_data and miasto.czy_portowe == "NIE") %}
+                                    selected
+                                {% endif %}
+                            >NIE</option>
+                        </select>
+                    </td>
+                </tr>
 
             </tbody>
         </table>
@@ -118,7 +138,7 @@
             </button>
 
             <a href="{{ url_for('miasto_form', miasto_id=miasto.miasto_id) }}"
-               style="padding:10px 20px; background:#c0392b; color:white; border-radius:6px; text-decoration:none; font-weight:600; margin-left:10px;">
+               style="padding:10px 20px; background:#c73424; color:white; border-radius:6px; text-decoration:none; font-weight:600; margin-left:10px;">
                Anuluj
             </a>
         </div>

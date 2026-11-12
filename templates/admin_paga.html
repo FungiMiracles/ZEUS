@@ -1,0 +1,190 @@
+{% extends 'base_layout.html' %}
+{% block title %}PAGA — konfiguracja państw{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/wiki_paga.css',v='20261112-paga2-2') }}">
+<div class="paga-page">
+<header class="paga-heading"><div><h1>PAGA</h1><p>Panel Administracyjny Gry Autonomicznej</p></div><a href="{{ url_for('home_page') }}">← Główny ekran ZEUSa</a></header>
+<nav class="paga-main-tabs" role="tablist" aria-label="Sekcje panelu PAGA">
+<button type="button" role="tab" id="paga-main-tab-paga" data-main-tab="paga" aria-controls="paga-main-paga" aria-selected="true">PAGA</button>
+<button type="button" role="tab" id="paga-main-tab-profile" data-main-tab="profile" aria-controls="paga-main-profile" aria-selected="false">PAGA2</button>
+<button type="button" role="tab" id="paga-main-tab-config" data-main-tab="config" aria-controls="paga-main-config" aria-selected="false">Konfiguracja PAGA2</button>
+<button type="button" role="tab" id="paga-main-tab-history" data-main-tab="history" aria-controls="paga-main-history" aria-selected="false">Historia decyzji</button>
+<button type="button" role="tab" id="paga-main-tab-state" data-main-tab="state" aria-controls="paga-main-state" aria-selected="false">Stan państwa PAGA</button>
+</nav>
+<div id="paga-main-paga" role="tabpanel" aria-labelledby="paga-main-tab-paga" data-main-panel="paga">
+
+{% if paga_config.aiUrl %}
+<section class="paga-card" aria-labelledby="paga-ai-heading">
+<h2 id="paga-ai-heading">Modele AI: forum, wiadomości prywatne i pożyczki</h2>
+<p class="paga-note">Modele językowe odpowiadają wyłącznie za odpowiedzi na forum międzynarodowym, wiadomości prywatne i decyzje o udzieleniu pożyczki. Pozostałe decyzje państw podejmuje algorytm PAGA2.</p>
+<button type="button" id="paga-ai-toggle" disabled>Ładowanie stanu…</button>
+<p id="paga-ai-state" role="status" aria-live="polite"></p>
+<p id="paga-ai-error" class="paga-error" role="alert"></p>
+<details><summary>Metryki AI (ostatnie 24 h)</summary><p id="paga-ai-metrics" role="status">Ładowanie…</p></details>
+<details open><summary>PAGA MULTI-AI — modele</summary><div id="paga-ai-providers" role="status">Ładowanie…</div></details>
+<form id="paga-ai-settings" class="paga-inline-form">
+<label for="paga-ai-review">Przegląd strategiczny co najmniej co (minut)</label>
+<input id="paga-ai-review" type="number" min="15" max="10080" step="1" required>
+<label for="paga-ai-calls">Maks. wywołań modelu na zadanie</label>
+<input id="paga-ai-calls" type="number" min="1" max="5" step="1" required>
+<button type="submit">Zapisz ustawienia harmonogramu</button>
+</form>
+<details><summary>Dziennik operacji AI</summary><div id="paga-ai-logs"></div></details>
+</section>
+{% endif %}
+{% if paga_config.monitoringUrl %}
+<section class="paga-card" id="paga-decisions" aria-labelledby="paga-decisions-heading">
+<h2 id="paga-decisions-heading">Monitoring decyzji</h2>
+<p class="paga-note">Podgląd wyłącznie do odczytu: decyzje państw PAGA AI, ich wykonanie i cele strategiczne. Monitoring nie wywołuje modelu i nie wpływa na decyzje. Odświeżanie co 15 sekund.</p>
+<div id="paga-decision-stats" class="paga-stats" role="status" aria-live="polite"></div>
+<div class="paga-tabs" role="tablist" aria-label="Widok monitoringu">
+<button type="button" role="tab" id="paga-tab-decisions" aria-selected="true" aria-controls="paga-decision-panel">Rejestr decyzji</button>
+<button type="button" role="tab" id="paga-tab-goals" aria-selected="false" aria-controls="paga-goal-panel">Cele strategiczne</button>
+</div>
+<form id="paga-decision-filter" class="paga-decision-filters">
+<label>Szukaj państwa<input id="paga-decision-country-search" type="search" placeholder="Nazwa państwa" autocomplete="off"></label>
+<label>Państwo<select id="paga-decision-country"><option value="">Wszystkie państwa</option></select></label>
+<label>Kategoria<select id="paga-decision-category"><option value="">Wszystkie kategorie</option></select></label>
+<label>Status<select id="paga-decision-status"><option value="">Wszystkie statusy</option></select></label>
+<label>Od (data rzeczywista)<input type="date" id="paga-decision-from"></label>
+<label>Do (data rzeczywista)<input type="date" id="paga-decision-to"></label>
+<label>Od (data Entendy)<input type="date" id="paga-decision-game-from" min="0001-01-01" max="9998-12-31"></label>
+<label>Do (data Entendy)<input type="date" id="paga-decision-game-to" min="0001-01-01" max="9998-12-31"></label>
+<div class="paga-filter-actions"><button type="submit" class="paga-primary">Zastosuj filtry</button><button type="button" id="paga-decision-reset">Wyczyść filtry</button></div>
+</form>
+<div id="paga-decision-panel" role="tabpanel" aria-labelledby="paga-tab-decisions">
+<p id="paga-decision-info" role="status" aria-live="polite"></p>
+<div id="paga-decision-list" class="paga-decision-list"></div>
+<div class="paga-pager"><button type="button" id="paga-decision-prev">← Nowsze</button><span id="paga-decision-page"></span><button type="button" id="paga-decision-next">Starsze →</button></div>
+</div>
+<div id="paga-goal-panel" role="tabpanel" aria-labelledby="paga-tab-goals" hidden>
+<label class="paga-goal-filter">Status celów<select id="paga-goal-status"><option value="">Wszystkie</option><option value="ACTIVE">Aktywne</option><option value="SUSPENDED">Zawieszone</option><option value="ACHIEVED">Osiągnięte</option><option value="ABANDONED">Porzucone</option></select></label>
+<p id="paga-goal-info" role="status" aria-live="polite"></p>
+<div id="paga-goal-list" class="paga-decision-list"></div>
+</div>
+</section>
+{% endif %}
+
+
+<details class="paga-card" id="paga-monitor"><summary><strong>Historia wcześniejszego silnika PAGA</strong></summary>
+<p id="paga-monitor-status" role="status"></p>
+
+<p>Dotychczasowy silnik regułowy PAGA został wyłączony na stałe — decyzje państw podejmuje algorytm PAGA2. Poniżej pozostaje historia jego analiz; pamięć wydarzeń jest nadal uzupełniana.</p>
+<form id="paga-monitor-filter" class="paga-search"><label>Państwo<select id="paga-monitor-country"><option value="">Wszystkie państwa</option></select></label><label>Od daty Entendy<input type="date" id="paga-monitor-from"></label><label>Do daty Entendy<input type="date" id="paga-monitor-to"></label><label>Rodzaj decyzji<input id="paga-monitor-kind" list="paga-decision-kinds" placeholder="Wszystkie"><datalist id="paga-decision-kinds"><option value="PASSIVE"><option value="WAR"><option value="ALLIANCE"><option value="PARTNERSHIP"><option value="RELATION_IMPROVE"><option value="RELATION_WORSEN"><option value="ACCEPT"><option value="REJECT"><option value="RECRUIT_AGENT"><option value="SCOUT_bases"><option value="SCOUT_resources"><option value="HYBRID_arson"><option value="ERROR"></datalist></label><button type="submit">Filtruj / odśwież</button></form>
+<div class="paga-monitor-table"><table><thead><tr><th>Państwo</th><th>Następna analiza (Entenda)</th><th>Stan</th></tr></thead><tbody id="paga-schedules"></tbody></table></div>
+<div id="paga-analyses"></div><div class="paga-save-actions"><button type="button" id="paga-monitor-prev">Poprzednia strona</button><button type="button" id="paga-monitor-next">Następna strona</button></div>
+<h3>Pamięć i ocena innych państw</h3><p>Wybierz państwo w filtrze monitora, aby zobaczyć jego własną wiedzę i oceny.</p><div id="paga-memories"></div>
+</details>
+
+</div>
+<div id="paga-main-profile" role="tabpanel" aria-labelledby="paga-main-tab-profile" data-main-panel="profile" hidden>
+<section class="paga-card">
+<h2>Profil państwa PAGA2</h2>
+<p class="paga-note">Wybierz państwo na mapie albo z listy. Profil określa ogólny charakter, priorytety strategiczne i cechy, na podstawie których algorytm PAGA2 ocenia możliwe decyzje.</p>
+<div class="paga2-picker">
+<div class="paga2-map-wrap"><div id="paga2-map" class="paga2-map" role="application" aria-label="Mapa świata — kliknij państwo, aby edytować jego profil"></div><p id="paga2-map-status" class="paga-note" role="status"></p>
+<ul class="paga2-legend" aria-label="Legenda mapy">
+<li><span class="paga2-swatch" data-status="active"></span>Autonomia PAGA2 włączona</li>
+<li><span class="paga2-swatch" data-status="profile"></span>Profil bez autonomii</li>
+<li><span class="paga2-swatch" data-status="migrated"></span>Profil przeniesiony z PAGA — do przeglądu</li>
+<li><span class="paga2-swatch" data-status="human"></span>Gracz ludzki</li>
+<li><span class="paga2-swatch" data-status="none"></span>Brak profilu</li>
+</ul></div>
+<div class="paga2-list"><label>Szukaj państwa<input id="paga2-search" type="search" placeholder="Nazwa państwa" autocomplete="off"></label>
+<label>Państwo<select id="paga2-country" size="12"></select></label></div>
+</div>
+</section>
+<p id="paga2-profile-status" role="status" aria-live="polite"></p><p id="paga2-profile-error" class="paga-error" role="alert"></p>
+<form id="paga2-profile" hidden>
+<section class="paga-card"><div class="paga-country-heading"><img id="paga2-flag" alt=""><div><h2 id="paga2-full-name"></h2><p id="paga2-name"></p></div></div>
+<p id="paga2-version"></p><p id="paga2-migrated" class="paga-stale" hidden>Profil przeniesiono automatycznie z dotychczasowej konfiguracji PAGA (7 wspólnych cech; pozostałe ustawiono na 50). Sprawdź go i zapisz.</p>
+<label for="paga2-autonomy">Autonomiczne zarządzanie państwem</label><select id="paga2-autonomy"><option value="false">Wyłączone</option><option value="true">Włączone</option></select>
+<p class="paga-note">Algorytm działa dla państw z włączoną autonomią, gdy PAGA2 jest globalnie włączone w zakładce „Konfiguracja PAGA2”.</p></section>
+<section class="paga-card"><h2>Ogólny charakter państwa</h2><p class="paga-note">Wybierz od 1 do 3 opcji.</p><div id="paga2-categories" class="paga2-categories"></div></section>
+<section class="paga-card"><h2>Priorytety strategiczne</h2><p class="paga-note">Dodaj priorytety i uszereguj je od najważniejszego. Pozycja na liście wyznacza wagę priorytetu w punktacji decyzji.</p>
+<div class="paga2-priorities"><div><h3>Wybrane (od najważniejszego)</h3><ol id="paga2-priority-chosen" aria-label="Wybrane priorytety"></ol></div><div><h3>Dostępne</h3><ul id="paga2-priority-available" aria-label="Dostępne priorytety"></ul></div></div></section>
+<section class="paga-card"><h2>Charakterystyka państwa</h2><p class="paga-note">Wartości od 0 do 100 — wpisz liczbę albo użyj suwaka.</p><div id="paga2-traits" class="paga-traits"></div></section>
+<div class="paga-save-actions"><button type="button" id="paga2-reload">Wczytaj ponownie</button><button type="submit" class="paga-primary" id="paga2-save">Zapisz profil</button></div>
+<details class="paga-card"><summary><strong>Historia zmian profilu</strong></summary><div id="paga2-history"></div></details>
+</form>
+<details class="paga-card" id="paga-relationships">
+<summary><strong>Powiązania między państwami</strong></summary>
+<p>Ustal sugestię utrzymania relacji dla wybranej pary państw. Algorytm PAGA2 uwzględnia ją przy punktacji decyzji razem z charakterem, priorytetami i pamięcią państwa. To silna preferencja, od której państwo PAGA może odstąpić. Zapis nie zmienia automatycznie bieżących stosunków dyplomatycznych ani decyzji graczy ludzkich.</p>
+<form id="paga-relationship-form">
+<div class="paga-search">
+<label>Pierwsze państwo<select id="paga-relationship-first" required disabled><option value="">Ładowanie państw…</option></select></label>
+<label>Drugie państwo<select id="paga-relationship-second" required disabled><option value="">Ładowanie państw…</option></select></label>
+<label>Status powiązania<select id="paga-relationship-status" disabled><option value="none">Brak sugestii</option><option value="satellite">Państwo satelickie</option><option value="historical_ally">Historyczny sojusznik</option><option value="historical_hostile">Historycznie nieprzyjazne</option></select></label>
+</div>
+<label id="paga-relationship-direction" hidden>Państwo satelickie<select id="paga-relationship-satellite" disabled><option value="">Wskaż państwo uległe</option></select></label>
+<p id="paga-relationship-description"></p>
+<div class="paga-save-actions"><button type="button" id="paga-relationship-reload" disabled>Wczytaj ponownie</button><button type="submit" id="paga-relationship-save" class="paga-primary" disabled>Zapisz powiązanie</button></div>
+</form>
+<p id="paga-relationship-message" role="status" aria-live="polite"></p><p id="paga-relationship-error" class="paga-error" role="alert"></p>
+<h3>Zapisane sugestie</h3><div id="paga-relationship-list"></div>
+<div class="paga-save-actions"><button type="button" id="paga-relationship-prev" disabled>Poprzednia strona</button><button type="button" id="paga-relationship-next" disabled>Następna strona</button></div>
+</details>
+</div>
+
+<div id="paga-main-config" role="tabpanel" aria-labelledby="paga-main-tab-config" data-main-panel="config" hidden>
+<section class="paga-card"><h2>Konfiguracja PAGA2</h2>
+<form id="paga2-control" class="paga2-control">
+<label class="paga2-check"><input type="checkbox" id="paga2-enabled"> Automatyczne zarządzanie państwami przez PAGA2 — globalnie włączone</label>
+<label for="paga2-interval">Częstotliwość cyklicznego wywołania algorytmu (minuty)</label><input type="number" id="paga2-interval" min="5" max="10080" step="1" required>
+<div class="paga-save-actions"><button type="submit" class="paga-primary">Zapisz konfigurację</button></div>
+</form>
+<p id="paga2-control-status" role="status" aria-live="polite"></p><p id="paga2-control-error" class="paga-error" role="alert"></p>
+<p class="paga-note">Wyłączenie zatrzymuje wszystkie kolejne decyzje PAGA2 — także te w trakcie przygotowania. Tryby doraźny (reakcja na zagrożenia i wiadomości) i budżetowy działają tylko przy włączonym PAGA2.</p>
+</section>
+<section class="paga-card"><h2>Randomizer</h2><p class="paga-note">Moduł losujący rozstrzyga konflikt, gdy dwie lub więcej opcji ma niemal równą ocenę (różnica poniżej 2 punktów).</p>
+<div id="paga2-random-stats" class="paga-stats" role="status"></div>
+<div class="paga-monitor-table"><table><caption class="paga-note">Najczęściej losujące państwa</caption><thead><tr><th>Państwo</th><th>Wywołania</th></tr></thead><tbody id="paga2-random-countries"></tbody></table></div>
+<h3>Ostatnie losowania</h3><div id="paga2-random-recent" class="paga-decision-list"></div></section>
+</div>
+
+<div id="paga-main-history" role="tabpanel" aria-labelledby="paga-main-tab-history" data-main-panel="history" hidden>
+<section class="paga-card"><h2>Historia decyzji państw PAGA2</h2>
+<p class="paga-note">Każda decyzja zawiera rozważone opcje z punktacją oraz dane, na podstawie których została podjęta.</p>
+<form id="paga2-history-filter" class="paga-decision-filters">
+<label>Państwo<select id="paga2-history-country"><option value="">Wszystkie państwa</option></select></label>
+<label>Obszar<select id="paga2-history-domain"><option value="">Wszystkie obszary</option></select></label>
+<label>Status<select id="paga2-history-status"><option value="">Wszystkie statusy</option></select></label>
+<label>Tryb<select id="paga2-history-mode"><option value="">Wszystkie tryby</option></select></label>
+<div class="paga-filter-actions"><button type="submit" class="paga-primary">Zastosuj filtry</button><button type="button" id="paga2-history-reset">Wyczyść filtry</button></div>
+</form>
+<p id="paga2-history-info" role="status" aria-live="polite"></p>
+<div id="paga2-history-list" class="paga-decision-list"></div>
+<div class="paga-pager"><button type="button" id="paga2-history-prev">← Nowsze</button><span id="paga2-history-page"></span><button type="button" id="paga2-history-next">Starsze →</button></div>
+</section>
+</div>
+
+<div id="paga-main-state" role="tabpanel" aria-labelledby="paga-main-tab-state" data-main-panel="state" hidden>
+<section class="paga-card"><h2>Stan państwa PAGA</h2>
+<div class="paga2-state-pick"><label>Państwo z profilem PAGA2<select id="paga2-state-country"><option value="">Wybierz państwo</option></select></label><button type="button" id="paga2-state-refresh" disabled>Odśwież</button></div>
+<p id="paga2-state-status" role="status" aria-live="polite"></p><p id="paga2-state-error" class="paga-error" role="alert"></p>
+</section>
+<div id="paga2-state" hidden>
+<section class="paga-card"><div class="paga-country-heading"><img id="paga2-state-flag" alt=""><div><h2 id="paga2-state-name"></h2><p id="paga2-state-profile"></p></div></div></section>
+<section class="paga-card"><h2>Mapa</h2><div id="paga2-state-map" class="paga2-map paga2-state-map" role="img" aria-label="Mapa państwa z jego obiektami"></div><ul id="paga2-state-legend" class="paga2-legend"></ul></section>
+<div class="paga2-state-grid">
+<section class="paga-card"><h2>Finanse</h2><div id="paga2-state-finance"></div></section>
+<section class="paga-card"><h2>Ustalony budżet</h2><div id="paga2-state-budget"></div></section>
+<section class="paga-card"><h2>Obiekty</h2><div id="paga2-state-objects"></div></section>
+<section class="paga-card"><h2>Siły zbrojne</h2><div id="paga2-state-army"></div></section>
+<section class="paga-card"><h2>Technologie</h2><div id="paga2-state-tech"></div></section>
+<section class="paga-card"><h2>Surowce w magazynie</h2><div id="paga2-state-stocks"></div></section>
+</div>
+<section class="paga-card"><h2>Plany wieloetapowe</h2><p class="paga-note">Cel rozłożony na etapy (technologie, surowce, energia, budowa). Etapy są przeliczane przy każdym przebiegu algorytmu.</p><div id="paga2-state-plans" class="paga-decision-list"></div></section>
+<section class="paga-card"><h2>Relacje z innymi państwami</h2><div id="paga2-state-relations" class="paga-monitor-table"></div></section>
+<section class="paga-card"><h2>Wiadomości prywatne</h2><div id="paga2-state-messages" class="paga-decision-list"></div></section>
+</div>
+</div>
+</div>
+<script type="application/json" id="paga-config">{{ paga_config|tojson }}</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga.js',v='20261112-paga2-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261112-paga2-2') }}" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga_relationships.js',v='20261108-1') }}" defer></script>
+{% if paga_config.monitoringUrl %}<script src="{{ url_for('static',filename='js/wiki_paga_monitoring.js',v='20261110-multiai-1') }}" defer></script>{% endif %}
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "game/game_base_layout.html" %}
+
+{% block title %}Demografia — {{ game_country.nazwa }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/game_demografia.css', v='20261024-6') }}">
+{% endblock %}
+
+{% block content %}
+<section class="game-panel age-structure"><h2 class="game-panel-heading">Struktura wieku — {{ age_structure.name }}</h2><div class="game-panel-body">{% if age_structure.groups %}<table><thead><tr><th>Przedział wieku</th><th>Udział</th><th>Liczba osób</th></tr></thead><tbody>{% for group in age_structure.groups %}<tr><th>{{ group.label }}</th><td>{{ group.percent }}%</td><td>{{ group.count|spacenum if group.count is not none else '—' }}</td></tr>{% endfor %}</tbody></table>{% else %}<p>Administrator nie ustalił jeszcze struktury wieku tego państwa.</p>{% endif %}</div></section>
+<div class="demo-top">
+    <section class="game-panel">
+        <h2 class="game-panel-heading">Historia populacji · 2995–3010</h2>
+
+        <div class="game-panel-body">
+            <p>Ostatni dostępny pomiar w każdym roku.</p>
+
+            <div class="demo-chart-scroll">
+                <div class="demo-chart" role="list"
+                     aria-label="Roczna populacja państwa">
+                    {% for item in history %}
+                    <div class="demo-year"
+                         role="listitem"
+                         tabindex="0"
+                         aria-label="{{ item.year }}:
+                         {{ item.label if item.population is not none
+                            else 'brak danych' }}">
+                        <div class="demo-column">
+                            {% if item.population is not none %}
+                            <div class="demo-bar"
+                                 style="height: {{ item.height }}%"></div>
+                            {% else %}
+                            <span class="demo-missing" aria-hidden="true">—</span>
+                            {% endif %}
+                        </div>
+
+                        <span class="demo-year-label">{{ item.year }}</span>
+                        <span class="demo-chart-tooltip" aria-hidden="true">
+                            {{ item.year }}:
+                            {{ item.label if item.population is not none
+                               else 'brak danych' }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="game-panel">
+        <div class="game-panel-heading demo-map-heading">
+            <h2>Ludność regionów i miast</h2>
+
+        </div>
+        <div class="game-panel-body">
+            <div id="demography-map"
+                 aria-label="Mapa ludności państwa"></div>
+            <p id="demography-map-status" role="status" hidden></p>
+
+            <div id="demography-region-legend"
+                 class="demo-map-legend"></div>
+
+            <p class="demo-city-legend">
+                Wielkość miasta:
+                <span>● do 200 tys.</span>
+                <span>● ponad 200–500 tys.</span>
+                <span>● ponad 500 tys.–1 mln</span>
+                <span>● ponad 1–10 mln</span>
+                <span>● ponad 10 mln</span>
+            </p>
+        </div>
+    </section>
+</div>
+
+<section class="demo-metrics" aria-label="Wskaźniki demograficzne">
+    {% for metric in metrics %}
+    <div class="game-panel demo-metric">
+        <div>{{ metric.name }}</div>
+
+        <strong class="{{ metric.color | default('') }}">
+            {{ metric.value }}
+        </strong>
+
+        {% if metric.trend is defined %}
+        <span class="{% if metric.trend == 1 %}demo-positive
+                     {% elif metric.trend == -1 %}demo-negative{% endif %}">
+            {% if metric.trend == 1 %}↑
+            {% elif metric.trend == -1 %}↓{% endif %}
+            {{ metric.trend_label }}
+        </span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+
+<p>
+    <button type="button" disabled>
+        Zarządzaj polityką migracyjną kraju
+    </button>
+</p>
+
+<script type="application/json" id="demography-map-config">
+    {{ demographic_map | tojson }}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/game_demografia.js', v='20261024-6') }}"
+        defer></script>
+{% endblock %}

@@ -1,0 +1,4573 @@
+{
+  "database": "entenda_uat_db",
+  "source": "/home/oskar_zeus_admin/ZEUS_UAT/static/maps/entenda_regiony.geojson",
+  "source_sha256": "035b9cb8217f7ec97201e11d2cae256425207647eb146d2c6a4291c6cadb12cb",
+  "calibration": {
+    "id": 1,
+    "reference_city_a": 1,
+    "reference_city_b": 852,
+    "reference_km": 100.0,
+    "km_per_unit": 3.910919870403471,
+    "reference_a_x": 954.7510623012616,
+    "reference_a_y": -1801.62366708549,
+    "reference_b_x": 952.4987942837062,
+    "reference_b_y": -1776.1536230000308
+  },
+  "geometry_repairs": [
+    {
+      "country_id": 135,
+      "reason": "Ring Self-intersection[482.623804066478 -2256.79454239266]",
+      "old_map_area": 13684.399806211579,
+      "repaired_map_area": 13684.39980621157
+    },
+    {
+      "country_id": 172,
+      "reason": "Ring Self-intersection[720.698320296435 -3174.73822326264]",
+      "old_map_area": 894.0877509705749,
+      "repaired_map_area": 894.0877509705748
+    },
+    {
+      "country_id": 512,
+      "reason": "Self-intersection[3165.00231988889 -1655.97060224]",
+      "old_map_area": 1019.4434808660942,
+      "repaired_map_area": 1019.4434808660945
+    },
+    {
+      "country_id": 520,
+      "reason": "Self-intersection[3333.2447767158 -1611.0254304205]",
+      "old_map_area": 1868.4748114001468,
+      "repaired_map_area": 1868.4748114001472
+    },
+    {
+      "country_id": 189,
+      "reason": "Self-intersection[2851.96655917749 -1951.35116154457]",
+      "old_map_area": 10209.205122592664,
+      "repaired_map_area": 10209.205122592663
+    },
+    {
+      "country_id": 188,
+      "reason": "Ring Self-intersection[2851.96655917749 -1951.35116154457]",
+      "old_map_area": 9963.469315889002,
+      "repaired_map_area": 9963.469315889002
+    },
+    {
+      "country_id": 490,
+      "reason": "Self-intersection[2590.45455913961 -2143.74816192219]",
+      "old_map_area": 818.7791961378203,
+      "repaired_map_area": 818.7791961378203
+    },
+    {
+      "country_id": 13,
+      "reason": "Ring Self-intersection[901.053772149401 -1831.5292987179]",
+      "old_map_area": 161.65215624497299,
+      "repaired_map_area": 161.65215624497293
+    },
+    {
+      "country_id": 57,
+      "reason": "Self-intersection[821.424484398742 -1626.55597832383]",
+      "old_map_area": 1919.190298183686,
+      "repaired_map_area": 1919.190298183686
+    },
+    {
+      "country_id": 61,
+      "reason": "Self-intersection[704.292819469694 -1715.31016959904]",
+      "old_map_area": 2549.9759346672904,
+      "repaired_map_area": 2549.975934667291
+    },
+    {
+      "country_id": 486,
+      "reason": "Self-intersection[736.863846853574 -1874.1341027994]",
+      "old_map_area": 592.2310705979693,
+      "repaired_map_area": 592.2310705979697
+    },
+    {
+      "country_id": 96,
+      "reason": "Ring Self-intersection[705.081581284149 -1874.570238004]",
+      "old_map_area": 3055.5343700948106,
+      "repaired_map_area": 3055.534370094811
+    },
+    {
+      "country_id": 211,
+      "reason": "Self-intersection[3172.02421273499 -1980.85271190329]",
+      "old_map_area": 5839.25169154966,
+      "repaired_map_area": 5839.251691549662
+    },
+    {
+      "country_id": 210,
+      "reason": "Self-intersection[3102.84810370497 -1948.37754495864]",
+      "old_map_area": 10209.95938313665,
+      "repaired_map_area": 10209.959383136656
+    },
+    {
+      "country_id": 251,
+      "reason": "Self-intersection[3421.36200605856 -2072.48066346076]",
+      "old_map_area": 2080.2728852436053,
+      "repaired_map_area": 2080.272885243607
+    },
+    {
+      "country_id": 201,
+      "reason": "Self-intersection[3409.99156637866 -2176.13456944704]",
+      "old_map_area": 1420.0022150957104,
+      "repaired_map_area": 1420.0022150957107
+    },
+    {
+      "country_id": 203,
+      "reason": "Self-intersection[3368.48429178628 -2264.59124757246]",
+      "old_map_area": 1174.3223109348305,
+      "repaired_map_area": 1174.3223109348307
+    },
+    {
+      "country_id": 314,
+      "reason": "Self-intersection[3264.26386485591 -2513.44182891562]",
+      "old_map_area": 5258.30943433652,
+      "repaired_map_area": 5258.30943433652
+    },
+    {
+      "country_id": 451,
+      "reason": "Self-intersection[3744.3235638011 -1382.11176522058]",
+      "old_map_area": 6622.653337197804,
+      "repaired_map_area": 6622.653337197799
+    },
+    {
+      "country_id": 467,
+      "reason": "Self-intersection[4568.56241396923 -2076.48829000115]",
+      "old_map_area": 2343.882024342313,
+      "repaired_map_area": 2343.8820243423143
+    }
+  ],
+  "missing_geometry": [
+    {
+      "region_id": 612,
+      "region_nazwa": "Port Loyab",
+      "region_powierzchnia": null
+    },
+    {
+      "region_id": 623,
+      "region_nazwa": "Region testowy",
+      "region_powierzchnia": null
+    },
+    {
+      "region_id": 624,
+      "region_nazwa": "Region testowy 2",
+      "region_powierzchnia": null
+    },
+    {
+      "region_id": 625,
+      "region_nazwa": "Region testowy 3",
+      "region_powierzchnia": null
+    }
+  ],
+  "method": "Planar union of country polygons, holes excluded; area * km_per_unit^2; rounded to nearest whole km²",
+  "countries": [
+    {
+      "region_id": 1,
+      "region_nazwa": "Prangia",
+      "region_powierzchnia": null,
+      "map_area": 4904.444606751115,
+      "new_area_km2": 75015
+    },
+    {
+      "region_id": 2,
+      "region_nazwa": "Sartynia",
+      "region_powierzchnia": null,
+      "map_area": 4530.83968028292,
+      "new_area_km2": 69301
+    },
+    {
+      "region_id": 3,
+      "region_nazwa": "Kojiwia",
+      "region_powierzchnia": null,
+      "map_area": 3204.777896470439,
+      "new_area_km2": 49018
+    },
+    {
+      "region_id": 4,
+      "region_nazwa": "Farlegon",
+      "region_powierzchnia": null,
+      "map_area": 7243.862585363676,
+      "new_area_km2": 110797
+    },
+    {
+      "region_id": 5,
+      "region_nazwa": "Istronia",
+      "region_powierzchnia": null,
+      "map_area": 4563.754237200197,
+      "new_area_km2": 69804
+    },
+    {
+      "region_id": 6,
+      "region_nazwa": "Lipardia",
+      "region_powierzchnia": null,
+      "map_area": 4496.987625198354,
+      "new_area_km2": 68783
+    },
+    {
+      "region_id": 7,
+      "region_nazwa": "Harmilia",
+      "region_powierzchnia": null,
+      "map_area": 3065.682353502361,
+      "new_area_km2": 46891
+    },
+    {
+      "region_id": 8,
+      "region_nazwa": "Donia i Kajpimia",
+      "region_powierzchnia": null,
+      "map_area": 4432.369458580133,
+      "new_area_km2": 67794
+    },
+    {
+      "region_id": 9,
+      "region_nazwa": "Region Stołeczny Saint Adams",
+      "region_powierzchnia": null,
+      "map_area": 2237.5723160486596,
+      "new_area_km2": 34224
+    },
+    {
+      "region_id": 10,
+      "region_nazwa": "Istronia Południowa",
+      "region_powierzchnia": null,
+      "map_area": 2968.8380226183667,
+      "new_area_km2": 45409
+    },
+    {
+      "region_id": 11,
+      "region_nazwa": "Duskalia",
+      "region_powierzchnia": null,
+      "map_area": 466.28265099039913,
+      "new_area_km2": 7132
+    },
+    {
+      "region_id": 12,
+      "region_nazwa": "Ané",
+      "region_powierzchnia": null,
+      "map_area": 585.1005333581294,
+      "new_area_km2": 8949
+    },
+    {
+      "region_id": 13,
+      "region_nazwa": "Borgelia",
+      "region_powierzchnia": null,
+      "map_area": 161.65215624497293,
+      "new_area_km2": 2473
+    },
+    {
+      "region_id": 14,
+      "region_nazwa": "Waltia",
+      "region_powierzchnia": null,
+      "map_area": 464.355134352809,
+      "new_area_km2": 7102
+    },
+    {
+      "region_id": 15,
+      "region_nazwa": "Nordenia Północna",
+      "region_powierzchnia": null,
+      "map_area": 24817.658766461027,
+      "new_area_km2": 379593
+    },
+    {
+      "region_id": 16,
+      "region_nazwa": "Nordenia Południowa",
+      "region_powierzchnia": null,
+      "map_area": 20827.177488541813,
+      "new_area_km2": 318558
+    },
+    {
+      "region_id": 17,
+      "region_nazwa": "Roseau",
+      "region_powierzchnia": null,
+      "map_area": 1875.3122116232184,
+      "new_area_km2": 28683
+    },
+    {
+      "region_id": 18,
+      "region_nazwa": "Lermasa",
+      "region_powierzchnia": null,
+      "map_area": 6667.400987839201,
+      "new_area_km2": 101980
+    },
+    {
+      "region_id": 19,
+      "region_nazwa": "Wintia",
+      "region_powierzchnia": null,
+      "map_area": 3054.4234076471275,
+      "new_area_km2": 46718
+    },
+    {
+      "region_id": 20,
+      "region_nazwa": "Pumaryntia",
+      "region_powierzchnia": null,
+      "map_area": 1991.4730948659023,
+      "new_area_km2": 30460
+    },
+    {
+      "region_id": 21,
+      "region_nazwa": "Sewa",
+      "region_powierzchnia": null,
+      "map_area": 6365.240914392539,
+      "new_area_km2": 97358
+    },
+    {
+      "region_id": 22,
+      "region_nazwa": "Chartelle",
+      "region_powierzchnia": null,
+      "map_area": 5533.639588981669,
+      "new_area_km2": 84639
+    },
+    {
+      "region_id": 23,
+      "region_nazwa": "Fechellette",
+      "region_powierzchnia": null,
+      "map_area": 6095.793134012088,
+      "new_area_km2": 93237
+    },
+    {
+      "region_id": 24,
+      "region_nazwa": "Ciciriki",
+      "region_powierzchnia": null,
+      "map_area": 1862.7468628807826,
+      "new_area_km2": 28491
+    },
+    {
+      "region_id": 25,
+      "region_nazwa": "Lipiciri",
+      "region_powierzchnia": null,
+      "map_area": 2337.361626036638,
+      "new_area_km2": 35751
+    },
+    {
+      "region_id": 26,
+      "region_nazwa": "Hiri",
+      "region_powierzchnia": null,
+      "map_area": 1359.7970323927054,
+      "new_area_km2": 20798
+    },
+    {
+      "region_id": 27,
+      "region_nazwa": "Cirici",
+      "region_powierzchnia": null,
+      "map_area": 2712.552383561247,
+      "new_area_km2": 41489
+    },
+    {
+      "region_id": 28,
+      "region_nazwa": "Riridi",
+      "region_powierzchnia": null,
+      "map_area": 1445.1964812223202,
+      "new_area_km2": 22105
+    },
+    {
+      "region_id": 29,
+      "region_nazwa": "Ricicini",
+      "region_powierzchnia": null,
+      "map_area": 1707.0853359545595,
+      "new_area_km2": 26110
+    },
+    {
+      "region_id": 30,
+      "region_nazwa": "Kirici",
+      "region_powierzchnia": null,
+      "map_area": 1076.998358314969,
+      "new_area_km2": 16473
+    },
+    {
+      "region_id": 31,
+      "region_nazwa": "Nordhott",
+      "region_powierzchnia": null,
+      "map_area": 6140.171693679964,
+      "new_area_km2": 93916
+    },
+    {
+      "region_id": 32,
+      "region_nazwa": "Elkejhott",
+      "region_powierzchnia": null,
+      "map_area": 4507.190549244113,
+      "new_area_km2": 68939
+    },
+    {
+      "region_id": 33,
+      "region_nazwa": "Minrejkhott",
+      "region_powierzchnia": null,
+      "map_area": 5260.640285489742,
+      "new_area_km2": 80463
+    },
+    {
+      "region_id": 34,
+      "region_nazwa": "Danshott",
+      "region_powierzchnia": null,
+      "map_area": 4905.244120205472,
+      "new_area_km2": 75027
+    },
+    {
+      "region_id": 35,
+      "region_nazwa": "Mieskjehott",
+      "region_powierzchnia": null,
+      "map_area": 5256.704156789264,
+      "new_area_km2": 80403
+    },
+    {
+      "region_id": 36,
+      "region_nazwa": "Jekahott",
+      "region_powierzchnia": null,
+      "map_area": 1608.7704490696847,
+      "new_area_km2": 24607
+    },
+    {
+      "region_id": 37,
+      "region_nazwa": "Marengahott",
+      "region_powierzchnia": null,
+      "map_area": 9173.089240908519,
+      "new_area_km2": 140305
+    },
+    {
+      "region_id": 38,
+      "region_nazwa": "Rejkiehott",
+      "region_powierzchnia": null,
+      "map_area": 9002.457110885302,
+      "new_area_km2": 137695
+    },
+    {
+      "region_id": 39,
+      "region_nazwa": "Gallahott",
+      "region_powierzchnia": null,
+      "map_area": 4106.037431861213,
+      "new_area_km2": 62803
+    },
+    {
+      "region_id": 40,
+      "region_nazwa": "Seikehott",
+      "region_powierzchnia": null,
+      "map_area": 3861.50500371397,
+      "new_area_km2": 59063
+    },
+    {
+      "region_id": 41,
+      "region_nazwa": "Malmenghott",
+      "region_powierzchnia": null,
+      "map_area": 4142.919725570522,
+      "new_area_km2": 63367
+    },
+    {
+      "region_id": 42,
+      "region_nazwa": "Tulhott",
+      "region_powierzchnia": null,
+      "map_area": 5224.840253563761,
+      "new_area_km2": 79915
+    },
+    {
+      "region_id": 43,
+      "region_nazwa": "Assnadanhott",
+      "region_powierzchnia": null,
+      "map_area": 7627.896537529057,
+      "new_area_km2": 116671
+    },
+    {
+      "region_id": 44,
+      "region_nazwa": "Anghott",
+      "region_powierzchnia": null,
+      "map_area": 4526.247470905929,
+      "new_area_km2": 69230
+    },
+    {
+      "region_id": 45,
+      "region_nazwa": "Helgelhott",
+      "region_powierzchnia": null,
+      "map_area": 3927.307591751267,
+      "new_area_km2": 60069
+    },
+    {
+      "region_id": 46,
+      "region_nazwa": "Saalak",
+      "region_powierzchnia": null,
+      "map_area": 783.4402900262747,
+      "new_area_km2": 11983
+    },
+    {
+      "region_id": 47,
+      "region_nazwa": "Taaeirak",
+      "region_powierzchnia": null,
+      "map_area": 470.35018061438547,
+      "new_area_km2": 7194
+    },
+    {
+      "region_id": 48,
+      "region_nazwa": "Kunrak",
+      "region_powierzchnia": null,
+      "map_area": 731.4609516718524,
+      "new_area_km2": 11188
+    },
+    {
+      "region_id": 49,
+      "region_nazwa": "Geerak",
+      "region_powierzchnia": null,
+      "map_area": 620.7660799293093,
+      "new_area_km2": 9495
+    },
+    {
+      "region_id": 50,
+      "region_nazwa": "Baalrak",
+      "region_powierzchnia": null,
+      "map_area": 637.4457981266163,
+      "new_area_km2": 9750
+    },
+    {
+      "region_id": 51,
+      "region_nazwa": "Intrak",
+      "region_powierzchnia": null,
+      "map_area": 440.6188158694731,
+      "new_area_km2": 6739
+    },
+    {
+      "region_id": 52,
+      "region_nazwa": "Hellinkerie",
+      "region_powierzchnia": null,
+      "map_area": 1042.4494126690267,
+      "new_area_km2": 15945
+    },
+    {
+      "region_id": 53,
+      "region_nazwa": "Forterie",
+      "region_powierzchnia": null,
+      "map_area": 387.5481431066287,
+      "new_area_km2": 5928
+    },
+    {
+      "region_id": 54,
+      "region_nazwa": "Daelinkerie",
+      "region_powierzchnia": null,
+      "map_area": 1101.2816552952145,
+      "new_area_km2": 16844
+    },
+    {
+      "region_id": 55,
+      "region_nazwa": "Finnstendrie",
+      "region_powierzchnia": null,
+      "map_area": 1662.9351197319627,
+      "new_area_km2": 25435
+    },
+    {
+      "region_id": 56,
+      "region_nazwa": "Precco",
+      "region_powierzchnia": null,
+      "map_area": 198.40629666557115,
+      "new_area_km2": 3035
+    },
+    {
+      "region_id": 57,
+      "region_nazwa": "Nust-Halicja",
+      "region_powierzchnia": null,
+      "map_area": 1919.190298183686,
+      "new_area_km2": 29355
+    },
+    {
+      "region_id": 58,
+      "region_nazwa": "Salimacja",
+      "region_powierzchnia": null,
+      "map_area": 3153.2331741459166,
+      "new_area_km2": 48230
+    },
+    {
+      "region_id": 59,
+      "region_nazwa": "Środkowa Tyava",
+      "region_powierzchnia": null,
+      "map_area": 1726.254098483379,
+      "new_area_km2": 26404
+    },
+    {
+      "region_id": 60,
+      "region_nazwa": "Prenstia",
+      "region_powierzchnia": null,
+      "map_area": 1428.0750672124482,
+      "new_area_km2": 21843
+    },
+    {
+      "region_id": 61,
+      "region_nazwa": "Gegeltia",
+      "region_powierzchnia": null,
+      "map_area": 2549.975934667291,
+      "new_area_km2": 39003
+    },
+    {
+      "region_id": 62,
+      "region_nazwa": "Felitargia",
+      "region_powierzchnia": null,
+      "map_area": 2000.5238839636904,
+      "new_area_km2": 30599
+    },
+    {
+      "region_id": 63,
+      "region_nazwa": "Gerima",
+      "region_powierzchnia": null,
+      "map_area": 1272.316156900541,
+      "new_area_km2": 19460
+    },
+    {
+      "region_id": 64,
+      "region_nazwa": "Etos-Ouesd",
+      "region_powierzchnia": null,
+      "map_area": 952.7190772053253,
+      "new_area_km2": 14572
+    },
+    {
+      "region_id": 65,
+      "region_nazwa": "Etos-Sentre",
+      "region_powierzchnia": null,
+      "map_area": 1126.6201989009203,
+      "new_area_km2": 17232
+    },
+    {
+      "region_id": 66,
+      "region_nazwa": "Ville-Arachos",
+      "region_powierzchnia": null,
+      "map_area": 320.06064597094826,
+      "new_area_km2": 4895
+    },
+    {
+      "region_id": 67,
+      "region_nazwa": "Etos-Este",
+      "region_powierzchnia": null,
+      "map_area": 1258.8760701139718,
+      "new_area_km2": 19255
+    },
+    {
+      "region_id": 68,
+      "region_nazwa": "Ergahuttungerhang",
+      "region_powierzchnia": null,
+      "map_area": 9844.90023454532,
+      "new_area_km2": 150581
+    },
+    {
+      "region_id": 69,
+      "region_nazwa": "Sendhang",
+      "region_powierzchnia": null,
+      "map_area": 10296.365939176127,
+      "new_area_km2": 157486
+    },
+    {
+      "region_id": 70,
+      "region_nazwa": "Hunttungerhang",
+      "region_powierzchnia": null,
+      "map_area": 14543.051754116288,
+      "new_area_km2": 222440
+    },
+    {
+      "region_id": 71,
+      "region_nazwa": "Zenttungerhang",
+      "region_powierzchnia": null,
+      "map_area": 11016.8111159914,
+      "new_area_km2": 168505
+    },
+    {
+      "region_id": 72,
+      "region_nazwa": "Usttungerhang",
+      "region_powierzchnia": null,
+      "map_area": 17559.924214843017,
+      "new_area_km2": 268584
+    },
+    {
+      "region_id": 73,
+      "region_nazwa": "Szanteragia",
+      "region_powierzchnia": null,
+      "map_area": 9968.750248723245,
+      "new_area_km2": 152475
+    },
+    {
+      "region_id": 74,
+      "region_nazwa": "Tarmigrand",
+      "region_powierzchnia": null,
+      "map_area": 12705.755630053422,
+      "new_area_km2": 194338
+    },
+    {
+      "region_id": 75,
+      "region_nazwa": "Zentgurdij",
+      "region_powierzchnia": null,
+      "map_area": 5014.677943036401,
+      "new_area_km2": 76701
+    },
+    {
+      "region_id": 76,
+      "region_nazwa": "Hejmilk",
+      "region_powierzchnia": null,
+      "map_area": 9309.892223085006,
+      "new_area_km2": 142398
+    },
+    {
+      "region_id": 77,
+      "region_nazwa": "Jerzmigirev",
+      "region_powierzchnia": null,
+      "map_area": 8436.255808861988,
+      "new_area_km2": 129035
+    },
+    {
+      "region_id": 78,
+      "region_nazwa": "Tung-Zent-Ferynburh",
+      "region_powierzchnia": null,
+      "map_area": 777.5473561524391,
+      "new_area_km2": 11893
+    },
+    {
+      "region_id": 79,
+      "region_nazwa": "Pochrzenisne",
+      "region_powierzchnia": null,
+      "map_area": 13376.70225199613,
+      "new_area_km2": 204601
+    },
+    {
+      "region_id": 80,
+      "region_nazwa": "Ungran Tungavi",
+      "region_powierzchnia": null,
+      "map_area": 6961.245517224967,
+      "new_area_km2": 106474
+    },
+    {
+      "region_id": 81,
+      "region_nazwa": "Ungrania",
+      "region_powierzchnia": null,
+      "map_area": 8877.444125650654,
+      "new_area_km2": 135783
+    },
+    {
+      "region_id": 82,
+      "region_nazwa": "Gevdranheet",
+      "region_powierzchnia": null,
+      "map_area": 4716.322523244699,
+      "new_area_km2": 72138
+    },
+    {
+      "region_id": 84,
+      "region_nazwa": "Niunsteergen",
+      "region_powierzchnia": null,
+      "map_area": 5570.685134056589,
+      "new_area_km2": 85205
+    },
+    {
+      "region_id": 85,
+      "region_nazwa": "Parenkusteeg",
+      "region_powierzchnia": null,
+      "map_area": 11445.403809878342,
+      "new_area_km2": 175061
+    },
+    {
+      "region_id": 86,
+      "region_nazwa": "Aangerundeeg",
+      "region_powierzchnia": null,
+      "map_area": 5605.148091588476,
+      "new_area_km2": 85732
+    },
+    {
+      "region_id": 87,
+      "region_nazwa": "Dernhasteeg",
+      "region_powierzchnia": null,
+      "map_area": 5659.088859949973,
+      "new_area_km2": 86557
+    },
+    {
+      "region_id": 88,
+      "region_nazwa": "Ulenkregvisteeg",
+      "region_powierzchnia": null,
+      "map_area": 5197.284125206932,
+      "new_area_km2": 79494
+    },
+    {
+      "region_id": 89,
+      "region_nazwa": "Hraagnstergf",
+      "region_powierzchnia": null,
+      "map_area": 3621.9184123108794,
+      "new_area_km2": 55398
+    },
+    {
+      "region_id": 90,
+      "region_nazwa": "Itraa",
+      "region_powierzchnia": null,
+      "map_area": 3884.6032727094166,
+      "new_area_km2": 59416
+    },
+    {
+      "region_id": 91,
+      "region_nazwa": "Fensiege",
+      "region_powierzchnia": null,
+      "map_area": 1324.3741259824692,
+      "new_area_km2": 20257
+    },
+    {
+      "region_id": 92,
+      "region_nazwa": "Pireeunde",
+      "region_powierzchnia": null,
+      "map_area": 4005.0947243734777,
+      "new_area_km2": 61259
+    },
+    {
+      "region_id": 93,
+      "region_nazwa": "Luutejkreenge",
+      "region_powierzchnia": null,
+      "map_area": 213.20358113488805,
+      "new_area_km2": 3261
+    },
+    {
+      "region_id": 94,
+      "region_nazwa": "Montetunga",
+      "region_powierzchnia": null,
+      "map_area": 21379.143786109675,
+      "new_area_km2": 327000
+    },
+    {
+      "region_id": 95,
+      "region_nazwa": "Sanx",
+      "region_powierzchnia": null,
+      "map_area": 6130.589902868464,
+      "new_area_km2": 93769
+    },
+    {
+      "region_id": 96,
+      "region_nazwa": "Lantanie-Seud",
+      "region_powierzchnia": null,
+      "map_area": 3055.534370094811,
+      "new_area_km2": 46735
+    },
+    {
+      "region_id": 97,
+      "region_nazwa": "Sanx-Este",
+      "region_powierzchnia": null,
+      "map_area": 8245.925442712538,
+      "new_area_km2": 126124
+    },
+    {
+      "region_id": 98,
+      "region_nazwa": "Roche-Zapelie",
+      "region_powierzchnia": null,
+      "map_area": 6021.310230588748,
+      "new_area_km2": 92098
+    },
+    {
+      "region_id": 99,
+      "region_nazwa": "Videsse",
+      "region_powierzchnia": null,
+      "map_area": 5872.081758275878,
+      "new_area_km2": 89815
+    },
+    {
+      "region_id": 100,
+      "region_nazwa": "Nadparie",
+      "region_powierzchnia": null,
+      "map_area": 1556.5070675119707,
+      "new_area_km2": 23807
+    },
+    {
+      "region_id": 101,
+      "region_nazwa": "Vargens-Estelle",
+      "region_powierzchnia": null,
+      "map_area": 6477.078629653481,
+      "new_area_km2": 99069
+    },
+    {
+      "region_id": 102,
+      "region_nazwa": "Este",
+      "region_powierzchnia": null,
+      "map_area": 6420.097881191466,
+      "new_area_km2": 98197
+    },
+    {
+      "region_id": 103,
+      "region_nazwa": "Sentrell",
+      "region_powierzchnia": null,
+      "map_area": 4473.926539559562,
+      "new_area_km2": 68430
+    },
+    {
+      "region_id": 104,
+      "region_nazwa": "Mayenne-Ouesd",
+      "region_powierzchnia": null,
+      "map_area": 7235.4081798901325,
+      "new_area_km2": 110668
+    },
+    {
+      "region_id": 105,
+      "region_nazwa": "Mayenne-Este",
+      "region_powierzchnia": null,
+      "map_area": 8637.157555103457,
+      "new_area_km2": 132108
+    },
+    {
+      "region_id": 106,
+      "region_nazwa": "Region 1",
+      "region_powierzchnia": null,
+      "map_area": 155.7124666265367,
+      "new_area_km2": 2382
+    },
+    {
+      "region_id": 107,
+      "region_nazwa": "Region 2",
+      "region_powierzchnia": null,
+      "map_area": 1214.994898988615,
+      "new_area_km2": 18584
+    },
+    {
+      "region_id": 108,
+      "region_nazwa": "Region 3",
+      "region_powierzchnia": null,
+      "map_area": 2546.454050232621,
+      "new_area_km2": 38949
+    },
+    {
+      "region_id": 109,
+      "region_nazwa": "Region 4",
+      "region_powierzchnia": null,
+      "map_area": 2247.9753947785302,
+      "new_area_km2": 34383
+    },
+    {
+      "region_id": 110,
+      "region_nazwa": "Region 5",
+      "region_powierzchnia": null,
+      "map_area": 1198.9594359546188,
+      "new_area_km2": 18338
+    },
+    {
+      "region_id": 111,
+      "region_nazwa": "Region 6",
+      "region_powierzchnia": null,
+      "map_area": 1161.3327519356442,
+      "new_area_km2": 17763
+    },
+    {
+      "region_id": 112,
+      "region_nazwa": "Region 7",
+      "region_powierzchnia": null,
+      "map_area": 1532.9557539216448,
+      "new_area_km2": 23447
+    },
+    {
+      "region_id": 113,
+      "region_nazwa": "Region 8",
+      "region_powierzchnia": null,
+      "map_area": 1991.2844935801857,
+      "new_area_km2": 30457
+    },
+    {
+      "region_id": 114,
+      "region_nazwa": "Region 9",
+      "region_powierzchnia": null,
+      "map_area": 1343.4653938287975,
+      "new_area_km2": 20549
+    },
+    {
+      "region_id": 115,
+      "region_nazwa": "Region 10",
+      "region_powierzchnia": null,
+      "map_area": 2551.8095717975393,
+      "new_area_km2": 39031
+    },
+    {
+      "region_id": 117,
+      "region_nazwa": "Ulmeje Północne",
+      "region_powierzchnia": null,
+      "map_area": 7818.899729246274,
+      "new_area_km2": 119592
+    },
+    {
+      "region_id": 118,
+      "region_nazwa": "Wandiny",
+      "region_powierzchnia": null,
+      "map_area": 5589.537141873013,
+      "new_area_km2": 85494
+    },
+    {
+      "region_id": 119,
+      "region_nazwa": "Port Koin",
+      "region_powierzchnia": null,
+      "map_area": 194.88116065692475,
+      "new_area_km2": 2981
+    },
+    {
+      "region_id": 120,
+      "region_nazwa": "Lemki",
+      "region_powierzchnia": null,
+      "map_area": 3842.135205147571,
+      "new_area_km2": 58767
+    },
+    {
+      "region_id": 121,
+      "region_nazwa": "Nadmorze",
+      "region_powierzchnia": null,
+      "map_area": 3374.1664280902423,
+      "new_area_km2": 51609
+    },
+    {
+      "region_id": 122,
+      "region_nazwa": "Wyspy Bantyjskie",
+      "region_powierzchnia": null,
+      "map_area": 8573.621296393909,
+      "new_area_km2": 131136
+    },
+    {
+      "region_id": 123,
+      "region_nazwa": "Ulmeje Południowe",
+      "region_powierzchnia": null,
+      "map_area": 3454.607536725759,
+      "new_area_km2": 52839
+    },
+    {
+      "region_id": 124,
+      "region_nazwa": "Husty Wschodnie",
+      "region_powierzchnia": null,
+      "map_area": 19090.371662602145,
+      "new_area_km2": 291993
+    },
+    {
+      "region_id": 125,
+      "region_nazwa": "Almechy",
+      "region_powierzchnia": null,
+      "map_area": 6326.854950186304,
+      "new_area_km2": 96771
+    },
+    {
+      "region_id": 126,
+      "region_nazwa": "Farsaty",
+      "region_powierzchnia": null,
+      "map_area": 8121.9825624141,
+      "new_area_km2": 124228
+    },
+    {
+      "region_id": 127,
+      "region_nazwa": "Husty Południowe",
+      "region_powierzchnia": null,
+      "map_area": 19324.79118183741,
+      "new_area_km2": 295578
+    },
+    {
+      "region_id": 128,
+      "region_nazwa": "Darpy",
+      "region_powierzchnia": null,
+      "map_area": 6116.7893079048445,
+      "new_area_km2": 93558
+    },
+    {
+      "region_id": 129,
+      "region_nazwa": "Piryki",
+      "region_powierzchnia": null,
+      "map_area": 4637.380333528927,
+      "new_area_km2": 70930
+    },
+    {
+      "region_id": 130,
+      "region_nazwa": "Majdarki",
+      "region_powierzchnia": null,
+      "map_area": 7740.8656249675605,
+      "new_area_km2": 118399
+    },
+    {
+      "region_id": 131,
+      "region_nazwa": "Jeryki",
+      "region_powierzchnia": null,
+      "map_area": 8728.680623682172,
+      "new_area_km2": 133508
+    },
+    {
+      "region_id": 132,
+      "region_nazwa": "Północna Pardania",
+      "region_powierzchnia": null,
+      "map_area": 16573.421853532767,
+      "new_area_km2": 253495
+    },
+    {
+      "region_id": 133,
+      "region_nazwa": "Trestania",
+      "region_powierzchnia": null,
+      "map_area": 541.8605111116331,
+      "new_area_km2": 8288
+    },
+    {
+      "region_id": 134,
+      "region_nazwa": "Gubacja",
+      "region_powierzchnia": null,
+      "map_area": 5995.626049228289,
+      "new_area_km2": 91705
+    },
+    {
+      "region_id": 135,
+      "region_nazwa": "Środkowa Pardania",
+      "region_powierzchnia": null,
+      "map_area": 13684.39980621157,
+      "new_area_km2": 209307
+    },
+    {
+      "region_id": 136,
+      "region_nazwa": "Medicja",
+      "region_powierzchnia": null,
+      "map_area": 4606.773895169129,
+      "new_area_km2": 70462
+    },
+    {
+      "region_id": 137,
+      "region_nazwa": "Hagorszczyzna",
+      "region_powierzchnia": null,
+      "map_area": 3408.6493061996384,
+      "new_area_km2": 52136
+    },
+    {
+      "region_id": 138,
+      "region_nazwa": "Lubmacja",
+      "region_powierzchnia": null,
+      "map_area": 4147.246462019686,
+      "new_area_km2": 63433
+    },
+    {
+      "region_id": 139,
+      "region_nazwa": "Południowa Pardania",
+      "region_powierzchnia": null,
+      "map_area": 10608.585016038025,
+      "new_area_km2": 162261
+    },
+    {
+      "region_id": 140,
+      "region_nazwa": "Terebencja",
+      "region_powierzchnia": null,
+      "map_area": 2040.8637550696558,
+      "new_area_km2": 31216
+    },
+    {
+      "region_id": 141,
+      "region_nazwa": "Esterdewia",
+      "region_powierzchnia": null,
+      "map_area": 4347.584030069726,
+      "new_area_km2": 66498
+    },
+    {
+      "region_id": 142,
+      "region_nazwa": "Sudecja",
+      "region_powierzchnia": null,
+      "map_area": 4602.728637253556,
+      "new_area_km2": 70400
+    },
+    {
+      "region_id": 143,
+      "region_nazwa": "Torminicja",
+      "region_powierzchnia": null,
+      "map_area": 5125.955530768877,
+      "new_area_km2": 78403
+    },
+    {
+      "region_id": 144,
+      "region_nazwa": "Senkedonia",
+      "region_powierzchnia": null,
+      "map_area": 862.1270656608779,
+      "new_area_km2": 13186
+    },
+    {
+      "region_id": 146,
+      "region_nazwa": "Pireja i Kurabalia",
+      "region_powierzchnia": null,
+      "map_area": 485.06541715639605,
+      "new_area_km2": 7419
+    },
+    {
+      "region_id": 147,
+      "region_nazwa": "Huldepia",
+      "region_powierzchnia": null,
+      "map_area": 8282.317865395271,
+      "new_area_km2": 126680
+    },
+    {
+      "region_id": 148,
+      "region_nazwa": "Karsygóry",
+      "region_powierzchnia": null,
+      "map_area": 8026.554535246672,
+      "new_area_km2": 122769
+    },
+    {
+      "region_id": 149,
+      "region_nazwa": "Verda",
+      "region_powierzchnia": null,
+      "map_area": 431.36128606925814,
+      "new_area_km2": 6598
+    },
+    {
+      "region_id": 150,
+      "region_nazwa": "Matygóry",
+      "region_powierzchnia": null,
+      "map_area": 12167.979390032524,
+      "new_area_km2": 186113
+    },
+    {
+      "region_id": 151,
+      "region_nazwa": "Północny Kurbar",
+      "region_powierzchnia": null,
+      "map_area": 6286.46042163995,
+      "new_area_km2": 96153
+    },
+    {
+      "region_id": 152,
+      "region_nazwa": "Glemnacja",
+      "region_powierzchnia": null,
+      "map_area": 3226.088967663338,
+      "new_area_km2": 49344
+    },
+    {
+      "region_id": 153,
+      "region_nazwa": "Nadmorze Feldyckie",
+      "region_powierzchnia": null,
+      "map_area": 7697.405664853074,
+      "new_area_km2": 117734
+    },
+    {
+      "region_id": 154,
+      "region_nazwa": "Lejgóry",
+      "region_powierzchnia": null,
+      "map_area": 7838.0027648558635,
+      "new_area_km2": 119885
+    },
+    {
+      "region_id": 155,
+      "region_nazwa": "Galita",
+      "region_powierzchnia": null,
+      "map_area": 2343.0094544022486,
+      "new_area_km2": 35837
+    },
+    {
+      "region_id": 156,
+      "region_nazwa": "Brzegi Południowe",
+      "region_powierzchnia": null,
+      "map_area": 3476.4472840042436,
+      "new_area_km2": 53173
+    },
+    {
+      "region_id": 157,
+      "region_nazwa": "Tanegóry",
+      "region_powierzchnia": null,
+      "map_area": 5194.358727485446,
+      "new_area_km2": 79449
+    },
+    {
+      "region_id": 158,
+      "region_nazwa": "Nencja",
+      "region_powierzchnia": null,
+      "map_area": 1769.937723124733,
+      "new_area_km2": 27072
+    },
+    {
+      "region_id": 159,
+      "region_nazwa": "Veshitu",
+      "region_powierzchnia": null,
+      "map_area": 6349.907745434776,
+      "new_area_km2": 97124
+    },
+    {
+      "region_id": 161,
+      "region_nazwa": "Koloq",
+      "region_powierzchnia": null,
+      "map_area": 1063.0661444907644,
+      "new_area_km2": 16260
+    },
+    {
+      "region_id": 162,
+      "region_nazwa": "Shavia",
+      "region_powierzchnia": null,
+      "map_area": 153.86932321120148,
+      "new_area_km2": 2353
+    },
+    {
+      "region_id": 163,
+      "region_nazwa": "Garmika",
+      "region_powierzchnia": null,
+      "map_area": 894.669788811162,
+      "new_area_km2": 13684
+    },
+    {
+      "region_id": 164,
+      "region_nazwa": "Gasza",
+      "region_powierzchnia": null,
+      "map_area": 420.51407166819655,
+      "new_area_km2": 6432
+    },
+    {
+      "region_id": 165,
+      "region_nazwa": "Pir",
+      "region_powierzchnia": null,
+      "map_area": 437.6975266350908,
+      "new_area_km2": 6695
+    },
+    {
+      "region_id": 166,
+      "region_nazwa": "Skopulacja",
+      "region_powierzchnia": null,
+      "map_area": 2327.023453266403,
+      "new_area_km2": 35593
+    },
+    {
+      "region_id": 167,
+      "region_nazwa": "Helsafacja",
+      "region_powierzchnia": null,
+      "map_area": 970.8577632407432,
+      "new_area_km2": 14850
+    },
+    {
+      "region_id": 168,
+      "region_nazwa": "Atutunga",
+      "region_powierzchnia": null,
+      "map_area": 4444.2744662243695,
+      "new_area_km2": 67976
+    },
+    {
+      "region_id": 169,
+      "region_nazwa": "Musc",
+      "region_powierzchnia": null,
+      "map_area": 941.959805820472,
+      "new_area_km2": 14408
+    },
+    {
+      "region_id": 170,
+      "region_nazwa": "Lupa",
+      "region_powierzchnia": null,
+      "map_area": 1382.2672315529403,
+      "new_area_km2": 21142
+    },
+    {
+      "region_id": 171,
+      "region_nazwa": "Kervel",
+      "region_powierzchnia": null,
+      "map_area": 973.6470526755381,
+      "new_area_km2": 14892
+    },
+    {
+      "region_id": 172,
+      "region_nazwa": "Mirsancja",
+      "region_powierzchnia": null,
+      "map_area": 894.0877509705748,
+      "new_area_km2": 13675
+    },
+    {
+      "region_id": 173,
+      "region_nazwa": "Północny Rej",
+      "region_powierzchnia": null,
+      "map_area": 1450.7995722437972,
+      "new_area_km2": 22190
+    },
+    {
+      "region_id": 174,
+      "region_nazwa": "Południowy Rej",
+      "region_powierzchnia": null,
+      "map_area": 1417.169774127691,
+      "new_area_km2": 21676
+    },
+    {
+      "region_id": 175,
+      "region_nazwa": "Durk",
+      "region_powierzchnia": null,
+      "map_area": 163.18928593913253,
+      "new_area_km2": 2496
+    },
+    {
+      "region_id": 176,
+      "region_nazwa": "Turebia",
+      "region_powierzchnia": null,
+      "map_area": 1796.894090235669,
+      "new_area_km2": 27484
+    },
+    {
+      "region_id": 177,
+      "region_nazwa": "Ellenkis",
+      "region_powierzchnia": null,
+      "map_area": 557.0266233140588,
+      "new_area_km2": 8520
+    },
+    {
+      "region_id": 178,
+      "region_nazwa": "Mallas",
+      "region_powierzchnia": null,
+      "map_area": 1229.4350704524045,
+      "new_area_km2": 18805
+    },
+    {
+      "region_id": 179,
+      "region_nazwa": "Tere",
+      "region_powierzchnia": null,
+      "map_area": 261.896452638343,
+      "new_area_km2": 4006
+    },
+    {
+      "region_id": 180,
+      "region_nazwa": "Lindora",
+      "region_powierzchnia": null,
+      "map_area": 434.0791068927734,
+      "new_area_km2": 6639
+    },
+    {
+      "region_id": 181,
+      "region_nazwa": "Kuara",
+      "region_powierzchnia": null,
+      "map_area": 240.82016511355607,
+      "new_area_km2": 3683
+    },
+    {
+      "region_id": 182,
+      "region_nazwa": "Jolianda",
+      "region_powierzchnia": null,
+      "map_area": 390.28469235275384,
+      "new_area_km2": 5970
+    },
+    {
+      "region_id": 183,
+      "region_nazwa": "Zachodnia Tasturcja",
+      "region_powierzchnia": null,
+      "map_area": 28898.600577305177,
+      "new_area_km2": 442013
+    },
+    {
+      "region_id": 184,
+      "region_nazwa": "Górna Motrasyncja",
+      "region_powierzchnia": null,
+      "map_area": 17898.896911945776,
+      "new_area_km2": 273769
+    },
+    {
+      "region_id": 185,
+      "region_nazwa": "Pola Jal",
+      "region_powierzchnia": null,
+      "map_area": 6420.804957000535,
+      "new_area_km2": 98208
+    },
+    {
+      "region_id": 186,
+      "region_nazwa": "Pola Heljan",
+      "region_powierzchnia": null,
+      "map_area": 7454.457474830007,
+      "new_area_km2": 114018
+    },
+    {
+      "region_id": 187,
+      "region_nazwa": "Der",
+      "region_powierzchnia": null,
+      "map_area": 2233.858733547303,
+      "new_area_km2": 34168
+    },
+    {
+      "region_id": 188,
+      "region_nazwa": "Daha",
+      "region_powierzchnia": null,
+      "map_area": 9963.469315889002,
+      "new_area_km2": 152394
+    },
+    {
+      "region_id": 189,
+      "region_nazwa": "Pola Entens",
+      "region_powierzchnia": null,
+      "map_area": 10209.205122592663,
+      "new_area_km2": 156153
+    },
+    {
+      "region_id": 190,
+      "region_nazwa": "Pola Elgar",
+      "region_powierzchnia": null,
+      "map_area": 8461.277920962952,
+      "new_area_km2": 129418
+    },
+    {
+      "region_id": 191,
+      "region_nazwa": "Suwaj",
+      "region_powierzchnia": null,
+      "map_area": 6321.093473290647,
+      "new_area_km2": 96683
+    },
+    {
+      "region_id": 192,
+      "region_nazwa": "Mas Halos",
+      "region_powierzchnia": null,
+      "map_area": 6100.31864107057,
+      "new_area_km2": 93306
+    },
+    {
+      "region_id": 193,
+      "region_nazwa": "Mas Otto",
+      "region_powierzchnia": null,
+      "map_area": 3940.387063341271,
+      "new_area_km2": 60269
+    },
+    {
+      "region_id": 194,
+      "region_nazwa": "Południowe Mas Otto",
+      "region_powierzchnia": null,
+      "map_area": 4525.731685738076,
+      "new_area_km2": 69222
+    },
+    {
+      "region_id": 195,
+      "region_nazwa": "Kunima",
+      "region_powierzchnia": null,
+      "map_area": 1406.503378765058,
+      "new_area_km2": 21513
+    },
+    {
+      "region_id": 196,
+      "region_nazwa": "Ehers",
+      "region_powierzchnia": null,
+      "map_area": 1344.6812507971447,
+      "new_area_km2": 20567
+    },
+    {
+      "region_id": 197,
+      "region_nazwa": "Almifaha",
+      "region_powierzchnia": null,
+      "map_area": 3840.4730287230977,
+      "new_area_km2": 58741
+    },
+    {
+      "region_id": 198,
+      "region_nazwa": "Gahar",
+      "region_powierzchnia": null,
+      "map_area": 2550.0319009447417,
+      "new_area_km2": 39003
+    },
+    {
+      "region_id": 199,
+      "region_nazwa": "Yolmil",
+      "region_powierzchnia": null,
+      "map_area": 2659.005624761397,
+      "new_area_km2": 40670
+    },
+    {
+      "region_id": 200,
+      "region_nazwa": "Norkilnha",
+      "region_powierzchnia": null,
+      "map_area": 2726.642623118472,
+      "new_area_km2": 41705
+    },
+    {
+      "region_id": 201,
+      "region_nazwa": "Ussup",
+      "region_powierzchnia": null,
+      "map_area": 1420.0022150957107,
+      "new_area_km2": 21719
+    },
+    {
+      "region_id": 202,
+      "region_nazwa": "Essediviral",
+      "region_powierzchnia": null,
+      "map_area": 3004.423454229421,
+      "new_area_km2": 45954
+    },
+    {
+      "region_id": 203,
+      "region_nazwa": "Parreil",
+      "region_powierzchnia": null,
+      "map_area": 1174.3223109348307,
+      "new_area_km2": 17962
+    },
+    {
+      "region_id": 204,
+      "region_nazwa": "Lennisal",
+      "region_powierzchnia": null,
+      "map_area": 1605.4926437165436,
+      "new_area_km2": 24556
+    },
+    {
+      "region_id": 205,
+      "region_nazwa": "Tuaf",
+      "region_powierzchnia": null,
+      "map_area": 1636.3853924479643,
+      "new_area_km2": 25029
+    },
+    {
+      "region_id": 206,
+      "region_nazwa": "Remichen",
+      "region_powierzchnia": null,
+      "map_area": 1520.1509600039678,
+      "new_area_km2": 23251
+    },
+    {
+      "region_id": 207,
+      "region_nazwa": "Entensjaon",
+      "region_powierzchnia": null,
+      "map_area": 12772.16836654241,
+      "new_area_km2": 195354
+    },
+    {
+      "region_id": 208,
+      "region_nazwa": "Garvimahjaon",
+      "region_powierzchnia": null,
+      "map_area": 5651.536844212665,
+      "new_area_km2": 86442
+    },
+    {
+      "region_id": 209,
+      "region_nazwa": "Valisjaon",
+      "region_powierzchnia": null,
+      "map_area": 5600.332169132785,
+      "new_area_km2": 85659
+    },
+    {
+      "region_id": 210,
+      "region_nazwa": "Kermasjaon",
+      "region_powierzchnia": null,
+      "map_area": 10209.959383136656,
+      "new_area_km2": 156164
+    },
+    {
+      "region_id": 211,
+      "region_nazwa": "Gerbisjaon",
+      "region_powierzchnia": null,
+      "map_area": 5839.251691549662,
+      "new_area_km2": 89313
+    },
+    {
+      "region_id": 212,
+      "region_nazwa": "Munsjaon",
+      "region_powierzchnia": null,
+      "map_area": 3523.66894646327,
+      "new_area_km2": 53896
+    },
+    {
+      "region_id": 213,
+      "region_nazwa": "Hutisjaon",
+      "region_powierzchnia": null,
+      "map_area": 14922.672281732628,
+      "new_area_km2": 228247
+    },
+    {
+      "region_id": 214,
+      "region_nazwa": "Sarmisjaon",
+      "region_powierzchnia": null,
+      "map_area": 8200.001032333532,
+      "new_area_km2": 125421
+    },
+    {
+      "region_id": 215,
+      "region_nazwa": "Zeyesjaon",
+      "region_powierzchnia": null,
+      "map_area": 12283.997794360781,
+      "new_area_km2": 187887
+    },
+    {
+      "region_id": 216,
+      "region_nazwa": "Asjaon",
+      "region_powierzchnia": null,
+      "map_area": 1607.5187320462142,
+      "new_area_km2": 24587
+    },
+    {
+      "region_id": 217,
+      "region_nazwa": "Wersjaon",
+      "region_powierzchnia": null,
+      "map_area": 15944.88952674547,
+      "new_area_km2": 243882
+    },
+    {
+      "region_id": 218,
+      "region_nazwa": "Kulisjaon",
+      "region_powierzchnia": null,
+      "map_area": 10243.916699574265,
+      "new_area_km2": 156684
+    },
+    {
+      "region_id": 219,
+      "region_nazwa": "Patnasjaon",
+      "region_powierzchnia": null,
+      "map_area": 5533.324228443884,
+      "new_area_km2": 84634
+    },
+    {
+      "region_id": 220,
+      "region_nazwa": "Zervisjaon",
+      "region_powierzchnia": null,
+      "map_area": 7164.434959820092,
+      "new_area_km2": 109582
+    },
+    {
+      "region_id": 221,
+      "region_nazwa": "Fermisjaon",
+      "region_powierzchnia": null,
+      "map_area": 15908.275907834011,
+      "new_area_km2": 243322
+    },
+    {
+      "region_id": 222,
+      "region_nazwa": "Aio Tull’Hizz",
+      "region_powierzchnia": null,
+      "map_area": 460.0061581671335,
+      "new_area_km2": 7036
+    },
+    {
+      "region_id": 223,
+      "region_nazwa": "Kuhuhaas",
+      "region_powierzchnia": null,
+      "map_area": 8113.287645784751,
+      "new_area_km2": 124095
+    },
+    {
+      "region_id": 224,
+      "region_nazwa": "Kuns-Sarb",
+      "region_powierzchnia": null,
+      "map_area": 5278.510944333574,
+      "new_area_km2": 80736
+    },
+    {
+      "region_id": 225,
+      "region_nazwa": "Kaailan",
+      "region_powierzchnia": null,
+      "map_area": 4558.225676262389,
+      "new_area_km2": 69719
+    },
+    {
+      "region_id": 226,
+      "region_nazwa": "Lapilapi",
+      "region_powierzchnia": null,
+      "map_area": 5296.229702151225,
+      "new_area_km2": 81007
+    },
+    {
+      "region_id": 227,
+      "region_nazwa": "Ehaas",
+      "region_powierzchnia": null,
+      "map_area": 8310.055072469546,
+      "new_area_km2": 127105
+    },
+    {
+      "region_id": 228,
+      "region_nazwa": "Centhaas",
+      "region_powierzchnia": null,
+      "map_area": 7475.445093788891,
+      "new_area_km2": 114339
+    },
+    {
+      "region_id": 229,
+      "region_nazwa": "Sextes",
+      "region_powierzchnia": null,
+      "map_area": 8794.631032166135,
+      "new_area_km2": 134516
+    },
+    {
+      "region_id": 230,
+      "region_nazwa": "Tenis",
+      "region_powierzchnia": null,
+      "map_area": 1848.0218013081683,
+      "new_area_km2": 28266
+    },
+    {
+      "region_id": 231,
+      "region_nazwa": "Perns",
+      "region_powierzchnia": null,
+      "map_area": 1117.2624309424552,
+      "new_area_km2": 17089
+    },
+    {
+      "region_id": 232,
+      "region_nazwa": "Alening",
+      "region_powierzchnia": null,
+      "map_area": 1028.182889094324,
+      "new_area_km2": 15726
+    },
+    {
+      "region_id": 233,
+      "region_nazwa": "Pallandir",
+      "region_powierzchnia": null,
+      "map_area": 4022.454204762719,
+      "new_area_km2": 61525
+    },
+    {
+      "region_id": 234,
+      "region_nazwa": "Fielsbergs",
+      "region_powierzchnia": null,
+      "map_area": 7624.82591941746,
+      "new_area_km2": 116624
+    },
+    {
+      "region_id": 235,
+      "region_nazwa": "Montara",
+      "region_powierzchnia": null,
+      "map_area": 26587.384032901835,
+      "new_area_km2": 406662
+    },
+    {
+      "region_id": 236,
+      "region_nazwa": "Vincerbergs",
+      "region_powierzchnia": null,
+      "map_area": 3804.7816160744896,
+      "new_area_km2": 58195
+    },
+    {
+      "region_id": 237,
+      "region_nazwa": "Olemars",
+      "region_powierzchnia": null,
+      "map_area": 15323.761292783645,
+      "new_area_km2": 234381
+    },
+    {
+      "region_id": 238,
+      "region_nazwa": "Idahel",
+      "region_powierzchnia": null,
+      "map_area": 39707.91957431017,
+      "new_area_km2": 607344
+    },
+    {
+      "region_id": 239,
+      "region_nazwa": "Amaserning",
+      "region_powierzchnia": null,
+      "map_area": 40904.75851307348,
+      "new_area_km2": 625650
+    },
+    {
+      "region_id": 240,
+      "region_nazwa": "Wschodnie Sesmefen",
+      "region_powierzchnia": null,
+      "map_area": 36274.32733330398,
+      "new_area_km2": 554827
+    },
+    {
+      "region_id": 241,
+      "region_nazwa": "Hilemont",
+      "region_powierzchnia": null,
+      "map_area": 13760.21386983478,
+      "new_area_km2": 210467
+    },
+    {
+      "region_id": 242,
+      "region_nazwa": "Alligard",
+      "region_powierzchnia": null,
+      "map_area": 6450.812253459122,
+      "new_area_km2": 98667
+    },
+    {
+      "region_id": 243,
+      "region_nazwa": "Delindastejfa",
+      "region_powierzchnia": null,
+      "map_area": 18506.063566067667,
+      "new_area_km2": 283056
+    },
+    {
+      "region_id": 244,
+      "region_nazwa": "Goraj",
+      "region_powierzchnia": null,
+      "map_area": 9654.910533598737,
+      "new_area_km2": 147675
+    },
+    {
+      "region_id": 245,
+      "region_nazwa": "De Liin",
+      "region_powierzchnia": null,
+      "map_area": 377.3782702902235,
+      "new_area_km2": 5772
+    },
+    {
+      "region_id": 246,
+      "region_nazwa": "Kuszmirka",
+      "region_powierzchnia": null,
+      "map_area": 17882.220885653995,
+      "new_area_km2": 273514
+    },
+    {
+      "region_id": 247,
+      "region_nazwa": "Gimiszka",
+      "region_powierzchnia": null,
+      "map_area": 19547.85020997999,
+      "new_area_km2": 298990
+    },
+    {
+      "region_id": 248,
+      "region_nazwa": "Holn",
+      "region_powierzchnia": null,
+      "map_area": 3525.422433198634,
+      "new_area_km2": 53922
+    },
+    {
+      "region_id": 249,
+      "region_nazwa": "Essunt",
+      "region_powierzchnia": null,
+      "map_area": 985.4974991115731,
+      "new_area_km2": 15073
+    },
+    {
+      "region_id": 250,
+      "region_nazwa": "Kajchon",
+      "region_powierzchnia": null,
+      "map_area": 1710.424938696432,
+      "new_area_km2": 26161
+    },
+    {
+      "region_id": 251,
+      "region_nazwa": "Parqis",
+      "region_powierzchnia": null,
+      "map_area": 2080.272885243606,
+      "new_area_km2": 31818
+    },
+    {
+      "region_id": 252,
+      "region_nazwa": "Mecheleon",
+      "region_powierzchnia": null,
+      "map_area": 2839.2163098628475,
+      "new_area_km2": 43427
+    },
+    {
+      "region_id": 253,
+      "region_nazwa": "Celmicja",
+      "region_powierzchnia": null,
+      "map_area": 1206.8296684393226,
+      "new_area_km2": 18459
+    },
+    {
+      "region_id": 254,
+      "region_nazwa": "Farkicja",
+      "region_powierzchnia": null,
+      "map_area": 680.1893024088878,
+      "new_area_km2": 10404
+    },
+    {
+      "region_id": 255,
+      "region_nazwa": "Oellole",
+      "region_powierzchnia": null,
+      "map_area": 1222.077152996658,
+      "new_area_km2": 18692
+    },
+    {
+      "region_id": 256,
+      "region_nazwa": "Havaz",
+      "region_powierzchnia": null,
+      "map_area": 713.5612082108722,
+      "new_area_km2": 10914
+    },
+    {
+      "region_id": 257,
+      "region_nazwa": "Tussing",
+      "region_powierzchnia": null,
+      "map_area": 848.8229625793954,
+      "new_area_km2": 12983
+    },
+    {
+      "region_id": 258,
+      "region_nazwa": "Pollo",
+      "region_powierzchnia": null,
+      "map_area": 666.92469180917,
+      "new_area_km2": 10201
+    },
+    {
+      "region_id": 259,
+      "region_nazwa": "Renins",
+      "region_powierzchnia": null,
+      "map_area": 1168.7588215137564,
+      "new_area_km2": 17877
+    },
+    {
+      "region_id": 260,
+      "region_nazwa": "Szymalia",
+      "region_powierzchnia": null,
+      "map_area": 10338.996053863919,
+      "new_area_km2": 158138
+    },
+    {
+      "region_id": 261,
+      "region_nazwa": "Lajnertia",
+      "region_powierzchnia": null,
+      "map_area": 13216.902713973883,
+      "new_area_km2": 202156
+    },
+    {
+      "region_id": 262,
+      "region_nazwa": "Hansu",
+      "region_powierzchnia": null,
+      "map_area": 5463.11227100074,
+      "new_area_km2": 83560
+    },
+    {
+      "region_id": 263,
+      "region_nazwa": "Milasatia",
+      "region_powierzchnia": null,
+      "map_area": 7787.081147917809,
+      "new_area_km2": 119106
+    },
+    {
+      "region_id": 264,
+      "region_nazwa": "Prowincja Autonomiczna Kujawa",
+      "region_powierzchnia": null,
+      "map_area": 3847.683265633096,
+      "new_area_km2": 58851
+    },
+    {
+      "region_id": 265,
+      "region_nazwa": "Sutyria",
+      "region_powierzchnia": null,
+      "map_area": 14222.261691019514,
+      "new_area_km2": 217534
+    },
+    {
+      "region_id": 266,
+      "region_nazwa": "Prowincja Autonomiczna Kermpa",
+      "region_powierzchnia": null,
+      "map_area": 8190.521740186004,
+      "new_area_km2": 125276
+    },
+    {
+      "region_id": 267,
+      "region_nazwa": "Malchibangia",
+      "region_powierzchnia": null,
+      "map_area": 24278.433519840823,
+      "new_area_km2": 371346
+    },
+    {
+      "region_id": 268,
+      "region_nazwa": "Deuretia",
+      "region_powierzchnia": null,
+      "map_area": 17896.62488476108,
+      "new_area_km2": 273734
+    },
+    {
+      "region_id": 269,
+      "region_nazwa": "Helam",
+      "region_powierzchnia": null,
+      "map_area": 33508.62787871494,
+      "new_area_km2": 512524
+    },
+    {
+      "region_id": 270,
+      "region_nazwa": "Terkibia",
+      "region_powierzchnia": null,
+      "map_area": 16628.20596030041,
+      "new_area_km2": 254333
+    },
+    {
+      "region_id": 271,
+      "region_nazwa": "Juperia",
+      "region_powierzchnia": null,
+      "map_area": 27150.837361827274,
+      "new_area_km2": 415280
+    },
+    {
+      "region_id": 272,
+      "region_nazwa": "Miasto Autonomiczne Jep Vaal",
+      "region_powierzchnia": null,
+      "map_area": 525.5720794803802,
+      "new_area_km2": 8039
+    },
+    {
+      "region_id": 273,
+      "region_nazwa": "Region Stołeczny Ruinn",
+      "region_powierzchnia": null,
+      "map_area": 2768.5191512172846,
+      "new_area_km2": 42345
+    },
+    {
+      "region_id": 274,
+      "region_nazwa": "Halpagia",
+      "region_powierzchnia": null,
+      "map_area": 8415.739731117943,
+      "new_area_km2": 128721
+    },
+    {
+      "region_id": 275,
+      "region_nazwa": "Supredecja",
+      "region_powierzchnia": null,
+      "map_area": 17425.91678817276,
+      "new_area_km2": 266535
+    },
+    {
+      "region_id": 276,
+      "region_nazwa": "Beitu",
+      "region_powierzchnia": null,
+      "map_area": 8945.038559116032,
+      "new_area_km2": 136817
+    },
+    {
+      "region_id": 277,
+      "region_nazwa": "Wschodnie Tontem",
+      "region_powierzchnia": null,
+      "map_area": 8894.996709206165,
+      "new_area_km2": 136052
+    },
+    {
+      "region_id": 278,
+      "region_nazwa": "Zachodnie Tontem",
+      "region_powierzchnia": null,
+      "map_area": 10194.085512689342,
+      "new_area_km2": 155922
+    },
+    {
+      "region_id": 279,
+      "region_nazwa": "Goenlaand",
+      "region_powierzchnia": null,
+      "map_area": 15341.749814468267,
+      "new_area_km2": 234657
+    },
+    {
+      "region_id": 280,
+      "region_nazwa": "Baskurs",
+      "region_powierzchnia": null,
+      "map_area": 11627.243269862882,
+      "new_area_km2": 177842
+    },
+    {
+      "region_id": 281,
+      "region_nazwa": "Zachodni Baskurs",
+      "region_powierzchnia": null,
+      "map_area": 11801.654832111248,
+      "new_area_km2": 180510
+    },
+    {
+      "region_id": 282,
+      "region_nazwa": "Walmia",
+      "region_powierzchnia": null,
+      "map_area": 16652.8389091562,
+      "new_area_km2": 254710
+    },
+    {
+      "region_id": 283,
+      "region_nazwa": "Wielki Pendulam",
+      "region_powierzchnia": null,
+      "map_area": 12790.761687877364,
+      "new_area_km2": 195638
+    },
+    {
+      "region_id": 284,
+      "region_nazwa": "Bachmiz",
+      "region_powierzchnia": null,
+      "map_area": 12553.166144939038,
+      "new_area_km2": 192004
+    },
+    {
+      "region_id": 285,
+      "region_nazwa": "Hajszburgia",
+      "region_powierzchnia": null,
+      "map_area": 1082.6474904497568,
+      "new_area_km2": 16559
+    },
+    {
+      "region_id": 286,
+      "region_nazwa": "Mały Pendulam",
+      "region_powierzchnia": null,
+      "map_area": 4134.259389923396,
+      "new_area_km2": 63235
+    },
+    {
+      "region_id": 287,
+      "region_nazwa": "Exelgiz",
+      "region_powierzchnia": null,
+      "map_area": 14085.11370780336,
+      "new_area_km2": 215436
+    },
+    {
+      "region_id": 288,
+      "region_nazwa": "Hulajen",
+      "region_powierzchnia": null,
+      "map_area": 10535.089567254725,
+      "new_area_km2": 161137
+    },
+    {
+      "region_id": 289,
+      "region_nazwa": "Wschodni Baskurs",
+      "region_powierzchnia": null,
+      "map_area": 8567.722569263526,
+      "new_area_km2": 131046
+    },
+    {
+      "region_id": 290,
+      "region_nazwa": "Malozera",
+      "region_powierzchnia": null,
+      "map_area": 8883.84947714555,
+      "new_area_km2": 135881
+    },
+    {
+      "region_id": 291,
+      "region_nazwa": "Hendelg",
+      "region_powierzchnia": null,
+      "map_area": 11844.780252307586,
+      "new_area_km2": 181169
+    },
+    {
+      "region_id": 292,
+      "region_nazwa": "Panas",
+      "region_powierzchnia": null,
+      "map_area": 7790.171139752358,
+      "new_area_km2": 119153
+    },
+    {
+      "region_id": 293,
+      "region_nazwa": "Lemnas",
+      "region_powierzchnia": null,
+      "map_area": 7370.7648330925895,
+      "new_area_km2": 112738
+    },
+    {
+      "region_id": 294,
+      "region_nazwa": "Doebas",
+      "region_powierzchnia": null,
+      "map_area": 11396.52368498958,
+      "new_area_km2": 174313
+    },
+    {
+      "region_id": 295,
+      "region_nazwa": "Cembas",
+      "region_powierzchnia": null,
+      "map_area": 11293.414630916137,
+      "new_area_km2": 172736
+    },
+    {
+      "region_id": 296,
+      "region_nazwa": "Uioemas",
+      "region_powierzchnia": null,
+      "map_area": 6983.374802325405,
+      "new_area_km2": 106813
+    },
+    {
+      "region_id": 297,
+      "region_nazwa": "Limabas",
+      "region_powierzchnia": null,
+      "map_area": 6647.445355024804,
+      "new_area_km2": 101675
+    },
+    {
+      "region_id": 298,
+      "region_nazwa": "Holembas",
+      "region_powierzchnia": null,
+      "map_area": 14529.176720740312,
+      "new_area_km2": 222228
+    },
+    {
+      "region_id": 299,
+      "region_nazwa": "Solebas",
+      "region_powierzchnia": null,
+      "map_area": 2549.580418411071,
+      "new_area_km2": 38997
+    },
+    {
+      "region_id": 300,
+      "region_nazwa": "Saiembas",
+      "region_powierzchnia": null,
+      "map_area": 18946.690186308493,
+      "new_area_km2": 289795
+    },
+    {
+      "region_id": 301,
+      "region_nazwa": "Ebas",
+      "region_powierzchnia": null,
+      "map_area": 4794.962975593427,
+      "new_area_km2": 73340
+    },
+    {
+      "region_id": 302,
+      "region_nazwa": "Hesbas",
+      "region_powierzchnia": null,
+      "map_area": 3765.686121991796,
+      "new_area_km2": 57597
+    },
+    {
+      "region_id": 303,
+      "region_nazwa": "Hergalia",
+      "region_powierzchnia": null,
+      "map_area": 9935.889765195307,
+      "new_area_km2": 151972
+    },
+    {
+      "region_id": 304,
+      "region_nazwa": "Fergenthar",
+      "region_powierzchnia": null,
+      "map_area": 10680.732037784324,
+      "new_area_km2": 163365
+    },
+    {
+      "region_id": 305,
+      "region_nazwa": "Lipsa Jaghamir",
+      "region_powierzchnia": null,
+      "map_area": 9948.374875066203,
+      "new_area_km2": 152163
+    },
+    {
+      "region_id": 306,
+      "region_nazwa": "Bavar-Havir",
+      "region_powierzchnia": null,
+      "map_area": 14440.040185943906,
+      "new_area_km2": 220865
+    },
+    {
+      "region_id": 307,
+      "region_nazwa": "Assassa",
+      "region_powierzchnia": null,
+      "map_area": 5098.327846019441,
+      "new_area_km2": 77980
+    },
+    {
+      "region_id": 308,
+      "region_nazwa": "Bantol",
+      "region_powierzchnia": null,
+      "map_area": 3080.2087109673334,
+      "new_area_km2": 47113
+    },
+    {
+      "region_id": 309,
+      "region_nazwa": "Vaghmiz",
+      "region_powierzchnia": null,
+      "map_area": 13181.309424834715,
+      "new_area_km2": 201612
+    },
+    {
+      "region_id": 310,
+      "region_nazwa": "Gaal-Sem-Tzur",
+      "region_powierzchnia": null,
+      "map_area": 11526.5327784329,
+      "new_area_km2": 176302
+    },
+    {
+      "region_id": 311,
+      "region_nazwa": "Puurvahfiz",
+      "region_powierzchnia": null,
+      "map_area": 9907.801270807755,
+      "new_area_km2": 151543
+    },
+    {
+      "region_id": 312,
+      "region_nazwa": "Gelemvikar",
+      "region_powierzchnia": null,
+      "map_area": 8581.139931685639,
+      "new_area_km2": 131251
+    },
+    {
+      "region_id": 313,
+      "region_nazwa": "Hargham-Etet",
+      "region_powierzchnia": null,
+      "map_area": 10420.148287853071,
+      "new_area_km2": 159379
+    },
+    {
+      "region_id": 314,
+      "region_nazwa": "Lenghend-Afha",
+      "region_powierzchnia": null,
+      "map_area": 5258.30943433652,
+      "new_area_km2": 80427
+    },
+    {
+      "region_id": 315,
+      "region_nazwa": "Hul",
+      "region_powierzchnia": null,
+      "map_area": 2446.684731793912,
+      "new_area_km2": 37423
+    },
+    {
+      "region_id": 316,
+      "region_nazwa": "Huur-Etet",
+      "region_powierzchnia": null,
+      "map_area": 5746.9362235664585,
+      "new_area_km2": 87901
+    },
+    {
+      "region_id": 317,
+      "region_nazwa": "Jomsoghargar",
+      "region_powierzchnia": null,
+      "map_area": 9083.0361857989,
+      "new_area_km2": 138928
+    },
+    {
+      "region_id": 318,
+      "region_nazwa": "Kungiv",
+      "region_powierzchnia": null,
+      "map_area": 571.157670575643,
+      "new_area_km2": 8736
+    },
+    {
+      "region_id": 319,
+      "region_nazwa": "Helef",
+      "region_powierzchnia": null,
+      "map_area": 2767.009183922805,
+      "new_area_km2": 42322
+    },
+    {
+      "region_id": 320,
+      "region_nazwa": "Andalceur",
+      "region_powierzchnia": null,
+      "map_area": 2186.042786808381,
+      "new_area_km2": 33436
+    },
+    {
+      "region_id": 321,
+      "region_nazwa": "Gerrmviz",
+      "region_powierzchnia": null,
+      "map_area": 1853.4037274181994,
+      "new_area_km2": 28348
+    },
+    {
+      "region_id": 322,
+      "region_nazwa": "Sudsert",
+      "region_powierzchnia": null,
+      "map_area": 27310.476963167574,
+      "new_area_km2": 417722
+    },
+    {
+      "region_id": 323,
+      "region_nazwa": "Suelgia",
+      "region_powierzchnia": null,
+      "map_area": 3756.7711498379476,
+      "new_area_km2": 57461
+    },
+    {
+      "region_id": 324,
+      "region_nazwa": "Igvo",
+      "region_powierzchnia": null,
+      "map_area": 2260.585141230193,
+      "new_area_km2": 34576
+    },
+    {
+      "region_id": 325,
+      "region_nazwa": "Parrmis",
+      "region_powierzchnia": null,
+      "map_area": 9880.581992700732,
+      "new_area_km2": 151126
+    },
+    {
+      "region_id": 326,
+      "region_nazwa": "Kuvel",
+      "region_powierzchnia": null,
+      "map_area": 3507.942825895606,
+      "new_area_km2": 53655
+    },
+    {
+      "region_id": 327,
+      "region_nazwa": "Sungvar",
+      "region_powierzchnia": null,
+      "map_area": 22857.4692138678,
+      "new_area_km2": 349612
+    },
+    {
+      "region_id": 328,
+      "region_nazwa": "Milai",
+      "region_powierzchnia": null,
+      "map_area": 1200.8388782098093,
+      "new_area_km2": 18367
+    },
+    {
+      "region_id": 329,
+      "region_nazwa": "Lincei",
+      "region_powierzchnia": null,
+      "map_area": 687.5171697339456,
+      "new_area_km2": 10516
+    },
+    {
+      "region_id": 330,
+      "region_nazwa": "Sedey’a",
+      "region_powierzchnia": null,
+      "map_area": 666.6976609814566,
+      "new_area_km2": 10197
+    },
+    {
+      "region_id": 331,
+      "region_nazwa": "Bon’emm",
+      "region_powierzchnia": null,
+      "map_area": 436.6092894644419,
+      "new_area_km2": 6678
+    },
+    {
+      "region_id": 332,
+      "region_nazwa": "Sesn",
+      "region_powierzchnia": null,
+      "map_area": 243.28044612558458,
+      "new_area_km2": 3721
+    },
+    {
+      "region_id": 333,
+      "region_nazwa": "Jel",
+      "region_powierzchnia": null,
+      "map_area": 480.27661365716574,
+      "new_area_km2": 7346
+    },
+    {
+      "region_id": 334,
+      "region_nazwa": "Boni",
+      "region_powierzchnia": null,
+      "map_area": 252.82026104419802,
+      "new_area_km2": 3867
+    },
+    {
+      "region_id": 335,
+      "region_nazwa": "Josom Zachodni",
+      "region_powierzchnia": null,
+      "map_area": 20560.924144073975,
+      "new_area_km2": 314485
+    },
+    {
+      "region_id": 336,
+      "region_nazwa": "Hurtaba",
+      "region_powierzchnia": null,
+      "map_area": 287.59783606337544,
+      "new_area_km2": 4399
+    },
+    {
+      "region_id": 337,
+      "region_nazwa": "Josom Wschodni",
+      "region_powierzchnia": null,
+      "map_area": 9066.746198487406,
+      "new_area_km2": 138679
+    },
+    {
+      "region_id": 338,
+      "region_nazwa": "Południowa Elgia",
+      "region_powierzchnia": null,
+      "map_area": 22858.842010614484,
+      "new_area_km2": 349633
+    },
+    {
+      "region_id": 339,
+      "region_nazwa": "Temut Josomski",
+      "region_powierzchnia": null,
+      "map_area": 12816.923286753323,
+      "new_area_km2": 196039
+    },
+    {
+      "region_id": 340,
+      "region_nazwa": "Mimpataj",
+      "region_powierzchnia": null,
+      "map_area": 10233.988094429986,
+      "new_area_km2": 156532
+    },
+    {
+      "region_id": 341,
+      "region_nazwa": "Hemilastaj",
+      "region_powierzchnia": null,
+      "map_area": 10110.006248051222,
+      "new_area_km2": 154636
+    },
+    {
+      "region_id": 342,
+      "region_nazwa": "Lisaj",
+      "region_powierzchnia": null,
+      "map_area": 3437.8456781610107,
+      "new_area_km2": 52583
+    },
+    {
+      "region_id": 343,
+      "region_nazwa": "Kedsaj",
+      "region_powierzchnia": null,
+      "map_area": 4013.0020249133395,
+      "new_area_km2": 61380
+    },
+    {
+      "region_id": 344,
+      "region_nazwa": "Tenstataj",
+      "region_powierzchnia": null,
+      "map_area": 14942.526066658726,
+      "new_area_km2": 228550
+    },
+    {
+      "region_id": 345,
+      "region_nazwa": "Bartamaj",
+      "region_powierzchnia": null,
+      "map_area": 3581.512486169638,
+      "new_area_km2": 54780
+    },
+    {
+      "region_id": 346,
+      "region_nazwa": "Bulwaria",
+      "region_powierzchnia": null,
+      "map_area": 15875.28491480166,
+      "new_area_km2": 242817
+    },
+    {
+      "region_id": 347,
+      "region_nazwa": "Tiebiria",
+      "region_powierzchnia": null,
+      "map_area": 39055.315934707,
+      "new_area_km2": 597363
+    },
+    {
+      "region_id": 348,
+      "region_nazwa": "Nanpert",
+      "region_powierzchnia": null,
+      "map_area": 13432.320105743765,
+      "new_area_km2": 205451
+    },
+    {
+      "region_id": 349,
+      "region_nazwa": "Północna Alwacja",
+      "region_powierzchnia": null,
+      "map_area": 13152.544098585044,
+      "new_area_km2": 201172
+    },
+    {
+      "region_id": 350,
+      "region_nazwa": "Południowa Alwacja",
+      "region_powierzchnia": null,
+      "map_area": 12648.10039804475,
+      "new_area_km2": 193456
+    },
+    {
+      "region_id": 351,
+      "region_nazwa": "Port Victoria",
+      "region_powierzchnia": null,
+      "map_area": 1064.7573519902394,
+      "new_area_km2": 16286
+    },
+    {
+      "region_id": 352,
+      "region_nazwa": "Kalda",
+      "region_powierzchnia": null,
+      "map_area": 25121.732216471402,
+      "new_area_km2": 384244
+    },
+    {
+      "region_id": 353,
+      "region_nazwa": "Róg Wschodu",
+      "region_powierzchnia": null,
+      "map_area": 23490.04940895609,
+      "new_area_km2": 359287
+    },
+    {
+      "region_id": 354,
+      "region_nazwa": "Elreba",
+      "region_powierzchnia": null,
+      "map_area": 15711.971065630843,
+      "new_area_km2": 240319
+    },
+    {
+      "region_id": 355,
+      "region_nazwa": "Ketzimil",
+      "region_powierzchnia": null,
+      "map_area": 3447.6667465517876,
+      "new_area_km2": 52733
+    },
+    {
+      "region_id": 356,
+      "region_nazwa": "Prihaz",
+      "region_powierzchnia": null,
+      "map_area": 1043.2790267467283,
+      "new_area_km2": 15957
+    },
+    {
+      "region_id": 357,
+      "region_nazwa": "Heltminik",
+      "region_powierzchnia": null,
+      "map_area": 1875.8214559479404,
+      "new_area_km2": 28691
+    },
+    {
+      "region_id": 358,
+      "region_nazwa": "Golmebia",
+      "region_powierzchnia": null,
+      "map_area": 9318.781341223836,
+      "new_area_km2": 142534
+    },
+    {
+      "region_id": 359,
+      "region_nazwa": "Yellemer",
+      "region_powierzchnia": null,
+      "map_area": 8856.445524522176,
+      "new_area_km2": 135462
+    },
+    {
+      "region_id": 360,
+      "region_nazwa": "Humstaka",
+      "region_powierzchnia": null,
+      "map_area": 11745.196215357148,
+      "new_area_km2": 179646
+    },
+    {
+      "region_id": 361,
+      "region_nazwa": "Hilske-Mintave",
+      "region_powierzchnia": null,
+      "map_area": 12334.628709726256,
+      "new_area_km2": 188662
+    },
+    {
+      "region_id": 362,
+      "region_nazwa": "Vuulimals",
+      "region_powierzchnia": null,
+      "map_area": 12038.948998513793,
+      "new_area_km2": 184139
+    },
+    {
+      "region_id": 363,
+      "region_nazwa": "Persmarpal",
+      "region_powierzchnia": null,
+      "map_area": 17597.970207557555,
+      "new_area_km2": 269166
+    },
+    {
+      "region_id": 364,
+      "region_nazwa": "Saint-Teren",
+      "region_powierzchnia": null,
+      "map_area": 2822.146785734332,
+      "new_area_km2": 43166
+    },
+    {
+      "region_id": 365,
+      "region_nazwa": "Uulper",
+      "region_powierzchnia": null,
+      "map_area": 20691.56796044301,
+      "new_area_km2": 316484
+    },
+    {
+      "region_id": 366,
+      "region_nazwa": "Yrge Halbaar",
+      "region_powierzchnia": null,
+      "map_area": 5424.825965043792,
+      "new_area_km2": 82974
+    },
+    {
+      "region_id": 367,
+      "region_nazwa": "Halbartuus",
+      "region_powierzchnia": null,
+      "map_area": 2493.7265526583005,
+      "new_area_km2": 38142
+    },
+    {
+      "region_id": 368,
+      "region_nazwa": "Alba-Gathi",
+      "region_powierzchnia": null,
+      "map_area": 2573.5561690349296,
+      "new_area_km2": 39363
+    },
+    {
+      "region_id": 369,
+      "region_nazwa": "Mirabal",
+      "region_powierzchnia": null,
+      "map_area": 656.4487487130102,
+      "new_area_km2": 10041
+    },
+    {
+      "region_id": 370,
+      "region_nazwa": "Bunst Halbaar",
+      "region_powierzchnia": null,
+      "map_area": 1610.522857930411,
+      "new_area_km2": 24633
+    },
+    {
+      "region_id": 371,
+      "region_nazwa": "Aantiz",
+      "region_powierzchnia": null,
+      "map_area": 1060.7481915111573,
+      "new_area_km2": 16224
+    },
+    {
+      "region_id": 372,
+      "region_nazwa": "Zansitiz",
+      "region_powierzchnia": null,
+      "map_area": 976.7879191781038,
+      "new_area_km2": 14940
+    },
+    {
+      "region_id": 373,
+      "region_nazwa": "Halmalt",
+      "region_powierzchnia": null,
+      "map_area": 1601.292342001536,
+      "new_area_km2": 24492
+    },
+    {
+      "region_id": 374,
+      "region_nazwa": "Kumalt",
+      "region_powierzchnia": null,
+      "map_area": 1661.6953795598845,
+      "new_area_km2": 25416
+    },
+    {
+      "region_id": 375,
+      "region_nazwa": "Gumalt",
+      "region_powierzchnia": null,
+      "map_area": 1949.3806375705446,
+      "new_area_km2": 29816
+    },
+    {
+      "region_id": 376,
+      "region_nazwa": "Viralt",
+      "region_powierzchnia": null,
+      "map_area": 2845.630819375873,
+      "new_area_km2": 43525
+    },
+    {
+      "region_id": 377,
+      "region_nazwa": "Romzydia",
+      "region_powierzchnia": null,
+      "map_area": 12893.998938714034,
+      "new_area_km2": 197218
+    },
+    {
+      "region_id": 378,
+      "region_nazwa": "Lepia",
+      "region_powierzchnia": null,
+      "map_area": 9331.219321627348,
+      "new_area_km2": 142724
+    },
+    {
+      "region_id": 379,
+      "region_nazwa": "Hulerba",
+      "region_powierzchnia": null,
+      "map_area": 5926.664681683252,
+      "new_area_km2": 90650
+    },
+    {
+      "region_id": 380,
+      "region_nazwa": "Paraj",
+      "region_powierzchnia": null,
+      "map_area": 13205.214959240186,
+      "new_area_km2": 201978
+    },
+    {
+      "region_id": 381,
+      "region_nazwa": "Guskamia",
+      "region_powierzchnia": null,
+      "map_area": 14816.222881188376,
+      "new_area_km2": 226618
+    },
+    {
+      "region_id": 382,
+      "region_nazwa": "Hamsingvera",
+      "region_powierzchnia": null,
+      "map_area": 41016.028056644296,
+      "new_area_km2": 627352
+    },
+    {
+      "region_id": 383,
+      "region_nazwa": "Huellemgavera",
+      "region_powierzchnia": null,
+      "map_area": 18415.637355854607,
+      "new_area_km2": 281673
+    },
+    {
+      "region_id": 384,
+      "region_nazwa": "Atagamba",
+      "region_powierzchnia": null,
+      "map_area": 7092.114303363675,
+      "new_area_km2": 108476
+    },
+    {
+      "region_id": 385,
+      "region_nazwa": "Hettvera",
+      "region_powierzchnia": null,
+      "map_area": 2743.1219349003873,
+      "new_area_km2": 41957
+    },
+    {
+      "region_id": 386,
+      "region_nazwa": "Lazcai",
+      "region_powierzchnia": null,
+      "map_area": 1561.3898444414301,
+      "new_area_km2": 23882
+    },
+    {
+      "region_id": 387,
+      "region_nazwa": "Milinvera",
+      "region_powierzchnia": null,
+      "map_area": 6304.827732557702,
+      "new_area_km2": 96434
+    },
+    {
+      "region_id": 388,
+      "region_nazwa": "Tejmara",
+      "region_powierzchnia": null,
+      "map_area": 2175.5397170038905,
+      "new_area_km2": 33276
+    },
+    {
+      "region_id": 389,
+      "region_nazwa": "Kulo",
+      "region_powierzchnia": null,
+      "map_area": 2818.302901832702,
+      "new_area_km2": 43107
+    },
+    {
+      "region_id": 390,
+      "region_nazwa": "Kekoga",
+      "region_powierzchnia": null,
+      "map_area": 6556.908432816465,
+      "new_area_km2": 100290
+    },
+    {
+      "region_id": 391,
+      "region_nazwa": "Fermuliga",
+      "region_powierzchnia": null,
+      "map_area": 9454.506463322436,
+      "new_area_km2": 144609
+    },
+    {
+      "region_id": 392,
+      "region_nazwa": "Galsamuba",
+      "region_powierzchnia": null,
+      "map_area": 5931.554301203045,
+      "new_area_km2": 90725
+    },
+    {
+      "region_id": 393,
+      "region_nazwa": "Kurghvaza",
+      "region_powierzchnia": null,
+      "map_area": 9418.177366397416,
+      "new_area_km2": 144054
+    },
+    {
+      "region_id": 394,
+      "region_nazwa": "Lemajga",
+      "region_powierzchnia": null,
+      "map_area": 9218.727945380253,
+      "new_area_km2": 141003
+    },
+    {
+      "region_id": 395,
+      "region_nazwa": "Hulmigasa",
+      "region_powierzchnia": null,
+      "map_area": 14066.892884540532,
+      "new_area_km2": 215157
+    },
+    {
+      "region_id": 396,
+      "region_nazwa": "Belgama",
+      "region_powierzchnia": null,
+      "map_area": 6884.283663447319,
+      "new_area_km2": 105297
+    },
+    {
+      "region_id": 397,
+      "region_nazwa": "Jiigmult",
+      "region_powierzchnia": null,
+      "map_area": 3146.802479186913,
+      "new_area_km2": 48131
+    },
+    {
+      "region_id": 398,
+      "region_nazwa": "Umult",
+      "region_powierzchnia": null,
+      "map_area": 1899.9291290674744,
+      "new_area_km2": 29060
+    },
+    {
+      "region_id": 399,
+      "region_nazwa": "Telmult",
+      "region_powierzchnia": null,
+      "map_area": 2140.893643487315,
+      "new_area_km2": 32746
+    },
+    {
+      "region_id": 400,
+      "region_nazwa": "Anravamult",
+      "region_powierzchnia": null,
+      "map_area": 1793.249733272678,
+      "new_area_km2": 27428
+    },
+    {
+      "region_id": 401,
+      "region_nazwa": "Okręg Ohima",
+      "region_powierzchnia": null,
+      "map_area": 14207.095292003869,
+      "new_area_km2": 217302
+    },
+    {
+      "region_id": 402,
+      "region_nazwa": "Okręg Kandana",
+      "region_powierzchnia": null,
+      "map_area": 1211.2747164365603,
+      "new_area_km2": 18527
+    },
+    {
+      "region_id": 403,
+      "region_nazwa": "Okręg Maha",
+      "region_powierzchnia": null,
+      "map_area": 8477.97022570545,
+      "new_area_km2": 129673
+    },
+    {
+      "region_id": 404,
+      "region_nazwa": "Okręg Petore",
+      "region_powierzchnia": null,
+      "map_area": 5389.644967638446,
+      "new_area_km2": 82436
+    },
+    {
+      "region_id": 405,
+      "region_nazwa": "Okręg Furhana",
+      "region_powierzchnia": null,
+      "map_area": 2534.569376248403,
+      "new_area_km2": 38767
+    },
+    {
+      "region_id": 406,
+      "region_nazwa": "Okręg Lapara",
+      "region_powierzchnia": null,
+      "map_area": 3878.237912344831,
+      "new_area_km2": 59319
+    },
+    {
+      "region_id": 407,
+      "region_nazwa": "Okręg Kulua",
+      "region_powierzchnia": null,
+      "map_area": 3424.267683833599,
+      "new_area_km2": 52375
+    },
+    {
+      "region_id": 408,
+      "region_nazwa": "Okręg Toshibi",
+      "region_powierzchnia": null,
+      "map_area": 2109.851516354269,
+      "new_area_km2": 32271
+    },
+    {
+      "region_id": 409,
+      "region_nazwa": "Okręg Milash",
+      "region_powierzchnia": null,
+      "map_area": 1098.3534852065854,
+      "new_area_km2": 16800
+    },
+    {
+      "region_id": 410,
+      "region_nazwa": "Okręg Limi",
+      "region_powierzchnia": null,
+      "map_area": 453.8092532510329,
+      "new_area_km2": 6941
+    },
+    {
+      "region_id": 411,
+      "region_nazwa": "Okręg Lusa",
+      "region_powierzchnia": null,
+      "map_area": 1261.6582884521304,
+      "new_area_km2": 19297
+    },
+    {
+      "region_id": 412,
+      "region_nazwa": "Serhenia",
+      "region_powierzchnia": null,
+      "map_area": 938.4207427530151,
+      "new_area_km2": 14353
+    },
+    {
+      "region_id": 413,
+      "region_nazwa": "Południowa Partycja",
+      "region_powierzchnia": null,
+      "map_area": 9144.825664735345,
+      "new_area_km2": 139873
+    },
+    {
+      "region_id": 414,
+      "region_nazwa": "Północna Partycja",
+      "region_powierzchnia": null,
+      "map_area": 6559.207249691749,
+      "new_area_km2": 100325
+    },
+    {
+      "region_id": 415,
+      "region_nazwa": "Gulmiwia",
+      "region_powierzchnia": null,
+      "map_area": 1582.3979756386937,
+      "new_area_km2": 24203
+    },
+    {
+      "region_id": 416,
+      "region_nazwa": "Eljankia",
+      "region_powierzchnia": null,
+      "map_area": 5461.3316807279,
+      "new_area_km2": 83533
+    },
+    {
+      "region_id": 417,
+      "region_nazwa": "Eliankia Wschodnia",
+      "region_powierzchnia": null,
+      "map_area": 14227.804966258122,
+      "new_area_km2": 217618
+    },
+    {
+      "region_id": 418,
+      "region_nazwa": "Helania",
+      "region_powierzchnia": null,
+      "map_area": 621.5121411904006,
+      "new_area_km2": 9506
+    },
+    {
+      "region_id": 419,
+      "region_nazwa": "Mermalgia",
+      "region_powierzchnia": null,
+      "map_area": 487.1459663708815,
+      "new_area_km2": 7451
+    },
+    {
+      "region_id": 420,
+      "region_nazwa": "Górna Owicja",
+      "region_powierzchnia": null,
+      "map_area": 1459.0575414268453,
+      "new_area_km2": 22317
+    },
+    {
+      "region_id": 421,
+      "region_nazwa": "Dolna Owicja",
+      "region_powierzchnia": null,
+      "map_area": 1475.9684840680784,
+      "new_area_km2": 22575
+    },
+    {
+      "region_id": 422,
+      "region_nazwa": "Okolocja",
+      "region_powierzchnia": null,
+      "map_area": 8073.298568945699,
+      "new_area_km2": 123483
+    },
+    {
+      "region_id": 423,
+      "region_nazwa": "Molkobia",
+      "region_powierzchnia": null,
+      "map_area": 568.3806530126454,
+      "new_area_km2": 8694
+    },
+    {
+      "region_id": 424,
+      "region_nazwa": "Tunka",
+      "region_powierzchnia": null,
+      "map_area": 402.1338601350741,
+      "new_area_km2": 6151
+    },
+    {
+      "region_id": 425,
+      "region_nazwa": "Puha",
+      "region_powierzchnia": null,
+      "map_area": 253.58171270027714,
+      "new_area_km2": 3879
+    },
+    {
+      "region_id": 426,
+      "region_nazwa": "Kersja",
+      "region_powierzchnia": null,
+      "map_area": 373.6302615316913,
+      "new_area_km2": 5715
+    },
+    {
+      "region_id": 427,
+      "region_nazwa": "Tarfacja",
+      "region_powierzchnia": null,
+      "map_area": 5991.9469867613825,
+      "new_area_km2": 91649
+    },
+    {
+      "region_id": 428,
+      "region_nazwa": "Selimancja",
+      "region_powierzchnia": null,
+      "map_area": 9101.647841914084,
+      "new_area_km2": 139212
+    },
+    {
+      "region_id": 429,
+      "region_nazwa": "Warmiltia",
+      "region_powierzchnia": null,
+      "map_area": 1797.2975061238685,
+      "new_area_km2": 27490
+    },
+    {
+      "region_id": 430,
+      "region_nazwa": "Golgedijar",
+      "region_powierzchnia": null,
+      "map_area": 36169.60239170619,
+      "new_area_km2": 553225
+    },
+    {
+      "region_id": 431,
+      "region_nazwa": "Lahms Yarkkiva",
+      "region_powierzchnia": null,
+      "map_area": 50449.36042157859,
+      "new_area_km2": 771638
+    },
+    {
+      "region_id": 432,
+      "region_nazwa": "Zachodnia Halpija",
+      "region_powierzchnia": null,
+      "map_area": 15209.241680596117,
+      "new_area_km2": 232630
+    },
+    {
+      "region_id": 433,
+      "region_nazwa": "Almakis",
+      "region_powierzchnia": null,
+      "map_area": 53468.29061245878,
+      "new_area_km2": 817813
+    },
+    {
+      "region_id": 434,
+      "region_nazwa": "Menreni",
+      "region_powierzchnia": null,
+      "map_area": 1715.7930126457202,
+      "new_area_km2": 26244
+    },
+    {
+      "region_id": 435,
+      "region_nazwa": "Wschodnia Halpija",
+      "region_powierzchnia": null,
+      "map_area": 28703.114569831127,
+      "new_area_km2": 439023
+    },
+    {
+      "region_id": 436,
+      "region_nazwa": "Hortymacja",
+      "region_powierzchnia": null,
+      "map_area": 58680.85880529899,
+      "new_area_km2": 897541
+    },
+    {
+      "region_id": 437,
+      "region_nazwa": "Kurtybacja",
+      "region_powierzchnia": null,
+      "map_area": 30679.99373583639,
+      "new_area_km2": 469260
+    },
+    {
+      "region_id": 438,
+      "region_nazwa": "Walrimia",
+      "region_powierzchnia": null,
+      "map_area": 9286.191483194818,
+      "new_area_km2": 142035
+    },
+    {
+      "region_id": 439,
+      "region_nazwa": "Pilmarkia",
+      "region_powierzchnia": null,
+      "map_area": 4630.062726607975,
+      "new_area_km2": 70818
+    },
+    {
+      "region_id": 440,
+      "region_nazwa": "Onstkeria",
+      "region_powierzchnia": null,
+      "map_area": 6748.404422623893,
+      "new_area_km2": 103219
+    },
+    {
+      "region_id": 441,
+      "region_nazwa": "Hulbata",
+      "region_powierzchnia": null,
+      "map_area": 2130.433989880992,
+      "new_area_km2": 32586
+    },
+    {
+      "region_id": 442,
+      "region_nazwa": "Lejramia",
+      "region_powierzchnia": null,
+      "map_area": 4873.202384227673,
+      "new_area_km2": 74537
+    },
+    {
+      "region_id": 443,
+      "region_nazwa": "Jevmira",
+      "region_powierzchnia": null,
+      "map_area": 4914.436104019886,
+      "new_area_km2": 75168
+    },
+    {
+      "region_id": 444,
+      "region_nazwa": "Północna Sambarta",
+      "region_powierzchnia": null,
+      "map_area": 37584.49566142728,
+      "new_area_km2": 574866
+    },
+    {
+      "region_id": 445,
+      "region_nazwa": "Senkurta",
+      "region_powierzchnia": null,
+      "map_area": 260.69858443362193,
+      "new_area_km2": 3987
+    },
+    {
+      "region_id": 446,
+      "region_nazwa": "Nadsima",
+      "region_powierzchnia": null,
+      "map_area": 1305.2577876356174,
+      "new_area_km2": 19964
+    },
+    {
+      "region_id": 447,
+      "region_nazwa": "Kurvimis",
+      "region_powierzchnia": null,
+      "map_area": 6130.602211853034,
+      "new_area_km2": 93769
+    },
+    {
+      "region_id": 448,
+      "region_nazwa": "Bilopte",
+      "region_powierzchnia": null,
+      "map_area": 642.1627549519935,
+      "new_area_km2": 9822
+    },
+    {
+      "region_id": 449,
+      "region_nazwa": "Nadliupes",
+      "region_powierzchnia": null,
+      "map_area": 3442.6991821567008,
+      "new_area_km2": 52657
+    },
+    {
+      "region_id": 450,
+      "region_nazwa": "Alwiredy",
+      "region_powierzchnia": null,
+      "map_area": 32461.449534369684,
+      "new_area_km2": 496507
+    },
+    {
+      "region_id": 451,
+      "region_nazwa": "Tulimandia",
+      "region_powierzchnia": null,
+      "map_area": 6622.653337197801,
+      "new_area_km2": 101295
+    },
+    {
+      "region_id": 452,
+      "region_nazwa": "Farhelia",
+      "region_powierzchnia": null,
+      "map_area": 12534.64845653862,
+      "new_area_km2": 191721
+    },
+    {
+      "region_id": 453,
+      "region_nazwa": "Zachodnie Merkatydy",
+      "region_powierzchnia": null,
+      "map_area": 9396.764610937564,
+      "new_area_km2": 143726
+    },
+    {
+      "region_id": 454,
+      "region_nazwa": "Wschodnie Merkatydy",
+      "region_powierzchnia": null,
+      "map_area": 11082.821800255095,
+      "new_area_km2": 169515
+    },
+    {
+      "region_id": 455,
+      "region_nazwa": "Tusermicja",
+      "region_powierzchnia": null,
+      "map_area": 4607.718854947341,
+      "new_area_km2": 70476
+    },
+    {
+      "region_id": 456,
+      "region_nazwa": "Hulstaming",
+      "region_powierzchnia": null,
+      "map_area": 6334.417212046766,
+      "new_area_km2": 96887
+    },
+    {
+      "region_id": 457,
+      "region_nazwa": "Delbuyi",
+      "region_powierzchnia": null,
+      "map_area": 2318.4498961483364,
+      "new_area_km2": 35461
+    },
+    {
+      "region_id": 458,
+      "region_nazwa": "Momaka",
+      "region_powierzchnia": null,
+      "map_area": 2286.19762313425,
+      "new_area_km2": 34968
+    },
+    {
+      "region_id": 459,
+      "region_nazwa": "Henksa",
+      "region_powierzchnia": null,
+      "map_area": 2526.6996020165325,
+      "new_area_km2": 38647
+    },
+    {
+      "region_id": 460,
+      "region_nazwa": "Gertybia",
+      "region_powierzchnia": null,
+      "map_area": 9499.025274413814,
+      "new_area_km2": 145290
+    },
+    {
+      "region_id": 461,
+      "region_nazwa": "Ansandia",
+      "region_powierzchnia": null,
+      "map_area": 6371.761976598246,
+      "new_area_km2": 97458
+    },
+    {
+      "region_id": 462,
+      "region_nazwa": "Husmicja",
+      "region_powierzchnia": null,
+      "map_area": 12949.895130531104,
+      "new_area_km2": 198072
+    },
+    {
+      "region_id": 463,
+      "region_nazwa": "Almacja",
+      "region_powierzchnia": null,
+      "map_area": 4767.050087956838,
+      "new_area_km2": 72913
+    },
+    {
+      "region_id": 464,
+      "region_nazwa": "Archiwilja",
+      "region_powierzchnia": null,
+      "map_area": 1168.123670391433,
+      "new_area_km2": 17867
+    },
+    {
+      "region_id": 465,
+      "region_nazwa": "Kustonia",
+      "region_powierzchnia": null,
+      "map_area": 7553.376637816985,
+      "new_area_km2": 115531
+    },
+    {
+      "region_id": 466,
+      "region_nazwa": "Regelia",
+      "region_powierzchnia": null,
+      "map_area": 5672.013978759515,
+      "new_area_km2": 86755
+    },
+    {
+      "region_id": 467,
+      "region_nazwa": "Admirza",
+      "region_powierzchnia": null,
+      "map_area": 2343.8820243423143,
+      "new_area_km2": 35850
+    },
+    {
+      "region_id": 468,
+      "region_nazwa": "Wyspa Centralna",
+      "region_powierzchnia": null,
+      "map_area": 5008.147192080868,
+      "new_area_km2": 76601
+    },
+    {
+      "region_id": 469,
+      "region_nazwa": "Wyspa Zachodnia",
+      "region_powierzchnia": null,
+      "map_area": 552.868936354524,
+      "new_area_km2": 8456
+    },
+    {
+      "region_id": 470,
+      "region_nazwa": "Archipelag Zachodni",
+      "region_powierzchnia": null,
+      "map_area": 595.3589502667396,
+      "new_area_km2": 9106
+    },
+    {
+      "region_id": 471,
+      "region_nazwa": "Archipelag Wschodni",
+      "region_powierzchnia": null,
+      "map_area": 272.8808430030451,
+      "new_area_km2": 4174
+    },
+    {
+      "region_id": 472,
+      "region_nazwa": "Frel i Mioho",
+      "region_powierzchnia": null,
+      "map_area": 122.21990914547798,
+      "new_area_km2": 1869
+    },
+    {
+      "region_id": 473,
+      "region_nazwa": "Wyspy Północne",
+      "region_powierzchnia": null,
+      "map_area": 124.0221775389817,
+      "new_area_km2": 1897
+    },
+    {
+      "region_id": 474,
+      "region_nazwa": "Zankimer",
+      "region_powierzchnia": null,
+      "map_area": 6086.009719170609,
+      "new_area_km2": 93087
+    },
+    {
+      "region_id": 475,
+      "region_nazwa": "Lanzigmat",
+      "region_powierzchnia": null,
+      "map_area": 4387.871352477134,
+      "new_area_km2": 67114
+    },
+    {
+      "region_id": 476,
+      "region_nazwa": "Mulgezt",
+      "region_powierzchnia": null,
+      "map_area": 4037.8401858086604,
+      "new_area_km2": 61760
+    },
+    {
+      "region_id": 477,
+      "region_nazwa": "Nazmaster",
+      "region_powierzchnia": null,
+      "map_area": 4606.1604174221175,
+      "new_area_km2": 70453
+    },
+    {
+      "region_id": 478,
+      "region_nazwa": "Tuyasa",
+      "region_powierzchnia": null,
+      "map_area": 1182.1713083546267,
+      "new_area_km2": 18082
+    },
+    {
+      "region_id": 479,
+      "region_nazwa": "Holpaza",
+      "region_powierzchnia": null,
+      "map_area": 6939.308662201442,
+      "new_area_km2": 106139
+    },
+    {
+      "region_id": 480,
+      "region_nazwa": "Sewerga",
+      "region_powierzchnia": null,
+      "map_area": 2011.587357080891,
+      "new_area_km2": 30768
+    },
+    {
+      "region_id": 481,
+      "region_nazwa": "Miasto Ivo",
+      "region_powierzchnia": null,
+      "map_area": 52.048253389686586,
+      "new_area_km2": 796
+    },
+    {
+      "region_id": 482,
+      "region_nazwa": "Iwonia",
+      "region_powierzchnia": null,
+      "map_area": 421.0608164263728,
+      "new_area_km2": 6440
+    },
+    {
+      "region_id": 483,
+      "region_nazwa": "Miasto Tanwa",
+      "region_powierzchnia": null,
+      "map_area": 63.94771298045937,
+      "new_area_km2": 978
+    },
+    {
+      "region_id": 484,
+      "region_nazwa": "Ksania",
+      "region_powierzchnia": null,
+      "map_area": 436.11761714642995,
+      "new_area_km2": 6671
+    },
+    {
+      "region_id": 485,
+      "region_nazwa": "Euturema",
+      "region_powierzchnia": null,
+      "map_area": 805.6321326778851,
+      "new_area_km2": 12322
+    },
+    {
+      "region_id": 486,
+      "region_nazwa": "Balta",
+      "region_powierzchnia": null,
+      "map_area": 592.2310705979698,
+      "new_area_km2": 9058
+    },
+    {
+      "region_id": 487,
+      "region_nazwa": "Sabeus",
+      "region_powierzchnia": null,
+      "map_area": 742.7648708443759,
+      "new_area_km2": 11361
+    },
+    {
+      "region_id": 488,
+      "region_nazwa": "Abnemia",
+      "region_powierzchnia": null,
+      "map_area": 1293.7806904388815,
+      "new_area_km2": 19789
+    },
+    {
+      "region_id": 489,
+      "region_nazwa": "Goelania",
+      "region_powierzchnia": null,
+      "map_area": 576.3630325365151,
+      "new_area_km2": 8816
+    },
+    {
+      "region_id": 490,
+      "region_nazwa": "Ledia",
+      "region_powierzchnia": null,
+      "map_area": 818.7791961378203,
+      "new_area_km2": 12523
+    },
+    {
+      "region_id": 491,
+      "region_nazwa": "Północ",
+      "region_powierzchnia": null,
+      "map_area": 414.54973308365976,
+      "new_area_km2": 6341
+    },
+    {
+      "region_id": 492,
+      "region_nazwa": "Ceuma",
+      "region_powierzchnia": null,
+      "map_area": 738.6450012821113,
+      "new_area_km2": 11298
+    },
+    {
+      "region_id": 493,
+      "region_nazwa": "Zawiria",
+      "region_powierzchnia": null,
+      "map_area": 1258.5367165497844,
+      "new_area_km2": 19250
+    },
+    {
+      "region_id": 494,
+      "region_nazwa": "Ikkelsunia",
+      "region_powierzchnia": null,
+      "map_area": 1430.9906853353718,
+      "new_area_km2": 21887
+    },
+    {
+      "region_id": 495,
+      "region_nazwa": "Nissabaria",
+      "region_powierzchnia": null,
+      "map_area": 1224.593715411819,
+      "new_area_km2": 18731
+    },
+    {
+      "region_id": 496,
+      "region_nazwa": "Mutra Wschodnia",
+      "region_powierzchnia": null,
+      "map_area": 2148.474189825105,
+      "new_area_km2": 32862
+    },
+    {
+      "region_id": 497,
+      "region_nazwa": "Fulgermania",
+      "region_powierzchnia": null,
+      "map_area": 1943.6838267088874,
+      "new_area_km2": 29729
+    },
+    {
+      "region_id": 498,
+      "region_nazwa": "Perkelia",
+      "region_powierzchnia": null,
+      "map_area": 1590.4586169722245,
+      "new_area_km2": 24327
+    },
+    {
+      "region_id": 499,
+      "region_nazwa": "Miasto Ban-Ikkel",
+      "region_powierzchnia": null,
+      "map_area": 183.31102485632883,
+      "new_area_km2": 2804
+    },
+    {
+      "region_id": 500,
+      "region_nazwa": "Aszton",
+      "region_powierzchnia": null,
+      "map_area": 327.43021397895126,
+      "new_area_km2": 5008
+    },
+    {
+      "region_id": 501,
+      "region_nazwa": "Wieszmir Północny",
+      "region_powierzchnia": null,
+      "map_area": 1696.0686083331461,
+      "new_area_km2": 25942
+    },
+    {
+      "region_id": 502,
+      "region_nazwa": "Wieszmir Południowy",
+      "region_powierzchnia": null,
+      "map_area": 2257.7514640765617,
+      "new_area_km2": 34533
+    },
+    {
+      "region_id": 503,
+      "region_nazwa": "Świrmaj",
+      "region_powierzchnia": null,
+      "map_area": 440.7431030959786,
+      "new_area_km2": 6741
+    },
+    {
+      "region_id": 504,
+      "region_nazwa": "Tuszkalasicja",
+      "region_powierzchnia": null,
+      "map_area": 1908.2143048276803,
+      "new_area_km2": 29187
+    },
+    {
+      "region_id": 505,
+      "region_nazwa": "Kosliwinia",
+      "region_powierzchnia": null,
+      "map_area": 1477.690451942704,
+      "new_area_km2": 22602
+    },
+    {
+      "region_id": 506,
+      "region_nazwa": "Kekertucja",
+      "region_powierzchnia": null,
+      "map_area": 1832.6951101890813,
+      "new_area_km2": 28032
+    },
+    {
+      "region_id": 507,
+      "region_nazwa": "Halświm",
+      "region_powierzchnia": null,
+      "map_area": 1883.1092323766086,
+      "new_area_km2": 28803
+    },
+    {
+      "region_id": 508,
+      "region_nazwa": "Derkmus",
+      "region_powierzchnia": null,
+      "map_area": 1505.28130624554,
+      "new_area_km2": 23024
+    },
+    {
+      "region_id": 509,
+      "region_nazwa": "Nadcerdwie",
+      "region_powierzchnia": null,
+      "map_area": 2671.3497585139,
+      "new_area_km2": 40859
+    },
+    {
+      "region_id": 510,
+      "region_nazwa": "Miasto Civin",
+      "region_powierzchnia": null,
+      "map_area": 442.353882904862,
+      "new_area_km2": 6766
+    },
+    {
+      "region_id": 511,
+      "region_nazwa": "Erekus",
+      "region_powierzchnia": null,
+      "map_area": 1018.0035244473299,
+      "new_area_km2": 15571
+    },
+    {
+      "region_id": 512,
+      "region_nazwa": "Solgonia",
+      "region_powierzchnia": null,
+      "map_area": 1019.4434808660945,
+      "new_area_km2": 15593
+    },
+    {
+      "region_id": 513,
+      "region_nazwa": "Państwo Nad Mucicią",
+      "region_powierzchnia": null,
+      "map_area": 3947.325111121729,
+      "new_area_km2": 60375
+    },
+    {
+      "region_id": 514,
+      "region_nazwa": "Gurgalicja",
+      "region_powierzchnia": null,
+      "map_area": 3989.8529751124283,
+      "new_area_km2": 61026
+    },
+    {
+      "region_id": 515,
+      "region_nazwa": "Gurżwalia",
+      "region_powierzchnia": null,
+      "map_area": 2263.338502633911,
+      "new_area_km2": 34618
+    },
+    {
+      "region_id": 516,
+      "region_nazwa": "Hurgin",
+      "region_powierzchnia": null,
+      "map_area": 384.7621976733128,
+      "new_area_km2": 5885
+    },
+    {
+      "region_id": 517,
+      "region_nazwa": "Malkana",
+      "region_powierzchnia": null,
+      "map_area": 1646.6186876028985,
+      "new_area_km2": 25186
+    },
+    {
+      "region_id": 518,
+      "region_nazwa": "Perkozja",
+      "region_powierzchnia": null,
+      "map_area": 2672.8152281050307,
+      "new_area_km2": 40881
+    },
+    {
+      "region_id": 519,
+      "region_nazwa": "Wschodnia Kekertucja",
+      "region_powierzchnia": null,
+      "map_area": 2146.272492899044,
+      "new_area_km2": 32828
+    },
+    {
+      "region_id": 520,
+      "region_nazwa": "Nadtegże",
+      "region_powierzchnia": null,
+      "map_area": 1868.4748114001472,
+      "new_area_km2": 28579
+    },
+    {
+      "region_id": 521,
+      "region_nazwa": "Sulweria",
+      "region_powierzchnia": null,
+      "map_area": 2157.2823780882713,
+      "new_area_km2": 32996
+    },
+    {
+      "region_id": 522,
+      "region_nazwa": "Adjou",
+      "region_powierzchnia": null,
+      "map_area": 1777.6385625072724,
+      "new_area_km2": 27190
+    },
+    {
+      "region_id": 523,
+      "region_nazwa": "Lubartynia",
+      "region_powierzchnia": null,
+      "map_area": 2914.8639467146595,
+      "new_area_km2": 44584
+    },
+    {
+      "region_id": 524,
+      "region_nazwa": "Palczmargia",
+      "region_powierzchnia": null,
+      "map_area": 2685.0027285482092,
+      "new_area_km2": 41068
+    },
+    {
+      "region_id": 525,
+      "region_nazwa": "Vil Anne",
+      "region_powierzchnia": null,
+      "map_area": 321.44806098421634,
+      "new_area_km2": 4917
+    },
+    {
+      "region_id": 526,
+      "region_nazwa": "Grevishna-Sukhava",
+      "region_powierzchnia": null,
+      "map_area": 1227.4695045209592,
+      "new_area_km2": 18775
+    },
+    {
+      "region_id": 527,
+      "region_nazwa": "Daolomet",
+      "region_powierzchnia": null,
+      "map_area": 969.5218437753302,
+      "new_area_km2": 14829
+    },
+    {
+      "region_id": 528,
+      "region_nazwa": "Turtestap",
+      "region_powierzchnia": null,
+      "map_area": 727.0521987787539,
+      "new_area_km2": 11120
+    },
+    {
+      "region_id": 529,
+      "region_nazwa": "Suvimerg",
+      "region_powierzchnia": null,
+      "map_area": 1123.5025595336288,
+      "new_area_km2": 17184
+    },
+    {
+      "region_id": 530,
+      "region_nazwa": "Czobel",
+      "region_powierzchnia": null,
+      "map_area": 1087.604843140027,
+      "new_area_km2": 16635
+    },
+    {
+      "region_id": 531,
+      "region_nazwa": "Terbar",
+      "region_powierzchnia": null,
+      "map_area": 1913.0720275564806,
+      "new_area_km2": 29261
+    },
+    {
+      "region_id": 532,
+      "region_nazwa": "Hers",
+      "region_powierzchnia": null,
+      "map_area": 442.7520435508704,
+      "new_area_km2": 6772
+    },
+    {
+      "region_id": 533,
+      "region_nazwa": "Tusa",
+      "region_powierzchnia": null,
+      "map_area": 828.4942400447808,
+      "new_area_km2": 12672
+    },
+    {
+      "region_id": 534,
+      "region_nazwa": "Eiala",
+      "region_powierzchnia": null,
+      "map_area": 1932.7111704648657,
+      "new_area_km2": 29561
+    },
+    {
+      "region_id": 535,
+      "region_nazwa": "Husz",
+      "region_powierzchnia": null,
+      "map_area": 1999.9722654302386,
+      "new_area_km2": 30590
+    },
+    {
+      "region_id": 536,
+      "region_nazwa": "Halla",
+      "region_powierzchnia": null,
+      "map_area": 1709.9755929069017,
+      "new_area_km2": 26155
+    },
+    {
+      "region_id": 537,
+      "region_nazwa": "Yrviel",
+      "region_powierzchnia": null,
+      "map_area": 1629.3582066824106,
+      "new_area_km2": 24922
+    },
+    {
+      "region_id": 538,
+      "region_nazwa": "Frama",
+      "region_powierzchnia": null,
+      "map_area": 857.0196526601068,
+      "new_area_km2": 13108
+    },
+    {
+      "region_id": 539,
+      "region_nazwa": "Estun",
+      "region_powierzchnia": null,
+      "map_area": 1091.2883827158141,
+      "new_area_km2": 16692
+    },
+    {
+      "region_id": 540,
+      "region_nazwa": "San Ter",
+      "region_powierzchnia": null,
+      "map_area": 3447.792726290961,
+      "new_area_km2": 52735
+    },
+    {
+      "region_id": 541,
+      "region_nazwa": "San Rey",
+      "region_powierzchnia": null,
+      "map_area": 1220.854727100231,
+      "new_area_km2": 18673
+    },
+    {
+      "region_id": 542,
+      "region_nazwa": "Leyferth",
+      "region_powierzchnia": null,
+      "map_area": 2191.4154016245698,
+      "new_area_km2": 33518
+    },
+    {
+      "region_id": 543,
+      "region_nazwa": "Halix i Północ",
+      "region_powierzchnia": null,
+      "map_area": 1974.934699933487,
+      "new_area_km2": 30207
+    },
+    {
+      "region_id": 544,
+      "region_nazwa": "Goenehar",
+      "region_powierzchnia": null,
+      "map_area": 1133.1288469424917,
+      "new_area_km2": 17332
+    },
+    {
+      "region_id": 545,
+      "region_nazwa": "Turbenhar",
+      "region_powierzchnia": null,
+      "map_area": 774.4418427097771,
+      "new_area_km2": 11845
+    },
+    {
+      "region_id": 546,
+      "region_nazwa": "Okkohar",
+      "region_powierzchnia": null,
+      "map_area": 624.2984753988212,
+      "new_area_km2": 9549
+    },
+    {
+      "region_id": 547,
+      "region_nazwa": "Muhar",
+      "region_powierzchnia": null,
+      "map_area": 584.3085652840695,
+      "new_area_km2": 8937
+    },
+    {
+      "region_id": 548,
+      "region_nazwa": "Ehar",
+      "region_powierzchnia": null,
+      "map_area": 673.0722890941944,
+      "new_area_km2": 10295
+    },
+    {
+      "region_id": 549,
+      "region_nazwa": "Ferhar",
+      "region_powierzchnia": null,
+      "map_area": 1587.510558804723,
+      "new_area_km2": 24281
+    },
+    {
+      "region_id": 550,
+      "region_nazwa": "Kaskurlaal",
+      "region_powierzchnia": null,
+      "map_area": 890.3831413838071,
+      "new_area_km2": 13619
+    },
+    {
+      "region_id": 551,
+      "region_nazwa": "Saturlaal",
+      "region_powierzchnia": null,
+      "map_area": 140.55705037872661,
+      "new_area_km2": 2150
+    },
+    {
+      "region_id": 552,
+      "region_nazwa": "Busankulla",
+      "region_powierzchnia": null,
+      "map_area": 204.54494964765408,
+      "new_area_km2": 3129
+    },
+    {
+      "region_id": 553,
+      "region_nazwa": "Tierikulla",
+      "region_powierzchnia": null,
+      "map_area": 239.9265971753065,
+      "new_area_km2": 3670
+    },
+    {
+      "region_id": 554,
+      "region_nazwa": "Fukulla",
+      "region_powierzchnia": null,
+      "map_area": 221.1465529633995,
+      "new_area_km2": 3383
+    },
+    {
+      "region_id": 555,
+      "region_nazwa": "Sonkulla",
+      "region_powierzchnia": null,
+      "map_area": 183.95915055086866,
+      "new_area_km2": 2814
+    },
+    {
+      "region_id": 556,
+      "region_nazwa": "Arakulla",
+      "region_powierzchnia": null,
+      "map_area": 238.66917087612467,
+      "new_area_km2": 3651
+    },
+    {
+      "region_id": 557,
+      "region_nazwa": "Killakulla",
+      "region_powierzchnia": null,
+      "map_area": 346.1019335854863,
+      "new_area_km2": 5294
+    },
+    {
+      "region_id": 558,
+      "region_nazwa": "Mittakulla",
+      "region_powierzchnia": null,
+      "map_area": 245.74161088880294,
+      "new_area_km2": 3759
+    },
+    {
+      "region_id": 559,
+      "region_nazwa": "Region Rentia",
+      "region_powierzchnia": null,
+      "map_area": 321.9184667539464,
+      "new_area_km2": 4924
+    },
+    {
+      "region_id": 560,
+      "region_nazwa": "Sek",
+      "region_powierzchnia": null,
+      "map_area": 293.4154123701274,
+      "new_area_km2": 4488
+    },
+    {
+      "region_id": 561,
+      "region_nazwa": "Hut",
+      "region_powierzchnia": null,
+      "map_area": 272.46554084529674,
+      "new_area_km2": 4167
+    },
+    {
+      "region_id": 562,
+      "region_nazwa": "Farhan Północny",
+      "region_powierzchnia": null,
+      "map_area": 1411.2307340694542,
+      "new_area_km2": 21585
+    },
+    {
+      "region_id": 563,
+      "region_nazwa": "Fassa",
+      "region_powierzchnia": null,
+      "map_area": 791.7542356028429,
+      "new_area_km2": 12110
+    },
+    {
+      "region_id": 564,
+      "region_nazwa": "Annah",
+      "region_powierzchnia": null,
+      "map_area": 677.1607365494926,
+      "new_area_km2": 10357
+    },
+    {
+      "region_id": 565,
+      "region_nazwa": "Rassah",
+      "region_powierzchnia": null,
+      "map_area": 793.9140469685858,
+      "new_area_km2": 12143
+    },
+    {
+      "region_id": 566,
+      "region_nazwa": "Cervat",
+      "region_powierzchnia": null,
+      "map_area": 452.2724531637066,
+      "new_area_km2": 6918
+    },
+    {
+      "region_id": 567,
+      "region_nazwa": "Mahanat",
+      "region_powierzchnia": null,
+      "map_area": 670.7735162703864,
+      "new_area_km2": 10260
+    },
+    {
+      "region_id": 568,
+      "region_nazwa": "Taleon",
+      "region_powierzchnia": null,
+      "map_area": 831.5175167067322,
+      "new_area_km2": 12718
+    },
+    {
+      "region_id": 569,
+      "region_nazwa": "Lepeon",
+      "region_powierzchnia": null,
+      "map_area": 588.8988489959397,
+      "new_area_km2": 9007
+    },
+    {
+      "region_id": 570,
+      "region_nazwa": "Aeon",
+      "region_powierzchnia": null,
+      "map_area": 698.4207067504217,
+      "new_area_km2": 10683
+    },
+    {
+      "region_id": 571,
+      "region_nazwa": "Guseon",
+      "region_powierzchnia": null,
+      "map_area": 501.5939163099086,
+      "new_area_km2": 7672
+    },
+    {
+      "region_id": 572,
+      "region_nazwa": "Hangfurth",
+      "region_powierzchnia": null,
+      "map_area": 1464.8081197728002,
+      "new_area_km2": 22405
+    },
+    {
+      "region_id": 573,
+      "region_nazwa": "Usthurg",
+      "region_powierzchnia": null,
+      "map_area": 1183.4558044794983,
+      "new_area_km2": 18101
+    },
+    {
+      "region_id": 574,
+      "region_nazwa": "Kelitehurg",
+      "region_powierzchnia": null,
+      "map_area": 254.67562849505038,
+      "new_area_km2": 3895
+    },
+    {
+      "region_id": 575,
+      "region_nazwa": "Poleava",
+      "region_powierzchnia": null,
+      "map_area": 2412.7189434077814,
+      "new_area_km2": 36903
+    },
+    {
+      "region_id": 576,
+      "region_nazwa": "Sernix",
+      "region_powierzchnia": null,
+      "map_area": 1930.7956075557045,
+      "new_area_km2": 29532
+    },
+    {
+      "region_id": 577,
+      "region_nazwa": "Murtaka",
+      "region_powierzchnia": null,
+      "map_area": 1487.0932025346565,
+      "new_area_km2": 22746
+    },
+    {
+      "region_id": 578,
+      "region_nazwa": "Tieltama",
+      "region_powierzchnia": null,
+      "map_area": 735.3319538810015,
+      "new_area_km2": 11247
+    },
+    {
+      "region_id": 579,
+      "region_nazwa": "Region Nemius",
+      "region_powierzchnia": null,
+      "map_area": 7630.576318990442,
+      "new_area_km2": 116712
+    },
+    {
+      "region_id": 580,
+      "region_nazwa": "Region Urchabis",
+      "region_powierzchnia": null,
+      "map_area": 5813.884576980244,
+      "new_area_km2": 88925
+    },
+    {
+      "region_id": 581,
+      "region_nazwa": "Region Ekletius",
+      "region_powierzchnia": null,
+      "map_area": 40964.41491657783,
+      "new_area_km2": 626563
+    },
+    {
+      "region_id": 582,
+      "region_nazwa": "Region Euchus",
+      "region_powierzchnia": null,
+      "map_area": 30074.177078705237,
+      "new_area_km2": 459993
+    },
+    {
+      "region_id": 583,
+      "region_nazwa": "Region Zanalia",
+      "region_powierzchnia": null,
+      "map_area": 30061.546290341455,
+      "new_area_km2": 459800
+    },
+    {
+      "region_id": 584,
+      "region_nazwa": "Region Maurycja",
+      "region_powierzchnia": null,
+      "map_area": 11089.668981348716,
+      "new_area_km2": 169620
+    },
+    {
+      "region_id": 585,
+      "region_nazwa": "Region Daljamicja",
+      "region_powierzchnia": null,
+      "map_area": 27794.165075929508,
+      "new_area_km2": 425120
+    },
+    {
+      "region_id": 586,
+      "region_nazwa": "Region Riwalia",
+      "region_powierzchnia": null,
+      "map_area": 5528.350922162859,
+      "new_area_km2": 84558
+    },
+    {
+      "region_id": 587,
+      "region_nazwa": "Region Lankitiawa",
+      "region_powierzchnia": null,
+      "map_area": 14111.501858986758,
+      "new_area_km2": 215840
+    },
+    {
+      "region_id": 588,
+      "region_nazwa": "Region Nabassimi",
+      "region_powierzchnia": null,
+      "map_area": 1053.5952569711226,
+      "new_area_km2": 16115
+    },
+    {
+      "region_id": 589,
+      "region_nazwa": "Region Hulta",
+      "region_powierzchnia": null,
+      "map_area": 2373.7441800497177,
+      "new_area_km2": 36307
+    },
+    {
+      "region_id": 590,
+      "region_nazwa": "Vaefa",
+      "region_powierzchnia": null,
+      "map_area": 709.9517729054082,
+      "new_area_km2": 10859
+    },
+    {
+      "region_id": 591,
+      "region_nazwa": "Mirga",
+      "region_powierzchnia": null,
+      "map_area": 1049.8656805545393,
+      "new_area_km2": 16058
+    },
+    {
+      "region_id": 592,
+      "region_nazwa": "Moera",
+      "region_powierzchnia": null,
+      "map_area": 836.0856960289158,
+      "new_area_km2": 12788
+    },
+    {
+      "region_id": 593,
+      "region_nazwa": "Retelpe",
+      "region_powierzchnia": null,
+      "map_area": 6888.490562433633,
+      "new_area_km2": 105361
+    },
+    {
+      "region_id": 594,
+      "region_nazwa": "Gallimsarde",
+      "region_powierzchnia": null,
+      "map_area": 7517.493985311,
+      "new_area_km2": 114982
+    },
+    {
+      "region_id": 595,
+      "region_nazwa": "Wschodni Test",
+      "region_powierzchnia": null,
+      "map_area": 4086.4459939609615,
+      "new_area_km2": 62503
+    },
+    {
+      "region_id": 596,
+      "region_nazwa": "Południowy Test",
+      "region_powierzchnia": null,
+      "map_area": 1280.1711815844708,
+      "new_area_km2": 19581
+    },
+    {
+      "region_id": 597,
+      "region_nazwa": "Lerta",
+      "region_powierzchnia": null,
+      "map_area": 780.817461053995,
+      "new_area_km2": 11943
+    },
+    {
+      "region_id": 598,
+      "region_nazwa": "Erx-Att",
+      "region_powierzchnia": null,
+      "map_area": 1288.184259437197,
+      "new_area_km2": 19703
+    },
+    {
+      "region_id": 599,
+      "region_nazwa": "Xengad Miasto",
+      "region_powierzchnia": null,
+      "map_area": 290.81125909160966,
+      "new_area_km2": 4448
+    },
+    {
+      "region_id": 600,
+      "region_nazwa": "Raelis",
+      "region_powierzchnia": null,
+      "map_area": 30157.444474979457,
+      "new_area_km2": 461267
+    },
+    {
+      "region_id": 601,
+      "region_nazwa": "Borealis",
+      "region_powierzchnia": null,
+      "map_area": 5589.583858763147,
+      "new_area_km2": 85494
+    },
+    {
+      "region_id": 602,
+      "region_nazwa": "Bolinis",
+      "region_powierzchnia": null,
+      "map_area": 2294.943798348482,
+      "new_area_km2": 35102
+    },
+    {
+      "region_id": 603,
+      "region_nazwa": "Centremis",
+      "region_powierzchnia": null,
+      "map_area": 1589.1523500929711,
+      "new_area_km2": 24307
+    },
+    {
+      "region_id": 604,
+      "region_nazwa": "Terebasis",
+      "region_powierzchnia": null,
+      "map_area": 1698.9466140232676,
+      "new_area_km2": 25986
+    },
+    {
+      "region_id": 605,
+      "region_nazwa": "Hatergis",
+      "region_powierzchnia": null,
+      "map_area": 1907.515822342284,
+      "new_area_km2": 29176
+    },
+    {
+      "region_id": 606,
+      "region_nazwa": "Jallis",
+      "region_powierzchnia": null,
+      "map_area": 884.1145946644389,
+      "new_area_km2": 13523
+    },
+    {
+      "region_id": 607,
+      "region_nazwa": "Merstis",
+      "region_powierzchnia": null,
+      "map_area": 811.3355956006558,
+      "new_area_km2": 12410
+    },
+    {
+      "region_id": 608,
+      "region_nazwa": "Zachodnia Burgundia",
+      "region_powierzchnia": null,
+      "map_area": 10940.017352077333,
+      "new_area_km2": 167331
+    },
+    {
+      "region_id": 609,
+      "region_nazwa": "Ville-Soventa",
+      "region_powierzchnia": null,
+      "map_area": 257.4413022696971,
+      "new_area_km2": 3938
+    },
+    {
+      "region_id": 615,
+      "region_nazwa": "Damahott",
+      "region_powierzchnia": null,
+      "map_area": 369.8874172806409,
+      "new_area_km2": 5658
+    },
+    {
+      "region_id": 621,
+      "region_nazwa": "Kazimghran",
+      "region_powierzchnia": null,
+      "map_area": 10810.708129548633,
+      "new_area_km2": 165353
+    },
+    {
+      "region_id": 626,
+      "region_nazwa": "Kajhott",
+      "region_powierzchnia": null,
+      "map_area": 2880.1573995738404,
+      "new_area_km2": 44053
+    },
+    {
+      "region_id": 627,
+      "region_nazwa": "Region Osatio",
+      "region_powierzchnia": null,
+      "map_area": 1346.7815904139225,
+      "new_area_km2": 20599
+    },
+    {
+      "region_id": 628,
+      "region_nazwa": "Region Piris i Kafert",
+      "region_powierzchnia": null,
+      "map_area": 152.20823899936715,
+      "new_area_km2": 2328
+    },
+    {
+      "region_id": 629,
+      "region_nazwa": "Region Wyspy Wężowe",
+      "region_powierzchnia": null,
+      "map_area": 728.4082939402298,
+      "new_area_km2": 11141
+    },
+    {
+      "region_id": 630,
+      "region_nazwa": "Region Republika Zontyjska",
+      "region_powierzchnia": null,
+      "map_area": 3566.3697089872194,
+      "new_area_km2": 54549
+    },
+    {
+      "region_id": 631,
+      "region_nazwa": "Region Darhut",
+      "region_powierzchnia": null,
+      "map_area": 1734.3303310875228,
+      "new_area_km2": 26527
+    },
+    {
+      "region_id": 632,
+      "region_nazwa": "Tish",
+      "region_powierzchnia": null,
+      "map_area": 387.9617960170083,
+      "new_area_km2": 5934
+    },
+    {
+      "region_id": 635,
+      "region_nazwa": "Lapisjaon",
+      "region_powierzchnia": null,
+      "map_area": 3891.903498216742,
+      "new_area_km2": 59528
+    },
+    {
+      "region_id": 642,
+      "region_nazwa": "Ilae-Elgestre",
+      "region_powierzchnia": null,
+      "map_area": 346.69372092123047,
+      "new_area_km2": 5303
+    },
+    {
+      "region_id": 643,
+      "region_nazwa": "Wyspy Suntyjskie",
+      "region_powierzchnia": null,
+      "map_area": 7117.798833504617,
+      "new_area_km2": 108869
+    },
+    {
+      "region_id": 644,
+      "region_nazwa": "Suklania",
+      "region_powierzchnia": null,
+      "map_area": 571.1840917251247,
+      "new_area_km2": 8736
+    },
+    {
+      "region_id": 647,
+      "region_nazwa": "Południowe Perkatydy",
+      "region_powierzchnia": null,
+      "map_area": 2470.1633397898586,
+      "new_area_km2": 37782
+    },
+    {
+      "region_id": 648,
+      "region_nazwa": "Wschodnie Perkatydy",
+      "region_powierzchnia": null,
+      "map_area": 1652.5535401126608,
+      "new_area_km2": 25276
+    },
+    {
+      "region_id": 649,
+      "region_nazwa": "Północne Perkatydy",
+      "region_powierzchnia": null,
+      "map_area": 1273.8930130615588,
+      "new_area_km2": 19485
+    },
+    {
+      "region_id": 650,
+      "region_nazwa": "Terytorium Zamorskie Girpi",
+      "region_powierzchnia": null,
+      "map_area": 251.48369229738975,
+      "new_area_km2": 3847
+    },
+    {
+      "region_id": 651,
+      "region_nazwa": "Terytorium Zamorskie Kuniny",
+      "region_powierzchnia": null,
+      "map_area": 99.48938508071716,
+      "new_area_km2": 1522
+    },
+    {
+      "region_id": 652,
+      "region_nazwa": "Terytorium Zamorskie Wysp Kocich",
+      "region_powierzchnia": null,
+      "map_area": 321.219260793766,
+      "new_area_km2": 4913
+    },
+    {
+      "region_id": 653,
+      "region_nazwa": "Wyspy Królicze",
+      "region_powierzchnia": null,
+      "map_area": 956.26401104988,
+      "new_area_km2": 14626
+    },
+    {
+      "region_id": 654,
+      "region_nazwa": "Region Kalepary",
+      "region_powierzchnia": null,
+      "map_area": 685.3371124924444,
+      "new_area_km2": 10482
+    },
+    {
+      "region_id": 655,
+      "region_nazwa": "Terytorium Zamorskie Tansuny",
+      "region_powierzchnia": null,
+      "map_area": 1115.0102330722439,
+      "new_area_km2": 17054
+    },
+    {
+      "region_id": 656,
+      "region_nazwa": "Terytorium Zamorskie Wysp Uśmiechu",
+      "region_powierzchnia": null,
+      "map_area": 295.6476179019884,
+      "new_area_km2": 4522
+    },
+    {
+      "region_id": 657,
+      "region_nazwa": "Wyspa Świętej Faltyrii",
+      "region_powierzchnia": null,
+      "map_area": 81.92140095173588,
+      "new_area_km2": 1253
+    },
+    {
+      "region_id": 658,
+      "region_nazwa": "Archipelag Celioparów",
+      "region_powierzchnia": null,
+      "map_area": 277.3390122851508,
+      "new_area_km2": 4242
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+.military-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:20px; }
+.military-summary .game-panel { padding:18px; }
+.military-summary h2 { font-size:15px; margin:0 0 12px; }
+.military-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr); gap:20px; }
+#military-map { height:clamp(500px,75vh,900px); background:#e7edf5; isolation:isolate; }
+.military-sidebar { padding:18px; }
+.military-sidebar select { width:100%; }
+.military-base { padding:14px 0; border-top:1px solid #d8e0e9; }
+.military-base h3,.military-resource-label { display:flex; gap:8px; align-items:center; }
+.military-base img,.military-action img { width:26px; height:26px; object-fit:contain; }
+.military-base-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.game-app .military-base-actions button { font-size:12px; padding:6px 9px; min-height:34px; }
+.game-app .military-action { width:100%; margin:5px 0; justify-content:flex-start; }
+.game-app .military-attack { background:#c53434; }
+.game-app .military-attack:hover { background:#a12727; }
+#military-dialog { width:min(580px,calc(100vw - 30px)); box-sizing:border-box; padding:24px; border:1px solid #b7c5d6; border-radius:12px; max-height:calc(100dvh - 30px); overflow-y:auto; }
+#military-dialog::backdrop { background:#10244099; }
+#military-dialog-fields label { display:block; margin:14px 0; }
+#military-dialog-fields input,#military-dialog-fields select { display:block; box-sizing:border-box; width:100%; margin-top:7px; padding:9px; }
+.military-dialog-actions { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }
+.game-app #military-dialog-cancel { background:#c53434; }
+.game-app #military-dialog-confirm { background:#218838; }
+#military-error,#military-dialog-error { color:#c12727; font-weight:600; }
+#military-map-status { padding:12px; }
+@media(max-width:900px) { .military-layout { grid-template-columns:1fr; } }
+@media(max-width:650px) { .military-summary { grid-template-columns:1fr; } }
+.military-health { margin:10px 0; font-size:12px; }
+.military-health span { display:block; margin-bottom:4px; }
+.military-health progress { width:100%; height:10px; accent-color:#218838; }
+.military-base-marker { box-sizing:border-box; padding:3px; background:#fff; border:1px solid #244984; border-radius:5px; box-shadow:0 1px 5px #19345340; }
+.military-base-tooltip { min-width:180px; }
+.military-base-tooltip .military-resource-label { margin:5px 0; }
+.military-base-tooltip img { width:22px; height:22px; }
+#military-map.military-locating { cursor:crosshair; }
+.military-range-error,#military-location-status { color:#c12727; }
+.military-missile { background:transparent; border:0; }
+.military-missile-pulse { display:block; width:12px; height:12px; border-radius:50%; background:#df1818; border:1px solid white; animation:military-missile-pulse .8s ease-out infinite; }
+@keyframes military-missile-pulse { 0% { box-shadow:0 0 0 0 #df1818a0; } 100% { box-shadow:0 0 0 12px #df181800; } }
+.military-fighter { background:transparent; border:0; }
+.military-fighter-icon,.military-fighter-icon img { width:36px; height:36px; }
+.military-fighter-icon img { transform-origin:center; filter:drop-shadow(0 1px 2px #fff); }
+.military-missions { padding:20px; margin-top:20px; }
+@media(prefers-reduced-motion:reduce) { .military-missile-pulse { animation:none; } }
+
+.military-base-map-marker { background:transparent; border:0; }
+.military-base-symbol { width:38px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.military-base-symbol img { box-sizing:border-box; width:32px; height:32px; padding:3px; background:#fff; border:1px solid #244984; border-radius:5px; }
+.military-base-symbol progress { display:block; width:38px; height:7px; accent-color:#218838; }
+
+.military-base { position:relative; margin:14px 0; padding:16px; border:1px solid #d8e0e9; border-radius:10px; background:#f8fafc; scroll-margin:25px; }
+.military-base h3 { padding-right:30px; }
+.military-base-menu { position:absolute; top:10px; right:10px; z-index:5; }
+.military-base-menu[open] { z-index:10; }
+.military-base-menu summary { cursor:pointer; font-size:24px; padding:0 9px; list-style:none; }
+.military-base-menu .military-base-actions { position:absolute; right:0; min-width:215px; padding:10px; background:white; border:1px solid #b7c5d6; border-radius:8px; box-shadow:0 4px 15px #19345330; }
+.military-base-actions .military-action { color:#fff; }
+.military-vessel { background:white; border:1px solid #244984; border-radius:5px; }
+
+.military-defense-marker { background:transparent; border:0; }
+.military-defense-symbol { position:relative; box-sizing:border-box; width:36px; height:36px; background:white; border-radius:5px; border:1px solid #218838; }
+.military-defense-symbol img { width:34px; height:34px; object-fit:contain; }
+.military-defense-symbol span { position:absolute; right:-5px; bottom:-5px; font-size:12px; font-weight:700; background:#218838; color:white; border-radius:50%; width:18px; height:18px; line-height:18px; text-align:center; }
+.leaflet-tooltip.military-wrapping-tooltip { box-sizing:border-box; width:max-content; max-width:min(280px,calc(100vw - 40px)); white-space:normal; overflow-wrap:anywhere; padding:10px 12px; }
+.military-defense-tooltip { min-width:0; }
+.military-defense-tooltip>strong { display:block; margin-bottom:7px; }
+.military-defense-tooltip-row { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 14px; margin-top:4px; }
+.military-defense-tooltip-row>* { min-width:0; max-width:100%; }
+.military-vessel-symbol { width:32px; height:32px; position:relative; }
+.military-vessel-symbol>img:first-child { width:32px; height:32px; }
+.military-vessel-symbol .military-vessel-flag { position:absolute; right:-9px; top:-7px; width:20px; height:13px; object-fit:cover; border:1px solid white; box-shadow:0 1px 3px #19345360; }
+
+.military-defense-symbol-compact { width:24px; height:24px; border-radius:4px; }
+.military-defense-symbol-compact img { width:22px; height:22px; }
+.military-defense-symbol-compact span { right:-4px; bottom:-4px; width:14px; height:14px; line-height:14px; font-size:10px; }
+
+/* Wojska lądowe: obrona miast, inwazja, okupacja (11 Nov 2026) */
+.land-icon{width:20px;height:20px;object-fit:contain;flex:none}
+.land-city-popup .leaflet-popup-content{margin:10px 12px;min-width:200px;max-width:270px}
+.land-city-card,.land-army-tooltip{display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.4}
+.land-city-title{display:flex;align-items:center;gap:7px}
+.land-city-title .land-icon{width:24px;height:24px}
+.land-unit-row{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:7px}
+.land-unit-row strong{font-variant-numeric:tabular-nums}
+.land-muted{margin:2px 0;color:#5d6b77;font-size:11px}
+.land-button{margin-top:4px;padding:6px 10px;border:1px solid #9c2b22;border-radius:5px;background:#c62828;color:#fff;font-weight:600;cursor:pointer}
+.land-button:disabled{opacity:.55;cursor:not-allowed}
+.land-small-button{margin-left:6px;padding:3px 8px;border:1px solid #8a97a3;border-radius:4px;background:#fff;color:#22313f;font-size:11px;cursor:pointer}
+.land-detachment{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;font-size:11px}
+.land-detachment span{min-width:0;overflow-wrap:anywhere}
+.land-city-card .land-small-button{display:inline-block;width:auto;min-width:0;margin:0;flex:none;white-space:nowrap;line-height:1.3}
+.land-flag{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.land-flag img{width:22px;height:14px;object-fit:cover;border:1px solid #0003}
+.land-occupied-label{display:flex;flex-wrap:wrap;align-items:center;gap:5px;color:#b3261e;font-weight:600}
+.land-invasion-marker{background:transparent;border:0}
+.land-invasion-symbol{width:34px;height:34px;border-radius:50%;background:#c62828;border:2px solid #fff;box-shadow:0 0 0 2px #c62828a8,0 2px 6px #0006;display:grid;place-items:center}
+.land-invasion-symbol img{width:22px;height:22px;filter:brightness(0) invert(1)}
+.land-occupied-symbol{position:relative;outline:2px solid #c62828;outline-offset:1px;border-radius:5px}
+.land-occupied-flag{position:absolute;top:-6px;right:-8px;width:18px;height:12px;object-fit:cover;border:1px solid #fff;box-shadow:0 0 0 1px #c62828}
+.land-quote p{margin:4px 0;font-size:12px}
+.land-war-occupations{margin-top:14px;padding:10px;border:1px solid #c6282866;border-radius:7px}
+.land-war-occupations h3{margin:0 0 8px;font-size:14px}
+.land-occupation-item{padding:6px 0;border-top:1px solid #0001;font-size:12px}
+.land-occupation-item:first-of-type{border-top:0}
+.game-app .military-action:disabled,.game-app .military-action.military-action-locked{opacity:.45;filter:grayscale(1);cursor:not-allowed}
+.land-recapture{background:#1f6f43;border-color:#14532d}
+/* Radary (11 Nov 2026) */
+.military-radar-symbol{position:relative;width:36px;height:36px}
+.game-app .military-radar-symbol>img:first-child{box-sizing:border-box;width:36px;height:36px;padding:3px;background:#fff;border:1px solid #244984;border-radius:5px;object-fit:contain}
+.military-radar-level{position:absolute;right:-8px;top:-8px;min-width:17px;height:17px;padding:0 3px;box-sizing:border-box;border-radius:9px;background:#244984;color:#fff;font:700 10px/17px system-ui,sans-serif;text-align:center}
+.military-radar-flag{position:absolute;left:-8px;bottom:0;width:18px;height:12px;object-fit:cover;border:1px solid #fff}
+.military-radar-destroyed>img:first-child{filter:grayscale(1);opacity:.55}
+.military-radar-contact{filter:drop-shadow(0 0 4px #ff9800)}
+.military-radar-costs{display:flex;flex-direction:column;gap:6px;margin:8px 0 10px}
+.military-radar-cost{display:flex;align-items:center;gap:8px;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.military-radar-cost img{flex:0 0 22px;width:22px!important;height:22px!important;max-width:22px;object-fit:contain;padding:2px;box-sizing:border-box;background:#fff;border-radius:4px}
+.military-radar-money{font-weight:600}
+
+/* 12 Nov 2026: przycisk w tooltipie lotniskowca — mały, w stylu tooltipu okrętu */
+.leaflet-tooltip.leaflet-interactive { pointer-events:auto; }
+.game-app .leaflet-tooltip button.military-tooltip-action.military-tooltip-action { display:inline-block; min-height:0; margin-top:5px; padding:1px 8px; font:inherit; font-size:11px; font-weight:600; line-height:1.5; border:1px solid #9fb3c8; border-radius:4px; background:#fff; color:#193453; box-shadow:none; cursor:pointer; }
+.game-app .leaflet-tooltip button.military-tooltip-action.military-tooltip-action:hover { background:#e6eef8; }

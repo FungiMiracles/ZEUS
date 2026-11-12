@@ -1,0 +1,66 @@
+{% extends "game/game_base_layout.html" %}
+{% from "macros/icons.html" import icon %}
+{% block title %}Środowisko — {{ game_country.nazwa }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_srodowisko.css', v='20261024-6') }}">
+{% endblock %}
+{% block content %}
+<div class="environment-metrics">
+    {% for metric in metrics %}
+    <section class="game-panel" aria-labelledby="environment-metric-{{ metric.code }}">
+        <h2 class="game-panel-heading" id="environment-metric-{{ metric.code }}">{{ icon(metric.code) }} {{ metric.label }}</h2>
+        <div class="game-panel-body">
+            <strong class="environment-value">{{ metric.value ~ ' / 100' if metric.value is not none else 'Brak danych' }}</strong>
+            <p>Dane z {{ metric.known }} z {{ metric.total }} regionów.</p>
+            <p class="environment-generated">{% if metric.code == 'air' %}Zanieczyszczenie generowane przez produkcję energii{% else %}Degradacja generowana przez produkcję w fabrykach{% endif %}: <strong>{{ metric.generated }} pkt</strong></p>
+            {% if metric.known < metric.total %}
+            <p class="environment-warning">Niepełne dane: brakujące i nieprawidłowe wartości pominięto w średniej.</p>
+            {% elif metric.total == 0 %}<p>Państwo nie ma przypisanych regionów.</p>{% endif %}
+        </div>
+    </section>
+    {% endfor %}
+</div>
+<p>Wskaźniki krajowe to średnie arytmetyczne wartości dostępnych w regionach. Skala 0–100: wyższa wartość oznacza większe zanieczyszczenie lub degradację.</p>
+<section class="game-panel">
+    <h2 class="game-panel-heading">Mapa środowiska</h2>
+    <div class="game-panel-body">
+        <div class="environment-tabs" role="tablist" aria-label="Wskaźnik środowiskowy">
+            {% for metric in metrics %}
+            <button type="button" role="tab" id="environment-tab-{{ metric.code }}"
+                    data-environment-metric="{{ metric.code }}"
+                    aria-controls="environment-map-panel" aria-selected="{{ 'true' if loop.first else 'false' }}"
+                    tabindex="{{ '0' if loop.first else '-1' }}">{{ metric.label }}</button>
+            {% endfor %}
+        </div>
+        <div id="environment-map-panel" role="tabpanel" aria-labelledby="environment-tab-air">
+            <div id="environment-map" aria-label="Mapa zanieczyszczenia powietrza w regionach"></div>
+            <p id="environment-map-status" role="status" hidden></p>
+            <div class="environment-legend" aria-label="Legenda mapy">
+                {% for label, color in [('0–20', '#1a9850'), ('ponad 20–40', '#91cf60'), ('ponad 40–60', '#fee08b'), ('ponad 60–80', '#fc8d59'), ('ponad 80–100', '#d73027'), ('brak danych', '#cbd5e1')] %}
+                <span><i style="background-color: {{ color }}" aria-hidden="true"></i>{{ label }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <noscript><p>Wyświetlenie mapy wymaga włączonej obsługi JavaScript. Wartości regionalne znajdziesz poniżej.</p></noscript>
+    </div>
+</section>
+<details class="game-panel">
+    <summary class="game-panel-heading">Wartości w regionach</summary>
+    <div class="game-panel-body environment-table-scroll">
+        <table class="environment-table">
+            <thead><tr><th scope="col">Region</th><th scope="col">Zanieczyszczenie powietrza</th><th scope="col">Degradacja środowiska</th></tr></thead>
+            <tbody>
+                {% for id, region in environment_map.regions.items() %}
+                <tr><th scope="row">{{ region.name }}</th><td>{{ region.air if region.air is not none else 'Brak danych' }}</td><td>{{ region.degradation if region.degradation is not none else 'Brak danych' }}</td></tr>
+                {% else %}<tr><td colspan="3">Brak regionów.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</details>
+<script type="application/json" id="environment-map-config">{{ environment_map | tojson }}</script>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/game_srodowisko.js', v='20261024-6') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,232 @@
+.demo-top {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.demo-top > * {
+    min-width: 0;
+}
+
+.demo-chart-scroll {
+    overflow-x: auto;
+    padding-top: 45px;
+}
+
+.demo-chart {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 580px;
+    padding: 0 12px 12px;
+}
+
+.demo-year {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    outline-offset: 3px;
+}
+
+.demo-column {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 300px;
+    border-bottom: 1px solid #94a3b8;
+    background: repeating-linear-gradient(
+        to top,
+        transparent 0,
+        transparent calc(25% - 1px),
+        #e2e8f0 calc(25% - 1px),
+        #e2e8f0 25%
+    );
+}
+
+.demo-bar {
+    width: 85%;
+    background: #f28c28;
+    border-radius: 5px 5px 0 0;
+}
+
+.demo-year:hover .demo-bar,
+.demo-year:focus .demo-bar {
+    background: #c9670b;
+}
+
+.demo-year-label {
+    display: block;
+    margin-top: 8px;
+    font-size: 11px;
+    text-align: center;
+}
+
+.demo-chart-tooltip {
+    display: none;
+    position: absolute;
+    top: -38px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    padding: 6px 8px;
+    border-radius: 5px;
+    background: #172033;
+    color: white;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.demo-year:first-child .demo-chart-tooltip {
+    left: 0;
+    transform: none;
+}
+
+.demo-year:last-child .demo-chart-tooltip {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.demo-year:hover .demo-chart-tooltip,
+.demo-year:focus .demo-chart-tooltip {
+    display: block;
+}
+
+.demo-missing {
+    color: #64748b;
+}
+
+#demography-map {
+    height: 365px;
+    border-radius: 8px;
+    background: #e8edf4;
+    isolation: isolate;
+}
+
+.demo-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+.demo-map-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.demo-map-legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.demo-city-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 12px;
+}
+
+.demo-city-legend span {
+    white-space: nowrap;
+}
+
+.demo-city-legend span:nth-child(1) { font-size: 10px; }
+.demo-city-legend span:nth-child(2) { font-size: 12px; }
+.demo-city-legend span:nth-child(3) { font-size: 14px; }
+.demo-city-legend span:nth-child(4) { font-size: 16px; }
+.demo-city-legend span:nth-child(5) { font-size: 18px; }
+
+.demo-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.demo-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+}
+
+.demo-metric strong {
+    font-size: 25px;
+}
+
+.demo-metric > span {
+    font-size: 12px;
+}
+
+.demo-positive { color: #15803d; }
+.demo-negative { color: #dc2626; }
+
+@media (max-width: 1000px) {
+    .demo-top {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .demo-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+.demo-page-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.demo-page-heading h1 {
+    margin: 0;
+}
+
+.demo-country-flag {
+    display: block;
+    width: 84px;
+    height: 56px;
+    object-fit: contain;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+}
+
+.demo-map-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.demo-map-heading h2 {
+    margin: 0;
+    font-size: inherit;
+}
+
+#demography-map .demo-map-reset {
+    display: block;
+    margin: 0;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: white;
+    color: #173b75;
+    cursor: pointer;
+}
+
+#demography-map .demo-map-reset:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

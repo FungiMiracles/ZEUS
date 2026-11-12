@@ -1,0 +1,64 @@
+{% extends "base_layout.html" %}
+{% from "macros/icons.html" import icon, icon_files %}
+{% block title %}Surowce naturalne — administracja ZEUS{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_natural_resources.css', v='20261026-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-1') }}">
+<div class="resources-admin">
+<header class="resources-header"><h1>Surowce naturalne</h1><p>Zarządzaj złożami regionalnymi i technologią wydobywczą państw.</p></header>
+{% for category, message in get_flashed_messages(with_categories=true) %}<p class="resources-notice" role="status">{{ message }}</p>{% endfor %}
+{% if error %}<p class="resources-error" role="alert">{{ error }}</p>{% endif %}
+<div class="resources-workspace">
+<section class="resources-panel resources-map-panel">
+<h2>Złoża regionalne</h2>
+<p>Wybierz region na mapie, aby edytować ilości minerałów. Zielony kolor oznacza region z co najmniej jednym minerałem w ilości większej od zera. Mapa pokazuje zapisane złoża.</p>
+<div class="resources-map-legend"><span><i class="deposit-empty"></i>Brak złóż</span><span><i class="deposit-present"></i>Zapisane złoża</span><span><i class="deposit-selected"></i>Wybrany region</span></div>
+<div id="resources-world-map" aria-label="Mapa złóż regionalnych"></div>
+<p id="resources-map-status" role="status" hidden></p>
+<noscript>Mapa wymaga JavaScript. Wybierz region z listy poniżej.</noscript>
+<form method="get" class="resources-selector"><div class="resources-field"><label for="region-fallback">Region</label><select id="region-fallback" name="region_id" required><option value="">Wybierz region</option>{% for id, r in region_index.items() %}<option value="{{ id }}" data-country="{{ r.countryId }}" {% if selected_region == id %}selected{% endif %}>{{ country_names.get(r.countryId|string, '') }} — {{ r.name }}</option>{% endfor %}</select></div><button type="submit">Wczytaj region</button></form>
+</section>
+{% if country and regions %}
+{% for region in regions %}{% if selected_region == region.region_id|string and not generated %}
+<section class="resources-panel resources-editor"><h2>Złoża wybranego regionu</h2><p class="resources-selection">{{ region.region_nazwa }} <span>• {{ country.panstwo_nazwa }}</span></p>
+<form method="post">
+<input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="technology" value="{{ technology }}"><input type="hidden" name="action" value="region"><input type="hidden" name="region_id" value="{{ region.region_id }}">
+<fieldset {% if not configuration_ok %}disabled{% endif %}><legend>Ilości minerałów (liczby całkowite)</legend>
+<div class="resources-mineral-grid">{% for code, name in resources %}{% set field = field_name(region.region_id, code) %}<div class="resources-technology"><label for="{{ field }}">{{ icon(name) }} {{ name }}</label><input id="{{ field }}" type="number" name="{{ field }}" value="{{ values.get(field, '0') }}" min="0" max="{{ max_quantity }}" step="1" required></div>{% endfor %}
+</div><div class="resources-actions"><button type="submit">Zatwierdź złoża regionu</button></div></fieldset></form></section>
+{% endif %}{% endfor %}{% endif %}
+{% if not selected_region or generated %}
+<section class="resources-panel resources-empty"><h2>Edycja złóż regionu</h2><p>Wybierz region na mapie lub z listy, aby wyświetlić i zmienić ilości minerałów.</p></section>
+{% endif %}
+</div>
+<div class="resources-settings-grid">
+<section class="resources-panel"><h2>Technologie wydobywcze państwa</h2>
+{% if not countries %}<p>Brak państw pasujących do wyszukiwania.</p>{% endif %}
+<form method="get" class="resources-country-search"><div class="resources-field"><label for="resources-country">Państwo</label><select id="resources-country" name="country_id" required><option value="">Wybierz państwo</option>{% for item in countries %}<option value="{{ item.PANSTWO_ID }}" {% if country and item.PANSTWO_ID == country.PANSTWO_ID %}selected{% endif %}>{{ item.panstwo_nazwa }}</option>{% endfor %}</select></div><button type="submit">Wczytaj współczynnik</button></form>
+{% if country %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="action" value="technology">
+<div class="resources-field"><label for="resources-technology">Współczynnik (0–100)</label><input id="resources-technology" type="number" name="technology" min="0" max="100" step="1" value="{{ technology }}" required></div><div class="resources-actions resources-actions-start">
+<button type="button" id="suggest-technology" data-value="{{ suggested_technology if suggested_technology is not none else '' }}" {% if suggested_technology is none %}disabled{% endif %} class="resources-button-secondary">Podstaw średnią infrastruktury</button></div>
+<p>Średnia dostępnych wskaźników infrastruktury wszystkich regionów (portowa tylko dla regionów z dostępem do portów), zaokrąglona do liczby całkowitej. Propozycję możesz zmienić; zapis wymaga zatwierdzenia.</p>
+<div class="resources-actions"><button type="submit">Zatwierdź współczynnik</button></div></form>{% endif %}</section>
+{% if country %}
+<section class="resources-panel resources-generation {% if generated %}resources-generated{% endif %}"><h2>Losowanie złóż — {{ country.panstwo_nazwa }}</h2><p>Zakres obejmuje obie granice. Losowanie przygotuje podgląd dla wszystkich regionów; wybrany minerał zastąpi obecne ilości dopiero po zatwierdzeniu.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="technology" value="{{ technology }}">
+{% if generated %}
+<div class="resources-table-scroll"><table class="resources-table"><thead><tr><th>Region</th>{% for code, name in resources %}<th>{{ icon(name) }} {{ name }}</th>{% endfor %}</tr></thead><tbody>
+{% for region in regions %}<tr><th>{{ region.region_nazwa }}</th>{% for code, name in resources %}{% set field = field_name(region.region_id, code) %}<td><input type="number" name="{{ field }}" value="{{ values.get(field, '0') }}" min="0" max="{{ max_quantity }}" step="1" required aria-label="{{ region.region_nazwa }} — {{ name }}"></td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+{% else %}{% for field, value in values.items() %}<input type="hidden" name="{{ field }}" value="{{ value }}">{% endfor %}{% endif %}
+<fieldset {% if not configuration_ok or not regions %}disabled{% endif %}>
+{% if generated %}<p class="resources-notice">Wygenerowane wartości są widoczne powyżej. Nie zostały jeszcze zapisane.</p><button name="action" value="bulk">Zatwierdź wszystkie wygenerowane wartości</button>{% endif %}
+<div class="resources-random-fields"><div class="resources-field"><label for="random-resource">Minerał</label><div class="resources-mineral-select"><img class="zeus-section-icon" id="random-resource-icon" width="28" height="28" alt="" aria-hidden="true" src="{{ url_for('static', filename='icons/WEGIEL.svg') }}"><select name="resource" id="random-resource">{% for code, name in resources %}<option value="{{ code }}" data-icon="{{ url_for('static', filename='icons/' ~ icon_files[name]) }}">{{ name }}</option>{% endfor %}</select></div></div>
+<div class="resources-field"><label for="random-min">Minimum</label><input type="number" id="random-min" name="minimum" min="0" max="{{ max_quantity }}" step="1" value="10" required></div>
+<div class="resources-field"><label for="random-max">Maksimum</label><input type="number" id="random-max" name="maximum" min="0" max="{{ max_quantity }}" step="1" value="400" required></div></div>
+<div class="resources-actions"><button name="action" value="generate">Generuj podgląd</button></div></fieldset></form></section>{% endif %}
+</div>
+</div>
+<script type="application/json" id="resource-map-config">{{ {'regions':region_index, 'countries':country_names, 'url':url_for('admin_natural_resources'), 'countriesUrl':url_for('region_sovereignty.country_boundaries'), 'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'), 'selected':selected_region}|tojson }}</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261024-1') }}" defer></script>
+{% endblock %}

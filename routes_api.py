@@ -2,9 +2,6 @@ from flask import request, jsonify
 from extensions import db
 from models import Panstwo, Region, Miasto, DictKontynent
 
-
-
-
 def init_api_routes(app):
 
     @app.route("/api/panstwa_by_kontynent")

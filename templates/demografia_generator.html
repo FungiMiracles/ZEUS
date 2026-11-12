@@ -154,15 +154,88 @@
     font-size: 0.95em;
 }
 
-.btn-green {
-    background: #27ae60;
-    color: white;
+.btn-save {
+    background-color: #27ae60;
+    color: #ffffff;
 }
 
-.btn-gray {
-    background: #ecf0f1;
-    border: 1.5px solid #bdc3c7;
-    color: #34495e;
+.btn-save:hover {
+    background-color: #1e8749;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
+.btn-cancel {
+    background-color: #c73424;
+    color: #ffffff;
+    text-align: center;
+}
+
+.btn-cancel:hover {
+    background-color: #96271b;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
+#regiony-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#regiony-table th,
+#regiony-table td {
+    border: 1px solid #dcdcdc;
+    padding: 8px;
+    text-align: center;
+}
+
+#regiony-table th {
+    background: #f2f4f6;
+}
+
+#regiony-table input {
+    width: 100%;
+}
+
+.regiony-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+
+    .generator-box {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .generator-box h1 {
+        font-size: 1.25em;
+    }
+
+    #regiony-table {
+        min-width: 700px;
+    }
+
+    #regiony-table th,
+    #regiony-table td {
+        padding: 6px;
+        font-size: 0.8em;
+    }
+
+    #regiony-table input {
+        min-width: 70px;
+        font-size: 0.85em;
+        padding: 5px;
+    }
+
+    .generator-actions {
+        flex-direction: column;
+    }
+
+    .btn-main {
+        width: 100%;
+    }
 }
 
 </style>
@@ -253,59 +326,74 @@
                     </select>
                 </div>
 
-                <div>
-                    <label>Region</label>
-                    <select name="region_id" id="region" required>
-                        <option value="">— wybierz —</option>
-                    </select>
-                </div>
-
             </div>
         </div>
 
-        <!-- ===== PARAMETRY ===== -->
         <div class="generator-section">
-            <h3>Parametry generacji</h3>
-            <div class="generator-grid">
+            <h3>Parametry generowania miast dla regionów</h3>
 
-                <div>
-                    <label>Ilość miast</label>
-                    <input type="number"
-                           name="ilosc"
-                           min="1"
-                           value="{{ form_data.ilosc if form_data }}"
-                           required>
-                </div>
+        <div class="regiony-wrapper">
+            <table class="table table-striped" id="regiony-table">
+                <thead>
+                    <tr>
+                        <th>Region</th>
+                        <th>Ludność pozamiejska</th>
+                        <th>Ilość miast</th>
+                        <th>Ludność od</th>
+                        <th>Ludność do</th>
+                    </tr>
+                </thead>
 
-                <div>
-                    <label>Ludność od</label>
-                    <input type="number"
-                           name="min_pop"
-                           value="{{ form_data.min_pop if form_data }}"
-                           required>
-                </div>
+                <tbody id="regiony-body">
 
-                <div>
-                    <label>Ludność do</label>
-                    <input type="number"
-                           name="max_pop"
-                           value="{{ form_data.max_pop if form_data }}"
-                           required>
-                </div>
+                {% if regiony %}
+                    {% for region in regiony %}
+                    <tr>
 
-            </div>
+                        <td>{{ region.region_nazwa }}</td>
+
+                        <td>{{ region.region_ludnosc_pozamiejska or 0 }}</td>
+
+                        <td>
+                            <input
+                                type="number"
+                                name="ilosc_{{ region.region_id }}"
+                                value="{{ form_data.get('ilosc_' ~ region.region_id, '0') }}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                name="min_pop_{{ region.region_id }}"
+                                value="{{ form_data.get('min_pop_' ~ region.region_id, '') }}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                name="max_pop_{{ region.region_id }}"
+                                value="{{ form_data.get('max_pop_' ~ region.region_id, '') }}">
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+
+                </tbody>
+            </table>
+        </div>
         </div>
 
         <!-- ===== AKCJE ===== -->
         <div class="generator-actions">
-            <button class="btn-main btn-green"
+            <button class="btn-main btn-save"
                     type="submit"
                     {% if warning %}disabled{% endif %}>
                 Zrzuć do bazy
             </button>
 
-            <a href="{{ url_for('home_page') }}" class="btn-main btn-gray">
-                Anuluj
+            <a href="{{ url_for('demografia') }}" class="btn-main btn-cancel">
+                Wróć
             </a>
         </div>
 
@@ -313,19 +401,22 @@
 
 </div>
 
+<input type="hidden"
+       id="saved_kontynent"
+       value="{{ form_data.kontynent_id if form_data else '' }}">
+
+<input type="hidden"
+       id="saved_panstwo"
+       value="{{ form_data.panstwo_id if form_data else '' }}">
+
 <script>
 document.getElementById("kontynent").addEventListener("change", function () {
 
     const kontynentId = this.value;
     const panstwoSelect = document.getElementById("panstwo");
-    const regionSelect = document.getElementById("region");
 
     panstwoSelect.innerHTML = "<option>Ładowanie…</option>";
     panstwoSelect.disabled = true;
-
-    regionSelect.innerHTML = '<option value="">— wybierz —</option>';
-    regionSelect.disabled = true;
-    regionSelect.required = true;
 
     if (!kontynentId) return;
 
@@ -350,30 +441,103 @@ document.getElementById("kontynent").addEventListener("change", function () {
 document.getElementById("panstwo").addEventListener("change", function () {
 
     const panstwoId = this.value;
-    const regionSelect = document.getElementById("region");
+    const tbody = document.getElementById("regiony-body");
 
-    regionSelect.innerHTML = "<option>Ładowanie…</option>";
-    regionSelect.disabled = true;
+    tbody.innerHTML = "";
 
-    if (!panstwoId) return;
+    if (!panstwoId) {
+        return;
+    }
 
     fetch(`/api/regiony_by_panstwo?panstwo_id=${panstwoId}`)
         .then(res => res.json())
         .then(data => {
 
-            regionSelect.innerHTML = '<option value="">— wybierz —</option>';
-
             data.forEach(r => {
-                regionSelect.innerHTML +=
-                    `<option value="${r.region_id}">${r.region_nazwa}</option>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${r.region_nazwa}</td>
+
+                        <td>
+                            ${(r.region_ludnosc_pozamiejska || 0).toLocaleString()}
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                min="0"
+                                value="${savedFormData[`ilosc_${r.region_id}`] || 0}"
+                                name="ilosc_${r.region_id}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                value="${savedFormData[`min_pop_${r.region_id}`] || ''}"
+                                name="min_pop_${r.region_id}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                value="${savedFormData[`max_pop_${r.region_id}`] || ''}"
+                                name="max_pop_${r.region_id}">
+                        </td>
+
+                    </tr>
+                `;
             });
 
-            regionSelect.disabled = false;
-
         })
-        .catch(err => console.error("API error:", err));
+        .catch(err => console.error(err));
 
 });
+
+window.addEventListener("load", function () {
+
+    const savedKontynent =
+        document.getElementById("saved_kontynent")?.value;
+
+    const savedPanstwo =
+        document.getElementById("saved_panstwo")?.value;
+
+    if (!savedKontynent || !savedPanstwo) {
+        return;
+    }
+
+    const panstwoSelect =
+        document.getElementById("panstwo");
+
+    fetch(`/api/panstwa_by_kontynent?kontynent_id=${savedKontynent}`)
+        .then(res => res.json())
+        .then(data => {
+
+            panstwoSelect.innerHTML =
+                '<option value="">— wybierz —</option>';
+
+            data.forEach(p => {
+
+                const selected =
+                    String(p.id) === String(savedPanstwo)
+                        ? "selected"
+                        : "";
+
+                panstwoSelect.innerHTML +=
+                    `<option value="${p.id}" ${selected}>
+                        ${p.nazwa}
+                     </option>`;
+            });
+
+            panstwoSelect.dispatchEvent(
+                new Event("change")
+            );
+        });
+
+});
+</script>
+<script>
+const savedFormData = {{ form_data|tojson if form_data else '{}' }};
 </script>
 
 {% endblock %}

@@ -1,0 +1,13 @@
+.diplomacy-world-news { z-index: auto; text-transform: none; letter-spacing: normal; }
+.diplomacy-world-news[open] { z-index: 1100; }
+.diplomacy-room #game-notifications[open] { z-index: 1300; }
+.diplomacy-world-news > summary { display: flex; align-items: center; justify-content: center; min-height: 40px; }
+.diplomacy-world-news > summary img { width: 28px; height: 28px; }
+.diplomacy-world-news .game-notification-dropdown { position: fixed; left: var(--news-left, 12px); right: auto; top: var(--news-top, 0px); max-height: var(--news-height, 65vh); text-align: left; font-size: 14px; }
+.diplomacy-world-news .game-notification-item { box-sizing: border-box; margin-top: 10px; cursor: default; }
+.diplomacy-world-news .game-notification-item p { margin: 8px 0; line-height: 1.5; }
+.game-app.game-navy.game-civic .diplomacy-world-news .game-notification-item:not(.notification-war) { background: #e7eedf; color: #304b37; border: 1px solid #b7c9a9; }
+.game-app.game-navy.game-civic .diplomacy-world-news .game-notification-item p { color: inherit; }
+.diplomacy-news-flags { display: flex; align-items: center; gap: 8px; }
+.diplomacy-news-flags img { object-fit: contain; border: 1px solid #bac7ae; border-radius: 2px; }
+.diplomacy-world-news [hidden] { display: none !important; }

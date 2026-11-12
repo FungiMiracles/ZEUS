@@ -37,7 +37,7 @@
 }
 
 .flag-wrapper { text-align:center; margin-bottom:8px; min-height:28px; }
-.flag-img { height:28px; border-radius:3px; }
+.flag-img { height:28px; border-radius:3px; border: 1px solid #000; }
 .hidden { visibility: hidden; }
 
 .state-name { text-align:center; font-size:17px; margin-bottom:15px; color:#2c3e50; }
@@ -206,6 +206,24 @@ async function loadState(targetDiv, id, flagId, nameId, side) {
             <tbody>
                 <tr><td class="label">Kontynent</td><td class="val">${data.kontynent || '—'}</td></tr>
                 <tr><td class="label">Populacja</td><td class="val" data-field="populacja" data-value="${data.populacja || 0}">${formatNumber(data.populacja || 0)}</td></tr>
+                
+                <tr>
+                    <td class="label">PKB nominalne</td>
+                    <td class="val"
+                        data-field="pkb_nominalne"
+                        data-value="${data.pkb_nominalne || 0}">
+                        ${data.pkb_nominalne != null ? formatNumber(data.pkb_nominalne) : '—'}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="label">PKB per capita</td>
+                    <td class="val"
+                        data-field="pkb_per_capita"
+                        data-value="${data.pkb_per_capita || 0}">
+                        ${data.pkb_per_capita ? formatNumber(data.pkb_per_capita) : '—'}
+                    </td>
+                </tr>
 
                 <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Makro</th></tr>
                 <tr><td class="label">Wzrost PKB (%)</td><td class="val" data-field="wzrost_pkb" data-value="${G.wzrost_pkb || 0}">${G.wzrost_pkb != null ? G.wzrost_pkb+'%' : '—'}</td></tr>
@@ -220,28 +238,6 @@ async function loadState(targetDiv, id, flagId, nameId, side) {
                 <tr><td class="label">Eksport</td><td class="val" data-field="eksport_wartosc" data-value="${G.eksport_wartosc || 0}">${G.eksport_wartosc != null ? formatNumber(G.eksport_wartosc) : '—'}</td></tr>
                 <tr><td class="label">Import</td><td class="val" data-field="import_wartosc" data-value="${G.import_wartosc || 0}">${G.import_wartosc != null ? formatNumber(G.import_wartosc) : '—'}</td></tr>
 
-                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Surowce (wydobycie)</th></tr>
-                <tr><td class="label">Ropa (baryłki)</td><td class="val" data-field="ropa_wydobycie" data-value="${G.ropa_wydobycie || 0}">${G.ropa_wydobycie != null ? formatNumber(G.ropa_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Gaz (m³)</td><td class="val" data-field="gaz_wydobycie" data-value="${G.gaz_wydobycie || 0}">${G.gaz_wydobycie != null ? formatNumber(G.gaz_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Węgiel (t)</td><td class="val" data-field="wegiel_wydobycie" data-value="${G.wegiel_wydobycie || 0}">${G.wegiel_wydobycie != null ? formatNumber(G.wegiel_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Uran (t)</td><td class="val" data-field="uran_wydobycie" data-value="${G.uran_wydobycie || 0}">${G.uran_wydobycie != null ? formatNumber(G.uran_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Złoto (kg)</td><td class="val" data-field="zloto_wydobycie" data-value="${G.zloto_wydobycie || 0}">${G.zloto_wydobycie != null ? formatNumber(G.zloto_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Kerbit (t)</td><td class="val" data-field="kerbit_wydobycie" data-value="${G.kerbit_wydobycie || 0}">${G.kerbit_wydobycie != null ? formatNumber(G.kerbit_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Natsyt (t)</td><td class="val" data-field="natsyt_wydobycie" data-value="${G.natsyt_wydobycie || 0}">${G.natsyt_wydobycie != null ? formatNumber(G.natsyt_wydobycie) : '—'}</td></tr>
-                <tr><td class="label">Cemium (t)</td><td class="val" data-field="cemium_wydobycie" data-value="${G.cemium_wydobycie || 0}">${G.cemium_wydobycie != null ? formatNumber(G.cemium_wydobycie) : '—'}</td></tr>
-
-                <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Produkcja (wartość roczna)</th></tr>
-                <tr><td class="label">Technologie</td><td class="val" data-field="technologie_wartosc_prod" data-value="${G.technologie_wartosc_prod || 0}">${G.technologie_wartosc_prod != null ? formatNumber(G.technologie_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Uzbrojenie</td><td class="val" data-field="uzbrojenie_wartosc_prod" data-value="${G.uzbrojenie_wartosc_prod || 0}">${G.uzbrojenie_wartosc_prod != null ? formatNumber(G.uzbrojenie_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Budownictwo</td><td class="val" data-field="budownictwo_wartosc_prod" data-value="${G.budownictwo_wartosc_prod || 0}">${G.budownictwo_wartosc_prod != null ? formatNumber(G.budownictwo_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Przemysł ciężki</td><td class="val" data-field="przemysl_ciezki_wartosc_prod" data-value="${G.przemysl_ciezki_wartosc_prod || 0}">${G.przemysl_ciezki_wartosc_prod != null ? formatNumber(G.przemysl_ciezki_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Przemysł lekki</td><td class="val" data-field="przemysl_lekki_wartosc_prod" data-value="${G.przemysl_lekki_wartosc_prod || 0}">${G.przemysl_lekki_wartosc_prod != null ? formatNumber(G.przemysl_lekki_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Produkcja żywności</td><td class="val" data-field="produkcja_zywnosci_wartosc_prod" data-value="${G.produkcja_zywnosci_wartosc_prod || 0}">${G.produkcja_zywnosci_wartosc_prod != null ? formatNumber(G.produkcja_zywnosci_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Usługi finansowe</td><td class="val" data-field="uslugi_finansowe_wartosc_prod" data-value="${G.uslugi_finansowe_wartosc_prod || 0}">${G.uslugi_finansowe_wartosc_prod != null ? formatNumber(G.uslugi_finansowe_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Przemysł farmaceutyczny</td><td class="val" data-field="przemysl_farmaceut_wartosc_prod" data-value="${G.przemysl_farmaceut_wartosc_prod || 0}">${G.przemysl_farmaceut_wartosc_prod != null ? formatNumber(G.przemysl_farmaceut_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Przemysł samochodowy</td><td class="val" data-field="przemysl_samochodowy_wartosc_prod" data-value="${G.przemysl_samochodowy_wartosc_prod || 0}">${G.przemysl_samochodowy_wartosc_prod != null ? formatNumber(G.przemysl_samochodowy_wartosc_prod) : '—'}</td></tr>
-                <tr><td class="label">Przemysł rozrywkowy</td><td class="val" data-field="przemysl_rozrywkowy_wartosc_prod" data-value="${G.przemysl_rozrywkowy_wartosc_prod || 0}">${G.przemysl_rozrywkowy_wartosc_prod != null ? formatNumber(G.przemysl_rozrywkowy_wartosc_prod) : '—'}</td></tr>
-
                 <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Budżet i energetyka</th></tr>
                 <tr><td class="label">Dług (% PKB)</td><td class="val" data-field="dlug_pct_pkb" data-value="${G.dlug_pct_pkb || 0}">${G.dlug_pct_pkb != null ? G.dlug_pct_pkb+'%' : '—'}</td></tr>
                 <tr><td class="label">Energia nieodnawialna (%)</td><td class="val" data-field="energia_nieodnawialne_pct" data-value="${G.energia_nieodnawialne_pct || 0}">${G.energia_nieodnawialne_pct != null ? G.energia_nieodnawialne_pct+'%' : '—'}</td></tr>
@@ -249,10 +245,8 @@ async function loadState(targetDiv, id, flagId, nameId, side) {
                 <tr><td class="label">Energia atomowa (%)</td><td class="val" data-field="energia_atomowa_pct" data-value="${G.energia_atomowa_pct || 0}">${G.energia_atomowa_pct != null ? G.energia_atomowa_pct+'%' : '—'}</td></tr>
 
                 <tr><th colspan="2" style="padding:8px; background:#f0f3f7; text-align:center;">Indeksy rozwojowe</th></tr>
-                <tr><td class="label">Stabilność</td><td class="val" data-field="indeks_stabilnosci_gosp" data-value="${G.indeks_stabilnosci_gosp || 0}">${G.indeks_stabilnosci_gosp != null ? G.indeks_stabilnosci_gosp : '—'}</td></tr>
                 <tr><td class="label">Korupcja</td><td class="val" data-field="indeks_korupcji_gosp" data-value="${G.indeks_korupcji_gosp || 0}">${G.indeks_korupcji_gosp != null ? G.indeks_korupcji_gosp : '—'}</td></tr>
                 <tr><td class="label">Innowacyjność</td><td class="val" data-field="indeks_innowacji_gosp" data-value="${G.indeks_innowacji_gosp || 0}">${G.indeks_innowacji_gosp != null ? G.indeks_innowacji_gosp : '—'}</td></tr>
-                <tr><td class="label">Rozwój ludzki</td><td class="val" data-field="indeks_rozwoju_ludzkiego" data-value="${G.indeks_rozwoju_ludzkiego || 0}">${G.indeks_rozwoju_ludzkiego != null ? G.indeks_rozwoju_ludzkiego : '—'}</td></tr>
             </tbody>
         </table>
     `;
@@ -267,11 +261,11 @@ function compareIfReady() {
     const reverse_fields = STATE_LEFT.reverse_fields || [];
 
     const fields = [
+        "pkb_nominalne",
+        "pkb_per_capita",
         "wzrost_pkb","bezrobocie",
         "sektor_uslugi_pct","sektor_przemysl_pct","sektor_rolnictwo_pct",
         "eksport_wartosc","import_wartosc",
-        "ropa_wydobycie","gaz_wydobycie","wegiel_wydobycie",
-        "uran_wydobycie","zloto_wydobycie","kerbit_wydobycie","natsyt_wydobycie","cemium_wydobycie",
         "technologie_wartosc_prod","uzbrojenie_wartosc_prod","budownictwo_wartosc_prod",
         "przemysl_ciezki_wartosc_prod","przemysl_lekki_wartosc_prod","produkcja_zywnosci_wartosc_prod",
         "uslugi_finansowe_wartosc_prod","przemysl_farmaceut_wartosc_prod","przemysl_samochodowy_wartosc_prod",

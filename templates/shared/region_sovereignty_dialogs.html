@@ -1,0 +1,32 @@
+{% if region_secession %}
+<dialog id="region-rejoin-dialog" class="region-sovereignty-dialog" aria-labelledby="region-rejoin-title">
+    <form method="post" action="{{ url_for('region_sovereignty.rejoin_country', region_id=region.region_id) }}">
+        <h2 id="region-rejoin-title">Przyłącz region do państwa</h2>
+        <p>Region <strong>{{ region.region_nazwa }}</strong> wraz z miastami zostanie przyłączony do wybranego państwa. Jego ID i historia zostaną zachowane.</p>
+        <input type="hidden" name="csrf_token" value="{{ secession_csrf }}">
+        <input type="hidden" name="request_id" value="{{ secession_request_id }}">
+        <input type="hidden" name="expected_country_id" value="{{ region.panstwo_id }}">
+        <label for="rejoin-target-country">Państwo docelowe</label>
+        <select id="rejoin-target-country" name="target_country_id" required>
+            <option value="">Wybierz państwo</option>
+            {% for id,name in rejoin_countries %}<option value="{{ id }}">{{ name }}</option>{% endfor %}
+        </select>
+        <p class="region-sovereignty-note">Jeżeli państwo utworzone po secesji utraci ostatni region, zostanie zachowane jako niesuwerenne państwo podległe wybranemu państwu. Nie zostanie usunięte.</p>
+        <div class="region-sovereignty-actions"><button type="button" data-sovereignty-close>Anuluj</button><button type="submit" class="primary">Zatwierdź przyłączenie</button></div>
+    </form>
+</dialog>
+{% else %}
+<dialog id="region-secede-dialog" class="region-sovereignty-dialog" aria-labelledby="region-secede-title">
+    <form method="post" action="{{ url_for('region_sovereignty.declare_independence', region_id=region.region_id) }}">
+        <h2 id="region-secede-title">Ogłoś niepodległość</h2>
+        <p>Region <strong>{{ region.region_nazwa }}</strong> wraz z miastami utworzy nowe państwo z własnym ID. Skopiowana zostanie flaga dotychczasowego państwa. Mapą kraju będzie obecna mapa regionu, jeżeli jest dostępna.</p>
+        <input type="hidden" name="csrf_token" value="{{ secession_csrf }}">
+        <input type="hidden" name="request_id" value="{{ secession_request_id }}">
+        <input type="hidden" name="expected_country_id" value="{{ region.panstwo_id }}">
+        <label for="secession-country-name">Nazwa nowego państwa</label>
+        <input id="secession-country-name" name="country_name" value="{{ region.region_nazwa }}" maxlength="200" required>
+        <p class="region-sovereignty-note">Dotychczasowa stolica regionu zostanie stolicą kraju. Jeśli region nie ma stolicy, nie zostanie ona wybrana automatycznie. Populacja i powierzchnia obu państw zostaną przeliczone; PKB nowego kraju pozostanie bez danych.</p>
+        <div class="region-sovereignty-actions"><button type="button" data-sovereignty-close>Anuluj</button><button type="submit" class="primary">Ogłoś niepodległość</button></div>
+    </form>
+</dialog>
+{% endif %}

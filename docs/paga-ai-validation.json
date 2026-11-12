@@ -1,0 +1,200 @@
+{
+  "environment": "ZEUS_UAT",
+  "model": {
+    "id": "Qwen3.5-4B-Q4_K_M",
+    "upstream": "Qwen/Qwen3.5-4B",
+    "gguf": "unsloth/Qwen3.5-4B-GGUF",
+    "revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+    "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+    "size": 2740937888,
+    "runtimeVersion": "v0.9.0",
+    "runtimeCommit": "cd959bae99ff4bed22bef2604f45241c09bbb8c8"
+  },
+  "autonomous_writes_enabled": false,
+  "regression": {
+    "tests": 492,
+    "passed": 492,
+    "seconds": 64.887,
+    "command": "PYTHONPATH=.:tests venv/bin/python -m unittest discover -s tests -p 'test_*.py' -q"
+  },
+  "catalogue": {
+    "operations": 61,
+    "reads": 38,
+    "mutations": 23
+  },
+  "read_handlers_uat": [
+    {
+      "operation": "game_main_page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_finance.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_finance.budget_history:GET",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.notifications:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_demography.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_environment.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_resources.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_army.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.roads_state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.industry_state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_military.defense_page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_military.war_page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_military.map_state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_military.coastline:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_intelligence.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_intelligence.state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_intelligence.report:GET",
+      "status": 404
+    },
+    {
+      "operation": "game_trade.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_trade.state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_trade.mine_state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_loans.state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_research.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_research.state:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_public.changes:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_public.society:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_public.events:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_diplomacy.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_diplomacy.world_news:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_player.events:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_player.map_geometry:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_forum.page:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_forum.permalink:GET",
+      "status": 404
+    },
+    {
+      "operation": "game_forum.edit:GET",
+      "status": 404
+    },
+    {
+      "operation": "game_forum.notifications:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_messages.index:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_messages.addressees:GET",
+      "status": 200
+    },
+    {
+      "operation": "game_messages.detail:GET",
+      "status": 404
+    }
+  ],
+  "model_forum_e2e": "PASS, generated JSON passed original handler and wrote only isolated SQLite",
+  "real_model_uat_queue": "PASS, two read-only decisions, FINISHED, own PAGA context and own memory",
+  "latest_inference": {
+    "seconds": 90.56,
+    "peak_rss_bytes": 4664037376,
+    "minimum_available_bytes": 3894300672,
+    "success": true,
+    "reason": []
+  },
+  "browser": "PASS, authenticated ON/OFF on isolated SQLite, persistent state, 390px layout, no JS errors",
+  "http_after_reload": [
+    "/game/panel 200",
+    "/game/forum 200",
+    "/game/finanse 200",
+    "/game/infrastruktura 200",
+    "/game/obrona-panstwa 200",
+    "/game/stan/zdarzenia 200",
+    "Live PAGA control: OFF, revision 6 model Qwen3.5-4B-Q4_K_M"
+  ],
+  "sandbox": "PASS, app directory/.env absent, DB environment absent, model present",
+  "activation": "Requires explicit approval after automatic review rejected unrestricted live model mutations during verification."
+}

@@ -1,0 +1,17 @@
+{% extends 'base_layout.html' %}
+{% block title %}PAGA — potwierdź dostęp{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/wiki_paga.css',v='20261106-1') }}">
+<section class="paga-page paga-card paga-gate">
+<h1>PAGA</h1><p>Panel Administracyjny Gry Autonomicznej</p>
+<p>Przy każdym wejściu potwierdź dostęp hasłem do roli Wszechmocny.</p>
+{% if error %}<p class="paga-error" role="alert">{{ error }}</p>{% endif %}
+<form method="post" action="{{ url_for('paga.entry') }}" autocomplete="off">
+<input type="hidden" name="csrf" value="{{ paga_csrf }}">
+<label for="paga-password">Hasło roli Wszechmocny</label>
+<input id="paga-password" name="password" type="password" autocomplete="off" required autofocus>
+<button type="submit" class="paga-primary">Otwórz PAGA</button>
+</form>
+<a href="{{ url_for('home_page') }}">← Powrót do głównego ekranu ZEUSa</a>
+</section>
+{% endblock %}

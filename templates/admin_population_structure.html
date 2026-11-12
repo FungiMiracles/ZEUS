@@ -1,0 +1,54 @@
+{% extends 'base_layout.html' %}
+{% block title %}Struktura ludności — WIKI{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wiki_population_structure.css', v='20261026-3') }}">
+<div class="population-page">
+    <header class="population-header">
+        <h1>Struktura ludności</h1>
+        <p>Wybierz państwo i określ udział poszczególnych grup wiekowych.</p>
+    </header>
+    <section class="population-card population-world" aria-labelledby="population-world-title">
+        <h2 id="population-world-title">Struktura ludności świata</h2>
+        <div class="population-world-bar" aria-label="Udział grup wiekowych w ludności świata">
+            {% for group in population_config.worldStructure.groups %}
+            <div class="population-world-segment {{ group.key }}" data-world-age="{{ group.key }}" style="width:{{ group.percent }}%" tabindex="0" title="{{ group.label }}: {{ group.percent }}%" aria-label="{{ group.label }}: {{ group.percent }}%"></div>
+            {% endfor %}
+        </div>
+        <div class="population-world-legend">
+            {% for group in population_config.worldStructure.groups %}
+            <span><i class="population-world-dot {{ group.key }}"></i>{{ group.label }}: <strong data-world-percent="{{ group.key }}">{{ group.percent }}%</strong></span>
+            {% endfor %}
+        </div>
+        <p id="population-world-coverage" class="population-help"></p>
+    </section>
+    <div class="population-layout">
+        <section class="population-card population-map-card" aria-labelledby="population-map-title">
+            <h2 id="population-map-title">Mapa państw</h2>
+            <div class="population-legend"><span><i class="population-marker missing"></i>Brak struktury</span><span><i class="population-marker saved"></i>Struktura zapisana</span><span><i class="population-marker selected"></i>Wybrane państwo</span></div>
+            <div id="population-map" aria-label="Wybierz państwo na mapie świata"></div>
+        </section>
+        <form id="population-form" class="population-card">
+            <h2>Dane państwa</h2>
+            <label for="population-country">Państwo</label>
+            <select id="population-country"><option value="">Wybierz na mapie lub z listy</option>{% for id,name in population_config.countries.items() %}<option value="{{ id }}">{{ name }}</option>{% endfor %}</select>
+            <p id="population-total" class="population-total">Wybierz państwo, aby wyświetlić ludność.</p>
+            <p class="population-help">Wpisz dwa udziały — trzeci uzupełni się automatycznie do 100%. Sprawdź wartości i zapisz strukturę.</p>
+            {% for key,label in [('children','Osoby w wieku 0–17 lat'),('working','Osoby w wieku 18–64 lata'),('seniors','Osoby w wieku 65+ lat')] %}
+            <div class="population-group">
+                <label for="population-{{ key }}">{{ label }} (%)</label>
+                <input id="population-{{ key }}" type="number" name="{{ key }}" min="0" max="100" step="0.01" required inputmode="decimal">
+                <output data-age-count="{{ key }}" for="population-{{ key }}">—</output>
+            </div>
+            {% endfor %}
+            <p id="population-sum" class="population-sum" role="status"></p>
+            <button type="submit" disabled id="population-save">Zapisz strukturę</button>
+            <p id="population-status" role="status" aria-live="polite"></p>
+        </form>
+    </div>
+</div>
+<script id="population-config" type="application/json">{{ population_config|tojson }}</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
+<script src="{{ url_for('static',filename='js/population_structure.js',v='20261026-3') }}" defer></script>
+{% endblock %}

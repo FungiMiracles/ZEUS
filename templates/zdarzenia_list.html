@@ -5,6 +5,7 @@
 {% block content %}
 <div class="events-page">
 <style>
+
 /* =========================================================
    LAYOUT STRONY
 ========================================================= */
@@ -83,156 +84,323 @@
    FILTER PANEL
 ========================================================= */
 
-.events-filters {
+/* Filter styles are scoped to the event screen. */
+.events-page .zeus-filter-box {
+    background:#fff;border:1px solid #d3d7dc;border-radius:12px;
+    padding:22px;margin:20px 0;box-shadow:0 3px 8px rgba(0,0,0,.06);
+}
+.events-page .events-filter-title {font-size:1.1rem;font-weight:700;color:#34495e;margin:0 0 18px}
+.events-page .events-filter-sections {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.events-page .events-filter-section {min-width:0;margin:0;padding:0;border:0}
+.events-page .events-filter-section legend {float:none;width:auto;padding:0;margin:0 0 12px;font-size:.9rem;font-weight:700;color:#52657a}
+.events-page .events-filter-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.events-page .events-filter-fields.single {grid-template-columns:1fr}
+.events-page .filter-group {min-width:0}
+.events-page .filter-group label {display:block;margin:0 0 6px;font-size:.82rem;font-weight:600;color:#34495e}
+.events-page .filter-group input,.events-page .filter-group select {
+    display:block;width:100%;min-width:0;box-sizing:border-box;height:40px;
+    padding:8px 10px;border:1px solid #bdc7d1;border-radius:6px;
+    background:#fff;color:#2c3e50;font:inherit;font-size:.9rem;
+}
+.events-page .filter-group input:focus,.events-page .filter-group select:focus {outline:2px solid #91b8e8;outline-offset:1px;border-color:#2c73d2}
+.events-page .filter-actions {display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid #e2e7ed}
+.events-page .filter-actions .btn-zeus {box-sizing:border-box;min-height:40px;display:inline-flex;align-items:center;justify-content:center;line-height:1.3}
+.events-page .filter-reset {background:#edf1f5;color:#34495e}
+.events-page .filter-reset:hover {background:#dfe6ee;text-decoration:none}
+@media(max-width:1100px){.events-page .events-filter-sections{grid-template-columns:repeat(2,minmax(0,1fr))}.events-page .events-filter-section:last-child{grid-column:1/-1}.events-page .events-filter-section:last-child .events-filter-fields{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:768px){.events-page .zeus-filter-box{padding:16px}.events-page .events-filter-sections{grid-template-columns:1fr;gap:20px}.events-page .events-filter-section:last-child .events-filter-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.events-page .filter-actions .btn-zeus{width:100%;padding:11px 14px}}
+@media(max-width:400px){.events-page .events-filter-fields,.events-page .events-filter-section:last-child .events-filter-fields{grid-template-columns:1fr}}
 
-    width: 100%;
-
-    margin-bottom: 18px;
-
-    padding: 14px 18px;
-
-    border: 1px solid #1c3f7a;
-    background: #f7f9ff;
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+    transition: background 0.2s ease, filter 0.2s ease;
+    display: inline-block;
 }
 
-.events-filters input {
-
-    margin-right: 10px;
-    margin-left: 5px;
-
-    padding: 4px 6px;
+.btn-view {
+    background-color: #2c73d2;
+    color: #ffffff;
 }
 
-.zeus-filter-box {
-    background: #ffffff;
-    border: 1px solid #d3d7dc;
-    border-radius: 12px;
-    padding: 16px 18px;
-    margin: 15px 0 18px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    align-items: flex-end;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+.btn-view:hover {
+    background-color: #1f5bb0;
+    color: #ffffff;
 }
 
-.filter-group {
-    min-width: 160px;
-    flex: 0 0 auto;
-}
+.btn-export {
 
-.filter-group label {
-    font-size: 0.75em;
-    font-weight: 800;
-    color: #34495e;
-    margin-bottom: 4px;
-    display: block;
-}
-
-.filter-group select,
-.filter-group input {
-    width: 100%;
-    padding: 7px 9px;
-    border-radius: 6px;
-    border: 1px solid #bdc3c7;
-    font-size: 0.85em;
-}
-
-.filter-group label {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    cursor: pointer;
+    justify-content: center;
+    padding: 9px 18px;
+    background: #2c73d2;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.85em;
+    font-weight: 700;
+    transition: 0.2s ease;
 }
+
+.btn-export:hover {
+
+    background: #1f5bb0;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 
 @media (max-width: 768px) {
 
 .events-page {
-    padding: 10px 10px 30px 10px;
+    padding: 10px 8px 30px 8px;
 }
 
-/* filtry */
+/* =========================
+   FILTRY
+========================= */
 
-.zeus-filter-box {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-.filter-group {
-    min-width: 0;
-}
-
-.filter-group input,
-.filter-group select {
-    font-size: 0.9em;
-    padding: 8px 10px;
-}
-
-/* przycisk */
-
-.filter-actions button {
+.btn-zeus {
     width: 100%;
-    padding: 10px 0;
-    font-size: 0.9em;
+}
+
+.btn-zeus {
+    text-align: center;
+    padding: 11px 0;
+    font-size: 0.92em;
+}
+
+.btn-delete {
+        display: block;
+        width: 100%;
+        margin-top: 5px;
+        padding: 8px;
+        font-size: 10px;
+    }
+
+/* =========================
+   TABELA -> KARTY
+========================= */
+
+.events-table,
+.events-table tbody,
+.events-table tr,
+.events-table td {
+    display: block;
+    width: 100%;
+}
+
+.events-table {
+    border: none;
+    background: transparent;
+}
+
+.events-table thead {
+    display: none;
+}
+
+.events-table tbody tr {
+
+    margin-bottom: 18px;
+
+    background: #ffffff;
+
+    border: 1px solid #cfd8ea;
+    border-radius: 12px;
+
+    padding: 14px;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.events-table td {
+
+    border: none;
+
+    padding: 8px 0;
+
+    text-align: left;
+
+    font-size: 0.88em;
+
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.events-table td::before {
+
+    content: attr(data-label);
+
+    font-weight: 700;
+
+    color: #2f5fa8;
+
+    flex-shrink: 0;
+
+    min-width: 110px;
+}
+
+/* opis */
+
+.events-table td[data-label="Opis"] {
+
+    display: block;
+
+    padding-top: 12px;
+
+    margin-top: 10px;
+
+    border-top: 1px solid #e5eaf3;
+
+    text-align: center;
+}
+
+.events-table td[data-label="Opis"]::before {
+
+    display: block;
+
+    margin-bottom: 6px;
+}
+
+/* długie teksty */
+
+.events-table td:last-child,
+.events-table td[data-label="Opis"] {
+
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* badge */
+
+.scale-badge {
+    display: inline-block;
+}
+
 }
 </style>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    <div style="margin-bottom:15px;">
+                                        {% for category, message in messages %}
+                                            <div style="padding:10px; border-radius:6px;
+                                                {% if category == 'success' %}background:#d4edda; color:#155724;
+                                                {% elif category == 'error' %}background:#f8d7da; color:#721c24;
+                                                {% endif %}">
+                                                {{ message }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+
 <h1>Wygenerowane zdarzenia</h1>
 
-<form method="GET">
+{% if crisis %}
+<div id="global-crisis-banner" role="status" style="margin:16px 0;padding:18px;border:2px solid #b91c1c;border-radius:10px;background:#fef2f2;color:#b91c1c;font-weight:700;">
+    trwa {{ crisis_levels[crisis.level].label }} globalny kryzys gospodarczy
+    <div style="font-size:13px;font-weight:400;margin-top:6px;">Rok Entendy: {{ crisis_year }}. Komunikat pozostaje widoczny do końca tego roku.</div>
+</div>
+{% endif %}
 
-<div class="zeus-filter-box">
+{% if session.get('rola') == 'wszechmocny' %}
+<section style="padding:18px;margin:16px 0;background:#fff;border:1px solid #d9e1ea;border-radius:12px;" aria-labelledby="global-crisis-title">
+    <h2 id="global-crisis-title" style="margin:0 0 12px;font-size:18px;">Globalny kryzys gospodarczy</h2>
+    <p>Możesz wygenerować jeden kryzys w roku Entendy {{ crisis_year }}. Kryzys jednorazowo obniża wzrost PKB wszystkich aktywnych państw z zapisanym wskaźnikiem. Ujemny wzrost ulega pogłębieniu; brakujące dane pozostają bez zmian.</p>
+    {% if crisis %}
+    <p>W tym roku wygenerowano już kryzys. Kolejny będzie dostępny w następnym roku Entendy.</p>
+    {% else %}
+    <form method="POST" action="{{ url_for('global_economic_crisis') }}" onsubmit="return confirm('Wygenerować globalny kryzys i obniżyć wzrost PKB państw świata? W tym roku nie będzie można wygenerować kolejnego kryzysu.');" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        <input type="hidden" name="csrf_token" value="{{ session.get('global_crisis_csrf', '') }}">
+        <input type="hidden" name="year" value="{{ crisis_year }}">
+        <label for="global-crisis-level">Poziom kryzysu</label>
+        <select id="global-crisis-level" name="level" required style="padding:10px;max-width:100%;">
+            <option value="">Wybierz poziom</option>
+            {% for key, spec in crisis_levels.items() %}
+            <option value="{{ key }}">{{ spec.label|capitalize }} kryzys gospodarczy — spadek o {{ spec.percent }}%</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-zeus btn-delete">Wygeneruj globalny kryzys</button>
+    </form>
+    {% endif %}
+</section>
+{% endif %}
 
+{% macro filter_input(name, label, type='number') %}
 <div class="filter-group">
-<label>ID regionu</label>
-<input type="number" name="region_id"
-value="{{ request.args.get('region_id','') }}">
+    <label for="event-filter-{{ name }}">{{ label }}</label>
+    <input id="event-filter-{{ name }}" type="{{ type }}" name="{{ name }}" value="{{ request.args.get(name, '') }}">
 </div>
-
-<div class="filter-group">
-<label>ID państwa</label>
-<input type="number" name="panstwo_id"
-value="{{ request.args.get('panstwo_id','') }}">
-</div>
-
-<div class="filter-group">
-<label>Typ zdarzenia</label>
-<select name="typ">
-
-<option value="">— wszystkie —</option>
-
-{% for t in typy %}
-<option value="{{ t.nazwa }}"
-{% if request.args.get('typ') == t.nazwa %}selected{% endif %}>
-{{ t.nazwa }}
-</option>
-{% endfor %}
-
-</select>
-</div>
-
-<div class="filter-group">
-<label>Data CE od</label>
-<input type="date" name="data_od"
-value="{{ request.args.get('data_od','') }}">
-</div>
-
-<div class="filter-group">
-<label>Data CE do</label>
-<input type="date" name="data_do"
-value="{{ request.args.get('data_do','') }}">
-</div>
-
-<div class="filter-actions">
-<button type="submit">Filtruj</button>
-</div>
-
-</div>
+{% endmacro %}
+<form method="GET" class="zeus-filter-box" aria-labelledby="events-filter-title">
+    <h2 id="events-filter-title" class="events-filter-title">Filtry zdarzeń</h2>
+    <div class="events-filter-sections">
+        <fieldset class="events-filter-section">
+            <legend>Identyfikatory</legend>
+            <div class="events-filter-fields">
+                {{ filter_input('zdarzenie_id', 'Zdarzenie', 'text') }}
+                {{ filter_input('szablon_id', 'Szablon') }}
+                {{ filter_input('wariant', 'Wariant', 'text') }}
+                {{ filter_input('panstwo_id', 'Państwo') }}
+                {{ filter_input('region_id', 'Region') }}
+                {{ filter_input('miasto_id', 'Miasto') }}
+            </div>
+        </fieldset>
+        <fieldset class="events-filter-section">
+            <legend>Rodzaj i status</legend>
+            <div class="events-filter-fields single">
+                <div class="filter-group">
+                    <label for="event-filter-typ">Typ zdarzenia</label>
+                    <select id="event-filter-typ" name="typ">
+                        <option value="">Wszystkie typy</option>
+                        {% for t in typy %}<option value="{{ t }}" {% if request.args.get('typ') == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="event-filter-status">Status</label>
+                    <select id="event-filter-status" name="status">
+                        <option value="">Wszystkie statusy</option>
+                        <option value="aktywne" {% if request.args.get('status') == 'aktywne' %}selected{% endif %}>Aktywne</option>
+                        <option value="archiwalne" {% if request.args.get('status') == 'archiwalne' %}selected{% endif %}>Archiwalne</option>
+                    </select>
+                </div>
+                {{ filter_input('skala', 'Skala') }}
+            </div>
+        </fieldset>
+        <fieldset class="events-filter-section">
+            <legend>Data i liczba ofiar</legend>
+            <div class="events-filter-fields">
+                {{ filter_input('data_od', 'Data Entendy od', 'date') }}
+                {{ filter_input('data_do', 'Data Entendy do', 'date') }}
+                {{ filter_input('ofiary_od', 'Ofiary od') }}
+                {{ filter_input('ofiary_do', 'Ofiary do') }}
+            </div>
+        </fieldset>
+    </div>
+    <div class="filter-actions">
+        <button type="submit" class="btn-zeus btn-view">Filtruj</button>
+        <a href="{{ url_for('zdarzenia_list') }}" class="btn-zeus filter-reset">Wyczyść filtry</a>
+        <a href="{{ url_for('export_zdarzenia_excel', **request.args) }}" class="btn-zeus btn-export">Eksportuj do pliku</a>
+    </div>
 </form>
 
 <hr>
+
+<p>
+    Liczba znalezionych zdarzeń:
+    <strong>{{ liczba_wynikow }}</strong>
+</p>
 
 <table class="events-table">
 
@@ -247,46 +415,69 @@ value="{{ request.args.get('data_do','') }}">
 <th>Ofiary</th>
 <th>Status</th>
 <th>Szablon</th>
+<th>Wariant</th>
 <th>Opis</th>
 <th>Data CE</th>
 <th>Data wygenerowania</th>
+<th>Data usunięcia</th>
+<th>Akcja</th>
 </tr>
 </thead>
 
 <tbody>
 
-{% for z, r, p in zdarzenia %}
+{% for z, r, p, s in zdarzenia %}
 <tr>
 
-<td>{{ z.zdarzenie_id }}</td>
+<td data-label="ID">{{ z.zdarzenie_id }}</td>
 
-<td>{{ z.zdarzenie_typ }}</td>
+<td data-label="Typ">{{ z.zdarzenie_typ }}</td>
 
-<td>{{ p.PANSTWO_ID }}</td>
+<td data-label="Państwo">{{ p.PANSTWO_ID if p else ('Globalne' if z.zdarzenie_typ == 'globalny_kryzys_gospodarczy' else '-') }}</td>
 
-<td>{{ r.region_id }}</td>
+<td data-label="Region">{{ r.region_id if r else '-' }}</td>
 
-<td>{{ z.miasto_id or "-" }}</td>
+<td data-label="Miasto">{{ z.miasto_id or "-" }}</td>
 
-<td>
+<td data-label="Skala">
 <span class="scale-badge scale-{{ z.skala or 1 }}">
 {{ z.skala or "-" }}
 </span>
 </td>
 
-<td>{{ z.ilosc_ofiar or 0 }}</td>
+<td data-label="Ofiary">{{ z.ilosc_ofiar or 0 }}</td>
 
-<td>{{ z.status or "aktywne" }}</td>
+<td data-label="Status">{{ z.status or "aktywne" }}</td>
 
-<td>{{ z.opis_szablon_id or "-" }}</td>
+<td data-label="Szablon">{{ z.opis_szablon_id or "-" }}</td>
 
-<td>
+<td data-label="Wariant">{{ s.wariant if s is not none else "-" }}</td>
+
+<td data-label="Opis", style="text-align: left";>
 {{ z.opis_wygenerowany or "— brak opisu —" }}
 </td>
 
-<td>{{ z.data_entenda or "-" }}</td>
+<td data-label="Data CE">{{ z.data_entenda or "-" }}</td>
 
-<td>{{ z.data_rzeczywista or "-" }}</td>
+<td data-label="Data wygenerowania">{{ z.data_rzeczywista or "-" }}</td>
+
+<td data-label="Data usunięcia">{{ z.data_usuniecia or "-" }}</td>
+
+{% if z.zdarzenie_typ == 'globalny_kryzys_gospodarczy' %}
+<td>Zapis historyczny</td>
+{% elif session.rola == "wszechmocny" %}
+<td><form method="POST"
+      action="{{ url_for('usun_zdarzenie', zdarzenie_id=z.zdarzenie_id) }}"
+      onsubmit="return confirm('Czy na pewno usunąć to zdarzenie?');">
+
+    <button class="btn-zeus btn-delete">
+        Usuń
+    </button>
+
+</form></td>
+{% else %}
+<td>Brak uprawnień</td>
+{% endif %}
 
 </tr>
 {% endfor %}

@@ -106,19 +106,21 @@ a.btn-zeus:active {
 
 /* Anuluj */
 .btn-cancel {
-    background-color: #eaeaea;
-    color: #34495e;
-    border: 1.5px solid #bdc3c7;
-}
-.btn-cancel:hover {
-    background-color: #999999;
+    background-color: #c73424;
+    color: #ffffff;
 }
 
-/* Zapisz */
+.btn-cancel:hover {
+    background-color: #96271b;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
 .btn-save {
     background-color: #27ae60;
     color: white;
 }
+
 .btn-save:hover {
     background-color: #1e8749;
 }
@@ -147,6 +149,15 @@ a.btn-zeus:active {
 
 .btn-zeus-action:active {
     color: #ffffff !important;
+}
+
+.btn-entenda-date {
+    background-color: #e49f16;
+    color: white;
+}
+
+.btn-entenda-date:hover {
+    background-color: #c8870f;
 }
 
 </style>
@@ -203,17 +214,35 @@ a.btn-zeus:active {
 
             <div class="historia-field">
                 <label>Data od *</label>
-                <input type="text"
-                       name="data_od"
-                       required
-                       placeholder="np. 1939 lub 01-09-1939">
+                <div style="display:flex; gap:8px;">
+                    <input type="text"
+                        id="dataOdInput"
+                        name="data_od"
+                        required
+                        placeholder="np. 1939 lub 01-09-1939">
+
+                    <button type="button"
+                        id="btnEntendaNowFrom"
+                        class="btn-zeus btn-entenda-date">
+                        Użyj bieżącej daty w Entendzie
+                    </button>
+                </div>
             </div>
 
             <div class="historia-field">
                 <label>Data do</label>
-                <input type="text"
-                       name="data_do"
-                       placeholder="np. 1945">
+                <div style="display:flex; gap:8px;">
+                    <input type="text"
+                        id="dataDoInput"
+                        name="data_do"
+                        placeholder="np. 1939 lub 01-09-1939">
+
+                    <button type="button"
+                        id="btnEntendaNowTo"
+                        class="btn-zeus btn-entenda-date">
+                        Użyj bieżącej daty w Entendzie
+                    </button>
+                </div>
             </div>
         </div>
        
@@ -334,8 +363,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(r => {
                     const opt = document.createElement("option");
-                    opt.value = r.region_id;
-                    opt.textContent = r.region_nazwa;
+                    opt.value = r.region_id ?? r.id;
+                    opt.textContent = r.region_nazwa ?? r.nazwa;
                     region.appendChild(opt);
                 });
                 region.disabled = false;
@@ -393,11 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 data.forEach(r => {
                     const opt = document.createElement("option");
-                    opt.value = r.region_id;
-                    opt.textContent = r.region_nazwa;
-                    if (String(r.region_id) === String(initialRegion)) {
-                        opt.selected = true;
-                    }
+                    opt.value = r.region_id ?? r.id;
+                    opt.textContent = r.region_nazwa ?? r.nazwa;
                     region.appendChild(opt);
                 });
 
@@ -407,6 +433,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     loadMiasta(initialRegion, initialMiasto);
                 }
             });
+    }
+    const btnFrom = document.getElementById("btnEntendaNowFrom");
+    const btnTo   = document.getElementById("btnEntendaNowTo");
+    const inputFrom = document.getElementById("dataOdInput");
+    const inputTo   = document.getElementById("dataDoInput");
+
+    function setEntendaDate(targetInput) {
+        fetch("/api/entenda_now")
+            .then(r => r.json())
+            .then(d => {
+                const day = String(d.day).padStart(2, "0");
+                const month = String(d.month).padStart(2, "0");
+                targetInput.value = `${day}-${month}-${d.year}`;
+            })
+            .catch(err => console.error("Entenda API error:", err));
+    }
+
+    if (btnFrom && inputFrom) {
+        btnFrom.addEventListener("click", () => setEntendaDate(inputFrom));
+    }
+
+    if (btnTo && inputTo) {
+        btnTo.addEventListener("click", () => setEntendaDate(inputTo));
     }
 
 });

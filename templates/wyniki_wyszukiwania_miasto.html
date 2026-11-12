@@ -87,9 +87,11 @@ Wyniki wyszukiwania miast
     border: none;
     cursor: pointer;
 
-    background-color: #5d7dce;
+    background-color: #2c73d2;
     color: #ffffff;
 }
+
+.filter-actions:hover {background-color: #1f5bb0;}
 
 .wyniki-miast {
     max-width: 1200px;
@@ -170,21 +172,23 @@ Wyniki wyszukiwania miast
 }
 
 /* Kolory akcji */
-.btn-view {
-    background-color: #5d7dce;
-}
-
-.btn-edit {
-    background-color: #7f8c8d;
-}
-
-.btn-delete {
-    background-color: #c0392b;
-}
+.btn-view { background-color: #2c73d2; }
+.btn-view:hover { background-color: #1f5bb0; }
+.btn-edit { background-color: #2c73d2; }
+.btn-edit:hover { background-color: #1f5bb0; }
+.btn-delete { background-color: #c73424;}
+.btn-delete:hover { background-color: #96271b;}
 
 .btn-region {
-    background-color: #b59f3b;
+    background-color: #E8AC2E;
 }
+
+.btn-region:hover {
+    background-color: #C78E18;
+}
+
+.btn-save {background-color: #27ae60;}
+.btn-save:hover {background-color: #1e8749;}
 
 /* Formularz przypisania regionu */
 .assign-region-form {
@@ -426,6 +430,21 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                 </select>
             </div>
 
+            <div class="filter-group">
+                <label>Miasto portowe</label>
+                <select name="czy_portowe">
+                    <option value="">— wszystkie —</option>
+                    <option value="TAK"
+                            {% if request.args.get('czy_portowe') == 'TAK' %}selected{% endif %}>
+                        TAK
+                    </option>
+                    <option value="NIE"
+                            {% if request.args.get('czy_portowe') == 'NIE' %}selected{% endif %}>
+                        NIE
+                    </option>
+                </select>
+            </div>
+
             <!-- ===== TYP MIASTA ===== -->
             <div class="filter-group">
                 <label>Typ miasta</label>
@@ -506,8 +525,6 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
         </div>
     {% endif %}
 
-    <h1>Wyniki wyszukiwania miast</h1>
-
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div style="margin-bottom:15px;">
@@ -522,6 +539,8 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
             </div>
         {% endif %}
     {% endwith %}
+
+    <h1>Wyniki wyszukiwania miast</h1>
 
     {% if empty %}
         <div class="no-results">
@@ -556,6 +575,12 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                                 <span style="color:green; font-weight:600;">TAK</span>
                             {% else %}
                                 <span style="color:#af0000; font-weight:600;">NIE</span>
+                            {% endif %}
+                            • Portowe:
+                            {% if row.czy_portowe == "TAK" %}
+                                <span style="color:#1846c4; font-weight:600;">TAK</span>
+                            {% else %}
+                                <span style="color:#b79011; font-weight:600;">NIE</span>
                             {% endif %}
                         </div>
                     </div>
@@ -616,7 +641,7 @@ form.assign-region-form[style*="display: flex"] > input.assign-region-form {
                                        name="region_input"
                                        placeholder="ID lub nazwa regionu"
                                     		class="assign-region-form">
-                                <button type="submit" class="btn-region">
+                                <button type="submit" class="btn-save">
                                     Zapisz
                                 </button>
                             </form>

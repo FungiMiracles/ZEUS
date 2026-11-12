@@ -1,0 +1,172 @@
+{% extends "base_layout.html" %}
+{% block title %}Dziennik ustaw{% endblock %}
+
+{% block content %}
+
+<style>
+
+.page-header {
+    text-align: center;
+}
+
+.ustawy-list{
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.ustawa-card{
+    background:#fff;
+    border:1px solid #d7dce3;
+    border-radius:10px;
+    margin-bottom:16px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.no-ustawa-card{
+    background:#fff;
+    border:1px solid #d7dce3;
+    border-radius:10px;
+    margin-bottom:16px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.ustawa-header{
+    background:#2f4fa3;
+    color:white;
+    font-weight:700;
+    padding:12px 18px;
+    font-size:1rem;
+}
+
+.ustawa-body{
+    padding:18px;
+    line-height:1.7;
+    color:#2c3e50;
+    white-space:pre-wrap;
+}
+
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;}
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
+
+.flag {
+    width: 110px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+        box-shadow:
+        0 0 50px rgb(255, 216, 44),
+        0 0 30px rgb(255, 173, 31);
+}
+
+.event-effects{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:15px;
+}
+
+.event-effect{
+    display:inline-flex;
+    align-items:center;
+
+    padding:6px 10px;
+
+    border-radius:6px;
+
+    font-size:.82rem;
+    font-weight:600;
+
+    border:1px solid rgba(0,0,0,.08);
+}
+
+.event-effect.positive{
+    background:#d9f5dd;
+    color:#1b6b2a;
+}
+
+.event-effect.negative{
+    background:#fde2e2;
+    color:#a51d1d;
+}
+
+</style>
+
+<div class="page-header">
+    <h1 style="font-size: 1.8em;">Dziennik ustaw</h1>
+    <hr>
+    <h2>{{ panstwo.panstwo_pelna_nazwa }}</h2>
+    <br>
+    <img class="flag"
+         src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ', '_') + '.jpg') }}">
+</div>
+
+<br>
+
+<div class="ustawy-list">
+
+{% for ustawa in ustawy %}
+    <div class="ustawa-card">
+
+        <div class="ustawa-header">
+            {{ panstwo.panstwo_nazwa }}: Ustawa z dnia {{ ustawa.data_entenda }} | Szablon: {{ ustawa.opis_szablon_id }} | Status: {{ ustawa.status }}
+        </div>
+
+        <div class="ustawa-body">
+            {{ ustawa.opis_wygenerowany }}
+        </div>
+
+            {% if event_changes.get(ustawa.zdarzenie_id) %}
+            <div class="event-effects">
+
+                {% for eff in event_changes[ustawa.zdarzenie_id] %}
+
+                <span class="event-effect {% if eff.value >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ eff.label }}
+                    {% if eff.value > 0 %}+{% endif %}
+                    {{ eff.value }}{{ eff.suffix|default("") }}
+                </span>
+
+                {% endfor %}
+
+            </div>
+            {% endif %}
+
+    </div>
+{% else %}
+
+    <div class="no-ustawa-card">
+        <a>{{ panstwo.panstwo_pelna_nazwa }} nie uchwalił(a) w ostatnim czasie żadnej istotnej ustawy.</a>
+    </div>
+
+{% endfor %}
+
+<a href="{{ url_for('panstwo_form', panstwo_id=panstwo.PANSTWO_ID) }}" class="btn-zeus btn-back">Wróć</a>
+
+</div>
+
+{% endblock %}
+

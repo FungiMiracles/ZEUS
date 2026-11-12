@@ -1,0 +1,316 @@
+{% extends "game/game_base_layout.html" %}
+
+{% block title %}ENTENDA GAME — Panel państwa{% endblock %}
+
+{% block extra_css %}
+{% if config.get('ENV_NAME') == 'UAT' %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_account.css',v='20261106-1') }}">
+{% endif %}
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_dashboard.css', v='20261023-2') }}">
+
+{% if config.get('GAME_FINANCE_ENABLED', false) %}
+<link rel="stylesheet"
+      href="{{ url_for(
+          'static',
+          filename='css/game_finanse.css',
+          v='20261025-8'
+      ) }}">
+{% endif %}
+
+{% endblock %}
+
+{% block content %}
+{% if warehouse_items %}<section class="game-panel"><h2 class="game-panel-heading">Magazyn</h2><div class="game-panel-body dashboard-warehouse">{% for item in warehouse_items %}<div class="warehouse-item"><img src="{{ item.icon }}" alt="" width="28" height="28"><span>{{ item.label }}</span><strong>{{ item.quantity|spacenum }}</strong>{% if item.depletion_date %}<small class="warehouse-depletion" title="Prognoza przy bieżącym wydobyciu, produkcji i zużyciu, według kalendarza Entendy.">Wysokie wykorzystanie. Wyczerpanie: <time>{{ item.depletion_date }}</time></small>{% endif %}</div>{% endfor %}</div></section>{% endif %}
+{% if config.get('GAME_FINANCE_ENABLED', false) %}
+
+    {% if finance_required %}
+        {% include "game/_finanse_form.html" %}
+
+    {% elif finance_notifications %}
+        <section data-finance-root>
+            <script type="application/json" data-finance-config>
+                {{ {
+                    "state": none,
+                    "required": false,
+                    "csrf": game_csrf_token,
+                    "notifications": finance_notifications,
+                    "notificationUrl": url_for(
+                        "game_finance.notification_displayed",
+                        notification_id=0
+                    ),
+                    "categories": []
+                } | tojson }}
+            </script>
+
+            <div data-finance-notifications aria-live="polite"></div>
+
+            <p class="finance-message finance-error"
+               data-finance-error
+               role="alert"
+               hidden></p>
+        </section>
+    {% endif %}
+
+{% endif %}
+<div class="game-dashboard">
+
+    <section class="game-panel" aria-labelledby="game-map-title">
+        <div class="game-panel-heading game-map-heading">
+            <span id="game-map-title">Mapa państwa</span>
+
+            <button type="button"
+                    id="game-map-reset"
+                    class="game-map-reset"
+                    disabled>
+                Pokaż moje państwo
+            </button>
+        </div>
+
+        <div id="game-country-map"
+             aria-label="Interaktywna mapa świata">
+        </div>
+
+        <p id="game-map-status"
+        class="game-map-status"
+        role="status"
+        hidden>
+        </p>
+
+    </section>
+
+    <section class="game-panel">
+        <div class="game-panel-heading">Panel zarządzania państwem</div>
+
+        <div class="game-panel-body">
+            <h2>Witaj, {{ game_user.username }}!</h2>
+
+            <p>
+                Zarządzasz państwem
+                <strong>{{ game_country.nazwa }}</strong>.
+            </p>
+
+            <p>
+                Najedź na region swojego państwa, aby zobaczyć jego nazwę.
+                Mapę możesz przesuwać i przybliżać.
+            </p>
+            {% if config.get('ENV_NAME') == 'UAT' %}
+            <p><a class="game-account-delete-link" href="{{ url_for('game_account.remove') }}">Usuń konto</a></p>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static',filename='js/game_warehouse.js',v='20261108-ui3') }}" defer></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(() => {
+    const countryId = {{ game_country.id | tojson }};
+    const regionNames = {{ game_region_names | tojson }};
+    const status = document.getElementById("game-map-status");
+    const resetButton = document.getElementById("game-map-reset");
+    const cityData = {{ game_city_data | tojson }};
+
+    if (countryId === null) {
+        status.textContent = "Do konta nie przypisano państwa.";
+        status.hidden = false;
+        return;
+    }
+
+    if (!window.L) {
+        status.textContent = "Nie udało się załadować biblioteki mapy.";
+        status.hidden = false;
+        return;
+    }
+
+    const map = L.map("game-country-map", {
+        crs: L.CRS.Simple,
+        minZoom: -10,
+        maxZoom: 8,
+        zoomSnap: 0.25,
+        zoomDelta: 0.5,
+        attributionControl: false
+    });
+
+    // Zgodnie z mapą używaną podczas rejestracji.
+    const coordinates = coords => L.latLng(coords[1], coords[0]);
+
+
+    async function loadGeoJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Błąd pobierania mapy: ${response.status}`);
+        }
+        return response.json();
+    }
+
+    const regionStyle = {
+        color: "#244984",
+        weight: 1.5,
+        fillColor: "#779ce4",
+        fillOpacity: 0.85
+    };
+
+    Promise.all([
+        loadGeoJSON(
+            {{ url_for('static',
+                       filename='maps/entenda_regiony.geojson') | tojson }}
+        )
+    ]).then(([regions]) => {
+        const regionLayer = L.geoJSON(regions, {
+            coordsToLatLng: coordinates,
+            filter: feature => Object.prototype.hasOwnProperty.call(regionNames, String(feature.properties?.region_id)),
+            style: regionStyle,
+
+            onEachFeature: (feature, layer) => {
+                const regionId = String(feature.properties.region_id);
+                const label = document.createElement("span");
+
+                // textContent bezpiecznie wyświetla nazwę z bazy danych.
+                label.textContent =
+                    regionNames[regionId] || `Region #${regionId}`;
+
+                layer.bindTooltip(label, {
+                    sticky: true,
+                    direction: "auto",
+                    offset: L.point(18, 0),
+                    className: "game-region-tooltip",
+                    opacity: 1
+                });
+
+                layer.on("mouseover", () => {
+                    layer.setStyle({
+                        fillColor: "#f2c94c",
+                        fillOpacity: 0.95,
+                        weight: 3
+                    });
+                });
+
+                layer.on("mouseout", () => {
+                    regionLayer.resetStyle(layer);
+                });
+            }
+        }).addTo(map);
+
+        function focusCountry() {
+            map.invalidateSize();
+
+            const bounds = regionLayer.getBounds();
+
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, {
+                    padding: [35, 35],
+                    maxZoom: 5,
+                    animate: false
+                });
+                return true;
+            }
+
+            return false;
+        }
+
+        const hasCountryGeometry = focusCountry();
+
+        resetButton.disabled = !hasCountryGeometry;
+        resetButton.addEventListener("click", focusCountry);
+
+        if (!hasCountryGeometry) {
+            status.textContent =
+                "Brak geometrii zarządzanego państwa. Wyświetlono świat.";
+            status.hidden = false;
+        }
+
+        // Miasta nad warstwami państw i regionów.
+        map.createPane("gameCities");
+        map.getPane("gameCities").style.zIndex = "450";
+
+        loadGeoJSON(
+            {{ url_for('static',
+                    filename='maps/entenda_miasta.geojson') | tojson }}
+        ).then(cities => {
+            const cityLayer = L.geoJSON(cities, {
+                coordsToLatLng: coordinates,
+
+                // Pokazuj wyłącznie miasta zarządzanego państwa.
+                filter: feature => Object.prototype.hasOwnProperty.call(
+                    cityData,
+                    String(feature.properties.miasto_id)
+                ),
+
+                pointToLayer: (feature, latlng) => {
+                    const city = cityData[String(feature.properties.miasto_id)];
+
+                    return L.circleMarker(latlng, {
+                        pane: "gameCities",
+                        radius: city.stolica ? 7 : 4,
+                        color: city.stolica ? "#795000" : "#ffffff",
+                        weight: 2,
+                        fillColor: city.stolica ? "#f2c94c" : "#173b75",
+                        fillOpacity: 1
+                    });
+                },
+
+                onEachFeature: (feature, layer) => {
+                    const city = cityData[String(feature.properties.miasto_id)];
+                    const tooltip = document.createElement("div");
+                    const title = document.createElement("strong");
+                    const population = document.createElement("div");
+
+                    title.textContent = city.stolica
+                        ? `${city.nazwa} — stolica`
+                        : city.nazwa;
+
+                    population.textContent = city.populacja == null
+                        ? "Populacja: brak danych"
+                        : `Populacja: ${Number(city.populacja).toLocaleString("pl-PL")}`;
+
+                    tooltip.append(title, population);
+
+                    layer.bindTooltip(tooltip, {
+                        direction: "auto",
+                        offset: L.point(12, 0),
+                        className: "game-city-tooltip",
+                        opacity: 1
+                    });
+
+                    layer.on("mouseover", () => {
+                        layer.setRadius(city.stolica ? 9 : 6);
+                    });
+
+                    layer.on("mouseout", () => {
+                        layer.setRadius(city.stolica ? 7 : 4);
+                    });
+                }
+            });
+
+            cityLayer.addTo(map);
+        }).catch(error => {
+            console.error("Błąd wczytywania miast:", error);
+            status.textContent =
+                "Mapa została wczytana, ale nie udało się wyświetlić miast.";
+            status.hidden = false;
+        });
+        if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById("game-country-map"));
+    }).catch(error => {
+        console.error("Błąd mapy panelu gry:", error);
+
+        status.textContent =
+            "Nie udało się wczytać mapy. Odśwież stronę, aby spróbować ponownie.";
+        status.hidden = false;
+    });
+})();
+</script>
+{% if config.get('GAME_FINANCE_ENABLED', false) %}
+<script src="{{ url_for(
+    'static',
+    filename='js/game_finanse.js', benefit_version='20261106',
+    v='20261110-trust-1'
+) }}" defer></script>
+{% endif %}
+{% endblock %}

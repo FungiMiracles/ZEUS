@@ -38,23 +38,26 @@
 
 /* Podgląd */
 .btn-view {
-    background: #ecf0f1;
-    color: #34495e;
-    border: 1px solid #bdc3c7;
+    background: #2c73d2;
+    color: #ffffff;
 }
    
 .btn-view:hover {
-    background: #dfe6e9;
+    background: #1f5bb0;
+    color: #ffffff;
+    text-decoration: none !important;
 }
 
 /* Edytuj */
 .btn-edit {
-    background: #3498db;
+    background: #2c73d2;
     color: #ffffff !important;
 }
    
 .btn-edit:hover {
-    background: #1d6da3;
+    background: #1f5bb0;
+    color: #ffffff;
+    text-decoration: none !important;
 }
 
 /* Dodaj */
@@ -64,6 +67,8 @@
 }
 .btn-add:hover {
     background: #1e8749;
+    color: #ffffff;
+    text-decoration: none !important;
 }
 /* ============================================================
    GLOBAL SAFETY
@@ -298,9 +303,13 @@
                     <label>Kontynent:</label>
                     <select name="kontynent">
                         <option value="">— Wszystkie —</option>
+
                         {% for k in kontynenty %}
-                            <option value="{{ k }}" {% if k == kontynent_selected %}selected{% endif %}>
-                                {{ k }}
+                            <option
+                                value="{{ k.kontynent_id }}"
+                                {% if k.kontynent_id|string == kontynent_selected|string %}selected{% endif %}
+                            >
+                                {{ k.kontynent_nazwa }}
                             </option>
                         {% endfor %}
                     </select>
@@ -348,7 +357,6 @@
                    <th>Kontynent</th>
                    <th>PKB wzrost (%)</th>
                    <th>Bezrobocie (%)</th>
-                   <th>Surowce</th>
                    <th>Akcja</th>
                </tr>
            </thead>
@@ -382,16 +390,6 @@
                               {{ p.gospodarka.bezrobocie or "—" }}
                           </td>
                   
-                          <td data-label="Surowce">
-                              {% set g = p.gospodarka %}
-                              {% if g.ropa_wydobycie or g.gaz_wydobycie or g.wegiel_wydobycie
-                                    or g.uran_wydobycie or g.zloto_wydobycie %}
-                                  ✓
-                              {% else %}
-                                  —
-                              {% endif %}
-                          </td>
-                  
                           <td data-label="Akcja" class="action-buttons">
                               <a class="btn-zeus btn-view"
                                  href="{{ url_for('gospodarka_form', panstwo_id=p.PANSTWO_ID) }}">
@@ -416,7 +414,6 @@
                   
                           <td data-label="PKB wzrost (%)">—</td>
                           <td data-label="Bezrobocie (%)">—</td>
-                          <td data-label="Surowce">—</td>
                   
                           <td data-label="Akcja" class="action-buttons">
                               {% if session.rola == "wszechmocny" %}

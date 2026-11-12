@@ -1,0 +1,705 @@
+"""Wojska lądowe: obrona miast, inwazja (przemarsz i bitwa), okupacja obiektów i regionów, aneksja (UAT, 11 Nov 2026).
+
+Zasady zatwierdzone przez administratora:
+* inwazja: wojna z celem + wspólna granica państw; z własnej bazy lądowej; cel: wroga baza lądowa/morska/powietrzna albo miasto;
+* koszt (budżet sił zbrojnych): żołnierz 10 000, wóz opancerzony 30 000, czołg 50 000 ROI + PKB per capita × 0,01 za każdą jednostkę;
+* prędkość: 50 km/h Entendy, 80 km/h gdy w armii są wozy opancerzone;
+* siła = (żołnierze + 3 × wozy + 5 × czołgi) × wyszkolenie wojsk lądowych / 100 × (1 + los 0,0–0,5); remis wygrywa obrońca;
+* przegrany traci całą armię; zwycięzca traci część jednostek w proporcji siła przegranego / siła zwycięzcy;
+* zwycięski atakujący okupuje obiekt; okupacja regionu po zajęciu wszystkich baz i miast regionu i decyzji okupanta;
+  aneksja po 30 dniach Entendy okupacji regionu.
+Wszystkie zmiany stanu przechodzą przez zwykłe walidacje gracza (FinanceError) i blokady wierszy państw.
+"""
+import math,secrets
+from datetime import timedelta
+from decimal import Decimal
+from uuid import UUID
+from sqlalchemy import select,func,or_,and_
+from sqlalchemy.orm import Session,lazyload
+from extensions import db
+from game.finance_service import FinanceError,game_now
+from game.land_war_models import LandArmy,Occupation
+from game.military_models import MilitaryBase
+from models import Panstwo,Miasto,Region,Wojsko
+
+UNITS=('soldiers','armored','tanks')
+UNIT_LABELS={'soldiers':'żołnierzy','armored':'wozów opancerzonych','tanks':'czołgów'}
+UNIT_COST={'soldiers':Decimal(10000),'armored':Decimal(30000),'tanks':Decimal(50000)}
+WEIGHTS={'soldiers':1,'armored':3,'tanks':5}
+FIELDS={'soldiers':'wojska_ladowe_ilosc','armored':'wozy_opancerzone_ilosc','tanks':'czolgi_ilosc'}
+SPEED_FOOT=50
+SPEED_ARMORED=80
+ANNEX_DAYS=30
+TARGET_BASE_KINDS=('land','naval','air')
+LIVE=('MARCHING','DEFENDING','OCCUPYING')
+_random=secrets.SystemRandom()
+
+
+# ---------------- helpers ----------------
+
+def natural(value,label,minimum=0):
+    if isinstance(value,bool) or not isinstance(value,int) or not minimum<=value<=10**12:raise FinanceError('Nieprawidłowa liczba: '+label)
+    return value
+
+
+def request_key(value):
+    try:return str(UUID(str(value)))
+    except (TypeError,ValueError):raise FinanceError('Nieprawidłowy identyfikator operacji.') from None
+
+
+def units_from(data):
+    units={unit:natural(data.get(unit,0),UNIT_LABELS[unit]) for unit in UNITS}
+    if not any(units.values()):raise FinanceError('Wybierz żołnierzy lub sprzęt.')
+    return units
+
+
+def speed(units):
+    return SPEED_ARMORED if units.get('armored') else SPEED_FOOT
+
+
+def gdp_per_capita(session,country_id):
+    gdp,population=session.execute(select(Panstwo.panstwo_PKB,Panstwo.panstwo_populacja).where(Panstwo.PANSTWO_ID==country_id)).one()
+    return (Decimal(gdp)/Decimal(population)) if gdp and population else Decimal(0)
+
+
+def invasion_cost(session,country_id,units):
+    extra=gdp_per_capita(session,country_id)*Decimal('0.01')
+    return sum(((UNIT_COST[unit]+extra)*units[unit] for unit in UNITS),Decimal(0)).quantize(Decimal('0.01'))
+
+
+def training(session,country_id):
+    value=session.scalar(select(Wojsko.wyszkolenie_ladowe).where(Wojsko.panstwo_id==country_id))
+    return 100 if value is None else int(value)
+
+
+def strength(units,level):
+    return sum(units.get(unit,0)*WEIGHTS[unit] for unit in UNITS)*level/100
+
+
+def deployed_counts(session,country_id):
+    """Units outside bases (marching, defending cities, occupying) — still allocated from the country's totals."""
+    row=session.execute(select(func.coalesce(func.sum(LandArmy.soldiers),0),func.coalesce(func.sum(LandArmy.armored),0),func.coalesce(func.sum(LandArmy.tanks),0))
+                        .where(LandArmy.panstwo_id==country_id,LandArmy.status.in_(LIVE))).one()
+    return {FIELDS[unit]:int(value) for unit,value in zip(UNITS,row)}
+
+
+def spent(session,budget_id):
+    return session.scalar(select(func.coalesce(func.sum(LandArmy.cost),0)).where(LandArmy.budget_id==budget_id)) or Decimal(0)
+
+
+def active_occupation(session,kind,object_id):
+    column={'base':Occupation.base_id,'city':Occupation.city_id,'region':Occupation.region_id}[kind]
+    return session.scalar(select(Occupation).where(Occupation.kind==kind,column==object_id,Occupation.status=='ACTIVE').order_by(Occupation.id.desc()).limit(1))
+
+
+def occupied_base_ids(session,owner_id=None):
+    query=select(Occupation.base_id).where(Occupation.kind=='base',Occupation.status=='ACTIVE')
+    if owner_id is not None:query=query.where(Occupation.owner_id==owner_id)
+    return {id for id in session.scalars(query) if id is not None}
+
+
+def require_usable_base(session,base_id):
+    """An occupied base cannot be used by its previous owner (any military action)."""
+    if base_id is not None and active_occupation(session,'base',base_id) is not None:
+        raise FinanceError('Ta baza jest okupowana przez przeciwnika i nie może być wykorzystywana.')
+
+
+def require_buildable(session,region_id,country_id):
+    """A region occupied by another country is closed to any construction by its owner (11 Nov 2026)."""
+    if region_id is None:return
+    row=active_occupation(session,'region',int(region_id))
+    if row is not None and row.occupier_id!=country_id:
+        region=session.scalar(select(Region.region_nazwa).where(Region.region_id==int(region_id)))
+        raise FinanceError(f'Region {region} jest okupowany przez {names(session,row.occupier_id).get(row.occupier_id,"przeciwnika")} — nie można w nim nic budować.')
+
+
+def notify(session,country_id,text):
+    from game.paga_ai_actor import country_user_id
+    from game.forum_models import GameNotification
+    from game.models import utc_now
+    owner=country_user_id(session,country_id)
+    if owner is not None:session.add(GameNotification(user_id=owner,notification_type='SYSTEM',system_text=text[:1000],created_at=utc_now()))
+
+
+def names(session,*ids):
+    return dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID.in_([i for i in ids if i is not None]))).all())
+
+
+def lock_countries(session,*ids):
+    list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(sorted({i for i in ids if i is not None}))).order_by(Panstwo.PANSTWO_ID).with_for_update()))
+
+
+def units_text(units):
+    return ', '.join(f"{units.get(unit,0)} {UNIT_LABELS[unit]}" for unit in UNITS)
+
+
+def change_totals(session,country_id,losses,field_for=None):
+    """Fallen soldiers and destroyed equipment leave the country's totals."""
+    army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==country_id).with_for_update())
+    if army is None:return
+    for unit,count in losses.items():
+        if not count:continue
+        field=(field_for or {}).get(unit) or FIELDS[unit]
+        setattr(army,field,max(0,(getattr(army,field) or 0)-count))
+
+
+def base_soldier_field(base):
+    from game.military_service import BASES
+    return BASES[base.kind][2]
+
+
+# ---------------- geography ----------------
+
+_INDEX={}
+
+
+def _region_index():
+    """Bounding boxes of region polygons, cached per map file version."""
+    from game.military_geography import MAP_PATH
+    version=MAP_PATH.stat().st_mtime_ns
+    if _INDEX.get('version')!=version:_INDEX.update(version=version,index=_build_region_index())
+    return _INDEX['index']
+
+
+def _build_region_index():
+    from game.military_geography import map_features,MAP_PATH,polygons
+    index=[]
+    for feature in map_features(MAP_PATH):
+        region_id=(feature.get('properties') or {}).get('region_id');geometry=feature.get('geometry') or {}
+        points=[point for rings in polygons(geometry) for point in rings[0]] if polygons(geometry) else []
+        if region_id is None or not points:continue
+        xs=[p[0] for p in points];ys=[p[1] for p in points]
+        index.append((int(region_id),min(xs),min(ys),max(xs),max(ys),geometry))
+    return index
+
+
+def region_at(x,y,index=None):
+    from game.military_geography import contains_point
+    for region_id,x0,y0,x1,y1,geometry in index or _region_index():
+        if x0<=x<=x1 and y0<=y<=y1 and contains_point(geometry,(x,y)):return region_id
+    return None
+
+
+def border_fraction(session,holder_id,source,target,samples=120):
+    """Share of the route at which the army first enters the defender's territory (for the border notification)."""
+    from game.governance import controller_id
+    index=_region_index();owners={}
+    for step in range(samples+1):
+        f=step/samples;x=source[0]+(target[0]-source[0])*f;y=source[1]+(target[1]-source[1])*f
+        region=region_at(x,y,index)
+        if region is None:continue
+        if region not in owners:owners[region]=controller_id(session,session.scalar(select(Region.panstwo_id).where(Region.region_id==region)))
+        occupied=active_occupation(session,'region',region)
+        holder=occupied.occupier_id if occupied is not None else owners[region]
+        if holder==holder_id:return f
+    return 1.0
+
+
+# ---------------- targets ----------------
+
+def target_state(session,kind,target_id):
+    """(object, holder country, original owner, region_id, name, point) of an invasion target."""
+    from game.governance import controller_id
+    from game.military_geography import city_point
+    if kind=='base':
+        base=session.get(MilitaryBase,target_id)
+        if base is None or base.kind not in TARGET_BASE_KINDS:raise FinanceError('Celem może być baza lądowa, morska albo powietrzna.')
+        if base.health<=0:raise FinanceError('Ta baza jest zniszczona.')
+        if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
+        owner=controller_id(session,base.panstwo_id);occupation=active_occupation(session,'base',base.id)
+        from game.military_service import BASES
+        return base,(occupation.occupier_id if occupation else owner),owner,base.region_id,base.name or f'{BASES[base.kind][0]} #{base.id}',(base.map_x,base.map_y)
+    if kind=='city':
+        city=session.scalar(select(Miasto).options(lazyload('*')).where(Miasto.miasto_id==target_id))
+        if city is None or city.czy_na_mapie!='TAK':raise FinanceError('Nie znaleziono miasta na mapie.')
+        point=city_point(city.miasto_id)
+        if not point:raise FinanceError('Miasto nie ma lokalizacji na mapie.')
+        owner=controller_id(session,city.panstwo_id);occupation=active_occupation(session,'city',city.miasto_id)
+        return city,(occupation.occupier_id if occupation else owner),owner,city.region_id,city.miasto_nazwa,tuple(point[:2])
+    raise FinanceError('Wybierz bazę albo miasto przeciwnika.')
+
+
+def own_land_base(session,country_id,base_id,*,lock=True):
+    query=select(MilitaryBase).where(MilitaryBase.id==natural(base_id,'Baza',1),MilitaryBase.panstwo_id==country_id)
+    base=session.scalar(query.with_for_update() if lock else query)
+    if base is None or base.kind!='land':raise FinanceError('Wybierz własną bazę lądową.')
+    require_usable_base(session,base.id)
+    if not base.operational or base.health<=0:raise FinanceError('Baza nie jest sprawna.')
+    return base
+
+
+def take_from_garrison(base,units):
+    garrison=dict(base.garrison or {})
+    for unit,count in units.items():
+        if count>(garrison.get(unit) or 0):raise FinanceError(f'W bazie brakuje {UNIT_LABELS[unit]}: dostępne {garrison.get(unit) or 0}.')
+    for unit,count in units.items():garrison[unit]=(garrison.get(unit) or 0)-count
+    base.garrison=garrison
+
+
+def return_to_garrison(base,units):
+    from game.military_service import CAPACITIES
+    capacity=CAPACITIES[base.kind][base.level-1];garrison=dict(base.garrison or {})
+    for unit,count in units.items():
+        if unit in capacity and (garrison.get(unit) or 0)+count>capacity[unit]:raise FinanceError(f'Baza nie pomieści powracających: {UNIT_LABELS[unit]}.')
+        garrison[unit]=(garrison.get(unit) or 0)+count
+    base.garrison=garrison
+
+
+# ---------------- city defence ----------------
+
+def _player_country(session,user_id):
+    from game.finance_service import _country_for_user
+    return _country_for_user(session,user_id,lock=True)
+
+
+def add_city_defense(user_id,data):
+    from game.governance import controller_id
+    key=request_key(data.get('request_id'));units=units_from(data)
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        existing=session.scalar(select(LandArmy).where(LandArmy.panstwo_id==own,LandArmy.request_id==key))
+        if existing is not None:return existing.id
+        city=session.scalar(select(Miasto).options(lazyload('*')).where(Miasto.miasto_id==natural(data.get('city_id'),'Miasto',1)))
+        if city is None or controller_id(session,city.panstwo_id)!=own:raise FinanceError('Obronę można przydzielić tylko własnemu miastu.')
+        if active_occupation(session,'city',city.miasto_id) is not None:raise FinanceError('Miasto jest okupowane — najpierw je odbij.')
+        base=own_land_base(session,own,data.get('base_id'))
+        if base.region_id!=city.region_id:raise FinanceError('Obronę miasta można wysłać tylko z bazy lądowej w tym samym regionie.')
+        take_from_garrison(base,units)
+        now=game_now()
+        army=LandArmy(panstwo_id=own,user_id=user_id,request_id=key,role='city_defense',status='DEFENDING',source_base_id=base.id,**units,target_kind='city',
+                      target_city_id=city.miasto_id,target_country_id=own,target_region_id=city.region_id,target_name=city.miasto_nazwa,starts_at=now,arrives_at=now,resolved_at=now)
+        session.add(army);session.flush()
+        from game.military_service import reconcile_maintenance
+        reconcile_maintenance(session,own)
+        return army.id
+
+
+def withdraw_city_defense(user_id,data):
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id)
+        army=session.scalar(select(LandArmy).where(LandArmy.id==natural(data.get('army_id'),'Oddział',1),LandArmy.panstwo_id==country.PANSTWO_ID,LandArmy.status=='DEFENDING').with_for_update())
+        if army is None:raise FinanceError('Nie znaleziono oddziału broniącego miasta.')
+        base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==army.source_base_id,MilitaryBase.panstwo_id==country.PANSTWO_ID).with_for_update()) if army.source_base_id else None
+        if base is None:raise FinanceError('Baza macierzysta oddziału już nie istnieje.')
+        require_usable_base(session,base.id)
+        return_to_garrison(base,{unit:getattr(army,unit) for unit in UNITS})
+        army.status='WITHDRAWN';army.resolved_at=game_now()
+        for unit in UNITS:setattr(army,unit,0)
+        from game.military_service import reconcile_maintenance
+        reconcile_maintenance(session,country.PANSTWO_ID)
+        return army.id
+
+
+# ---------------- invasion ----------------
+
+def quote(session,country_id,base,units,target_point):
+    from game.military_flights import distance_km
+    distance=distance_km(session,(base.map_x,base.map_y),target_point);kmh=speed(units)
+    return {'cost':invasion_cost(session,country_id,units),'distance_km':distance,'speed_kmh':kmh,'hours':distance/kmh if kmh else 0,
+            'gdp_per_capita':gdp_per_capita(session,country_id)}
+
+
+def launch_invasion(user_id,data):
+    from game.military_service import enemies,military_budget,reconcile_maintenance
+    from game.road_projects import neighboring_countries
+    key=request_key(data.get('request_id'));units=units_from(data)
+    kind=data.get('target_kind')
+    if kind not in ('base','city'):raise FinanceError('Wybierz bazę albo miasto przeciwnika.')
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        existing=session.scalar(select(LandArmy).where(LandArmy.panstwo_id==own,LandArmy.request_id==key))
+        if existing is not None:return existing.id
+        target,holder,owner,region_id,name,point=target_state(session,kind,natural(data.get('target_id'),'Cel',1))
+        if holder==own:raise FinanceError('Ten obiekt jest już pod kontrolą naszego państwa.')
+        if holder not in enemies(session,own):raise FinanceError('Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
+        recapture=owner==own
+        if not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
+        if kind=='base' and not recapture:
+            from game.intelligence_service import known_ids
+            if target.id not in known_ids(session,own,'bases'):raise FinanceError('Lokalizacja tej bazy nie jest znana — najpierw zdobądź ją wywiadem.')
+        lock_countries(session,own,holder)
+        base=own_land_base(session,own,data.get('source_base_id'))
+        if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
+        offer=quote(session,own,base,units,point)
+        budget,_,available=military_budget(session,own)
+        if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżące półrocze.')
+        if available<offer['cost']:raise FinanceError('Za mało środków w budżecie sił zbrojnych na koszt inwazji.')
+        take_from_garrison(base,units)
+        now=game_now();arrives=now+timedelta(hours=offer['hours'])
+        fraction=border_fraction(session,holder,(base.map_x,base.map_y),point)
+        army=LandArmy(panstwo_id=own,user_id=user_id,request_id=key,role='invasion',status='MARCHING',source_base_id=base.id,**units,target_kind=kind,
+                      target_base_id=target.id if kind=='base' else None,target_city_id=target.miasto_id if kind=='city' else None,target_country_id=holder,
+                      target_region_id=region_id,target_name=name[:255],source_x=base.map_x,source_y=base.map_y,target_x=point[0],target_y=point[1],
+                      distance_km=offer['distance_km'],speed_kmh=offer['speed_kmh'],starts_at=now,border_at=now+(arrives-now)*fraction,arrives_at=arrives,
+                      cost=offer['cost'],budget_id=budget.id)
+        session.add(army);session.flush()
+        reconcile_maintenance(session,own)
+        return army.id
+
+
+# ---------------- resolution ----------------
+
+def complete_marches(session,now=None):
+    """Border notifications and battles of every army that is due (called on page loads and by the scheduler)."""
+    now=now or game_now()
+    due=list(session.execute(select(LandArmy.id,LandArmy.panstwo_id,LandArmy.target_country_id).where(LandArmy.status=='MARCHING',
+         or_(LandArmy.arrives_at<=now,and_(LandArmy.border_notified.is_(False),LandArmy.border_at<=now)))))
+    if not due:return
+    lock_countries(session,*{row.panstwo_id for row in due},*{row.target_country_id for row in due})
+    for army in session.scalars(select(LandArmy).where(LandArmy.id.in_([row.id for row in due])).order_by(LandArmy.arrives_at,LandArmy.id).with_for_update().execution_options(populate_existing=True)):
+        if army.status!='MARCHING':continue
+        if not army.border_notified and army.border_at is not None and army.border_at<=now:
+            army.border_notified=True
+            who=names(session,army.panstwo_id).get(army.panstwo_id,'Obce państwo')
+            notify(session,army.target_country_id,f'Wtargnięcie: armia państwa {who} wkroczyła na nasze terytorium ({units_text(army_units(army))}). Cel: {army.target_name}.')
+        if army.arrives_at<=now:battle(session,army,army.arrives_at)
+    session.flush()
+
+
+def army_units(army):
+    return {unit:int(getattr(army,unit) or 0) for unit in UNITS}
+
+
+def defenders(session,army):
+    """(defending country, units, training, apply_losses(fraction or None=all)) for the army's target as it is now."""
+    if army.target_kind=='base':
+        base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==army.target_base_id).with_for_update())
+        if base is None or base.health<=0:return None
+        occupation=active_occupation(session,'base',base.id)
+        if occupation is not None:return _army_defenders(session,occupation.occupier_id,_occupiers(session,'base',base.id))
+        owner=base.panstwo_id;units={unit:int((base.garrison or {}).get(unit) or 0) for unit in UNITS}
+        field_for={'soldiers':base_soldier_field(base)}
+        def apply(fraction):
+            lost={unit:(count if fraction is None else min(count,round(count*fraction))) for unit,count in units.items()}
+            garrison=dict(base.garrison or {})
+            for unit,count in lost.items():garrison[unit]=max(0,(garrison.get(unit) or 0)-count)
+            base.garrison=garrison;change_totals(session,owner,lost,field_for);return lost
+        return owner,units,training(session,owner),apply
+    city=session.get(Miasto,army.target_city_id)
+    if city is None:return None
+    occupation=active_occupation(session,'city',city.miasto_id)
+    if occupation is not None:return _army_defenders(session,occupation.occupier_id,_occupiers(session,'city',city.miasto_id))
+    from game.governance import controller_id
+    owner=controller_id(session,city.panstwo_id)
+    rows=list(session.scalars(select(LandArmy).where(LandArmy.target_city_id==city.miasto_id,LandArmy.status=='DEFENDING',LandArmy.panstwo_id==owner).with_for_update()))
+    return _army_defenders(session,owner,rows)
+
+
+def _occupiers(session,kind,object_id):
+    column=LandArmy.target_base_id if kind=='base' else LandArmy.target_city_id
+    return list(session.scalars(select(LandArmy).where(LandArmy.target_kind==kind,column==object_id,LandArmy.status=='OCCUPYING').with_for_update()))
+
+
+def _army_defenders(session,country_id,rows):
+    units={unit:sum(int(getattr(row,unit) or 0) for row in rows) for unit in UNITS}
+    def apply(fraction):
+        lost={unit:0 for unit in UNITS}
+        for row in rows:
+            for unit in UNITS:
+                count=int(getattr(row,unit) or 0);loss=count if fraction is None else min(count,round(count*fraction))
+                setattr(row,unit,count-loss);lost[unit]+=loss
+            if fraction is None or not any(getattr(row,unit) for unit in UNITS):row.status='DESTROYED';row.resolved_at=game_now()
+        change_totals(session,country_id,lost);return lost
+    return country_id,units,training(session,country_id),apply
+
+
+def battle(session,army,moment,rolls=None):
+    """Battle at the target. rolls=(attacker, defender) only for tests."""
+    attacking=army_units(army);attacker=army.panstwo_id
+    found=defenders(session,army)
+    if found is None:
+        army.battle={'result':'TARGET_GONE'};_return_home(session,army);return
+    defender,defending,defender_level,apply=found
+    if defender==attacker:
+        # Cel przeszedł pod naszą kontrolę przed przybyciem armii (np. odbiła go wcześniejsza fala): bez bitwy z własnymi wojskami.
+        army.battle={'result':'TARGET_GONE','reason':'Cel jest już pod kontrolą naszego państwa.'};_return_home(session,army);return
+    attacker_level=training(session,attacker)
+    r_att,r_def=rolls if rolls is not None else (_random.uniform(0,0.5),_random.uniform(0,0.5))
+    base_att=strength(attacking,attacker_level);base_def=strength(defending,defender_level)
+    final_att=base_att*(1+r_att);final_def=base_def*(1+r_def)
+    won=final_att>final_def
+    record={'attacker':{'country':attacker,'units':attacking,'training':attacker_level,'strength':round(base_att,2),'chance':round(r_att,3),'final':round(final_att,2)},
+            'defender':{'country':defender,'units':defending,'training':defender_level,'strength':round(base_def,2),'chance':round(r_def,3),'final':round(final_def,2)},
+            'result':'ATTACKER_WON' if won else 'DEFENDER_WON','at':moment.isoformat()}
+    if won:
+        fraction=(final_def/final_att) if final_att else 0
+        lost={unit:min(count,round(count*fraction)) for unit,count in attacking.items()}
+        for unit in UNITS:setattr(army,unit,attacking[unit]-lost[unit])
+        change_totals(session,attacker,lost)
+        record['attacker']['lost']=lost;record['defender']['lost']=apply(None)
+        _conquer(session,army,defender,moment)
+    else:
+        fraction=(final_att/final_def) if final_def else 0
+        record['attacker']['lost']=attacking;record['defender']['lost']=apply(fraction)
+        change_totals(session,attacker,attacking)
+        for unit in UNITS:setattr(army,unit,0)
+        army.status='DESTROYED'
+    army.resolved_at=moment;army.battle=record
+    n=names(session,attacker,defender)
+    summary=(f"Bitwa o {army.target_name}: atak {n.get(attacker,'?')} (siła {record['attacker']['final']}) vs obrona {n.get(defender,'?')} (siła {record['defender']['final']}). "
+             f"{'Zwycięstwo atakujących' if won else 'Zwycięstwo obrońców'}. Straty atakujących: {units_text(record['attacker']['lost'])}; obrońców: {units_text(record['defender']['lost'])}.")
+    notify(session,attacker,summary);notify(session,defender,summary)
+
+
+def _return_home(session,army):
+    """Target vanished before arrival: the army returns to its base if possible, otherwise it disbands into the totals."""
+    base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==army.source_base_id,MilitaryBase.panstwo_id==army.panstwo_id).with_for_update()) if army.source_base_id else None
+    try:
+        if base is None or active_occupation(session,'base',base.id) is not None:raise FinanceError('brak bazy')
+        return_to_garrison(base,army_units(army))
+    except FinanceError:pass
+    army.status='WITHDRAWN';army.resolved_at=game_now()
+    for unit in UNITS:setattr(army,unit,0)
+
+
+def _conquer(session,army,defender,moment):
+    kind=army.target_kind;object_id=army.target_base_id if kind=='base' else army.target_city_id
+    occupation=active_occupation(session,kind,object_id)
+    if occupation is not None and occupation.owner_id==army.panstwo_id:
+        # Recaptured by the original owner: the occupation ends and the object is usable again at once;
+        # the army enters the base garrison (what does not fit returns to the national pool) or defends the city.
+        occupation.status='ENDED';occupation.ended_at=moment
+        if kind=='base':merge_into_base(session,session.get(MilitaryBase,object_id),[army],army.panstwo_id)
+        else:army.status='DEFENDING';army.role='city_defense';army.target_country_id=army.panstwo_id
+        session.flush()
+        _release_region(session,army.target_region_id,occupation.occupier_id,moment,recaptured=army.target_name)
+        return
+    previous=None
+    if occupation is not None:occupation.status='ENDED';occupation.ended_at=moment;previous=occupation.occupier_id
+    if kind=='base':
+        from game.governance import controller_id
+        owner=controller_id(session,session.get(MilitaryBase,object_id).panstwo_id)
+    else:
+        from game.governance import controller_id
+        owner=controller_id(session,session.get(Miasto,object_id).panstwo_id)
+    session.add(Occupation(kind=kind,base_id=object_id if kind=='base' else None,city_id=object_id if kind=='city' else None,region_id=army.target_region_id,
+                           owner_id=owner,occupier_id=army.panstwo_id,status='ACTIVE',started_at=moment))
+    army.status='OCCUPYING';session.flush()
+    if previous is not None and previous!=army.panstwo_id:_release_region(session,army.target_region_id,previous,moment)
+    _check_region(session,army.target_region_id,army.panstwo_id,owner,moment)
+
+
+def region_objects(session,region_id,owner_id):
+    bases=list(session.scalars(select(MilitaryBase.id).where(MilitaryBase.region_id==region_id,MilitaryBase.panstwo_id==owner_id,MilitaryBase.kind.in_(TARGET_BASE_KINDS),MilitaryBase.health>0)))
+    cities=list(session.scalars(select(Miasto.miasto_id).where(Miasto.region_id==region_id,Miasto.czy_na_mapie=='TAK')))
+    return bases,cities
+
+
+def held_all(session,region_id,occupier,owner):
+    """The occupier holds every base and city of the owner's region."""
+    bases,cities=region_objects(session,region_id,owner)
+    held=lambda kind,ids:all((o:=active_occupation(session,kind,i)) is not None and o.occupier_id==occupier for i in ids)
+    return bool(bases or cities) and held('base',bases) and held('city',cities)
+
+
+def held_any(session,region_id,occupier):
+    return session.scalar(select(Occupation.id).where(Occupation.kind.in_(['base','city']),Occupation.region_id==region_id,
+                          Occupation.occupier_id==occupier,Occupation.status=='ACTIVE').limit(1)) is not None
+
+
+def _check_region(session,region_id,occupier,owner,moment):
+    """All bases and cities of the region held by the same occupier: ask the occupier whether to occupy the region."""
+    if session.scalar(select(Occupation.id).where(Occupation.kind=='region',Occupation.region_id==region_id,Occupation.status.in_(['PENDING','ACTIVE']))) is not None:return
+    if not held_all(session,region_id,occupier,owner):return
+    session.add(Occupation(kind='region',region_id=region_id,owner_id=owner,occupier_id=occupier,status='PENDING',started_at=moment))
+    region=session.scalar(select(Region.region_nazwa).where(Region.region_id==region_id))
+    notify(session,occupier,f'Nasze wojska zajęły wszystkie bazy i miasta regionu {region}. Zdecyduj w panelu wojennym, czy prowadzić okupację regionu.')
+
+
+def _release_region(session,region_id,occupier,moment,recaptured=None):
+    """The occupier lost an object in the region. A pending/declined decision lapses at once (it needs every object);
+    an ACTIVE region occupation ends only when the occupier holds no base or city of the region any more (11 Nov 2026)."""
+    region=session.scalar(select(Region.region_nazwa).where(Region.region_id==region_id))
+    holds=held_any(session,region_id,occupier)
+    for row in session.scalars(select(Occupation).where(Occupation.kind=='region',Occupation.region_id==region_id,Occupation.occupier_id==occupier,
+                                                      Occupation.status.in_(['PENDING','DECLINED','ACTIVE'])).with_for_update()):
+        if row.status=='ACTIVE' and holds:
+            if recaptured:notify(session,row.owner_id,f'Odbiliśmy {recaptured}. Region {region} pozostaje okupowany, dopóki nie odbijemy wszystkich baz i miast regionu.')
+            continue
+        was_active=row.status=='ACTIVE';row.status='ENDED';row.ended_at=moment
+        if was_active:
+            notify(session,row.occupier_id,f'Okupacja regionu {region} zakończona: przeciwnik odzyskał wszystkie bazy i miasta regionu.')
+            notify(session,row.owner_id,f'Odzyskaliśmy wszystkie bazy i miasta regionu {region} — region nie jest już okupowany.')
+
+
+def free_capacity(base):
+    """Wolne miejsca w bazie dla żołnierzy, wozów i czołgów (sprzęt pomieści tylko baza lądowa)."""
+    from game.military_service import CAPACITIES
+    capacity=CAPACITIES[base.kind][base.level-1];garrison=base.garrison or {}
+    return {unit:max(0,int(capacity.get(unit,0))-int(garrison.get(unit) or 0)) if unit in capacity else 0 for unit in UNITS}
+
+
+def withdraw_occupation(user_id,data):
+    """Okupant wycofuje (część) wojsk okupacyjnych z miasta lub bazy do własnej bazy — tylko tyle, ile baza pomieści.
+    Wycofanie wszystkich jednostek kończy okupację obiektu (wraca do właściciela); gdy okupant nie trzyma już żadnego
+    obiektu regionu, kończy się także okupacja regionu."""
+    units={unit:natural(data.get(unit,0),UNIT_LABELS[unit]) for unit in UNITS}
+    if not any(units.values()):raise FinanceError('Wybierz żołnierzy lub sprzęt do wycofania.')
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        occupation=session.scalar(select(Occupation).where(Occupation.id==natural(data.get('occupation_id'),'Okupacja',1),Occupation.kind.in_(['base','city']),
+                                  Occupation.occupier_id==own,Occupation.status=='ACTIVE').with_for_update())
+        if occupation is None:raise FinanceError('Nasze wojska nie okupują tego miasta ani bazy.')
+        object_id=occupation.base_id if occupation.kind=='base' else occupation.city_id
+        armies=[army for army in _occupiers(session,occupation.kind,object_id) if army.panstwo_id==own]
+        present={unit:sum(int(getattr(army,unit) or 0) for army in armies) for unit in UNITS}
+        for unit,count in units.items():
+            if count>present[unit]:raise FinanceError(f'W okupowanym obiekcie jest tylko {present[unit]}: {UNIT_LABELS[unit]}.')
+        base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==natural(data.get('base_id'),'Baza',1),MilitaryBase.panstwo_id==own).with_for_update())
+        if base is None or base.health<=0 or not base.operational:raise FinanceError('Wybierz własną, sprawną bazę.')
+        require_usable_base(session,base.id)
+        free=free_capacity(base)
+        over={unit:count-free[unit] for unit,count in units.items() if count>free[unit]}
+        if over:raise FinanceError('Baza nie pomieści wszystkich jednostek. Wolne miejsca: '+', '.join(f'{UNIT_LABELS[u]} {free[u]}' for u in UNITS)+'.')
+        # Zabieramy jednostki z armii okupacyjnych (największe najpierw); puste armie kończą okupację.
+        for unit,count in units.items():
+            for army in sorted(armies,key=lambda a:-int(getattr(a,unit) or 0)):
+                take=min(count,int(getattr(army,unit) or 0));setattr(army,unit,int(getattr(army,unit) or 0)-take);count-=take
+                if not count:break
+        moment=game_now()
+        for army in armies:
+            if not any(getattr(army,unit) for unit in UNITS):army.status='WITHDRAWN';army.resolved_at=moment
+        garrison=dict(base.garrison or {})
+        for unit,count in units.items():
+            if count:garrison[unit]=int(garrison.get(unit) or 0)+count
+        base.garrison=garrison
+        field=base_soldier_field(base)
+        if units['soldiers'] and field and field!=FIELDS['soldiers']:
+            totals=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==own).with_for_update())
+            if totals is not None:
+                moved=min(units['soldiers'],int(totals.wojska_ladowe_ilosc or 0))
+                totals.wojska_ladowe_ilosc=int(totals.wojska_ladowe_ilosc or 0)-moved;setattr(totals,field,int(getattr(totals,field) or 0)+moved)
+        ended=all(army.status=='WITHDRAWN' for army in armies)
+        name=next((army.target_name for army in armies),'obiekt')
+        if ended:
+            occupation.status='ENDED';occupation.ended_at=moment;session.flush()
+            notify(session,occupation.owner_id,f'Okupant wycofał wszystkie wojska z: {name}. Obiekt wrócił pod naszą kontrolę.')
+            _release_region(session,occupation.region_id,own,moment)
+        session.flush()
+        from game.military_service import reconcile_maintenance
+        reconcile_maintenance(session,own)
+        return {'id':occupation.id,'ended':ended,'message':f'Wycofano wojska do bazy {base.name or "#"+str(base.id)}.'+(' Okupacja obiektu zakończona.' if ended else '')}
+
+
+def merge_into_base(session,base,armies,country_id):
+    """Armies enter the base garrison up to its capacity (only a land base holds vehicles and tanks); the rest returns to the
+    country's free pool. Land soldiers garrisoning a naval/air base are moved to that service's totals."""
+    from game.military_service import CAPACITIES
+    capacity=CAPACITIES[base.kind][base.level-1];garrison=dict(base.garrison or {});moved=0
+    for army in armies:
+        for unit in UNITS:
+            count=int(getattr(army,unit) or 0)
+            if unit in capacity:
+                fit=max(0,min(count,capacity[unit]-int(garrison.get(unit) or 0)));garrison[unit]=int(garrison.get(unit) or 0)+fit
+                if unit=='soldiers':moved+=fit
+            setattr(army,unit,0)
+        army.status='MERGED';army.resolved_at=army.resolved_at or game_now()
+    base.garrison=garrison
+    field=base_soldier_field(base)
+    if moved and field and field!=FIELDS['soldiers']:
+        totals=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==country_id).with_for_update())
+        if totals is not None:
+            moved=min(moved,int(totals.wojska_ladowe_ilosc or 0))
+            totals.wojska_ladowe_ilosc=int(totals.wojska_ladowe_ilosc or 0)-moved;setattr(totals,field,int(getattr(totals,field) or 0)+moved)
+
+
+def decide_region(user_id,data):
+    """Occupier's answer: occupy the region (yes) or keep the troops without occupation (no)."""
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id)
+        row=session.scalar(select(Occupation).where(Occupation.id==natural(data.get('occupation_id'),'Okupacja',1),Occupation.kind=='region',
+                           Occupation.occupier_id==country.PANSTWO_ID,Occupation.status.in_(['PENDING','DECLINED'])).with_for_update())
+        if row is None:raise FinanceError('Brak decyzji o okupacji tego regionu.')
+        if data.get('occupy') is True:
+            if not held_all(session,row.region_id,row.occupier_id,row.owner_id):raise FinanceError('Nasze wojska nie kontrolują już wszystkich baz i miast tego regionu.')
+            row.status='ACTIVE';row.started_at=game_now()
+            region=session.scalar(select(Region.region_nazwa).where(Region.region_id==row.region_id))
+            who=names(session,country.PANSTWO_ID).get(country.PANSTWO_ID)
+            notify(session,row.owner_id,f'Region {region} jest okupowany przez {who}. Bez odbicia w ciągu {ANNEX_DAYS} dni Entendy okupant może go anektować.')
+        elif data.get('occupy') is False:row.status='DECLINED'
+        else:raise FinanceError('Wybierz: tak albo nie.')
+        return row.id
+
+
+def annex_region(user_id,data):
+    """After 30 Entenda days of region occupation the occupier may annex it (the region changes państwo_id), provided it still
+    holds every base and city of the region. Annexing the region with the owner's capital ends the owner's sovereignty."""
+    from game.military_service import reconcile_maintenance
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        row=session.scalar(select(Occupation).where(Occupation.id==natural(data.get('occupation_id'),'Okupacja',1),Occupation.kind=='region',
+                           Occupation.occupier_id==own,Occupation.status=='ACTIVE').with_for_update())
+        if row is None:raise FinanceError('Ten region nie jest okupowany przez nasze państwo.')
+        now=game_now()
+        if now<row.started_at+timedelta(days=ANNEX_DAYS):raise FinanceError(f'Aneksja będzie możliwa po {ANNEX_DAYS} dniach Entendy okupacji ({(row.started_at+timedelta(days=ANNEX_DAYS)):%Y-%m-%d %H:%M}).')
+        lock_countries(session,own,row.owner_id)
+        if not held_all(session,row.region_id,own,row.owner_id):raise FinanceError('Aneksja wymaga kontroli nad wszystkimi bazami i miastami regionu — przeciwnik odbił część z nich.')
+        owner=row.owner_id
+        capital=session.scalar(select(Miasto.miasto_id).where(Miasto.region_id==row.region_id,Miasto.miasto_typ_id==1,Miasto.panstwo_id==owner).limit(1))
+        name=annex(session,row,own,now)
+        who=names(session,own,owner)
+        notify(session,owner,f'Region {name} został anektowany przez {who.get(own)}.')
+        notify(session,own,f'Anektowaliśmy region {name}.')
+        if capital is not None:
+            from game.sovereignty import lose_sovereignty
+            lose_sovereignty(session,owner,own,row.region_id,row.id,now)
+        reconcile_maintenance(session,own);reconcile_maintenance(session,owner)
+        return row.region_id
+
+
+def annex(session,row,own,now):
+    """Moves the region and its cities to the occupier; occupied bases change hands with the occupying armies as their garrison."""
+    from game.military_service import BASES
+    region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==row.region_id).with_for_update())
+    region.panstwo_id=own
+    for city in session.scalars(select(Miasto).options(lazyload('*')).where(Miasto.region_id==row.region_id).with_for_update()):city.panstwo_id=own
+    old_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==row.owner_id).with_for_update());new_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==own).with_for_update())
+    for occupation in session.scalars(select(Occupation).where(Occupation.region_id==row.region_id,Occupation.status=='ACTIVE',Occupation.occupier_id==own,Occupation.kind.in_(['base','city']))):
+        occupation.status='ANNEXED';occupation.ended_at=now
+        if occupation.kind=='base' and occupation.base_id:
+            base=session.get(MilitaryBase,occupation.base_id,with_for_update=True)
+            if base is None:continue
+            label,base_field,soldier_field=BASES[base.kind]
+            # The previous owner loses the base and the equipment left inside; the occupying army becomes its garrison.
+            lost={resource:count for resource,count in (base.garrison or {}).items() if count}
+            if old_army is not None:
+                from game.military_service import RESOURCES
+                for resource,count in lost.items():
+                    field=soldier_field if resource=='soldiers' else RESOURCES[resource][1]
+                    if field:setattr(old_army,field,max(0,(getattr(old_army,field) or 0)-count))
+                if base_field:setattr(old_army,base_field,max(0,(getattr(old_army,base_field) or 0)-1))
+            if new_army is not None and base_field:setattr(new_army,base_field,(getattr(new_army,base_field) or 0)+1)
+            base.panstwo_id=own;base.garrison={}
+            merge_into_base(session,base,_occupiers(session,'base',base.id),own)
+        elif occupation.kind=='city' and occupation.city_id:
+            for army in _occupiers(session,'city',occupation.city_id):army.status='DEFENDING';army.role='city_defense';army.target_country_id=own
+    row.status='ANNEXED';row.ended_at=now
+    return region.region_nazwa
+
+
+# ---------------- views ----------------
+
+def army_data(army,flags=None):
+    stamp=lambda value:value.isoformat()+'Z' if value else None
+    return {'id':army.id,'countryId':army.panstwo_id,'role':army.role,'status':army.status,'sourceBaseId':army.source_base_id,'units':army_units(army),
+            'targetKind':army.target_kind,'targetBaseId':army.target_base_id,'targetCityId':army.target_city_id,'targetCountryId':army.target_country_id,
+            'targetName':army.target_name,'source':[army.source_x,army.source_y] if army.source_x is not None else None,'target':[army.target_x,army.target_y] if army.target_x is not None else None,
+            'distanceKm':army.distance_km,'speedKmh':army.speed_kmh,'startsAt':stamp(army.starts_at),'borderAt':stamp(army.border_at),'arrivesAt':stamp(army.arrives_at),
+            'resolvedAt':stamp(army.resolved_at),'cost':str(army.cost),'battle':army.battle}
+
+
+def visible_armies(session,country_id):
+    """Own armies, armies marching against us (after they crossed our border) and every army defending or occupying a city/base we can see."""
+    now=game_now()
+    query=select(LandArmy).where(or_(
+        and_(LandArmy.panstwo_id==country_id,or_(LandArmy.status.in_(LIVE),LandArmy.resolved_at>=now-timedelta(days=2))),
+        and_(LandArmy.target_country_id==country_id,LandArmy.status=='MARCHING',LandArmy.border_at<=now),
+        LandArmy.status=='OCCUPYING')).order_by(LandArmy.id)
+    return [army_data(army) for army in session.scalars(query)]
+
+
+def visible_occupations(session):
+    stamp=lambda value:value.isoformat()+'Z' if value else None
+    return [{'id':row.id,'kind':row.kind,'baseId':row.base_id,'cityId':row.city_id,'regionId':row.region_id,'ownerId':row.owner_id,'occupierId':row.occupier_id,
+             'status':row.status,'startedAt':stamp(row.started_at),'annexAt':stamp(row.started_at+timedelta(days=ANNEX_DAYS)) if row.kind=='region' else None}
+            for row in session.scalars(select(Occupation).where(Occupation.status.in_(['ACTIVE','PENDING','DECLINED'])).order_by(Occupation.id))]

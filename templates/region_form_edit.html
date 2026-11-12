@@ -57,24 +57,153 @@
     font-weight: 600;
 }
 
-.region-form-actions {
+.form-actions {
     text-align: center;
-    margin-top: 40px;
+    margin-top: 30px;
 }
 
-.region-submit-btn {
-    padding: 12px 26px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 800;
-    font-size: 1em;
-    color: white;
-    background: linear-gradient(135deg, #5d7dce, #8fb3ff);
+.form-actions button,
+.form-actions a {
+    padding: 11px 28px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
     cursor: pointer;
+    display: inline-block;
+    transition: background-color 0.25s;
 }
 
-.region-submit-btn:hover {
-    transform: scale(1.04);
+.form-actions button {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+}
+
+.form-actions button:hover {
+    background: #1e8749;
+}
+
+.form-actions a {
+    background: #c73424;
+    color: #fff;
+    margin-left: 10px;
+}
+
+.form-actions a:hover {
+    background: #96271b;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 18px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 18px;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 18px;
+}
+
+.form-grid .region-form-group,
+.form-grid-2 .region-form-group,
+.form-grid-3 .region-form-group {
+    margin-bottom: 0;
+}
+
+.region-form-group label {
+    font-size: 0.82em;
+    margin-bottom: 4px;
+}
+
+.region-form-group input,
+.region-form-group select {
+    padding: 7px 8px;
+    font-size: 0.9em;
+}
+
+/* ============================================================
+   SIATKI FORMULARZY
+============================================================ */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px 18px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 18px;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 18px;
+}
+
+.form-grid .region-form-group,
+.form-grid-3 .region-form-group,
+.form-grid-2 .region-form-group {
+    margin-bottom: 0;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid-2 input,
+.form-grid-2 select,
+.form-grid-3 input,
+.form-grid-3 select {
+    text-align: center;
+}
+
+.mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.mini-table th {
+    background: #5d7dce;
+    color: white;
+    padding: 8px;
+    font-size: 0.9em;
+}
+
+.mini-table td {
+    border: 1px solid #d9dfe8;
+    padding: 8px;
+    font-size: 0.9em;
+}
+
+.mini-table tbody tr:nth-child(even) {
+    background: #f7f9fc;
+}
+
+@media (max-width: 900px) {
+
+    .form-grid,
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 900px) {
+    .form-grid,
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
@@ -149,6 +278,15 @@
             <h2>Klasyfikacja regionu</h2>
 
             <div class="region-form-group">
+                <label for="terytorium-zamorskie">Terytorium zamorskie</label>
+                {% set overseas_value = form_data.get('terytorium_zamorskie', 'NIE') if form_data else ('TAK' if region.terytorium_zamorskie else 'NIE') %}
+                <select id="terytorium-zamorskie" name="terytorium_zamorskie">
+                    <option value="NIE" {% if overseas_value == 'NIE' %}selected{% endif %}>Nie</option>
+                    <option value="TAK" {% if overseas_value == 'TAK' %}selected{% endif %}>Tak</option>
+                </select>
+            </div>
+
+            <div class="region-form-group">
                 <label>Położenie regionu</label>
                 <select name="region_polozenie_id">
                     <option value="">— brak danych —</option>
@@ -186,59 +324,183 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <div class="region-form-group">
+                <label>Półkula</label>
+                <select name="polkula">
+
+                    <option value=""
+                        {% if (form_data and not form_data.get("polkula"))
+                            or (not form_data and not region.polkula) %}
+                        selected
+                        {% endif %}>
+                        — brak —
+                    </option>
+
+                    <option value="NORTH"
+                        {% if (form_data and form_data.get("polkula") == "NORTH")
+                            or (not form_data and region.polkula == "NORTH") %}
+                        selected
+                        {% endif %}>
+                        Północna
+                    </option>
+
+                    <option value="SOUTH"
+                        {% if (form_data and form_data.get("polkula") == "SOUTH")
+                            or (not form_data and region.polkula == "SOUTH") %}
+                        selected
+                        {% endif %}>
+                        Południowa
+                    </option>
+
+                </select>
+            </div>
         </div>
+
+        <!-- ================================================= -->
+        <!-- DEMOGRAFIA -->
+        <!-- ================================================= -->
+        <div class="region-section">
+        <h2>Demografia i urbanizacja (%)</h2>
+
+        <div class="form-grid-3">
+
+            {% for field, label in [
+                ("roczny_przyrost_miasto_pct","Przyrost miejski"),
+                ("roczny_przyrost_wies_pct","Przyrost wiejski"),
+                ("roczna_urbanizacja_pct","Urbanizacja")
+            ] %}
+            <div class="region-form-group">
+
+                <label>{{ label }}</label>
+
+                <input type="number"
+                    step="0.0001"
+                    name="{{ field }}"
+                    value="{{ region|attr(field) if region|attr(field) is not none else '' }}">
+
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
 
         <!-- ================================================= -->
         <!-- RYZYKA NATURALNE -->
         <!-- ================================================= -->
         <div class="region-section">
+
             <h2>Ryzyka naturalne (0–100)</h2>
 
-            {% for field, label in [
-                ("region_sejsmicznosc","Sejsmiczność"),
-                ("region_ryzyko_powodzi","Ryzyko powodzi"),
-                ("region_ryzyko_lawin","Ryzyko lawin"),
-                ("region_ryzyko_upalu","Ryzyko upałów"),
-                ("region_ryzyko_mrozu","Ryzyko mrozów"),
-                ("region_aktywny_wulkan","Aktywność wulkaniczna")
-            ] %}
-            <div class="region-form-group">
-                <label>{{ label }}</label>
-                <input type="number" min="0" max="100"
-                       name="{{ field }}"
-                       value="{{ region|attr(field) if region|attr(field) is not none else '' }}">
+            <div class="form-grid-3">
+
+                {% for field, label in [
+                    ("region_sejsmicznosc","Sejsmiczność"),
+                    ("region_ryzyko_powodzi","Powodzie"),
+                    ("region_ryzyko_lawin","Lawiny"),
+                    ("region_ryzyko_upalu","Upały"),
+                    ("region_ryzyko_mrozu","Mrozy"),
+                    ("region_aktywny_wulkan","Wulkany")
+                ] %}
+
+                <div class="region-form-group">
+
+                    <label>{{ label }}</label>
+
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        name="{{ field }}"
+                        value="{{ region|attr(field) if region|attr(field) is not none else '' }}"
+                    >
+
+                </div>
+
+                {% endfor %}
+
             </div>
-            {% endfor %}
+
+        </div>
+
+        <!-- ================================================= -->
+        <!-- ŚRODOWISKO -->
+        <!-- ================================================= -->
+
+        <div class="region-section">
+
+            <h2>Ryzyka środowiskowe (0–100)</h2>
+
+            <div class="form-grid-3">
+
+                {% for field, label in [
+                    ("region_degradacja_srodowiska","Degradacja środowiska"),
+                    ("region_zanieczyszczenie_powietrza","Zanieczyszczenie powietrza")
+                ] %}
+
+                <div class="region-form-group">
+
+                    <label>{{ label }}</label>
+
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        name="{{ field }}"
+                        value="{{ region|attr(field) if region|attr(field) is not none else '' }}"
+                    >
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
         </div>
 
         <!-- ================================================= -->
         <!-- INFRASTRUKTURA -->
         <!-- ================================================= -->
         <div class="region-section">
+
             <h2>Infrastruktura (0–100)</h2>
 
-            {% for field, label in [
-                ("region_poziom_skomunikowania","Poziom skomunikowania"),
-                ("region_stan_infra_kolejowej","Infrastruktura kolejowa"),
-                ("region_stan_infra_drogowej","Infrastruktura drogowa"),
-                ("region_stan_infra_energetycznej","Infrastruktura energetyczna"),
-                ("region_stan_infra_mieszkalnej","Infrastruktura mieszkaniowa"),
-                ("region_stan_infra_portowej","Infrastruktura portowa")
-            ] %}
-            <div class="region-form-group">
-                <label>{{ label }}</label>
-                <input type="number" min="0" max="100"
-                       name="{{ field }}"
-                       value="{{ region|attr(field) if region|attr(field) is not none else '' }}">
+            <div class="form-grid-3">
+
+                {% for field, label in [
+                    ("region_poziom_skomunikowania","Skomunikowanie"),
+                    ("region_stan_infra_kolejowej","Kolej"),
+                    ("region_stan_infra_drogowej","Drogi"),
+                    ("region_stan_infra_energetycznej","Energetyka"),
+                    ("region_stan_infra_mieszkalnej","Mieszkania"),
+                    ("region_stan_infra_portowej","Porty")
+                ] %}
+
+                <div class="region-form-group">
+
+                    <label>{{ label }}</label>
+
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        name="{{ field }}"
+                        value="{{ region|attr(field) if region|attr(field) is not none else '' }}"
+                    >
+
+                </div>
+
+                {% endfor %}
+
             </div>
-            {% endfor %}
+
         </div>
 
         <!-- ================================================= -->
         <!-- AKCJE -->
         <!-- ================================================= -->
-        <div class="region-form-actions">
-            <button type="submit" class="region-submit-btn">
+        <div class="form-actions">
+            <button type="submit">
                 Zapisz zmiany
             </button>
             <a href="{{ url_for('region_form', region_id=region.region_id) }}"

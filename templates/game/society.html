@@ -1,0 +1,14 @@
+{% extends 'game/game_base_layout.html' %}
+{% block title %}Społeczeństwo — {{ game_country.nazwa }}{% endblock %}
+{% block content %}
+<section class="game-panel" aria-label="Oczekiwania świadczeń na bieżące półrocze">
+    <h2>Oczekiwania społeczne — {{ 'I' if benefit_half == 1 else 'II' }} półrocze {{ benefit_year }}</h2>
+    <div class="game-panel-body">
+    <p>Świadczenia emerytalne: <strong data-society-benefit="seniors">{{ benefit_expectations.seniors }}</strong></p>
+    <p>Świadczenia na dzieci: <strong data-society-benefit="children">{{ benefit_expectations.children }}</strong></p>
+    {% if benefit_expectations.seniors == '—' %}<p>Brak danych do wyliczenia oczekiwań świadczeń.</p>{% endif %}
+    </div>
+</section>
+<p>Aktualne wskaźniki społeczne państwa. Skala 0–100; „—” oznacza brak danych. Wskaż lub otwórz ikonę informacji, aby przeczytać opis.</p>
+<div class="society-grid">{% for item in indicators %}<article class="game-panel society-indicator"><div class="society-label"><h2>{{ item.label }}</h2><details class="indicator-help"><summary aria-label="Informacja: {{ item.label }}">i</summary><div role="tooltip" class="indicator-tooltip">{{ item.tooltip }}</div></details></div><strong>{{ item.value if item.value is not none else '—' }}</strong>{% if item.value is not none %}<progress value="{{ item.value }}" max="100" aria-label="{{ item.label }}: {{ item.value }} na 100"></progress>{% endif %}</article>{% endfor %}</div>
+{% endblock %}

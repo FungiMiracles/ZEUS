@@ -1,0 +1,16 @@
+{
+  "uat_reload": true,
+  "port": 5001,
+  "ai_enabled": false,
+  "revision": 14,
+  "regression_tests": 553,
+  "production_changed": false,
+  "reload_revision": 12,
+  "external_enable_revision_detected": 13,
+  "external_revision_observed_operations": {
+    "operations.list": 1,
+    "game_finance.page:GET": 1
+  },
+  "external_revision_game_writes": 0,
+  "external_jobs_cancelled": 41
+}

@@ -61,12 +61,32 @@
     font-weight: 700;
     border: none;
     cursor: pointer;
-    background-color: #5d7dce;
+    background-color: #2c73d2;
     color: white;
 }
 
 .btn-main:hover {
-    background-color: #315eb8;
+    background-color: #1f5bb0;
+}
+
+.btn-save {
+    background-color: #27ae60;
+}
+
+.btn-save:hover {
+    background-color: #1e8749;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
+.btn-back {
+    background-color: #949494;
+}
+
+.btn-back:hover {
+    background-color: #757575;
+    color: #ffffff;
+    text-decoration: none !important;
 }
 
 .region-grid {
@@ -349,23 +369,21 @@
         <br><br>
        {% if session.rola == "wszechmocny" %}
         <button
-             class="btn-main"
-             style="background:#27ae60;"
+             class="btn-main btn-save"
              onclick="commitDemography()"
          >
              Zrzuć do bazy danych
          </button>
        {% else %}
         <button
-             class="btn-main"
-             style="background:#27ae60;"
+             class="btn-main btn-save"
              onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')"
          >
              Zrzuć do bazy danych
          </button>
        {% endif %}
           <br><br> 
-       <a class="btn-main" style="background:#a00d0d;" href="{{ url_for('demografia') }}" > Wróć </a>
+       <a class="btn-main btn-back" href="{{ url_for('demografia') }}" > Wróć </a>
     </div>
     {% endif %}
 

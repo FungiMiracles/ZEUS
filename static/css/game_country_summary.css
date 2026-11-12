@@ -1,0 +1,35 @@
+.game-roi-info { display: inline-block; position: relative; vertical-align: middle; }
+.game-roi-info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #526780;
+    border-radius: 50%;
+    background: white;
+    color: #193453;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: help;
+}
+.game-roi-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1200;
+    width: min(300px, 65vw);
+    padding: 12px;
+    border-radius: 7px;
+    background: #193453;
+    color: white;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: normal;
+}
+.game-roi-info:hover .game-roi-tooltip,
+.game-roi-info:focus-within .game-roi-tooltip { display: block; }

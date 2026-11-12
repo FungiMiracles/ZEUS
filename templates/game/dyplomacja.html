@@ -1,0 +1,88 @@
+{% extends "game/game_base_layout.html" %}
+{% block body_class %}diplomacy-room{% endblock %}
+{% block page_theme %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_diplomacy_room.css',v='20261025-1') }}">{% endblock %}
+{% block title %}Dyplomacja — {{ game_country.nazwa }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_diplomacy_proposals.css',v='20261106-1') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_diplomacy.css', v='20261023-2') }}">
+{% if config.get('DIPLOMACY_NEWS_ENABLED') %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_diplomacy_news.css',v='20261106-3') }}">{% endif %}
+{% endblock %}
+{% block game_page_actions %}
+{% if config.get('DIPLOMACY_NEWS_ENABLED') %}
+<details class="game-notifications diplomacy-world-news" id="diplomacy-world-news" data-url="{{ url_for('game_diplomacy.world_news') }}" data-read-url="{{ url_for('game_diplomacy.read_world_news') }}" data-csrf="{{ game_csrf_token }}">
+  <summary aria-label="Powiadomienia dyplomatyczne ze świata">{{ icon('notifications') }}<span class="game-notification-badge" data-news-count hidden></span></summary>
+  <div class="game-notification-dropdown">
+    <strong>Dyplomacja państw trzecich</strong>
+    <p data-news-status role="status">Ładowanie powiadomień…</p>
+    <div data-news-list></div>
+    <button type="button" data-news-more hidden>Pokaż starsze</button>
+  </div>
+</details>
+{% endif %}
+<a href="{{ url_for('game_forum.page') }}">Forum międzynarodowe ↗</a>{% endblock %}
+{% block content %}
+<section class="diplomacy-overview" aria-label="Przegląd stosunków międzynarodowych"><div><span>Państwa na mapie</span><strong>{{ diplomacy_map.countries|length }}</strong></div><div><span>Państwa innych graczy</span><strong>{{ diplomacy_map.countries.values()|selectattr('canAct')|list|length }}</strong></div><div><span>Trwające konflikty</span><strong>{{ diplomacy_map.countries.values()|rejectattr('own')|selectattr('war')|list|length }}</strong></div></section>
+<div class="diplomacy-layout">
+<div class="diplomacy-map-column">
+<section class="game-panel diplomacy-map-panel"><div class="diplomacy-panel-bar"><div><span class="diplomacy-eyebrow">01 / SCENA MIĘDZYNARODOWA</span><h2>Relacje ze światem</h2></div><span class="diplomacy-map-caption">MAPA DYPLOMATYCZNA</span></div>
+    <div class="game-panel-body">
+        <div id="diplomacy-map" aria-label="Mapa relacji dyplomatycznych"></div>
+        <p id="diplomacy-map-status" role="status" hidden></p>
+        <div class="diplomacy-legend" aria-label="Legenda mapy">
+            <span><i style="background:#2563eb"></i>Twoje państwo</span>
+            {% for item in legend %}<span><i style="background:{{ item.color }}"></i>{{ item.name }}</span>{% endfor %}
+            <span><i class="diplomacy-war-swatch"></i>Wojna kinetyczna — czerwony obrys</span>
+        </div>
+    </div>
+</section>
+{% include "game/_diplomacy_proposals.html" %}
+</div>
+<aside class="game-panel diplomacy-contact-panel"><div class="diplomacy-panel-bar"><div><span class="diplomacy-eyebrow">02 / KONTAKT</span><h2>Rozpocznij rozmowy</h2></div></div><p class="diplomacy-contact-intro">Wybierz państwo na mapie lub z listy. Sprawdź bieżące stosunki i zdecyduj o kolejnym kroku.</p><div class="diplomacy-country-chooser">
+        <label for="diplomacy-country">Wybierz państwo</label>
+        <select id="diplomacy-country">
+            <option value="">Wybierz państwo</option>
+            {% for id, item in diplomacy_map.countries.items() %}{% if not item.own %}<option value="{{ id }}">{{ item.name }}</option>{% endif %}{% endfor %}
+        </select>
+</div><div class="diplomacy-guide"><article><span>01</span><div><h3>Buduj relacje</h3><p>Zaproponuj zmianę relacji. Sojusz i partnerstwa możesz wypowiedzieć jednostronnie, wybierając relację spoza tych porozumień.</p></div></article><article><span>02</span><div><h3>Negocjuj porozumienia</h3><p>W czasie wojny zaproponuj pokój lub zawieszenie broni.</p></div></article><article><span>03</span><div><h3>Podejmuj decyzje</h3><p>Wypowiedzenie wojny działa natychmiast. Przed wysłaniem sprawdź wybrane działanie.</p></div></article></div><div class="diplomacy-contact-note">Propozycje i odpowiedzi znajdziesz w panelu powiadomień.</div></aside></div>
+<dialog class="game-actions-dialog" id="diplomacy-actions-dialog" aria-labelledby="diplomacy-actions-heading">
+    <h2 class="game-panel-heading" id="diplomacy-actions-heading">Działania dyplomatyczne</h2>
+    <div class="game-panel-body">
+        <p id="diplomacy-selection" role="status"></p>
+        <form id="diplomacy-form" method="post" action="{{ url_for('game_diplomacy.create_action') }}" hidden>
+            <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+            <input type="hidden" name="target_id" id="diplomacy-target">
+            <label for="diplomacy-kind">Działanie</label>
+            <select name="kind" id="diplomacy-kind">
+                <option value="RELATION">Zmień relację / wypowiedz porozumienie</option>
+                <option value="WAR">Wypowiedz wojnę</option>
+                <option value="PEACE">Zaproponuj pokój</option>
+                <option value="CEASEFIRE">Zaproponuj zawieszenie broni</option>
+                <option value="JOIN_WAR">Poproś o dołączenie do wojny</option>
+            </select>
+            <div id="diplomacy-enemy-field" hidden>
+                <label for="diplomacy-enemy">Wojna, do której ma dołączyć</label>
+                <select name="enemy_id" id="diplomacy-enemy"></select>
+            </div>
+            <div id="diplomacy-relation-field">
+                <label for="diplomacy-relation">Proponowana relacja</label>
+                <select name="relation_id" id="diplomacy-relation">
+                    {% for item in relations %}<option value="{{ item.relacja_id }}">{{ item.relacja_nazwa }}</option>{% endfor %}
+                </select>
+            </div>
+            <p id="diplomacy-action-help">Zmiana relacji wymaga akceptacji drugiego gracza.</p>
+            <button type="submit">Wyślij</button>
+        </form>
+        <p id="diplomacy-result" role="status"></p>
+        <button type="button" id="diplomacy-actions-close">Zamknij</button>
+        <noscript>Mapa i formularz działań wymagają włączonej obsługi JavaScript.</noscript>
+    </div>
+</dialog>
+<script type="application/json" id="diplomacy-map-config">{{ diplomacy_map | tojson }}</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static',filename='js/game_diplomacy_proposals.js',v='20261106-1') }}" defer></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/game_diplomacy.js', v='20261112-join-war-1') }}" defer></script>
+{% if config.get('DIPLOMACY_NEWS_ENABLED') %}<script src="{{ url_for('static',filename='js/game_diplomacy_news.js',v='20261106-2') }}" defer></script>{% endif %}
+{% endblock %}

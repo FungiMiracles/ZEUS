@@ -1,0 +1,858 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+ZEUS — Wykresy
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+/* ==========================================================
+   ZEUS — WYKRESY
+========================================================== */
+
+/* ==========================================================
+   ZEUS — WYKRESY
+========================================================== */
+
+.wykresy-container{
+    max-width:1400px;
+    margin:25px auto 40px auto;
+    padding:0 20px;
+    font-family:"Segoe UI",Tahoma,sans-serif;
+}
+
+.wykresy-header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.wykresy-header h1{
+    margin-bottom:5px;
+}
+
+.wykresy-header p{
+    color:#666;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+}
+
+.tab-button{
+    background:#dce2eb;
+    border:none;
+    padding:12px 25px;
+    cursor:pointer;
+    border-radius:8px 8px 0 0;
+    font-weight:700;
+    transition:.2s;
+}
+
+.tab-button.active{
+    background:#2c73d2;
+    color:#fff;
+}
+
+.tab-content{
+    display:none;
+}
+
+.tab-content.active{
+    display:block;
+}
+
+.btn-zeus {
+font-weight: 600;
+font-family: inherit;
+font-size: 0.95em;
+
+padding: 6px 10px;
+border-radius: 6px;
+
+color: #fff;
+text-decoration: none;
+
+border: none;
+cursor: pointer;
+
+display: inline-block;
+
+transition: background 0.2s ease;
+}
+
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+
+.panel{
+
+    background:#fff;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    padding:22px;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+
+}
+
+.filters{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,minmax(220px,1fr));
+
+    gap:20px;
+
+    margin-bottom:25px;
+
+}
+
+.filter{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.filter label{
+
+    font-weight:700;
+
+    margin-bottom:6px;
+
+}
+
+.filter select{
+
+    height:40px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    padding:0 10px;
+
+}
+
+.chart-box{
+
+    position:relative;
+
+    height:650px;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+    background:#fafafa;
+
+    padding:15px;
+
+}
+
+.chart-placeholder{
+
+    position:absolute;
+
+    top:50%;
+
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    color:#777;
+
+}
+
+#wykresCanvas{
+
+    width:100% !important;
+
+    height:100% !important;
+
+}
+
+.ranking-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.ranking-table th{
+
+    background:#2c73d2;
+
+    color:#fff;
+
+    padding:10px;
+
+}
+
+.ranking-table td{
+
+    padding:10px;
+
+    border-bottom:1px solid #ddd;
+
+}
+
+.ranking-table tr:hover{
+
+    background:#f5f5f5;
+
+}
+
+.flag{
+
+    height:22px;
+
+    border:1px solid #888;
+
+}
+
+@media(max-width:900px){
+
+    .filters{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .tabs{
+
+        flex-direction:column;
+
+    }
+
+    .tab-button{
+
+        border-radius:8px;
+
+    }
+
+    .chart-box{
+        height:380px;
+        padding:10px;
+    }
+
+    .ranking-table{
+        font-size:0.9rem;
+    }
+
+    .ranking-table th,
+    .ranking-table td{
+        padding:8px 6px;
+    }
+
+    .ranking-table th:nth-child(1),
+    .ranking-table td:nth-child(1){
+        width:45px;
+    }
+
+    .ranking-table th:nth-child(2),
+    .ranking-table td:nth-child(2){
+        width:45px;
+    }
+
+    .ranking-table th:nth-child(4),
+    .ranking-table td:nth-child(4){
+        width:110px;
+    }
+
+    .flag{
+        height:18px;
+    }
+
+    .tab-button{
+        width:100%;
+        text-align:center;
+        padding:12px;
+    }
+
+    .panel{
+        padding:14px;
+    }
+
+    .wykresy-container{
+        padding:0 10px;
+    }
+    
+    .ranking-table-wrapper{
+        overflow-x:auto;
+    }
+
+}
+
+</style>
+
+<div class="wykresy-container">
+
+    <div class="wykresy-header">
+
+        <h1>Wykresy i rankingi</h1>
+        <p>
+            Analiza danych historycznych państw Entendy
+        </p>
+    </div>
+
+    <div class="tabs">
+
+        <button
+            class="tab-button active"
+            data-tab="wykresy">
+            Wykresy
+        </button>
+
+        <button
+            class="tab-button"
+            data-tab="rankingi">
+            Rankingi
+        </button>
+
+    </div>
+
+    <div id="tab-wykresy" class="tab-content active">
+
+    <div class="panel">
+
+        <div class="filters">
+
+            <div class="filter">
+                <label for="kontynent_id">Obszar</label>
+                <select id="kontynent_id">
+                    <option value="">-- wybierz obszar --</option>
+                    <option value="all">Cały świat</option>
+                    {% for kontynent in kontynenty %}
+                    <option value="{{ kontynent.kontynent_id }}">
+                        {{ kontynent.kontynent_nazwa }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter">
+                <label for="panstwo_id">Państwo</label>
+                <select id="panstwo_id" disabled>
+                    <option value="">Najpierw wybierz obszar</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label for="typ_wykresu">Parametr</label>
+                <select id="typ_wykresu">
+                    <option value="populacja">Populacja</option>
+                    <option value="przyrost_ludnosci">Roczny procent zmiany ludności</option>
+                    <option value="wzrost_pkb">Roczny procent wzrostu PKB</option>
+                    <option value="pkb">PKB</option>
+                    <option value="pkbpc">PKB per capita</option>
+                    <option value="infrastruktura">Infrastruktura</option>
+                </select>
+            </div>
+
+        </div>
+
+        <p id="chart-description" style="color:#657483;font-size:.9rem;line-height:1.5;" aria-live="polite"></p>
+        <div class="chart-box">
+            <canvas
+                id="wykresCanvas"
+                style="display:none;">
+            </canvas>
+
+            <div id="chartPlaceholder" class="chart-placeholder">
+                Wybierz obszar, państwo oraz parametr, aby wyświetlić wykres.
+            </div>
+        </div>
+
+    </div>  
+
+</div>
+
+<!-- ==========================================================
+     ZAKŁADKA - RANKINGI
+========================================================== -->
+
+<div id="tab-rankingi" class="tab-content">
+
+    <div class="panel">
+
+        <div class="filters">
+
+            <div class="filter">
+                <label for="ranking_typ">Ranking</label>
+                <select id="ranking_typ">
+                    <option value="">-- wybierz ranking --</option>
+                    <option value="populacja">Populacja</option>
+                    <option value="powierzchnia">Powierzchnia</option>
+                    <option value="pkb">PKB</option>
+                    <option value="pkbpc">PKB per capita</option>
+                    <option value="infrastruktura">Infrastruktura</option>
+                    <option value="edukacja">Edukacja</option>
+                    <option value="zdrowie">Zdrowie publiczne</option>
+                    <option value="przestepczosc">Przestępczość</option>
+                    <option value="stabilnosc">Stabilność społeczna</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label for="ranking_sort">Sortowanie</label>
+                <select id="ranking_sort">
+                    <option value="DESC">Malejąco</option>
+                    <option value="ASC">Rosnąco</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>&nbsp;</label>
+                <button id="btnRanking" class="btn-zeus btn-view">
+                    Odśwież ranking
+                </button>
+            </div>
+
+        </div>
+
+        <div class="ranking-table-wrapper">
+        <table class="ranking-table">
+
+            <thead>
+
+                <tr>
+                    <th style="width:70px;">Lp.</th>
+                    <th style="width:70px;">Flaga</th>
+                    <th>Państwo</th>
+                    <th style="width:220px;">Wartość</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="rankingBody">
+
+                <tr>
+
+                    <td colspan="4" style="text-align:center;padding:40px;color:#888;">
+                        Wybierz kryterium rankingu.
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+        </div>
+
+    </div>
+
+</div>
+
+</div> 
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.getElementById("ranking_typ")
+        .addEventListener("change", loadRanking);
+
+    document.getElementById("ranking_sort")
+        .addEventListener("change", loadRanking);
+
+    // ==========================================
+    // Zakładki
+    // ==========================================
+
+    const buttons = document.querySelectorAll(".tab-button");
+    const tabs = document.querySelectorAll(".tab-content");
+
+    buttons.forEach(button => {
+
+        button.addEventListener("click", function () {
+
+            buttons.forEach(btn => btn.classList.remove("active"));
+            tabs.forEach(tab => tab.classList.remove("active"));
+
+            button.classList.add("active");
+
+            const tab = document.getElementById(
+                "tab-" + button.dataset.tab
+            );
+
+            if (tab) {
+                tab.classList.add("active");
+            }
+
+        });
+
+    });
+
+    // ==========================================
+    // Elementy formularza
+    // ==========================================
+
+    const kontynentSelect = document.getElementById("kontynent_id");
+    const panstwoSelect = document.getElementById("panstwo_id");
+
+    const typSelect = document.getElementById("typ_wykresu");
+
+    const rankingTyp = document.getElementById("ranking_typ");
+    const rankingSort = document.getElementById("ranking_sort");
+
+    if (!kontynentSelect || !panstwoSelect || !typSelect ||
+        !rankingTyp || !rankingSort) {
+        return;
+    }
+
+    panstwoSelect.addEventListener("change", loadChart);
+    typSelect.addEventListener("change", loadChart);
+
+
+    // ==========================================
+    // Wczytywanie państw
+    // ==========================================
+
+    let countriesRequest = 0;
+    kontynentSelect.addEventListener("change", function () {
+        const requestId = ++countriesRequest;
+        if (wykres) { wykres.destroy(); wykres = null; }
+        document.getElementById("wykresCanvas").style.display = "none";
+        document.getElementById("chartPlaceholder").style.display = "flex";
+
+        const kontynentId = this.value;
+        document.getElementById("chart-description").textContent = "";
+        if (kontynentId === "all") {
+            panstwoSelect.innerHTML = "<option value=''>Dane globalne — cały świat</option>";
+            panstwoSelect.disabled = true;
+            loadChart();
+            return;
+        }
+        panstwoSelect.innerHTML = "";
+        panstwoSelect.disabled = true;
+
+        if (!kontynentId) {
+
+            panstwoSelect.innerHTML =
+                "<option value=''>Najpierw wybierz obszar</option>";
+
+            return;
+        }
+
+        fetch(`/api/wykresy/panstwa?kontynent_id=${kontynentId}`)
+
+            .then(response => response.json())
+
+            .then(data => {
+                if (requestId !== countriesRequest) return;
+                panstwoSelect.innerHTML = "";
+
+                if (!data.success) {
+
+                    panstwoSelect.innerHTML =
+                        "<option value=''>Brak danych</option>";
+
+                    return;
+                }
+
+                const first = document.createElement("option");
+                first.value = "";
+                first.textContent = "-- wybierz państwo --";
+
+                panstwoSelect.appendChild(first);
+
+                data.panstwa.forEach(panstwo => {
+
+                    const option = document.createElement("option");
+
+                    option.value = panstwo.id;
+                    option.textContent =
+                        panstwo.nazwa + " (" + panstwo.kod + ")";
+
+                    panstwoSelect.appendChild(option);
+
+                });
+
+                panstwoSelect.disabled = false;
+
+            })
+
+            .catch(error => {
+                if (requestId !== countriesRequest) return;
+                console.error(error);
+
+                panstwoSelect.innerHTML =
+                    "<option value=''>Błąd pobierania danych</option>";
+
+            });
+
+    });
+
+});
+
+let wykres = null;
+
+function loadChart() {
+
+    console.log("loadChart()");
+
+    const panstwo = document.getElementById("panstwo_id").value;
+    const typ = document.getElementById("typ_wykresu").value;
+
+    const globalScope = document.getElementById("kontynent_id").value === "all";
+    if ((!globalScope && !panstwo) || !typ) return;
+    const query = globalScope ? `scope=world&typ=${typ}` : `panstwo_id=${panstwo}&typ=${typ}`;
+    fetch(`/api/wykresy/chart?${query}`)
+        .then(r => r.json())
+        .then(drawChart)
+        .catch(console.error);
+
+}
+
+function loadRanking() {
+
+    const typ = document.getElementById("ranking_typ").value;
+    const sort = document.getElementById("ranking_sort").value;
+
+    fetch(`/api/wykresy/ranking?typ=${typ}&sort=${sort}`)
+        .then(r => r.json())
+        .then(drawRanking)
+        .catch(console.error);
+
+}
+
+function drawRanking(data) {
+
+    if (!data.success) {
+        return;
+    }
+
+    const body = document.getElementById("rankingBody");
+
+    body.innerHTML = "";
+
+    const typ = document.getElementById("ranking_typ").value;
+
+    data.ranking.forEach(row => {
+
+        let wartosc = Number(row.wartosc).toLocaleString("pl-PL");
+
+        if (typ === "powierzchnia") {
+            wartosc = row.wartosc == null ? "Brak danych" : wartosc + " km²";
+        } else if (typ === "populacja") {
+            wartosc += " osób";
+        } else if (typ === "pkb") {
+            wartosc += " ROI";
+        }
+        else if (typ === "infrastruktura") {
+            wartosc += " %";
+        }
+        else if (typ === "pkbpc") {
+            wartosc += " ROI/os.";
+        }
+
+
+        body.innerHTML += `
+            <tr>
+                <td>${row.lp}</td>
+
+                <td>
+                    <img
+                        class="flag"
+                        src="/static/flags/${row.nazwa.replaceAll(" ","_")}.jpg"
+                        onerror="this.src='/static/flags/default.png'">
+                </td>
+
+                <td>${row.nazwa}</td>
+
+                <td>${wartosc}</td>
+
+            </tr>
+        `;
+
+    });
+
+}
+
+function drawChart(data) {
+
+    if (!data.success) {
+        return;
+    }
+
+    document.getElementById("chart-description").textContent = data.description || "";
+    document.getElementById("chartPlaceholder").style.display = "none";
+    document.getElementById("wykresCanvas").style.display = "block";
+
+    const ctx = document
+        .getElementById("wykresCanvas")
+        .getContext("2d");
+
+    if (wykres) {
+        wykres.destroy();
+    }
+
+    let yOptions = {
+        beginAtZero: true,
+        min: 0,
+        ticks: {}
+    };
+
+    if (["population_growth_pct", "gdp_growth_pct"].includes(data.unit)) {
+        yOptions = {
+            beginAtZero: true,
+            title: {display: true, text: "%"},
+            ticks: {
+                callback(value) {
+                    return value.toLocaleString("pl-PL") + " %";
+                }
+            }
+        };
+    } else if (data.unit === "population") {
+
+        const max = Math.max(...data.values);
+
+        let step = 1000000;
+
+        if (max > 10000000) step = 5000000;
+        if (max > 50000000) step = 10000000;
+        if (max > 100000000) step = 25000000;
+        if (max > 500000000) step = 50000000;
+        if (max > 1000000000) step = 100000000;
+
+        yOptions.ticks = {
+
+            stepSize: step,
+
+            callback(value) {
+                return (value / 1000000) + " mln";
+            }
+
+        };
+
+    } else if (data.unit === "pkb") {
+
+        yOptions.ticks = {
+
+            callback(value) {
+                return (value / 1000000000).toFixed(0) + " mld";
+            }
+
+        };
+    
+    } else if (data.unit === "pkbpc") {
+
+        yOptions.ticks = {
+
+            callback(value) {
+                return value.toLocaleString("pl-PL");
+            }
+
+        };
+
+
+    } else if (data.unit === "infra") {
+
+        yOptions = {
+
+            beginAtZero: true,
+
+            min: 0,
+
+            max: 100,
+
+            ticks: {
+
+                stepSize: 10,
+
+                callback(value) {
+
+                    return value;
+
+                }
+
+            }
+
+        };
+
+
+    } else {
+
+        yOptions.ticks = {
+
+            callback(value) {
+                return value;
+            }
+
+        };
+
+    }
+
+    wykres = new Chart(ctx, {
+
+        type: "bar",
+
+        data: {
+
+            labels: data.labels,
+
+            datasets: [{
+                label: data.title,
+                data: data.values
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    display: false
+                },
+
+                title: {
+                    display: true,
+                    text: data.title
+                },
+                tooltip: {
+                    callbacks: {
+                        label(context) {
+                            const value = context.parsed.y;
+                            if (value == null) return "Brak danych";
+                            return context.dataset.label + ": " + value.toLocaleString("pl-PL")
+                                + (["population_growth_pct", "gdp_growth_pct"].includes(data.unit) ? " %" : "")
+                                + (data.countryCounts?.[context.dataIndex] ? " · Państwa z danymi: " + data.countryCounts[context.dataIndex] : "");
+
+                        }
+                    }
+                }
+
+            },
+
+            scales: {
+
+                y: yOptions
+
+            }
+
+        }
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

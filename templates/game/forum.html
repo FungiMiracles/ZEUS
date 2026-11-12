@@ -1,0 +1,141 @@
+{% extends "game/game_base_layout.html" %}
+{% macro addresses(message) %}
+    {% if message.addressees %}
+        {% for recipient in message.addressees %}
+        <span class="forum-address-person">
+            <img class="forum-recipient-flag" src="{{ url_for('static', filename=recipient.flag_path) }}" alt="Flaga państwa {{ recipient.country_name }}" loading="lazy">
+            <span>{{ recipient.country_name }} · {{ recipient.name }}</span>
+        </span>
+        {% endfor %}
+    {% elif message.recipient_user_id %}
+        <img class="forum-recipient-flag" src="{{ url_for('static', filename=message.recipient_flag_path) }}" alt="Flaga państwa {{ message.recipient_country_name }}">
+        <span>{{ message.recipient_country_name }} · {{ message.recipient_name }}</span>
+    {% else %}<span>Do wszystkich</span>{% endif %}
+{% endmacro %}
+{% block body_class %}forum-page{% endblock %}
+{% block title %}Forum międzynarodowe — ENTENDA{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_forum.css', v='20261108-forum-layout-1') }}">
+{% endblock %}
+{% block game_page_actions %}<a href="#forum-compose-heading">Napisz wiadomość</a>{% endblock %}
+{% block content %}
+<section class="game-panel forum-compose-card" aria-labelledby="forum-compose-heading">
+    <h2 class="game-panel-heading" id="forum-compose-heading">{{ 'Edytuj wiadomość' if editing else 'Odpowiedz na wiadomość' if replying_to else 'Nowa wiadomość' }}</h2>
+    <div class="game-panel-body">
+        {% if error %}<p class="forum-error" role="alert">{{ error }}</p>{% endif %}
+        <form method="post" action="{{ url_for('game_forum.edit', message_id=editing.id) if editing else url_for('game_forum.page') }}" class="forum-form">
+            <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+            {% if editing %}<input type="hidden" name="version" value="{{ editing.version }}">{% endif %}
+            <p class="forum-public-note">Wszystkie wiadomości i odpowiedzi są publiczne, także te skierowane do konkretnego gracza.</p>
+            {% if editing %}
+            <div class="forum-address"><strong>Adresaci:</strong>{{ addresses(editing) }}</div>
+            {% else %}
+            {% if replying_to %}
+            <input type="hidden" name="reply_to_id" value="{{ replying_to.id }}">
+            <p>Autor wiadomości źródłowej jest obowiązkowym adresatem odpowiedzi. Możesz dodać innych graczy.</p>
+            {% endif %}
+            <div>
+                <span id="forum-recipient-heading">Adresaci</span>
+                <details class="forum-recipient-picker" id="forum-recipient-picker">
+                    <summary aria-labelledby="forum-recipient-heading forum-recipient-value">
+                        <span id="forum-recipient-value">
+                            {% for recipient in selected_recipients %}
+                            <span class="forum-address-person">
+                                <img class="forum-recipient-flag" src="{{ url_for('static', filename=recipient.flag_path) }}" alt="Flaga państwa {{ recipient.country_name }}">
+                                <span>{{ recipient.country_name }} · {{ recipient.name }}</span>
+                            </span>
+                            {% else %}Do wszystkich{% endfor %}
+                        </span>
+                    </summary>
+                    <fieldset class="forum-recipient-options">
+                        <legend class="forum-visually-hidden">Wybierz adresatów wiadomości</legend>
+                        <p>Brak zaznaczonych adresatów oznacza „Do wszystkich”.</p>
+                        {% for recipient in recipients %}
+                        <label class="forum-recipient-option">
+                            <input type="checkbox" name="recipient_id" value="{{ recipient.id }}" {% if recipient.id in selected_recipient_ids %}checked{% endif %}
+                                   {% if replying_to and recipient.id == replying_to.user_id %}disabled{% endif %}>
+                            <span class="forum-recipient-label">
+                                <img class="forum-recipient-flag" src="{{ url_for('static', filename=recipient.flag_path) }}" alt="Flaga państwa {{ recipient.country_name }}" loading="lazy">
+                                <span>{{ recipient.country_name }} · {{ recipient.name }}</span>
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </fieldset>
+                </details>
+            </div>
+            {% endif %}
+            {% set source = editing.reply_to if editing else replying_to %}
+            {% if source %}
+            <aside class="forum-reply-context" aria-label="Wiadomość źródłowa">
+                <a href="{{ url_for('game_forum.permalink', message_id=source.id) }}">W odpowiedzi na wiadomość: {{ source.author_name }} · {{ source.country_name }}</a>
+                <p class="forum-content">{{ source.content }}</p>
+                {% if not editing %}<a href="{{ url_for('game_forum.page') }}">Anuluj odpowiedź</a>{% endif %}
+            </aside>
+            {% endif %}
+            <label for="forum-content">Treść wiadomości</label>
+            <textarea id="forum-content" name="content" rows="3" placeholder="Wpisz treść wiadomości…" required
+                      aria-describedby="forum-limit forum-count">{{ content }}</textarea>
+            <div class="forum-form-help">
+                <span id="forum-limit">Maksymalnie 1000 znaków ze spacjami. Opublikowanej wiadomości nie można usunąć.</span>
+                <output id="forum-count" for="forum-content" aria-live="polite"></output>
+            </div>
+            <div class="forum-actions">
+                <button type="submit">{{ 'Zapisz zmiany' if editing else 'Opublikuj wiadomość' }}</button>
+                {% if editing %}<a href="{{ url_for('game_forum.page') }}">Anuluj edycję</a>{% endif %}
+            </div>
+        </form>
+    </div>
+</section>
+<section class="forum-messages" aria-labelledby="forum-messages-heading">
+    <div class="forum-messages-heading"><h2 id="forum-messages-heading">Komunikaty państw</h2><span>{{ messages.total }} wiadomości · Najnowsze jako pierwsze</span></div>
+    {% for message in messages.items %}
+    <article class="game-panel forum-post" id="message-{{ message.id }}">
+        <header class="game-panel-heading forum-message-heading">
+            <img class="forum-flag" src="{{ url_for('static', filename=message.flag_path) }}" alt="Flaga państwa {{ message.country_name }}" loading="lazy">
+            <div class="forum-author-identity"><strong>{{ message.author_name }}</strong><span>{{ message.country_name }}</span></div>
+        </header>
+        <div class="game-panel-body">
+            <div class="forum-dates">
+                <span>Entenda: <time datetime="{{ message.entenda_date.isoformat() }}">{{ message.entenda_date.strftime('%d.%m.%Y') }}</time></span>
+                <span>Data rzeczywista (Polska): <time datetime="{{ message.created_at.isoformat() }}Z">{{ message.created_at | forum_real_date }}</time></span>
+            </div>
+            <div class="forum-address">
+                <strong>Do:</strong>
+                {{ addresses(message) }}
+            </div>
+            {% if message.reply_to %}
+            <aside class="forum-reply-context">
+                <a href="{{ url_for('game_forum.permalink', message_id=message.reply_to_id) }}">W odpowiedzi na wiadomość: {{ message.reply_to.author_name }} · {{ message.reply_to.country_name }}</a>
+                <p class="forum-content">{{ message.reply_to.content }}</p>
+            </aside>
+            {% endif %}
+            <p class="forum-content">{{ message.content }}</p>
+            {% if message.edited_at %}
+            <p class="forum-edited">Edytowano: {{ message.edited_at | forum_real_date }} (Polska) · Entenda: {{ message.edited_entenda_date.strftime('%d.%m.%Y') }}</p>
+            {% endif %}
+            <footer class="forum-post-actions">
+            {% if message.user_id != game_user.id %}
+            <a href="{{ url_for('game_forum.page', reply_to_id=message.id, _anchor='forum-compose-heading') }}"><span aria-hidden="true">↶</span> Odpowiedz</a>
+            {% endif %}
+            {% if message.user_id == game_user.id %}
+            <a href="{{ url_for('game_forum.edit', message_id=message.id) }}"><span aria-hidden="true">✎</span> Edytuj wiadomość</a>
+            {% endif %}
+            <a href="{{ url_for('game_forum.permalink', message_id=message.id) }}"><span aria-hidden="true">↗</span> Odnośnik</a>
+            </footer>
+        </div>
+    </article>
+    {% else %}
+    <p class="forum-empty">Na forum nie ma jeszcze wiadomości. Napisz pierwszą.</p>
+    {% endfor %}
+    {% if messages.has_prev or messages.has_next %}
+    <nav class="forum-pagination" aria-label="Strony forum">
+        {% if messages.has_prev %}<a href="{{ url_for('game_forum.page', page=messages.prev_num) }}">Nowsze wiadomości</a>{% endif %}
+        <span>Strona {{ messages.page }} z {{ messages.pages }}</span>
+        {% if messages.has_next %}<a href="{{ url_for('game_forum.page', page=messages.next_num) }}">Starsze wiadomości</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/game_forum.js', v='20261023-4') }}" defer></script>
+{% endblock %}

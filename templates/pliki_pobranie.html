@@ -65,30 +65,43 @@
 
 /* ===== PRZYCISKI ===== */
 
-.btn-download {
-    padding: 8px 16px;
-    border-radius: 8px;
-    background-color: #5d7dce;
-    color: white;
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
     text-decoration: none;
-    font-weight: 700;
-    transition: 0.2s;
+
     border: none;
     cursor: pointer;
-    text-align: center;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-download:hover {
-    background-color: #315eb8;
-}
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary {
-    background-color: #c0392b;
-}
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary:hover {
-    background-color: #962d22;
-}
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 
 .pliki-footer {
     margin-top: 30px;
@@ -180,7 +193,7 @@
                     <div class="plik-actions">
 
                         <a href="{{ url_for('pobierz_plik', filename=f.name) }}"
-                           class="btn-download">
+                           class="btn-zeus btn-view">
                             Pobierz
                         </a>
 
@@ -189,13 +202,13 @@
                                   action="{{ url_for('plik_usun', filename=f.name) }}"
                                   onsubmit="return confirm('Czy na pewno chcesz usunąć ten plik?');">
                                 <button type="submit"
-                                        class="btn-download btn-secondary">
+                                        class="btn-zeus btn-delete">
                                     Usuń
                                 </button>
                             </form>
                         {% else %}
                             <button type="button"
-                                    class="btn-download btn-secondary"
+                                    class="btn-zeus btn-delete"
                                     onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                                 Usuń
                             </button>
@@ -208,7 +221,7 @@
     {% endif %}
 
     <div class="pliki-footer">
-        <a href="{{ url_for('pliki') }}" class="btn-download btn-secondary">
+        <a href="{{ url_for('pliki') }}" class="btn-zeus btn-back">
             Wróć
         </a>
     </div>

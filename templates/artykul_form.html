@@ -1,0 +1,200 @@
+{% extends "base_layout.html" %}
+{% block title %}Artykuł{% endblock %}
+
+{% block content %}
+
+<style>
+.art-view-container {
+    max-width: 1000px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== CARD ===== */
+.art-view-card {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 14px;
+    padding: 24px 26px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ===== HEADER ===== */
+.art-view-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.art-view-meta {
+    font-size: 0.9em;
+    color: #6b7280;
+    margin-bottom: 18px;
+}
+
+/* ===== IMAGE ===== */
+.art-view-image {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.art-view-image img {
+    max-width: 100%;
+    max-height: 420px;
+    border-radius: 12px;
+    border: 1px solid #dcdcdc;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+/* ===== CONTENT ===== */
+.art-view-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.art-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 20px 0;
+}
+
+/* ===== ACTIONS ===== */
+.art-view-actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* ===== BUTTONS ===== */
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
+
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+
+    .art-view-card {
+        padding: 16px;
+    }
+
+    .art-view-title {
+        font-size: 1.3rem;
+    }
+
+    .art-view-content {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .art-view-actions {
+        flex-direction: column;
+    }
+
+    .art-view-actions a,
+    .art-view-actions form {
+        width: 100%;
+    }
+
+    .art-view-actions button {
+        width: 100%;
+        padding: 12px;
+    }
+}
+</style>
+
+<div class="art-view-container">
+
+<div class="art-view-card">
+
+    <div class="art-view-title">
+        {{ a.artykul_tytul }}
+    </div>
+
+    <div class="art-view-meta">
+        Autor: <b>{{ a.artykul_autor }}</b> |
+        Utworzono: {{ a.data_utworzenia }} |
+        Publikacja: {{ a.data_publikacji or "brak" }}
+    </div>
+
+    {% if a.artykul_obraz %}
+    <div class="art-view-image">
+        <img src="{{ url_for('artykul_obraz', id=a.artykul_id) }}">
+    </div>
+    {% endif %}
+
+    <div class="art-divider"></div>
+
+    <div class="art-view-content">
+        {{ a.artykul_tresc }}
+    </div>
+
+    <div class="art-view-actions">
+        {% if session.rola == "wszechmocny" %}
+        <a href="{{ url_for('artykul_edit', id=a.artykul_id) }}">
+            <button class="btn-zeus btn-edit">Edytuj</button>
+        </a>
+
+        <form method="POST"
+              action="{{ url_for('artykul_delete', id=a.artykul_id) }}"
+              onsubmit="return confirm('Usunąć artykuł?')">
+            <button class="btn-zeus btn-delete">Usuń</button>
+        </form>
+        {% else %}
+
+        <button type="button" class="btn-zeus btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj</button>
+
+
+        <form method="POST"
+              action="#">
+            <button type="button" class="btn-zeus btn-delete" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Usuń</button>
+        </form>
+        {% endif %}
+
+        <a href="{{ url_for('artykuly_lista') }}">
+            <button class="btn-zeus btn-back">Powrót</button>
+        </a>
+
+    </div>
+
+</div>
+</div>
+
+{% endblock %}

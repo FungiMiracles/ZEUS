@@ -7,6 +7,8 @@ from permissions import wymaga_roli
 from datetime import date, datetime
 from models import Panstwo, Region, Miasto, DictKontynent
 import re
+from flask import jsonify
+from engine.clock import get_current_entenda_date
 
 def parse_year_or_date(value: str) -> date:
     """
@@ -245,6 +247,15 @@ def init_historia_routes(app):
             kontynenty=kontynenty,
             form_data={}
         )
+
+    @app.route("/api/entenda_now")
+    def entenda_now():
+        d = get_current_entenda_date()
+        return jsonify({
+            "year": d.year,
+            "month": d.month,
+            "day": d.day
+        })
 
     # --------------------------------------------------------
     # EDYCJA WYDARZENIA

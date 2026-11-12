@@ -1,0 +1,11 @@
+# Sterowanie zegarem Entendy — wyłącznie ZEUS UAT
+
+Pod zegarem WIKI dodano pięć małych przycisków: Stop, ×6, ×12, ×24, ×36. Dostępne dla roli `wszechmocny`. Aktywne tempo jest zaznaczone; zmiana wymaga POST i tokena CSRF. Nieaktualna wersja ustawień jest odrzucana, a interfejs pobiera bieżący stan. Bezpośredni POST innych ról zwraca 403.
+
+`wiki_simulation_clock` przechowuje pojedynczy rekord z datą Entendy, odpowiadającą jej chwilą rzeczywistą, tempem, wersją ustawień i ostatnim aktorem. Zmiana blokuje rekord, oblicza bieżącą datę według poprzedniego tempa i używa jej jako nowej kotwicy. Dzięki temu Stop, wznowienie i zmiana szybkości nie powodują skoku daty ani nadrabiania czasu pauzy. Stan jest wspólny dla procesów i zachowany po restarcie. Kotwice MySQL używają DATETIME(6), aby zachować mikrosekundy. Aktywacja trwałego zegara odbywa się tylko w konfiguracji aplikacji UAT; pozostałe aplikacje testowe korzystają domyślnie ze starego zegara.
+
+Serwerowe gettery czasu WIKI i GAME odczytują ten sam zegar. Podczas pauzy automatyczny Generator Zdarzeń nie uruchamia obliczeń. Harmonogramy i procesy oparte na dacie symulacji korzystają z zamrożonej daty. Ręczne czynności administracyjne nadal są możliwe. Odczyty tempa paneli handlu, wywiadu i wojskowości są dynamiczne; odświeżany panel wojskowy aktualizuje także mnożnik liczników. Zegary WIKI i GAME korzystają ze wspólnego JS, obsługują tempo 0 i synchronizują stan z serwerem co 5 sekund oraz po powrocie do karty. Publiczny GET `/wiki/zegar` udostępnia tylko czas, tempo, wersję i opis; nie udostępnia tokena ani aktora.
+
+Migracja `simulation_clock_20261027_migrate.py` sprawdza katalog ZEUS_UAT i bazę entenda_uat_db. Zachowuje datę wyliczoną według dotychczasowego wzoru i tempo ×12. Ponowne uruchomienie nie resetuje ustawień. Wdrożenie nie wywoływało Stop ani zmiany szybkości rzeczywistego UAT; działania przycisków testowano tylko na SQLite. Produkcja nie była modyfikowana.
+
+Walidacja: 316 testów unittest przeszło, w tym sześć testów zegara: ciągłość wszystkich temp, pauza/wznowienie, zachowanie stanu między sesjami, wersjonowanie, uprawnienia/CSRF i pomijanie Generatora podczas pauzy. Izolowany Playwright `tests/browser/simulation_clock.py` potwierdził działanie pięciu przycisków w rzeczywistym layoucie WIKI, aktywne tempo, zatrzymanie postępu oraz widoczność przycisków na telefonie.

@@ -1,0 +1,45 @@
+{% from "macros/icons.html" import icon %}
+{% set army_fields = [
+    ('wojska_ladowe_ilosc', 'Siły lądowe', 'person'),
+    ('wojska_morskie_ilosc', 'Siły morskie', 'person'),
+    ('wojska_powietrzne_ilosc', 'Siły powietrzne', 'person'),
+    ('procent_PKB', 'Procent PKB przeznaczany na siły zbrojne', 'finance'),
+    ('czolgi_ilosc', 'Czołgi', 'tank'),
+    ('mysliwce_ilosc', 'Myśliwce', 'army'),
+    ('wozy_opancerzone_ilosc', 'Wozy opancerzone', 'armored_vehicle'),
+    ('wyrzutnie_rakiet_ilosc', 'Wyrzutnie rakiet', 'missile_launcher'),
+    ('okrety_wojenne_ilosc', 'Okręty wojenne', 'warship'),
+    ('lotniskowce_ilosc', 'Lotniskowce', 'aircraft_carrier'),
+    ('okrety_podwodne_ilosc', 'Okręty podwodne', 'submarine'),
+    ('drony_ilosc', 'Drony bojowe', 'drone'),
+    ('rakiety_krotkiego_zasiegu', 'Rakiety krótkiego zasięgu', 'missile_launcher'),
+    ('rakiety_sredniego_zasiegu', 'Rakiety średniego zasięgu', 'missile_launcher'),
+    ('rakiety_dalekiego_zasiegu', 'Rakiety dalekiego zasięgu', 'missile_launcher'),
+    ('bron_atomowa_ilosc', 'Broń atomowa', 'nuclear_weapon'),
+    ('liczba_baz_ladowych', 'Liczba baz lądowych', 'base'),
+    ('liczba_baz_morskich', 'Liczba baz morskich', 'base'),
+    ('liczba_baz_powietrznych', 'Liczba baz powietrznych', 'base')
+] %}
+{# Poziomy wyszkolenia 0–1000 (WIKI, 11 Nov 2026). #}
+{% set training_fields = [
+    ('wyszkolenie_ladowe', 'Poziom wyszkolenia wojsk lądowych', 'person'),
+    ('wyszkolenie_morskie', 'Poziom wyszkolenia marynarki wojennej', 'warship'),
+    ('wyszkolenie_powietrzne', 'Poziom wyszkolenia sił powietrznych', 'army')
+] %}
+{% macro training_rows(army) -%}
+{% for field, label, icon_key in training_fields %}
+<tr>
+    <th scope="row">{% if icon_key %}{{ icon(icon_key) }} {% endif %}{{ label }}</th>
+    <td>{{ army[field] if army[field] is not none else 100 }} / 1000</td>
+</tr>
+{% endfor %}
+{%- endmacro %}
+
+{% macro army_rows(army) -%}
+{% for field, label, icon_key in army_fields %}
+<tr>
+    <th scope="row">{% if icon_key %}{{ icon(icon_key) }} {% endif %}{{ label }}</th>
+    <td>{% if field == 'procent_PKB' %}{{ army[field] or 0 }} %{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</td>
+</tr>
+{% endfor %}
+{%- endmacro %}

@@ -112,8 +112,27 @@
     color: white;
 }
 
-.btn-search { background-color: #5d7dce; }
-.btn-search:hover { background-color: #315eb8; }
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-search { background-color: #2c73d2; }
+.btn-search:hover { background-color: #1f5bb0; }
 
 .btn-add { background-color: #27ae60; }
 .btn-add:hover { background-color: #1e8749; }
@@ -163,7 +182,7 @@
 
     <!-- OPIS -->
     <div class="zeus-intro">
-        Zeus to system administracyjny, symulacyjny i encyklopedia fikcyjnego świata Entendy.
+        ZEUS to system administracyjny, symulacyjny i encyklopedia fikcyjnego świata Entendy.
     </div>
 
     <!-- ================= WYSZUKIWANIE ================= -->
@@ -194,12 +213,12 @@
                     </select>
 
                     <label>Nazwa państwa</label>
-                    <input type="text" name="panstwo_nazwa">
+                    <input type="text" name="panstwo_nazwa" placeholder="np. Prewaria">
 
-                    <label>Kod państwa (ECC)</label>
-                    <input type="text" name="panstwo_kod">
+                    <label>Kod państwa</label>
+                    <input type="text" name="panstwo_kod" placeholder="np. PEN">
 
-                    <button class="btn-search">Szukaj</button>
+                    <button class="btn-zeus btn-search">Szukaj</button>
                 </form>
             </div>
 
@@ -212,12 +231,12 @@
 
                 <form action="{{ url_for('wyniki_wyszukiwania_region') }}" method="GET">
                     <label>Nazwa państwa</label>
-                    <input type="text" name="panstwo_nazwa">
+                    <input type="text" name="panstwo_nazwa" placeholder="np. Arastania">
 
                     <label>Nazwa regionu</label>
-                    <input type="text" name="region_nazwa">
+                    <input type="text" name="region_nazwa" placeholder="np. Środkowa Tyava">
 
-                    <button class="btn-search">Szukaj</button>
+                    <button class="btn-zeus btn-search">Szukaj</button>
                 </form>
             </div>
 
@@ -230,15 +249,15 @@
 
                 <form action="{{ url_for('wyniki_wyszukiwania_miasto') }}" method="GET">
                     <label>Nazwa miasta</label>
-                    <input type="text" name="miasto_nazwa">
+                    <input type="text" name="miasto_nazwa" placeholder="np. Roseau">
 
-                    <label>Kod miasta (ECIC)</label>
-                    <input type="text" name="miasto_kod">
+                    <label>Kod miasta</label>
+                    <input type="text" name="miasto_kod" placeholder="np. STA">
 
                     <label>Nazwa państwa</label>
-                    <input type="text" name="panstwo_nazwa">
+                    <input type="text" name="panstwo_nazwa" placeholder="np. Arkantenia">
 
-                    <button class="btn-search">Szukaj</button>
+                    <button class="btn-zeus btn-search">Szukaj</button>
                 </form>
             </div>
 
@@ -263,7 +282,7 @@
             <div class="zeus-add-actions">
 
                 <button type="button"
-                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        class="btn-zeus btn-add {% if not can_add %}btn-zeus btn-disabled{% endif %}"
                         onclick="
                         {% if can_add %}
                             window.location.href='{{ url_for('panstwo_add_form') }}'
@@ -275,7 +294,7 @@
                 </button>
 
                 <button type="button"
-                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        class="btn-zeus btn-add {% if not can_add %}btn-zeus btn-disabled{% endif %}"
                         onclick="
                         {% if can_add %}
                             window.location.href='{{ url_for('region_add_form') }}'
@@ -287,7 +306,7 @@
                 </button>
 
                 <button type="button"
-                        class="btn-add {% if not can_add %}btn-disabled{% endif %}"
+                        class="btn-zeus btn-add {% if not can_add %}btn-zeus btn-disabled{% endif %}"
                         onclick="
                         {% if can_add %}
                             window.location.href='{{ url_for('miasto_form_add') }}'
@@ -303,7 +322,7 @@
     </div>
 
     <footer style="text-align:center; font-size:0.75em; color:#7f8c8d; margin:12px 0;">
-        ZEUS © 2026 | Ostatnie wydanie: W3.MAR.26
+        ZEUS © 1.1.8.26
     </footer>
 
 </div>

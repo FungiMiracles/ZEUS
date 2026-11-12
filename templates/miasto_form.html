@@ -25,6 +25,14 @@
         margin: 0;
     }
 
+    .city-header-icon {
+        width: 1.25em;
+        height: 1.25em;
+        object-fit: contain;
+        vertical-align: -0.2em;
+        margin-right: 0.3em;
+    }
+
     .info-table {
         border-collapse: separate;
         width: 100%;
@@ -84,6 +92,114 @@
         border-radius: 2px;
     }
 
+    .action-btn {
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+
+        padding:10px 22px;
+        border:none;
+        border-radius:8px;
+
+        font-size:14px;
+        font-weight:600;
+
+        text-decoration:none;
+        cursor:pointer;
+
+        transition:0.18s ease;
+
+        margin:0 4px;
+    }
+
+    .action-btn-edit {
+        background:#3498db;
+        color:white;
+    }
+
+    .action-btn-edit:hover {
+        background:#217dbb;
+    }
+
+    .action-btn-delete {
+        background:#d9534f;
+        color:white;
+    }
+
+    .action-btn-delete:hover {
+        background:#b52b27;
+    }
+
+    .city-header {
+    position: relative;
+    text-align: left;
+    margin-bottom: 25px;
+    padding-right: 70px;
+    }
+
+    .dropdown-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    .hamburger-btn {
+        font-size: 22px;
+        padding: 8px 12px;
+        border: none;
+        background: #2c73d2;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: auto;       
+        margin-top: 6px;
+
+        min-width: 240px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        z-index: 1000;
+    }
+
+    .dropdown-menu a,
+    .dropdown-menu button {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+
+        text-decoration: none;
+        color: #2c3e50;
+
+        background: none;
+        border: none;
+
+        text-align: left;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .dropdown-menu a:hover,
+    .dropdown-menu button:hover {
+        background: #f1f4f8;
+    }
+
+    .dropdown-delete {
+        color: #c0392b;
+    }
+
+    .dropdown-menu hr {
+        margin: 6px 0;
+        border: none;
+        border-top: 1px solid #eee;
+    }
+
     @media (max-width: 768px) {
     .city-info-title {
         white-space: normal;   /* pozwól zawijać */
@@ -131,12 +247,74 @@
 
     <!-- Nagłówek -->
     <div class="city-header">
+
         <h1>
+            <img class="city-header-icon" src="{{ url_for('static', filename='miasto2.png') }}" alt="" aria-hidden="true">
             {{ miasto.miasto_nazwa }}
             <span style="color:#666; font-size:0.75em;">
                 (ID: {{ miasto.miasto_id }})
             </span>
         </h1>
+
+        <div class="dropdown-container">
+
+            <button
+                class="hamburger-btn"
+                onclick="toggleMenu(event)">
+                ☰
+            </button>
+
+            <div id="dropdownMenu" class="dropdown-menu">
+
+                <a href="{{ url_for('wyniki_wyszukiwania_miasto') }}">
+                    Wróć do wyników wyszukiwania
+                </a>
+
+                {% if session.rola == "wszechmocny" %}
+                <a href="{{ url_for('miasto_form_edit',
+                    miasto_id=miasto.miasto_id) }}">
+                    Edytuj miasto
+                </a>
+                {% else %}
+                <a href="#"
+                onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                    Edytuj miasto
+                </a>
+                {% endif %}
+
+                <hr>
+
+                {% if session.rola == "wszechmocny" %}
+                <form
+                    action="{{ url_for('usun_miasto',
+                        miasto_id=miasto.miasto_id) }}"
+                    method="POST"
+                    style="margin:0;"
+                    onsubmit="return confirm(
+                        'Czy na pewno chcesz usunąć to miasto?'
+                    );">
+
+                    <button
+                        type="submit"
+                        class="dropdown-delete">
+                        Usuń miasto
+                    </button>
+
+                </form>
+                {% else %}
+                <button
+                    class="dropdown-delete"
+                    onclick="zeusToast(
+                        'Twoja obecna rola nie pozwala na tę akcję'
+                    )">
+                    Usuń miasto
+                </button>
+                {% endif %}
+
+            </div>
+
+        </div>
+
     </div>
 
         <table class="info-table">
@@ -216,33 +394,60 @@
                         {{ miasto.typ.miasto_typ_nazwa if miasto.typ else "Nie określono" }}
                     </td>
                 </tr>
+                <tr>
+                    <td style="font-weight:700;">Miasto portowe:</td>
+                        <td>
+                            {% if miasto.czy_portowe == "TAK" %}
+                                <span style="color:#1846c4; font-weight:700;">TAK</span>
+                            {% else %}
+                                <span style="color:#b79011; font-weight:700;">NIE</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tr>
             </tbody>
         </table>
     </table>
 
-    <div style="text-align:center;">
-        <a class="btn-return" href="{{ back_url or url_for('wyniki_wyszukiwania_miasto') }}">
-            Wróć do wyszukiwania miast
-        </a>
-    </div>
-    <div style="text-align:center; margin-top:25px;">
-        {% if session.rola == "wszechmocny" %}
-        <a href="{{ url_for('miasto_form_edit', miasto_id=miasto.miasto_id) }}"
-            class="btn-edit"
-            style="padding:10px 22px; background:#3498db; color:white; border-radius:6px; text-decoration:none; font-weight:600;">
-                Edytuj szczegóły miasta
-        </a>
-        {% else %}
-        <a href="#"
-            class="btn-edit"
-            style="padding:10px 22px; background:#3498db; color:white; border-radius:6px; text-decoration:none; font-weight:600;"
-            onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
-                Edytuj szczegóły miasta
-        </a>
-        {% endif %}
-    </div>
-
-
 </div>
+
+<script>
+function toggleMenu(event) {
+
+    event.stopPropagation();
+
+    const menu =
+        document.getElementById(
+            "dropdownMenu"
+        );
+
+    menu.style.display =
+        menu.style.display === "block"
+            ? "none"
+            : "block";
+}
+
+window.onclick = function(event) {
+
+    if (
+        !event.target.matches(
+            ".hamburger-btn"
+        )
+    ) {
+
+        const menu =
+            document.getElementById(
+                "dropdownMenu"
+            );
+
+        if (
+            menu &&
+            menu.style.display === "block"
+        ) {
+            menu.style.display = "none";
+        }
+    }
+};
+</script>
 
 {% endblock %}

@@ -52,14 +52,25 @@ label {
     transition: all 0.2s ease;
 }
 
+.btn-save {
+    background-color: #27ae60;
+    color: #ffffff;
+}
+
+.btn-save:hover {
+    background-color: #1e8749;
+    text-decoration: none !important;
+}
+
 .btn-cancel {
-    background-color: #eaeaea;
-    color: #34495e;
-    border: 1.5px solid #bdc3c7;
+    background-color: #c73424;
+    color: #ffffff;
 }
 
 .btn-cancel:hover {
-    background-color: #999999;
+    background-color: #96271b;
+    text-decoration: none !important;
+    color: #ffffff;
 }
 
 /* ============================================================
@@ -167,9 +178,18 @@ label {
             <h2>Języki urzędowe</h2>
 
             <div class="grid">
-                <select name="jezyk_urzedowy1" class="form-control" required></select>
-                <select name="jezyk_urzedowy2" class="form-control"></select>
-                <select name="jezyk_urzedowy3" class="form-control"></select>
+                <select id="jezyk_urzedowy1"
+                        name="jezyk_urzedowy1"
+                        class="form-control"
+                        required></select>
+
+                <select id="jezyk_urzedowy2"
+                        name="jezyk_urzedowy2"
+                        class="form-control"></select>
+
+                <select id="jezyk_urzedowy3"
+                        name="jezyk_urzedowy3"
+                        class="form-control"></select>
             </div>
         </div>
 
@@ -180,16 +200,30 @@ label {
             <h2>Języki mniejszościowe</h2>
 
             <div class="grid">
-                <select name="jezyk_mniejszosciowy1" class="form-control"></select>
-                <select name="jezyk_mniejszosciowy2" class="form-control"></select>
-                <select name="jezyk_mniejszosciowy3" class="form-control"></select>
-                <select name="jezyk_mniejszosciowy4" class="form-control"></select>
-                <select name="jezyk_mniejszosciowy5" class="form-control"></select>
+                <select id="jezyk_mniejszosciowy1"
+                        name="jezyk_mniejszosciowy1"
+                        class="form-control"></select>
+
+                <select id="jezyk_mniejszosciowy2"
+                        name="jezyk_mniejszosciowy2"
+                        class="form-control"></select>
+
+                <select id="jezyk_mniejszosciowy3"
+                        name="jezyk_mniejszosciowy3"
+                        class="form-control"></select>
+
+                <select id="jezyk_mniejszosciowy4"
+                        name="jezyk_mniejszosciowy4"
+                        class="form-control"></select>
+
+                <select id="jezyk_mniejszosciowy5"
+                        name="jezyk_mniejszosciowy5"
+                        class="form-control"></select>
             </div>
         </div>
 
         <div style="text-align:center;margin-top:30px;">
-            <button class="btn btn-success">Zapisz</button>
+            <button class="btn-zeus btn-save">Zapisz</button>
             <a href="{{ url_for('kultura_jezyki') }}" class="btn-zeus btn-cancel">Anuluj</a>
         </div>
 
@@ -237,6 +271,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
         });
+
+});
+
+document.getElementById("filter-panstwo").addEventListener("change", async function () {
+
+    const panstwoId = this.value;
+
+    const pola = [
+        "jezyk_urzedowy1",
+        "jezyk_urzedowy2",
+        "jezyk_urzedowy3",
+        "jezyk_mniejszosciowy1",
+        "jezyk_mniejszosciowy2",
+        "jezyk_mniejszosciowy3",
+        "jezyk_mniejszosciowy4",
+        "jezyk_mniejszosciowy5"
+    ];
+
+    // wyczyść pola
+    pola.forEach(id => {
+        document.getElementById(id).value = "";
+    });
+
+    if (!panstwoId)
+        return;
+
+    const response = await fetch(`/api/jezyki_per_panstwo/${panstwoId}`);
+    const data = await response.json();
+
+    pola.forEach(id => {
+        if (data[id] !== null) {
+            document.getElementById(id).value = data[id];
+        }
+    });
 
 });
 </script>

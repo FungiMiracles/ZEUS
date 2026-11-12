@@ -69,13 +69,38 @@ canvas {
     gap: 14px;
 }
 
+.entenda-speed-controls { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:6px; }
+.entenda-speed-controls button { padding:3px 7px; border:1px solid #bdcbdc; border-radius:5px; background:#fff; color:#34495e; font-size:11px; cursor:pointer; }
+.entenda-speed-controls button[aria-pressed="true"] { background:#315ba3; border-color:#315ba3; color:#fff; }
+.entenda-speed-controls button:disabled { opacity:.6; cursor:wait; }
+.entenda-speed-status { max-width:250px; color:#b91c1c; font-size:11px; text-align:center; }
+
 .entenda-clock {
+    --day-progress: 0deg;
+
+    position: relative;
+
     font-weight: 800;
     font-size: 22px;
     padding: 6px 14px;
+    right: 5px;
+
     border-radius: 10px;
-    background: rgba(255,255,255,0.95);
+
+    background:
+        linear-gradient(white, white) padding-box,
+        conic-gradient(
+            #0b1f3a 0deg,
+            #0b1f3a var(--day-progress),
+            #dfe6ee var(--day-progress),
+            #dfe6ee 360deg
+        ) border-box;
+
+    border: 4px solid transparent;
+
     box-shadow: 0 0 10px rgba(0,120,255,0.25);
+
+    transition: background 0.5s linear;
 }
 
 .event-generator-btn {
@@ -96,6 +121,35 @@ canvas {
 .event-generator-btn:hover {
     transform: translateY(-2px) scale(1.08);
     box-shadow: 0 6px 16px rgba(255,140,0,0.6);
+    text-decoration: none;
+}
+
+.reports-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    background: linear-gradient(135deg, #4f8cff, #2563eb);
+
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+
+    font-size: 18px;
+
+    box-shadow: 0 4px 10px rgba(37,99,235,0.35);
+
+    transition: all 0.2s ease;
+}
+
+.reports-btn:hover {
+    transform: translateY(-2px) scale(1.08);
+
+    box-shadow: 0 6px 16px rgba(37,99,235,0.5);
+
     text-decoration: none;
 }
 
@@ -169,12 +223,34 @@ canvas {
 /* =====================================================
    STATS
 ===================================================== */
+.world-gdp-trend{font-size:11px;font-weight:700;color:#657483}.world-gdp-trend.up{color:#21814b}.world-gdp-trend.down{color:#c0392b}
 .entenda-stats {
     text-align: center;
     font-size: 13px;
     padding: 8px 10px;
     background: #eef2f7;
     border-bottom: 1px solid #e2e6f0;
+    line-height: 1.8;
+}
+.entenda-stats .world-stat { display:inline-block; margin:0 5px; }
+.world-stats-mobile { display:none; }
+.clock-password-dialog { max-width:320px; width:calc(100% - 48px); border:1px solid #bdcbdc; border-radius:10px; color:#34495e; }
+.clock-password-dialog::backdrop { background:#0007; }
+.clock-password-dialog label { display:block; margin-bottom:12px; }
+.clock-password-dialog input { box-sizing:border-box; width:100%; margin-bottom:16px; padding:8px; }
+.clock-password-dialog .dialog-actions { display:flex; justify-content:flex-end; gap:8px; }
+@media (max-width:768px) {
+    .entenda-clock-wrapper { box-sizing:border-box; padding-inline:48px; }
+    .entenda-clock-wrapper > .admin-menu { position:absolute; left:0; }
+    .entenda-clock-progress { display:flex; flex-direction:column; align-items:center; min-width:0; }
+    .entenda-clock-wrapper .entenda-clock { right:0; }
+    .world-stats-mobile { display:block; }
+    .world-stats-mobile summary { cursor:pointer; list-style:none; }
+    .world-stats-mobile summary::-webkit-details-marker { display:none; }
+    .world-stats-mobile summary::after { content:'Rozwiń statystyki ▾'; display:block; font-size:12px; color:#315ba3; }
+    .world-stats-mobile[open] summary::after { content:'Zwiń statystyki ▴'; }
+    .entenda-stats > .world-stats-full { display:none; }
+    .world-stats-mobile .world-stats-full { padding-top:8px; }
 }
 
 /* =====================================================
@@ -209,8 +285,12 @@ main.container {
     max-width: 1600px;
     margin: 30px auto;
     width: 100%;
+
     padding-left: 20px;
     padding-right: 20px;
+
+    overflow-x: hidden;
+    min-width: 0;
 }
 
 /* =====================================================
@@ -230,14 +310,30 @@ main.container {
     border-radius: 12px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.25);
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
     animation: toast-in 0.25s ease-out forwards;
+    margin-top: 10px;
+}
+
+.zeus-toast.hide {
+    animation: toast-out 0.25s ease-in forwards;
 }
 
 @keyframes toast-in {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes toast-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
     }
 }
 
@@ -291,6 +387,111 @@ main.container {
     display: none;
 }
 
+.uat-banner-inline {
+    max-width: 1100px;
+    margin: 10px auto;
+    padding: 10px 14px;
+
+    background: #c82424;
+    color: #ffffff;
+
+    border-radius: 6px;
+
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9em;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.mobile-nav-separator {
+    border-top: 1px solid #dcdcdc;
+    border-bottom: 1px solid #dcdcdc;
+    margin-top: 10px;
+}
+
+.day-progress-bar {
+    width: 100%;
+    height: 6px;
+    margin-top: 6px;
+
+    background: #dfe6ee;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.day-progress-fill {
+    width: 0%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        #2563eb,
+        #60a5fa
+    );
+
+    transition: width 1s linear;
+}
+
+/* =====================================================
+    ADMIN MENU
+    ===================================================== */
+
+.admin-menu {
+    position: relative;
+    display:flex;align-items:center;gap:8px;
+}
+.paga-entry-button,.paga-entry-button:visited{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 12px;box-sizing:border-box;border-radius:6px;background:#c32929;color:#fff!important;font-weight:700;text-decoration:none}
+.paga-entry-button:hover{background:#a41e1e;color:#fff!important}
+@media(max-width:600px){.entenda-clock-wrapper:has(.paga-entry-button){padding-inline-start:115px}}
+
+.admin-hamburger-btn {
+    font-size: 22px;
+    padding: 8px 12px;
+    border: none;
+    background: #2c73d2;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.admin-dropdown {
+    display: none;
+
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+
+    margin-top: 6px;
+
+    min-width: 240px;
+
+    background: white;
+    border-radius: 8px;
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+
+    z-index: 9999;
+}
+
+.admin-dropdown a {
+    display: block;
+    width: 100%;
+
+    padding: 10px 14px;
+
+    text-decoration: none;
+    color: #2c3e50;
+
+    font-weight: 600;
+}
+
+.admin-dropdown a:hover {
+    background: #f1f4f8;
+}
+
+
 /* =====================================================
    TABLET / MOBILE NAV
 ===================================================== */
@@ -309,6 +510,7 @@ main.container {
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows 0.3s ease;
+        overflow: hidden;
     }
 
     .zeus-nav-wrapper.show {
@@ -328,7 +530,53 @@ main.container {
         padding: 12px;
         border-radius: 6px;
     }
-}
+
+    .uat-banner-inline {
+        margin: 10px 12px;
+        font-size: 0.8rem;
+        line-height: 1.35;
+    }
+
+    .reports-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
+
+    .entenda-clock-wrapper {
+        position: relative;
+    }
+
+    .admin-menu {
+        position: relative;
+    }
+
+    .admin-hamburger-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        font-size: 20px;
+    }
+
+    .admin-dropdown {
+        position: fixed;
+
+        top: 110px;
+        right: 12px;
+
+        width: calc(100vw - 24px);
+        max-width: 320px;
+
+        margin-top: 0;
+
+        z-index: 99999;
+    }
+
+    .admin-dropdown a {
+        padding: 14px 16px;
+        font-size: 15px;
+    }
+
 
 /* =====================================================
    MOBILE
@@ -411,8 +659,31 @@ main.container {
 
     main.container {
         margin: 20px auto;
+        margin-top: 24px;
         padding-left: 12px;
         padding-right: 12px;
+    }
+
+    main.container {
+        margin: 20px auto;
+        padding-left: 12px;
+        padding-right: 12px;
+
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    form,
+    table,
+    .card,
+    .section-box,
+    .results-table,
+    .org-card,
+    .relation-card {
+        max-width: 100%;
+        min-width: 0;
     }
 
     /* CARDS */
@@ -549,13 +820,13 @@ main.container {
         overflow-x: hidden;
     }
 
-
 }
 </style>
 
 </head>
 
 <body>
+{% include '_sovereignty_banner.html' %}
 
 <!-- TOP -->
 <div class="zeus-topbar">
@@ -598,12 +869,85 @@ main.container {
     <!-- CLOCK + BUTTON -->
     <div class="entenda-clock-wrapper">
 
-        <a href="{{ url_for('zdarzenia_list') }}" class="event-generator-btn">
-            ⚡
-        </a>
+        <div class="admin-menu">
 
-        <div class="entenda-clock">
-            {{ ENTENDA_DATE }} CE
+            <button
+                type="button"
+                class="admin-hamburger-btn"
+                onclick="toggleAdminMenu(event)">
+                ☰
+            </button>
+
+            {% if ENV_NAME == 'UAT' and session.get('rola') == 'wszechmocny' %}<a class="paga-entry-button" href="{{ url_for('paga.entry') }}">PAGA</a>{% endif %}
+            <div id="adminDropdown" class="admin-dropdown">
+
+                <a href="{{ url_for('zdarzenia_list') }}">
+                    Generator Zdarzeń
+                </a>
+
+                <a href="{{ url_for('raporty_stan_tabel') }}">
+                    Raporty
+                </a>
+
+                <a href="{{ url_for('wykresy') }}">
+                    Wykresy
+                </a>
+
+                {% if session.rola == "wszechmocny" %}
+
+                <a href="{{ url_for('admin_natural_resources') }}">
+                    Surowce naturalne
+                </a>
+
+                <a href="{{ url_for('wiki_civic.roads_page') }}">
+                    Budowa dróg
+                </a>
+
+                <a href="{{ url_for('admin_panel') }}">
+                    Procesy roczne i retencja
+                </a>
+
+                {% else %}
+
+                <a href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                    Panel administracyjny
+                </a>
+
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="entenda-clock-progress">
+
+            <div class="entenda-clock"
+                data-entenda="{{ ENTENDA_DATETIME }}"
+                data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER }}"
+                data-clock-revision="{{ ENTENDA_CLOCK_REVISION|default(0) }}"
+                {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %}>
+                {{ ENTENDA_DATE }} CE
+            </div>
+
+            {% if ENV_NAME == 'UAT' and session.get('rola') == 'wszechmocny' %}
+            <div class="entenda-speed-controls" role="group" aria-label="Tempo czasu Entendy"
+                data-clock-change-url="/wiki/zegar/tempo" data-csrf="{{ session.get('clock_csrf', '') }}">
+                {% for speed in [0,6,12,24,36] %}
+                <button type="button" data-clock-speed="{{ speed }}" aria-pressed="{{ 'true' if ENTENDA_TIME_MULTIPLIER == speed else 'false' }}">{{ 'Stop' if speed == 0 else '×' ~ speed }}</button>
+                {% endfor %}
+            </div>
+            <div class="entenda-speed-status" role="status" aria-live="polite"></div>
+            <dialog class="clock-password-dialog" aria-labelledby="clock-password-label">
+                <form method="dialog">
+                    <label id="clock-password-label" for="clock-speed-password">Potwierdź zmianę tempa hasłem do roli wszechmocny</label>
+                    <input id="clock-speed-password" type="password" autocomplete="off" required>
+                    <div class="dialog-actions">
+                        <button type="button" data-clock-cancel>Anuluj</button>
+                        <button type="submit">Potwierdź</button>
+                    </div>
+                </form>
+            </dialog>
+            {% endif %}
+
         </div>
     </div>
 
@@ -611,15 +955,45 @@ main.container {
 
 <!-- STATS -->
 <div class="entenda-stats">
+    {% macro world_stats_full() %}
+    <div class="world-stats-full">
     Entenda: <strong>{{ E_WORLD_POP }}</strong> ludzi •
     <strong>{{ E_WORLD_COUNTRIES }}</strong> państw •
     <strong>{{ E_WORLD_REGIONS }}</strong> regionów •
-    <strong>{{ E_WORLD_CITIES }}</strong> miast
+    <strong>{{ E_WORLD_CITIES }}</strong> miast •
+    PKB świata: <strong>{{ E_WORLD_GDP }}</strong> ROI
+    {% if E_WORLD_GDP_TREND == 'up' %}
+        <span class="world-gdp-trend up" title="PKB świata: wzrost w roku {{ E_WORLD_GDP_COMPARISON_YEAR }} względem roku {{ E_WORLD_GDP_PREVIOUS_YEAR }}" aria-label="PKB świata wzrosło">▲</span>
+    {% elif E_WORLD_GDP_TREND == 'down' %}
+        <span class="world-gdp-trend down" title="PKB świata: spadek w roku {{ E_WORLD_GDP_COMPARISON_YEAR }} względem roku {{ E_WORLD_GDP_PREVIOUS_YEAR }}" aria-label="PKB świata spadło">▼</span>
+    {% endif %}
+    • <span class="world-stat" title="Suma PKB aktywnych państw podzielona przez ich łączną ludność.">PKB per capita: <strong>{{ E_WORLD_GDP_PC|default('—') }}</strong> ROI/os.</span>
+    • <span class="world-stat" title="Średnia dostępnych wskaźników infrastruktury regionów aktywnych państw. Porty uwzględniane w regionach z dostępem do morza.">Infrastruktura: <strong>{{ E_WORLD_INFRASTRUCTURE|default('—') }}</strong>/100</span>
+    • <span class="world-stat" title="Ludność miast aktywnych państw podzielona przez łączną ludność aktywnych państw.">Urbanizacja: <strong>{{ E_WORLD_URBANIZATION|default('—') }}</strong>%</span>
+    • <span class="world-stat" title="Bieżący roczny przyrost ludności ważony liczbą mieszkańców miejskich i wiejskich. Brakujące wskaźniki są pomijane.">Zmiana populacji: <strong>{{ E_WORLD_POP_GROWTH|default('—') }}</strong>%/rok</span>
+    • <span class="world-stat" title="Liczba wszystkich zdarzeń obecnie zapisanych w bazie, również zakończonych i archiwalnych.">Zdarzenia: <strong>{{ E_WORLD_EVENTS|default('—') }}</strong></span>
+    </div>
+    {% endmacro %}
+    {{ world_stats_full() }}
+    <details class="world-stats-mobile">
+        <summary aria-label="Statystyki świata">
+            <span>Populacja świata: <strong>{{ E_WORLD_POP }}</strong> ludzi</span> •
+            <span>PKB świata: <strong>{{ E_WORLD_GDP }}</strong> ROI</span> •
+            <span>Infrastruktura: <strong>{{ E_WORLD_INFRASTRUCTURE|default('—') }}</strong>/100</span>
+        </summary>
+        {{ world_stats_full() }}
+    </details>
 </div>
 
-<hr>
-<button class="nav-toggle" onclick="toggleNav()">☰</button>
-<hr>
+{% if ENV_NAME == "UAT" %}
+<div class="uat-banner-inline">
+    JESTEŚ NA ŚRODOWISKU TESTOWYM
+</div>
+{% endif %}
+
+<div class="mobile-nav-separator">
+    <button class="nav-toggle" onclick="toggleNav()">☰</button>
+</div>
 
 <div class="zeus-nav-wrapper" id="zeusNavWrapper">
     <nav class="zeus-nav">
@@ -640,6 +1014,7 @@ main.container {
     <a href="{{ url_for(endpoint) }}">{{ label }}</a>
     {% endfor %}
 </nav>
+</div>
 
 <main class="container">
 {% block content %}{% endblock %}
@@ -648,17 +1023,273 @@ main.container {
 <script>
 function zeusToast(message) {
     const container = document.getElementById("zeus-toast-container");
+
     const toast = document.createElement("div");
     toast.className = "zeus-toast";
-    toast.textContent = message;
+    toast.innerHTML = `⚠️ ${message}`;
 
     container.appendChild(toast);
 
-    setTimeout(() => toast.remove(), 4000);
+    // uruchom animację znikania po 4 s
+    setTimeout(() => {
+        toast.classList.add("hide");
+    }, 4000);
+
+    // usuń element po zakończeniu animacji
+    setTimeout(() => {
+        toast.remove();
+    }, 4250);
 }
 </script>
 
+<!-- ===================================================== -->
+<!-- MODAL HISTORII PRZYWÓDCÓW -->
+<!-- ===================================================== -->
+
+<div
+    class="modal fade"
+    id="leadershipHistoryModal"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Historia zmian w przywództwie
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-dismiss="modal"
+                    aria-label="Close">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <table
+                    class="table table-striped table-hover">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Typ przywódcy</th>
+                            <th>Imię</th>
+                            <th>Nazwisko</th>
+                            <th>Data od</th>
+                            <th>Data do</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody
+                        id="leadershipHistoryBody">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal">
+
+                    Zamknij
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===========================================
+     MODAL - NOWY PRZYWÓDCA
+=========================================== -->
+
+<div class="modal fade"
+     id="leaderModal"
+     tabindex="-1"
+     role="dialog">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    Wymagana zmiana przywódcy
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="text-center mb-4">
+
+                    <img
+                    id="leaderFlag"
+                    src=""
+                    style="
+                        width:80px;
+                        height:52px;
+                        object-fit:cover;
+                        border:1px solid #ccc;
+                        border-radius:4px;
+                    ">
+
+                    <h4
+                        id="leaderCountry"
+                        class="mt-3">
+                    </h4>
+
+                    <p
+                        id="leaderGovernment">
+                    </p>
+
+                    <p id="leaderStartInfo" class="text-muted"></p>
+
+                    <hr>
+
+                    <div id="previousLeaderBox" style="display:none;">
+
+                        <h6>Poprzedni przywódca</h6>
+
+                        <p id="previousLeaderInfo" class="mb-0"></p>
+
+                    </div>
+
+                </div>
+
+                <input
+                    type="hidden"
+                    id="leaderCountryId">
+
+                <div class="form-group">
+
+                <div
+                    class="form-group"
+                    id="leaderStartGroup"
+                    style="display:none;">
+
+                    <label>
+                        Data rozpoczęcia kadencji
+                    </label>
+
+                    <input
+                        type="date"
+                        id="leaderStartDate"
+                        class="form-control">
+
+                </div>
+
+                    <label>Imię</label>
+
+                    <input
+                        id="leaderName"
+                        class="form-control">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Nazwisko</label>
+
+                    <input
+                        id="leaderSurname"
+                        class="form-control">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Typ przywódcy</label>
+
+                    <select
+                        id="leaderType"
+                        class="form-control">
+                    </select>
+
+                </div>
+
+                <div
+                    class="form-group"
+                    id="manualDateGroup"
+                    style="display:none;">
+
+                    <label>
+                        Data zakończenia kadencji
+                    </label>
+
+                    <input
+                        type="date"
+                        id="leaderEndDate"
+                        class="form-control">
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-secondary"
+                    data-dismiss="modal">
+
+                    Zamknij
+
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="saveLeader()">
+
+                    Zapisz
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <div id="zeus-toast-container"></div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"></script>
 
 </body>
 </html>
@@ -667,3 +1298,363 @@ function toggleNav() {
     document.getElementById("zeusNavWrapper").classList.toggle("show");
 }
 </script>
+<script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261029-fix001') }}"></script>
+
+<script>
+function toggleAdminMenu(event) {
+
+    event.stopPropagation();
+
+    const menu =
+        document.getElementById(
+            "adminDropdown"
+        );
+
+    menu.style.display =
+        menu.style.display === "block"
+            ? "none"
+            : "block";
+}
+
+async function showLeadershipHistory(
+    panstwoId
+) {
+
+    const response = await fetch(
+        `/api/przywodcy/historia/${panstwoId}`
+    );
+
+    const historia = await response.json();
+
+    const tbody = document.getElementById(
+        "leadershipHistoryBody"
+    );
+
+    tbody.innerHTML = "";
+
+    historia.forEach(item => {
+
+        tbody.innerHTML += `
+            <tr>
+
+                <td>${item.typ}</td>
+
+                <td>${item.imie}</td>
+
+                <td>${item.nazwisko}</td>
+
+                <td>${item.data_od}</td>
+
+                <td>${item.data_do}</td>
+
+            </tr>
+        `;
+
+    });
+
+    const modal = new bootstrap.Modal(
+        document.getElementById(
+            "leadershipHistoryModal"
+        )
+    );
+
+    modal.show();
+
+}
+
+async function checkExpiredLeaders() {
+
+    const response =
+        await fetch(
+            "/api/przywodcy/do_uzupelnienia"
+        );
+
+    if (!response.ok)
+        return;
+
+    const data =
+        await response.json();
+
+    if (!data.length) {
+        return;
+    }
+
+    const leader = data[0];
+
+    document.getElementById("leaderName").value = "";
+    document.getElementById("leaderSurname").value = "";
+    document.getElementById("leaderEndDate").value = "";
+
+    const select =
+        document.getElementById("leaderType");
+
+    select.innerHTML = "";
+
+    leader.typy.forEach(t => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = t.id;
+
+        option.textContent =
+            t.nazwa;
+
+        select.appendChild(option);
+
+    });
+
+    document
+        .getElementById(
+            "leaderCountryId"
+        ).value =
+            leader.panstwo_id;
+
+    document
+        .getElementById(
+            "leaderCountry"
+        ).innerText =
+            leader.panstwo_pelna_nazwa;
+
+    document
+        .getElementById(
+            "leaderGovernment"
+        ).innerText =
+            leader.ustroj;
+    
+    document
+        .getElementById(
+            "leaderStartInfo"
+        ).innerText =
+            "Nowa kadencja rozpocznie się: " +
+            leader.new_start_date;
+    
+    if (leader.previous_leader) {
+
+        document.getElementById(
+            "previousLeaderBox"
+        ).style.display = "block";
+
+        document.getElementById(
+            "previousLeaderInfo"
+        ).innerHTML = `
+            <strong>${leader.previous_leader.typ}</strong><br>
+            ${leader.previous_leader.imie} ${leader.previous_leader.nazwisko}<br>
+            Kadencja:
+            ${leader.previous_leader.data_od}
+            –
+            ${leader.previous_leader.data_do}
+        `;
+
+    } else {
+
+        document.getElementById(
+            "previousLeaderBox"
+        ).style.display = "none";
+
+    }
+
+    document
+        .getElementById(
+            "leaderFlag"
+        ).src =
+            leader.flaga;
+
+    if (leader.manual_date) {
+
+        document
+            .getElementById(
+                "manualDateGroup"
+            ).style.display =
+                "block";
+
+    } else {
+
+        document
+            .getElementById(
+                "manualDateGroup"
+            ).style.display =
+                "none";
+
+    }
+
+    if (leader.is_first_leader) {
+
+        document
+            .getElementById(
+                "leaderStartGroup"
+            ).style.display =
+                "block";
+
+        document
+            .getElementById(
+                "leaderStartDate"
+            ).value =
+                leader.new_start_date;
+
+    } else {
+
+        document
+            .getElementById(
+                "leaderStartGroup"
+            ).style.display =
+                "none";
+
+    }
+
+$('#leaderModal').modal({
+    backdrop: "static",
+    keyboard: false
+});
+
+}
+</script>
+
+{% if session.rola in ["wszechmocny", "tworzyciel"] %}
+<script>
+
+async function saveLeader() {
+
+    const body = {
+
+        panstwo_id:
+            document.getElementById(
+                "leaderCountryId"
+            ).value,
+
+        imie:
+            document.getElementById(
+                "leaderName"
+            ).value,
+
+        nazwisko:
+            document.getElementById(
+                "leaderSurname"
+            ).value,
+
+        typ:
+            document.getElementById(
+                "leaderType"
+            ).value
+
+    };
+
+    if (
+        document.getElementById(
+            "leaderStartGroup"
+        ).style.display !== "none"
+    ) {
+
+        body.data_od =
+            document.getElementById(
+                "leaderStartDate"
+            ).value;
+
+    }
+
+    if (
+        document.getElementById(
+            "manualDateGroup"
+        ).style.display !== "none"
+    ) {
+
+        body.data_do =
+            document.getElementById(
+                "leaderEndDate"
+            ).value;
+
+    }
+
+    if (
+        document
+            .getElementById(
+                "leaderStartGroup"
+            ).style.display !== "none"
+        &&
+        !document
+            .getElementById(
+                "leaderStartDate"
+            ).value
+    ) {
+
+        alert(
+            "Podaj datę rozpoczęcia kadencji."
+        );
+
+        return;
+
+    }
+
+    if (
+        document
+            .getElementById(
+                "leaderStartGroup"
+            ).style.display !== "none"
+    ) {
+
+        body.data_od =
+            document
+                .getElementById(
+                    "leaderStartDate"
+                ).value;
+
+    }
+
+    if (
+        document.getElementById(
+            "manualDateGroup"
+        ).style.display !== "none"
+    ) {
+
+        body.data_do =
+            document.getElementById(
+                "leaderEndDate"
+            ).value;
+
+    }
+
+    const response =
+        await fetch(
+            "/api/przywodcy/dodaj",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(body)
+            }
+        );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+
+        alert(result.message);
+
+        return;
+
+    }
+
+    $('#leaderModal').modal('hide');
+
+    checkExpiredLeaders();
+
+}
+
+window.addEventListener("load", async () => {
+
+    if (sessionStorage.getItem("leadershipChecked")) {
+        return;
+    }
+
+    sessionStorage.setItem("leadershipChecked", "1");
+
+    await checkExpiredLeaders();
+
+});
+</script>
+
+{% endif %}

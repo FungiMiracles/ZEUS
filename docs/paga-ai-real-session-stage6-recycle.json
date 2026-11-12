@@ -1,0 +1,438 @@
+{
+ "database": "sqlite:///:memory:",
+ "scenarios": [
+  {
+   "scenario": "review",
+   "seconds": 101.8,
+   "tasks": [
+    {
+     "kind": "strategic_review",
+     "status": "COMPLETED",
+     "model_calls": 1,
+     "retries": 0,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Państwo 1 znajduje się w stanie początkowym z zerowym budżetem operacyjnym poza podstawowymi przychodami podatkowymi. Brakuje jakichkolwiek celów strategicznych, planów, sojuszy ani infrastruktury. Br",
+       "działania": [
+        "goal.create",
+        "intent.create"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "goal.create",
+       "wynik": "Utworzono cel #1: Fundamenty Państwa",
+       "status": "OK"
+      },
+      {
+       "krok": "1.2",
+       "operacja": "intent.create",
+       "wynik": "Zapisano zamiar #1.",
+       "status": "OK"
+      }
+     ],
+     "duration_ms": 101772
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 317,
+     "prompt_tokens": 2632,
+     "prompt_ms": 42051,
+     "generated_tokens": 307,
+     "generation_ms": 56877,
+     "total_ms": 101440,
+     "peak_rss_bytes": 4643463168
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 101772,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [],
+   "model_io": [
+    {
+     "context_chars": 5305,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 znajduje się w stanie początkowym z zerowym budżetem operacyjnym poza podstawowymi przychodami podatkowymi. Brakuje jakichkolwiek celów strategicznych, planów, sojuszy ani infrastruktury. Br",
+      "actions": [
+       {
+        "operation_id": "goal.create",
+        "data": {
+         "title": "Fundamenty Państwa",
+         "description": "Zbudowanie stabilnej gospodarki, armii i systemu bezpieczeństwa w celu zapewnienia przetrwania i wzrostu siły.",
+         "priority": 1,
+         "parent_id": 0,
+         "criteria": [
+          {
+           "metric": "reserve_mld",
+           "op": ">=",
+           "value": 10
+          },
+          {
+           "metric": "army:czolgi_ilosc",
+           "op": ">=",
+           "value": 100
+          },
+          {
+           "metric": "count:bases",
+           "op": ">=",
+           "value": 50
+          }
+         ]
+        }
+       },
+       {
+        "operation_id": "intent.create",
+        "data": {
+         "note": "Zainicjować badania nad energią odnawialną i zaopatrzeniem strategicznym po uzyskaniu podstawowej infrastruktury.",
+         "when": {
+          "type": "after_game_days",
+          "days": 60
+         },
+         "domain": "strategy",
+         "goal_id": 1
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Inicjuję cel nadrzędny 'Fundamenty Państwa' skupiający się na budowie armii, baz i rezerwach finansowych. Stworzyłem zamiar na późniejsze badania energetyczne, aby nie przeciążyć budżetu na zbyt wczes"
+     },
+     "stats": {
+      "prompt_tokens": 2632,
+      "prompt_ms": 42051.38,
+      "generated_tokens": 307,
+      "generation_ms": 56877.825,
+      "cached_tokens": 0,
+      "seconds": 101.44,
+      "peak_rss_bytes": 4643463168,
+      "minimum_available_bytes": 3635417088,
+      "success": true,
+      "session_calls": 1,
+      "recycled": 0,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    }
+   ],
+   "goals": [
+    [
+     "Fundamenty Państwa",
+     "ACTIVE",
+     null
+    ]
+   ],
+   "plans": [
+    [
+     "INTENT",
+     "ACTIVE",
+     "Zainicjować badania nad energią odnawialną i zaopatrzeniem strategicznym po uzyskaniu podstawowej infrastruktury."
+    ]
+   ],
+   "strategy_memory": {
+    "notes": [
+     "Inicjuję cel nadrzędny 'Fundamenty Państwa' skupiający się na budowie armii, baz i rezerwach finansowych. Stworzyłem zamiar na późniejsze badania energetyczne, aby nie przeciążyć budżetu na zbyt wczes"
+    ]
+   }
+  },
+  {
+   "scenario": "attack",
+   "seconds": 217.2,
+   "tasks": [
+    {
+     "kind": "under_attack",
+     "status": "COMPLETED",
+     "model_calls": 3,
+     "retries": 2,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Państwo 2 zaatakowało Państwo 1 bombardowaniem. Priorytetem jest natychmiastowa obrona terytorialna i przeciwdziałanie utracie kluczowych obiektów. Charakter PAGA (50/50) sugeruje zrównoważony, ale tł",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Uzupełnij garnizon wybranego rodzaju bazy.",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Państwo 2 przeprowadziło bombardowanie terytorium Państwa 1. Obecny stan obrony wymaga natychmiastowego uzupełnienia garnizonów, aby zapobiec dalszym stratom i utrzymać kontrołę nad kluczowymi obiektą",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Ta sama decyzja została już odrzucona przy niezmienionym stanie. Zmień decyzję.",
+       "status": "BLOCKED"
+      },
+      {
+       "krok": "decyzja 3",
+       "ocena": "Państwo 2 przeprowadziło bombardowanie terytorium Państwa 1. Odrzucono dotychczasowe próby uzupełnienia obrony ze względu na brak danych o stanie baz i zasobach. Należy odzyskać kontrolę nad regionem ",
+       "działania": [
+        "game_military.defense_page:GET",
+        "game_army.page:GET",
+        "game_military.map_state:GET"
+       ]
+      },
+      {
+       "krok": "3.1",
+       "operacja": "game_military.defense_page:GET",
+       "wynik": "Odczytano game_military.defense_page:GET.",
+       "status": "READ"
+      },
+      {
+       "krok": "3.2",
+       "operacja": "game_army.page:GET",
+       "wynik": "Odczytano game_army.page:GET.",
+       "status": "READ"
+      },
+      {
+       "krok": "3.3",
+       "operacja": "game_military.map_state:GET",
+       "wynik": "Odczytano game_military.map_state:GET.",
+       "status": "READ"
+      }
+     ],
+     "duration_ms": 217217
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 147,
+     "prompt_tokens": 2279,
+     "prompt_ms": 36161,
+     "generated_tokens": 235,
+     "generation_ms": 42839,
+     "total_ms": 81500,
+     "peak_rss_bytes": 4642566144
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 7,
+     "prompt_tokens": 1727,
+     "prompt_ms": 28071,
+     "generated_tokens": 219,
+     "generation_ms": 40655,
+     "total_ms": 68740,
+     "peak_rss_bytes": 4651167744
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 7,
+     "prompt_tokens": 1957,
+     "prompt_ms": 32025,
+     "generated_tokens": 183,
+     "generation_ms": 34410,
+     "total_ms": 66570,
+     "peak_rss_bytes": 4958662656
+    },
+    {
+     "kind": "under_attack",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 217217,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [
+    {
+     "operation": "game_military.defense_change:POST",
+     "validation": "REJECTED",
+     "reason": "Uzupełnij garnizon wybranego rodzaju bazy."
+    }
+   ],
+   "model_io": [
+    {
+     "context_chars": 4002,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 2 zaatakowało Państwo 1 bombardowaniem. Priorytetem jest natychmiastowa obrona terytorialna i przeciwdziałanie utracie kluczowych obiektów. Charakter PAGA (50/50) sugeruje zrównoważony, ale tł",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "deploy",
+         "kind": "land",
+         "region_id": 1,
+         "x": 0,
+         "y": 0,
+         "target_kind": "land",
+         "target_id": 1,
+         "defense_id": 1,
+         "ammunition": 100,
+         "infrastructure": true,
+         "is_nuclear": false,
+         "missiles": 0,
+         "source": "auto"
+        },
+        "path": {}
+       }
+      ],
+      "task_done": false,
+      "memory": "Inicjowałem masowe wzmocnienie obrony lądowej na terytorium 1. Wymaga to zasobów i czasu na pełną efektywność. Potrzebuję danych o siłach napastnika i naszych bazach, aby precyzyjnie rozlokować siły i"
+     },
+     "stats": {
+      "prompt_tokens": 2279,
+      "prompt_ms": 36161.93,
+      "generated_tokens": 235,
+      "generation_ms": 42839.891,
+      "cached_tokens": 0,
+      "seconds": 81.5,
+      "peak_rss_bytes": 4642566144,
+      "minimum_available_bytes": 3636723712,
+      "success": true,
+      "session_calls": 1,
+      "recycled": 0,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    },
+    {
+     "context_chars": 5189,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 2 przeprowadziło bombardowanie terytorium Państwa 1. Obecny stan obrony wymaga natychmiastowego uzupełnienia garnizonów, aby zapobiec dalszym stratom i utrzymać kontrołę nad kluczowymi obiektą",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "deploy",
+         "kind": "land",
+         "region_id": 1,
+         "x": 0,
+         "y": 0,
+         "target_kind": "land",
+         "target_id": 1,
+         "defense_id": 1,
+         "ammunition": 100,
+         "infrastructure": true,
+         "is_nuclear": false,
+         "missiles": 0,
+         "source": "auto"
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Inicjowałem uzupełnianie garnizonów lądowych w regionie 1 (cel bombardowania) w celu odbudowania zdolności obronnych po ataku. Wymaga to zasobów i czasu na pełną efektywność. Potrzebuję danych o siłap"
+     },
+     "stats": {
+      "prompt_tokens": 1727,
+      "prompt_ms": 28071.876,
+      "generated_tokens": 219,
+      "generation_ms": 40655.869,
+      "cached_tokens": 974,
+      "seconds": 68.74,
+      "peak_rss_bytes": 4651167744,
+      "minimum_available_bytes": 3636641792,
+      "success": true,
+      "session_calls": 2,
+      "recycled": 0,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    },
+    {
+     "context_chars": 5907,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 2 przeprowadziło bombardowanie terytorium Państwa 1. Odrzucono dotychczasowe próby uzupełnienia obrony ze względu na brak danych o stanie baz i zasobach. Należy odzyskać kontrolę nad regionem ",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_page:GET",
+        "data": {}
+       },
+       {
+        "operation_id": "game_army.page:GET",
+        "data": {}
+       },
+       {
+        "operation_id": "game_military.map_state:GET",
+        "data": {}
+       }
+      ],
+      "task_done": false,
+      "memory": "Po ataku Państwa 2 na region 1, decyzja o uzupełnieniu garnizonów została odrzucona z powodu braku danych o stanie baz i zasobach. Charakter PAGA (50/50) wymaga zrównoważonej reakcji. Należy uzyskać b"
+     },
+     "stats": {
+      "prompt_tokens": 1957,
+      "prompt_ms": 32025.688,
+      "generated_tokens": 183,
+      "generation_ms": 34410.042,
+      "cached_tokens": 974,
+      "seconds": 66.57,
+      "peak_rss_bytes": 4958662656,
+      "minimum_available_bytes": 3318239232,
+      "success": true,
+      "session_calls": 3,
+      "recycled": 0,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    }
+   ],
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Inicjowałem masowe wzmocnienie obrony lądowej na terytorium 1. Wymaga to zasobów i czasu na pełną efektywność. Potrzebuję danych o siłach napastnika i naszych bazach, aby precyzyjnie rozlokować siły i",
+     "Inicjowałem uzupełnianie garnizonów lądowych w regionie 1 (cel bombardowania) w celu odbudowania zdolności obronnych po ataku. Wymaga to zasobów i czasu na pełną efektywność. Potrzebuję danych o siłap",
+     "Po ataku Państwa 2 na region 1, decyzja o uzupełnieniu garnizonów została odrzucona z powodu braku danych o stanie baz i zasobach. Charakter PAGA (50/50) wymaga zrównoważonej reakcji. Należy uzyskać b"
+    ]
+   }
+  }
+ ],
+ "started_free_gib": 5.26,
+ "source_sha256": {
+  "game/paga_ai_runner.py": "0e7669419eb8fa07b1b9388c2af31351633deb07a0d832931ff167b81b178b08",
+  "game/paga_ai_context.py": "3702f11388c14acaac23f9300511884beff99a11e4cc86826117023399e2cd92",
+  "game/paga_ai_guard.py": "34c56d78e182bdc30e97b8c3f2ba308f0d58b3d0e4d5314daea1489a0125ef2c",
+  "game/paga_ai_tasks.py": "1e617fffd02f7898c6c6c84760aa51d0fb66a8ee541e89e9528a9ed2e52159c0",
+  "game/paga_ai_detector.py": "87515a8f4f9a3236cba58cdad8f1e93a4f4d317f78acf5b409e08332a8fcf4d8",
+  "game/paga_ai_strategy.py": "dbb7f35739d8a63b1c9c8c5a79e6af409acd0977bdedce06f57b5d5736d3c35b",
+  "engine/paga_ai_scheduler.py": "542836ec5fd47943101097cb70b24e80b0807fe68f006720ce4fdf8b6922b7d2",
+  "game/qwen_runtime.py": "50b1d26b869d2d34a9486b3932d87da6afdb3ba472986008e651d371268ceb0a"
+ },
+ "finished_free_gib": 3.2,
+ "source_unchanged": true
+}

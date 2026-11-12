@@ -1,405 +1,1712 @@
-{% extends 'base_layout.html' %}
-{% block title %}Mapa świata{% endblock %}
+{% extends "base_layout.html" %}
+
+{% block title %}Mapy świata{% endblock %}
 
 {% block content %}
 
 <style>
-/* GŁÓWNE */
-.viewer-wrap {
-  height: calc(100vh - 120px);
-  display: flex;
-  gap: 18px;
-  padding: 18px;
-  box-sizing: border-box;
+
+/* Leaflet exempts its default overlay pane from responsive SVG sizing.
+   Apply the same rule to our custom road pane inside this map. */
+#map .leaflet-worldRoads-pane svg,
+#map .leaflet-worldCities-pane svg {
+    max-width: none !important;
+    max-height: none !important;
 }
 
-.left-panel {
-  flex: 1 1 0;
-  background: linear-gradient(180deg, #fff, #f8f9fb);
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.map-tab-btn.active {
+    background: linear-gradient(135deg, #2d76c9, #5d7dce);
+    border-color: #2d76c9;
+    color: white;
 }
 
-.toolbar {
-  display: flex;
-  gap: 8px;
-  padding: 10px;
-  border-bottom: 1px solid #e6e9ee;
-  align-items: center;
-  background: #ffffff;
+.city-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.1;
+
+    text-shadow: 0 0 2px rgba(0,0,0,0.9);
 }
 
-.toolbar .btn {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: #2d76c9;
-  color: white;
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
+.city-label::before {
+    display: none !important;
 }
 
-.toolbar .btn.secondary { background: #6c757d; }
-.toolbar .btn.small { padding: 6px 8px; font-size: 14px; }
-
-.controls { display:flex; gap:8px; align-items:center; }
-.controls input[type=range] { width:160px; }
-
-.search { margin-left: auto; display:flex; gap:6px; align-items:center; }
-.search input { padding:6px 8px; border-radius:8px; border:1px solid #d1d5da; }
-
-/* KONTAINER RASTROWY */
-.svg-area {
-  position: relative;
-  flex: 1 1 auto;
-  background: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  touch-action: none; /* custom pan/zoom */
+.city-text-label {
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translate(8px, 8px);
+    text-shadow: 1px 1px 1px black;
 }
 
-/* wewnętrzny wrapper dla obrazu — na niego nakładamy transform */
-.img-inner {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-/* obraz samej mapy */
-#map_svg, svg {
-  width: 100%;
-  height: 100%;
-  display: block;
+.map-toolbar {
+    max-width: 1500px;
+    margin: 20px auto 16px auto;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #d9e1ea;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
-/* overlay */
-.overlay-ui {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  background: rgba(255,255,255,0.95);
-  padding: 8px;
-  border-radius: 8px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-  font-size: 13px;
+.toolbar-section {
+    margin-bottom: 18px;
 }
 
-.info-bar { padding: 12px; border-top:1px solid #e8ecef; font-size:13px; }
-
-.right-panel {
-  width: 360px;
-  max-width: 40%;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+.toolbar-section:last-child {
+    margin-bottom: 0;
 }
 
-.small-thumb { width:100%; height:160px; object-fit:contain; border-radius:8px; border:1px solid #e6e9ee; }
+.toolbar-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7a8a;
+    margin-bottom: 10px;
+}
 
-.legend { font-size:14px; }
-.btn-row { display:flex; gap:8px; }
+.dataset-switch {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
-/* responsywne */
-@media (max-width: 900px) {
-  .viewer-wrap { flex-direction: column; }
-  .right-panel { width:100%; max-width:100%; }
+.map-tab-btn {
+    border: 2px solid #d6dde5;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 220px;
+}
+
+.map-tab-btn:hover {
+    border-color: #5d7dce;
+}
+
+.map-tab-btn.active {
+    background: linear-gradient(135deg, #2d76c9, #5d7dce);
+    border-color: #2d76c9;
+    color: white;
+    box-shadow: 0 6px 16px rgba(45,118,201,0.3);
+}
+
+.city-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.city-control-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #d6dde5;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.city-control-item:hover {
+    background: #eef4fb;
+}
+
+.map-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+}
+
+.map-mode-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.map-mode-option label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #d6dde5;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.map-mode-option label:hover {
+    border-color: #5d7dce;
+    transform: translateY(-1px);
+}
+
+.map-mode-option input[type="radio"]:checked + label {
+    background: linear-gradient(135deg, #2d76c9, #5d7dce);
+    border-color: #2d76c9;
+    color: white;
+    box-shadow: 0 5px 14px rgba(45,118,201,0.28);
+}
+
+.region-filter-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.region-filter-select {
+    min-width: 260px;
+    padding: 12px 14px;
+
+    border: 1px solid #d6dde5;
+    border-radius: 12px;
+
+    background: #f8fafc;
+    color: #2c3e50;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+.region-filter-select:hover {
+    border-color: #5d7dce;
+    background: #eef4fb;
+}
+
+.region-filter-select:focus {
+    outline: none;
+    border-color: #2d76c9;
+    box-shadow: 0 0 0 3px rgba(45,118,201,0.15);
+}
+
+.region-filter-caption {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7a8a;
+    text-transform: uppercase;
+}
+
+#citySearchResults {
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.city-search-result {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.city-search-result:hover {
+    background: #eef4fb;
 }
 </style>
 
-<div style="padding:18px 20px 6px 20px;">
-  <h2 style="margin:6px 0 2px 0;">Mapa świata</h2>
-  <p style="margin:0; color:#57606a;">Wgraj plik <strong>static/maps/mapa_swiata.webp</strong>. Viewer obsługuje pan/zoom (scroll, pinch, double-click), dopasowanie i pobieranie obrazu.</p>
+<div class="map-toolbar">
+
+    <div class="toolbar-section">
+        <div class="toolbar-title">Widok mapy</div>
+
+        <div class="dataset-switch">
+            <button id="tabPolitical" class="map-tab-btn active">
+                Podział polityczny
+            </button>
+
+            <button id="tabRegional" class="map-tab-btn">
+                Podział regionalny
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar-section">
+        <div class="toolbar-title">Nakładki</div>
+
+        <div class="city-controls">
+            <label class="city-control-item">
+                <input type="checkbox" id="toggleCities">
+                Pokaż miasta
+            </label>
+
+            <label class="city-control-item">
+                <input type="checkbox" id="toggleCapitalsOnly">
+                Tylko stolice
+            </label>
+            {% if session.get('rola') %}
+            <label class="city-control-item">
+                <input type="checkbox" id="toggleRoads" aria-describedby="worldRoadsStatus">
+                Pokaż drogi
+            </label>
+            {% endif %}
+        </div>
+        {% if session.get('rola') %}
+        <div id="worldRoadsLegend" hidden style="margin-top:8px;font-size:12px;">
+            <span style="color:#ec8b24;">━━</span> Autostrady
+            <span style="color:#e6bf25;margin-left:12px;">━━</span> Drogi krajowe
+        </div>
+        <div id="worldRoadsStatus" role="status" aria-live="polite" style="font-size:12px;"></div>
+        {% endif %}
+    </div>
+
+    <div class="toolbar-section">
+        <div class="toolbar-title">Wskaźniki mapy</div>
+
+        <div class="map-mode-grid">
+        </div>
+    </div>
+
+    <div class="toolbar-section" id="regionFiltersSection">
+        <div class="toolbar-title">
+            Filtr typów regionów
+        </div>
+
+        <div class="region-filter-row">
+
+            <div>
+                <div class="region-filter-caption">
+                    Typ nadrzędny
+                </div>
+
+                <select
+                    id="regionTypeParent"
+                    class="region-filter-select">
+
+                    <option value="">
+                        Wszystkie typy nadrzędne
+                    </option>
+
+                </select>
+            </div>
+
+            <div>
+                <div class="region-filter-caption">
+                    Typ podrzędny
+                </div>
+
+                <select
+                    id="regionTypeChild"
+                    class="region-filter-select">
+
+                    <option value="">
+                        Wszystkie typy podrzędne
+                    </option>
+
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toolbar-section">
+
+        <div class="toolbar-title">
+            Wyszukiwanie miasta
+        </div>
+
+            <div style="display:flex; gap:10px;">
+
+                <input
+                    type="text"
+                    id="citySearch"
+                    placeholder="Nazwa miasta lub ID"
+                    style="flex:1;">
+
+                <button
+                    id="citySearchBtn"
+                    class="map-tab-btn"
+                    style="min-width:120px;">
+                    Szukaj
+                </button>
+
+            </div>
+
+            <div id="citySearchResults"></div>
+
+    </div>
+
+    <div class="toolbar-section">
+
+        <div class="toolbar-title">
+            Wyszukiwanie miasta po lokalizacji
+        </div>
+
+        <div class="region-filter-row">
+
+            <select
+                id="kontynentSelect"
+                class="region-filter-select">
+
+                <option value="">
+                    Wybierz kontynent
+                </option>
+
+            </select>
+
+            <select
+                id="panstwoSelect"
+                class="region-filter-select">
+
+                <option value="">
+                    Wybierz państwo
+                </option>
+
+            </select>
+
+            <select
+                id="regionSelect"
+                class="region-filter-select">
+
+                <option value="">
+                    Wybierz region
+                </option>
+
+            </select>
+
+            <select
+                id="miastoSelect"
+                class="region-filter-select">
+
+                <option value="">
+                    Wybierz miasto
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="viewer-wrap">
-  <div class="left-panel">
-    <div class="toolbar">
-      <div class="controls">
-        <button class="btn" id="zoom_in">＋</button>
-        <button class="btn" id="zoom_out">－</button>
-        <button class="btn secondary small" id="fit">Dopasuj</button>
-        <button class="btn secondary small" id="reset">Reset</button>
-        <button class="btn secondary small" id="fullscreen">Pełny ekran</button>
-        <label style="margin-left:8px; font-weight:600;">Zoom</label>
-        <input id="zoom_slider" type="range" min="10" max="400" value="100">
-      </div>
-
-      <div class="search" style="margin-left:14px;">
-        <!-- dla rastrowego viewer'a wyszukiwarka po id/data-name nie ma sensu -> ukryta/nieaktywna -->
-        <input id="search_input" placeholder="(tylko SVG miało wyszukiwarkę)" disabled style="opacity:0.6" />
-        <button class="btn small" id="search_btn" disabled>---</button>
-      </div>
-    </div>
-
-    <div class="svg-area" id="svg_area">
-      <div id="img_container" class="img-inner">
-        {{ svg_content | safe }}
-      </div>
-
-      <div class="overlay-ui" id="overlay">
-        <div><strong>Pozycja:</strong> <span id="coords">—</span></div>
-        <div style="margin-top:6px;"><strong>Zoom:</strong> <span id="zoom_val">100%</span></div>
-      </div>
-    </div>
-
-    <div class="info-bar" id="infobar">
-      <strong>Instrukcja:</strong> przeciągnij, aby przesuwać; scroll aby przybliżyć; dwa palce (pinch) na dotyku; double-click aby powiększyć.
-    </div>
-  </div>
-
-  <div class="right-panel">
-    <div>
-      <h3 style="margin:4px 0 8px 0;">Miniatura</h3>
-      <img id="thumb" class="small-thumb" src="{{ url_for('static', filename='maps/mapa_swiata.webp') }}" alt="miniatura mapy">
-    </div>
-
-    <div>
-      <h4 style="margin:4px 0">Wybrane elementy</h4>
-      <div id="selection_info">Brak warstw (raster)</div>
-    </div>
-
-    <div>
-      <h4 style="margin:4px 0">Narzędzia</h4>
-      <div class="btn-row">
-        <button class="btn" id="toggle_labels" title="Brak etykiet w rastrze">Pokaż/ukryj etykiety</button>
-        <a id="download_svg" class="btn secondary" href="{{ url_for('static', filename='maps/mapa_swiata.webp') }}" download> Pobierz obraz </a>
-      </div>
-    </div>
-  </div>
+<div style="padding:20px;">
+    <div id="map" style="height:85vh; width:100%; border-radius:12px;"></div>
 </div>
+
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/world_roads.js') }}"></script>
 
 <script>
-// ===============================
-// REFERENCJE
-// ===============================
-const svgArea = document.getElementById('svg_area');
-const container = document.getElementById('img_container');
-const svg = container.querySelector('svg');
+const map = L.map('map', {
+    crs: L.CRS.Simple,
+    attributionControl: false,
+    zoomControl: true,
+    minZoom: -5,
+    maxZoom: 4
+});
 
-if (!svg) {
-  console.error("Brak SVG w #img_container");
+const kmPerUnit = {{ km_per_unit | tojson }};
+const mapDistance = map.distance.bind(map);
+map.distance = (a, b) => mapDistance(a, b) * kmPerUnit * 1000;
+L.control.scale({imperial: false, metric: true}).addTo(map);
+
+map.createPane('worldCities');
+map.getPane('worldCities').style.zIndex = '460';
+window.addWorldRoadsOverlay(map, {{ url_for('wiki_world_roads') | tojson }});
+
+let geoLayer = null;
+let cityLayer = null;
+let cityLoadRevision = 0;
+let selectedCityLayer = null;
+let citiesVisible = false;
+let capitalsOnly = false;
+let cityMetaMap = {};
+let currentMode = "ogolne";
+let currentDataset = "political";
+
+let selectedCountryForRelations = null;
+let relationsData = {};
+
+let metaMap = {};
+let geoData = {};
+let areaLayers = {};
+let activeArea = null;
+
+let selectedRegionTypeParent = "";
+let selectedRegionTypeChild = "";
+
+const POLITICAL_MODES = [
+    ["ogolne", "Ogólne"],
+    ["populacja", "Populacja"],
+    ["przyrost_ludnosci", "Przyrost ludności"],
+    ["pkb", "PKB"],
+    ["pkb_pc", "PKB per capita"],
+    ["wzrost_pkb", "Wzrost PKB"],
+    ["poziom_infrastruktury", "Poziom infrastruktury"],
+    ["stabilnosc", "Stabilność społeczna"],
+    ["przestepczosc", "Przestępczość"],
+    ["bron_atomowa", "Broń jądrowa"],
+    ["procent_pkb_wojsko", "Wydatki na zbrojenia"],
+    ["stosunki", "Stosunki międzynarodowe"],
+    ["ryzyko_mrozu", "Ryzyko fal mrozu"],
+    ["ryzyko_upalu", "Ryzyko fal upału"]
+];
+
+const REGIONAL_MODES = [
+    ["ogolne", "Nazwy regionów"],
+    ["populacja", "Populacja"],
+    ["urbanizacja", "Urbanizacja"],
+    ["przyrost_ludnosci", "Przyrost ludności"],
+    ["poziom_infrastruktury", "Infrastruktura"],
+    ["infra_portowa", "Infrastruktura portowa"],
+    ["infra_drogowa", "Infrastruktura drogowa"],
+    ["infra_kolejowa", "Infrastruktura kolejowa"],
+    ["infra_energetyczna", "Infrastruktura energetyczna"],
+    ["poziom_skomunikowania", "Poziom skomunikowania"],
+    ["ryzyko_mrozu", "Ryzyko fal mrozu"],
+    ["ryzyko_upalu", "Ryzyko fal upału"],
+    ["ryzyko_powodzi", "Ryzyko powodzi"],
+    ["ryzyko_lawin", "Ryzyko lawin"],
+    ["sejsmicznosc", "Sejsmiczność"],
+    ["polkula", "Półkula"],
+    ["teren", "Ukształtowanie terenu"]
+];
+
+function renderModeButtons(dataset) {
+    const grid = document.querySelector(".map-mode-grid");
+    const modes = dataset === "political" ? POLITICAL_MODES : REGIONAL_MODES;
+
+    grid.innerHTML = "";
+
+    modes.forEach(([value, label], idx) => {
+        grid.innerHTML += `
+            <div class="map-mode-option">
+                <input
+                    type="radio"
+                    id="mode_${value}"
+                    name="map_mode"
+                    value="${value}"
+                    ${idx === 0 ? "checked" : ""}
+                >
+                <label for="mode_${value}">${label}</label>
+            </div>
+        `;
+    });
+
+    document.querySelectorAll('input[name="map_mode"]').forEach(radio => {
+        radio.addEventListener("change", function() {
+            currentMode = this.value;
+            redrawStyles();
+        });
+    });
 }
 
-// ===============================
-// VIEWBOX STATE
-// ===============================
-let viewBox = {
-  x: 0,
-  y: 0,
-  width: 1000,
-  height: 500
-};
+function getPKBColor(pkb) {
+    if (pkb >= 15000000000000) return "#7f2704";
+    if (pkb >= 10000000000000) return "#a63603";
+    if (pkb >= 5000000000000) return "#d94801";
+    if (pkb >= 1000000000000) return "#f16913";
+    return "#fdae6b";
+}
 
-// inicjalizacja z SVG
-function initViewBox() {
-  const vb = svg.getAttribute("viewBox");
+function getPKBPCColor(pkbpc) {
+    if (pkbpc >= 100000) return "#00441b";
+    if (pkbpc >= 75000) return "#006d2c";
+    if (pkbpc >= 50000) return "#238b45";
+    if (pkbpc >= 30000) return "#41ab5d";
+    if (pkbpc >= 20000) return "#74c476";
+    if (pkbpc >= 10000) return "#a1d99b";
+    return "#c7e9c0";
+}
 
-  if (vb) {
-    const [x, y, w, h] = vb.split(" ").map(Number);
-    viewBox = { x, y, width: w, height: h };
-  } else {
-    const bbox = svg.getBBox();
-    viewBox = {
-      x: bbox.x,
-      y: bbox.y,
-      width: bbox.width,
-      height: bbox.height
+function getPopulationColor(pop) {
+
+    // regiony
+    if (currentDataset === "regional") {
+        if (pop >= 15000000) return "#4a0000";
+        if (pop >= 13500000) return "#67000d";
+        if (pop >= 12000000) return "#8b0000";
+        if (pop >= 10500000) return "#a50f15";
+        if (pop >= 9000000)  return "#cb181d";
+        if (pop >= 7500000)  return "#ef3b2c";
+        if (pop >= 6000000)  return "#fb6a4a";
+        if (pop >= 4500000)  return "#fc9272";
+        if (pop >= 3000000)  return "#fcbba1";
+        if (pop >= 1500000)  return "#fee0d2";
+        return "#fff5f0";
+    }
+
+    // państwa
+    if (pop >= 1000000000) return "#67000d";
+    if (pop >= 500000000)  return "#a50f15";
+    if (pop >= 250000000)  return "#cb181d";
+    if (pop >= 100000000)  return "#ef3b2c";
+    if (pop >= 50000000)   return "#fb6a4a";
+    if (pop >= 10000000)   return "#fcae91";
+    return "#fee5d9";
+}
+
+function getStabilityColor(val) {
+    if (val >= 90) return "#00441b";
+    if (val >= 75) return "#006d2c";
+    if (val >= 60) return "#238b45";
+    if (val >= 45) return "#41ab5d";
+    if (val >= 30) return "#74c476";
+    if (val >= 15) return "#a1d99b";
+    return "#d9f0d3";
+}
+
+function getCrimeColor(val) {
+    if (val >= 90) return "#67000d";
+    if (val >= 75) return "#a50f15";
+    if (val >= 60) return "#cb181d";
+    if (val >= 45) return "#ef3b2c";
+    if (val >= 30) return "#fb6a4a";
+    if (val >= 15) return "#fcae91";
+    return "#fee5d9";
+}
+
+function getMilitarySpendingColor(val) {
+    if (val >= 10) return "#4a0000";
+    if (val >= 8) return "#7f0000";
+    if (val >= 6) return "#b30000";
+    if (val >= 4) return "#d7301f";
+    if (val >= 3) return "#ef6548";
+    if (val >= 2) return "#fc8d59";
+    if (val >= 1) return "#fdbb84";
+    if (val > 0) return "#fee8c8";
+    return "#d9d9d9";
+}
+
+function getGrowthColor(val) {
+    if (val >= 6) return "#00441b";
+    if (val >= 4.5) return "#006d2c";
+    if (val >= 3) return "#238b45";
+    if (val >= 2) return "#41ab5d";
+    if (val >= 1) return "#74c476";
+    if (val >= 0) return "#c7e9c0";
+    if (val >= -1) return "#fee08b";
+    if (val >= -2) return "#fdae61";
+    if (val >= -3) return "#f46d43";
+    if (val >= -5) return "#d73027";
+    return "#7f0000";
+}
+
+function getEnergyInfrastructureColor(val) {
+    if (val >= 95) return "#7f2704";
+    if (val >= 90) return "#a63603";
+    if (val >= 80) return "#d94801";
+    if (val >= 70) return "#f16913";
+    if (val >= 60) return "#fd8d3c";
+    if (val >= 50) return "#fdae6b";
+    if (val >= 40) return "#fdd0a2";
+    if (val >= 30) return "#fee6ce";
+    return "#fff5eb";
+}
+
+function getHeatRiskColor(val) {
+
+    if (currentDataset === "regional") {
+        if (val >= 70) return "#7f0000";
+        if (val >= 66) return "#b30000";
+        if (val >= 50) return "#d7301f";
+        if (val >= 40) return "#ef6548";
+        if (val >= 35) return "#fc8d59";
+        if (val >= 30) return "#fdae61";
+        if (val >= 25) return "#fdc776";
+        if (val >= 20) return "#fee08b";
+        if (val >= 10) return "#fff0a5";
+        return "#fff9d6";
+    }
+
+    if (val >= 90) return "#7f0000";
+    if (val >= 75) return "#b30000";
+    if (val >= 60) return "#d7301f";
+    if (val >= 45) return "#ef6548";
+    if (val >= 30) return "#fdae61";
+    if (val >= 15) return "#fee08b";
+    return "#fff9d6";
+}
+
+function getFrostRiskColor(val) {
+
+    if (currentDataset === "regional") {
+        if (val >= 95) return "#041f4a";
+        if (val >= 80) return "#08306b";
+        if (val >= 85) return "#084594";
+        if (val >= 80) return "#08519c";
+        if (val >= 75) return "#0868ac";
+        if (val >= 70) return "#2171b5";
+        if (val >= 65) return "#2b8cbe";
+        if (val >= 60) return "#4292c6";
+        if (val >= 55) return "#4eb3d3";
+        if (val >= 50) return "#6baed6";
+        if (val >= 45) return "#7bccc4";
+        if (val >= 35) return "#9ecae1";
+        if (val >= 15) return "#c6dbef";
+        if (val >= 5) return "#deebf7";
+        return "#f7fbff";
+    }
+
+        if (val >= 90) return "#08306b";
+        if (val >= 75) return "#08519c";
+        if (val >= 60) return "#2171b5";
+        if (val >= 45) return "#4292c6";
+        if (val >= 30) return "#6baed6";
+        if (val >= 15) return "#9ecae1";
+        return "#deebf7";
+    }
+
+function getPopulationGrowthColor(val) {
+    if (val >= 3.0) return "#00210D";
+    if (val >= 2.0) return "#00441b";
+    if (val >= 1.0) return "#41ab5d";
+    if (val >= 0.5) return "#74c476";
+    if (val >= 0.0) return "#d9f0d3";
+    if (val >= -1.0) return "#fee08b";
+    if (val >= -2.0) return "#f46d43";
+    return "#7f0000";
+}
+
+function getInfrastructureColor(val) {
+    if (val >= 95) return "#08306b";
+    if (val >= 90) return "#08519c";
+    if (val >= 80) return "#2171b5";
+    if (val >= 70) return "#4292c6";
+    if (val >= 60) return "#6baed6";
+    if (val >= 50) return "#9ecae1";
+    if (val >= 40) return "#c6dbef";
+    if (val >= 30) return "#deebf7";
+    return "#f7fbff";
+}
+
+function getUrbanizationColor(val) {
+    if (val >= 90) return "#081d58";
+    if (val >= 75) return "#225ea8";
+    if (val >= 60) return "#1d91c0";
+    if (val >= 45) return "#41b6c4";
+    if (val >= 30) return "#7fcdbb";
+    return "#c7e9b4";
+}
+
+function getHemisphereColor(val) {
+    if (val === "NORTH") return "#1565c0";
+    if (val === "SOUTH") return "#ef6c00";
+    return "#cccccc";
+}
+
+function getTerrainColor(val) {
+    const terrainMap = {
+        "nizinny": "#2e7d32",
+        "wyżynny": "#fb8c00",
+        "pogórski": "#FFFC30",
+        "górski": "#6d4c41",
+        "wysokogórski": "#111111"
     };
-  }
-
-  applyViewBox();
+    return terrainMap[val] || "#cccccc";
 }
 
-function applyViewBox() {
-  svg.setAttribute(
-    "viewBox",
-    `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`
-  );
-
-  document.getElementById("zoom_val").textContent =
-    Math.round((1000 / viewBox.width) * 100) / 100 + "x";
+function getSeismicityColor(val) {
+    if (val >= 90) return "#3e2723";
+    if (val >= 80) return "#5d4037";
+    if (val >= 70) return "#6d4c41";
+    if (val >= 60) return "#8d6e63";
+    if (val >= 50) return "#a1887f";
+    if (val >= 40) return "#bc8f5f";
+    if (val >= 30) return "#d7a86e";
+    if (val >= 20) return "#e6c28b";
+    if (val >= 10) return "#f2ddb1";
+    return "#faf3e0";
 }
 
-// ===============================
-// KOORDYNATY
-// ===============================
-function clientToSvg(clientX, clientY) {
-  const rect = svgArea.getBoundingClientRect();
-
-  const x = ((clientX - rect.left) / rect.width) * viewBox.width + viewBox.x;
-  const y = ((clientY - rect.top) / rect.height) * viewBox.height + viewBox.y;
-
-  return { x, y };
+function getNuclearColor(count) {
+    return count > 0 ? "#8b0000" : "#d9d9d9";
 }
 
-// ===============================
-// ZOOM
-// ===============================
-function zoomAt(clientX, clientY, factor) {
-  const pt = clientToSvg(clientX, clientY);
+function getDefaultStyle(id) {       
 
-  const newWidth = viewBox.width * factor;
-  const newHeight = viewBox.height * factor;
+    const meta = metaMap[String(id)];
 
-  viewBox.x = pt.x - (pt.x - viewBox.x) * factor;
-  viewBox.y = pt.y - (pt.y - viewBox.y) * factor;
+    if (!meta) {
+        return {
+            color: "#2c3e50",
+            weight: 1,
+            fillColor: "#cccccc",
+            fillOpacity: 0.75
+        };
+    }
 
-  viewBox.width = newWidth;
-  viewBox.height = newHeight;
+    if (currentDataset === "regional") {
 
-  applyViewBox();
+        const hasFilter =
+        selectedRegionTypeParent ||
+        selectedRegionTypeChild;
+
+    if (hasFilter) {
+
+        console.log(
+            "REGION",
+            meta.nazwa,
+            meta.typ_nadrz_id,
+            meta.typ_podrz_id,
+            selectedRegionTypeParent,
+            selectedRegionTypeChild
+        );
+
+        const parentOk =
+            !selectedRegionTypeParent ||
+            String(meta.typ_nadrz_id) === String(selectedRegionTypeParent);
+
+        const childOk =
+            !selectedRegionTypeChild ||
+            String(meta.typ_podrz_id) === String(selectedRegionTypeChild);
+
+        if (parentOk && childOk) {
+            return {
+                color: "#003f8a",
+                weight: 2,
+                fillColor: "#2d76ff",
+                fillOpacity: 0.95
+            };
+        }
+
+        return {
+            color: "#999",
+            weight: 1,
+            fillColor: "#dddddd",
+            fillOpacity: 0.15
+        };
+    }
+
+        if (currentMode === "urbanizacja") {
+            return { color:"#444", weight:1, fillColor:getUrbanizationColor(meta.urbanizacja), fillOpacity:0.85 };
+        }
+        if (currentMode === "infra_portowa") {
+            return { color:"#444", weight:1, fillColor:getInfrastructureColor(meta.infra_portowa), fillOpacity:0.85 };
+        }
+        if (currentMode === "infra_drogowa") {
+            return { color:"#444", weight:1, fillColor:getInfrastructureColor(meta.infra_drogowa), fillOpacity:0.85 };
+        }
+        if (currentMode === "infra_kolejowa") {
+            return { color:"#444", weight:1, fillColor:getInfrastructureColor(meta.infra_kolejowa), fillOpacity:0.85 };
+        }
+        if (currentMode === "infra_energetyczna") {
+            return {
+                color:"#444",
+                weight:1,
+                fillColor:getEnergyInfrastructureColor(meta.infra_energetyczna),
+                fillOpacity:0.85
+            };
+        }
+
+        if (currentMode === "poziom_skomunikowania") {
+            return {
+                color:"#444",
+                weight:1,
+                fillColor:getInfrastructureColor(
+                    meta.poziom_skomunikowania
+                ),
+                fillOpacity:0.85
+            };
+        }
+
+        if (currentMode === "ryzyko_powodzi") {
+            return {
+                color:"#444",
+                weight:1,
+                fillColor:getHeatRiskColor(
+                    meta.ryzyko_powodzi
+                ),
+                fillOpacity:0.85
+            };
+        }
+
+        if (currentMode === "ryzyko_lawin") {
+            return {
+                color:"#444",
+                weight:1,
+                fillColor:getHeatRiskColor(
+                    meta.ryzyko_lawin
+                ),
+                fillOpacity:0.85
+            };
+        }
+
+        if (currentMode === "sejsmicznosc") {
+            return {
+                color: "#444",
+                weight: 1,
+                fillColor: getSeismicityColor(meta.sejsmicznosc),
+                fillOpacity: 0.85
+            };
+        }
+        if (currentMode === "ryzyko_mrozu") {
+            return {
+                color: "#444",
+                weight: 1,
+                fillColor: getFrostRiskColor(meta.ryzyko_mrozu),
+                fillOpacity: 0.85
+            };
+        }
+
+        if (currentMode === "ryzyko_upalu") {
+            return {
+                color: "#444",
+                weight: 1,
+                fillColor: getHeatRiskColor(meta.ryzyko_upalu),
+                fillOpacity: 0.85
+            };
+        }
+        if (currentMode === "polkula") {
+            return { color:"#444", weight:1, fillColor:getHemisphereColor(meta.polkula), fillOpacity:0.85 };
+        }
+        if (currentMode === "teren") {
+            return { color:"#444", weight:1, fillColor:getTerrainColor(meta.teren), fillOpacity:0.85 };
+        }
+        if (currentMode === "poziom_infrastruktury") {
+            return { color:"#444", weight:1, fillColor:getInfrastructureColor(meta.poziom_infrastruktury), fillOpacity:0.85 };
+        }
+        if (currentMode === "przyrost_ludnosci") {
+            return { color:"#444", weight:1, fillColor:getPopulationGrowthColor(meta.przyrost_ludnosci), fillOpacity:0.85 };
+        }
+        if (currentMode === "populacja") {
+            return { color:"#444", weight:1, fillColor:getPopulationColor(meta.populacja), fillOpacity:0.85 };
+        }
+
+        return {
+            color: "#2c3e50",
+            weight: 1,
+            fillColor: "#6fa8dc",
+            fillOpacity: 0.75
+        };
+    }
+
+    if (currentMode === "wzrost_pkb") return { color:"#444", weight:1, fillColor:getGrowthColor(meta.wzrost_pkb), fillOpacity:0.85 };
+    if (currentMode === "ryzyko_upalu") return { color:"#444", weight:1, fillColor:getHeatRiskColor(meta.ryzyko_upalu), fillOpacity:0.85 };
+    if (currentMode === "ryzyko_mrozu") return { color:"#444", weight:1, fillColor:getFrostRiskColor(meta.ryzyko_mrozu), fillOpacity:0.85 };
+    if (currentMode === "poziom_skomunikowania") {
+        return {
+            color:"#444",
+            weight:1,
+            fillColor:getInfrastructureColor(meta.poziom_skomunikowania),
+            fillOpacity:0.85
+        };
+    }
+
+    if (currentMode === "ryzyko_powodzi") {
+        return {
+            color:"#444",
+            weight:1,
+            fillColor:getHeatRiskColor(meta.ryzyko_powodzi),
+            fillOpacity:0.85
+        };
+    }
+
+    if (currentMode === "ryzyko_lawin") {
+        return {
+            color:"#444",
+            weight:1,
+            fillColor:getHeatRiskColor(meta.ryzyko_lawin),
+            fillOpacity:0.85
+        };
+    }
+    if (currentMode === "pkb") return { color:"#444", weight:1, fillColor:getPKBColor(meta.pkb), fillOpacity:0.85 };
+    if (currentMode === "pkb_pc") return { color:"#444", weight:1, fillColor:getPKBPCColor(meta.pkb_pc), fillOpacity:0.85 };
+    if (currentMode === "populacja") return { color:"#444", weight:1, fillColor:getPopulationColor(meta.populacja), fillOpacity:0.85 };
+    if (currentMode === "stabilnosc") return { color:"#444", weight:1, fillColor:getStabilityColor(meta.stabilnosc_spoleczna), fillOpacity:0.85 };
+    if (currentMode === "przestepczosc") return { color:"#444", weight:1, fillColor:getCrimeColor(meta.przestepczosc), fillOpacity:0.85 };
+    if (currentMode === "bron_atomowa") return { color:"#444", weight:1, fillColor:getNuclearColor(meta.bron_atomowa_ilosc), fillOpacity:0.85 };
+    if (currentMode === "procent_pkb_wojsko") return { color:"#444", weight:1, fillColor:getMilitarySpendingColor(meta.procent_pkb_wojsko), fillOpacity:0.85 };
+    if (currentMode === "poziom_infrastruktury") return { color:"#444", weight:1, fillColor:getInfrastructureColor(meta.poziom_infrastruktury), fillOpacity:0.85 };
+    if (currentMode === "przyrost_ludnosci") return { color:"#444", weight:1, fillColor:getPopulationGrowthColor(meta.przyrost_ludnosci), fillOpacity:0.85 };
+
+    if (currentMode === "stosunki") {
+        if (selectedCountryForRelations && id == selectedCountryForRelations) {
+            return { color:"#003f8a", weight:2, fillColor:"#2d76ff", fillOpacity:0.95 };
+        }
+
+        const rel = relationsData[String(id)];
+
+        if (rel) {
+            return { color:"#444", weight:1, fillColor:rel.kolor, fillOpacity:0.85 };
+        }
+
+        return { color:"#666", weight:1, fillColor:"#dddddd", fillOpacity:0.5 };
+    }
+
+    return {
+        color: "#2c3e50",
+        weight: 1,
+        fillColor: "#6fa8dc",
+        fillOpacity: 0.75
+    };
 }
 
-// ===============================
-// PAN
-// ===============================
-let isPanning = false;
-let panStart = { x: 0, y: 0 };
-
-svgArea.addEventListener("pointerdown", (e) => {
-  if (e.button !== 0) return;
-
-  svgArea.setPointerCapture(e.pointerId);
-  isPanning = true;
-
-  const pt = clientToSvg(e.clientX, e.clientY);
-  panStart.x = pt.x;
-  panStart.y = pt.y;
-});
-
-window.addEventListener("pointerup", (e) => {
-  try { svgArea.releasePointerCapture(e.pointerId); } catch {}
-  isPanning = false;
-});
-
-window.addEventListener("pointermove", (e) => {
-  if (!isPanning) return;
-
-  const pt = clientToSvg(e.clientX, e.clientY);
-
-  const dx = panStart.x - pt.x;
-  const dy = panStart.y - pt.y;
-
-  viewBox.x += dx;
-  viewBox.y += dy;
-
-  applyViewBox();
-  updateCoords(e.clientX, e.clientY);
-});
-
-// ===============================
-// SCROLL ZOOM
-// ===============================
-svgArea.addEventListener("wheel", (e) => {
-  e.preventDefault();
-
-  const factor = e.deltaY < 0 ? 0.9 : 1.1;
-  zoomAt(e.clientX, e.clientY, factor);
-}, { passive: false });
-
-// ===============================
-// DOUBLE CLICK
-// ===============================
-svgArea.addEventListener("dblclick", (e) => {
-  zoomAt(e.clientX, e.clientY, 0.6);
-});
-
-// ===============================
-// PINCH (TOUCH)
-// ===============================
-let pinch = {
-  active: false,
-  startDist: 0
-};
-
-svgArea.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 2) {
-    pinch.active = true;
-    pinch.startDist = getDistance(e.touches);
-  }
-});
-
-svgArea.addEventListener("touchmove", (e) => {
-  if (pinch.active && e.touches.length === 2) {
-    e.preventDefault();
-
-    const newDist = getDistance(e.touches);
-    const factor = pinch.startDist / newDist;
-
-    const center = getCenter(e.touches);
-
-    zoomAt(center.x, center.y, factor);
-
-    pinch.startDist = newDist;
-  }
-}, { passive: false });
-
-svgArea.addEventListener("touchend", () => {
-  pinch.active = false;
-});
-
-function getDistance(touches) {
-  const dx = touches[0].clientX - touches[1].clientX;
-  const dy = touches[0].clientY - touches[1].clientY;
-  return Math.hypot(dx, dy);
+function highlightStyle() {
+    return {
+        color: "#1b3f8b",
+        weight: 2,
+        fillColor: "#2d76ff",
+        fillOpacity: 0.95
+    };
 }
 
-function getCenter(touches) {
-  return {
-    x: (touches[0].clientX + touches[1].clientX) / 2,
-    y: (touches[0].clientY + touches[1].clientY) / 2
-  };
+function highlightArea(id) {
+    if (!areaLayers[id]) return;
+    areaLayers[id].forEach(layer => layer.setStyle(highlightStyle()));
+    activeArea = id;
 }
 
-// ===============================
-// BUTTONY
-// ===============================
-document.getElementById("zoom_in").addEventListener("click", () => {
-  const rect = svgArea.getBoundingClientRect();
-  zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 0.8);
-});
-
-document.getElementById("zoom_out").addEventListener("click", () => {
-  const rect = svgArea.getBoundingClientRect();
-  zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1.25);
-});
-
-document.getElementById("reset").addEventListener("click", initViewBox);
-
-document.getElementById("fit").addEventListener("click", initViewBox);
-
-document.getElementById("fullscreen").addEventListener("click", () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-});
-
-// ===============================
-// KOORDYNATY
-// ===============================
-function updateCoords(clientX, clientY) {
-  const pt = clientToSvg(clientX, clientY);
-  document.getElementById("coords").textContent =
-    Math.round(pt.x) + ", " + Math.round(pt.y);
+function resetArea(id) {
+    if (!areaLayers[id]) return;
+    areaLayers[id].forEach(layer => layer.setStyle(getDefaultStyle(id)));
+    activeArea = null;
 }
 
-svgArea.addEventListener("mousemove", (e) => {
-  updateCoords(e.clientX, e.clientY);
+function buildTooltipText(meta, name, id) {
+    if (!meta) return name;
+
+    if (currentDataset === "regional") {
+    const hasFilter =
+        selectedRegionTypeParent ||
+        selectedRegionTypeChild;
+
+        if (hasFilter) {
+
+            const parentOk =
+                !selectedRegionTypeParent ||
+                String(meta.typ_nadrz_id) ===
+                String(selectedRegionTypeParent);
+
+            const childOk =
+                !selectedRegionTypeChild ||
+                String(meta.typ_podrz_id) ===
+                String(selectedRegionTypeChild);
+
+            if (parentOk && childOk) {
+
+                return {
+                    color: "#003f8a",
+                    weight: 2,
+                    fillColor: "#2d76ff",
+                    fillOpacity: 0.95
+                };
+            }
+
+            return {
+                color: "#999",
+                weight: 1,
+                fillColor: "#dddddd",
+                fillOpacity: 0.15
+            };
+        }
+        if (currentMode === "ogolne") {return `${name}<br><small>${meta.panstwo_nazwa}</small>`;}
+        if (currentMode === "urbanizacja") return `${name}<br>Urbanizacja: ${meta.urbanizacja}%`;
+        if (currentMode === "infra_portowa") return `${name}<br>Infrastruktura portowa: ${meta.infra_portowa}`;
+        if (currentMode === "infra_drogowa") return `${name}<br>Infrastruktura drogowa: ${meta.infra_drogowa}`;
+        if (currentMode === "infra_kolejowa") return `${name}<br>Infrastruktura kolejowa: ${meta.infra_kolejowa}`;
+        if (currentMode === "infra_energetyczna") return `${name}<br>Infrastruktura energetyczna: ${meta.infra_energetyczna}`;
+        if (currentMode === "sejsmicznosc") return `${name}<br>Sejsmiczność: ${meta.sejsmicznosc}`;
+        if (currentMode === "polkula") return `${name}<br>Półkula: ${meta.polkula}`;
+        if (currentMode === "teren") return `${name}<br>Teren: ${meta.teren}`;
+        if (currentMode === "populacja") return `${name}<br>Populacja: ${meta.populacja.toLocaleString()}`;
+        if (currentMode === "przyrost_ludnosci") return `${name}<br>Przyrost: ${meta.przyrost_ludnosci}%`;
+        if (currentMode === "ryzyko_mrozu") {
+            return `${name}<br>Ryzyko fal mrozu: ${meta.ryzyko_mrozu}`;
+        }
+
+        if (currentMode === "ryzyko_upalu") {
+            return `${name}<br>Ryzyko fal upału: ${meta.ryzyko_upalu}`;
+        }
+
+        if (currentMode === "poziom_skomunikowania") {
+            return `${name}<br>Poziom skomunikowania: ${meta.poziom_skomunikowania}`;
+        }
+
+        if (currentMode === "ryzyko_powodzi") {
+            return `${name}<br>Ryzyko powodzi: ${meta.ryzyko_powodzi}`;
+        }
+
+        if (currentMode === "ryzyko_lawin") {
+            return `${name}<br>Ryzyko lawin: ${meta.ryzyko_lawin}`;
+        }
+    }
+
+    if (currentMode === "pkb") return `${name}<br>PKB: ${meta.pkb.toLocaleString()}`;
+    if (currentMode === "pkb_pc") return `${name}<br>PKB per capita: ${Math.round(meta.pkb_pc).toLocaleString()}`;
+    if (currentMode === "populacja") return `${name}<br>Populacja: ${meta.populacja.toLocaleString()}`;
+    if (currentMode === "stabilnosc") return `${name}<br>Stabilność społeczna: ${meta.stabilnosc_spoleczna}`;
+    if (currentMode === "przestepczosc") return `${name}<br>Przestępczość: ${meta.przestepczosc}`;
+    if (currentMode === "bron_atomowa") return `${name}<br>Broń jądrowa: ${meta.bron_atomowa_ilosc}`;
+    if (currentMode === "procent_pkb_wojsko") return `${name}<br>Wydatki na zbrojenia: ${meta.procent_pkb_wojsko}% PKB`;
+    if (currentMode === "ryzyko_upalu") return `${name}<br>Ryzyko upałów: ${meta.ryzyko_upalu}`;
+    if (currentMode === "ryzyko_mrozu") return `${name}<br>Ryzyko mrozów: ${meta.ryzyko_mrozu}`;
+    if (currentMode === "wzrost_pkb") return `${name}<br>Wzrost PKB: ${meta.wzrost_pkb}%`;
+    if (currentMode === "stosunki") {
+    if (selectedCountryForRelations && String(selectedCountryForRelations) === String(id)) {
+        return `${name}<br><b>Wybrane państwo</b>`;
+    }
+
+    const rel = relationsData[String(id)];
+
+    if (rel) {
+        return `${name}<br>Relacja: ${rel.relacja}`;
+    }
+
+    return `${name}<br>Brak relacji`;
+}
+
+    return name;
+}
+
+function redrawStyles() {
+
+    console.log("REDRAW");
+
+    Object.keys(areaLayers).forEach(id => {
+        const meta = metaMap[String(id)];
+        const name = meta ? meta.nazwa : "Nieznany obszar";
+
+        areaLayers[id].forEach(layer => {
+            layer.setStyle(getDefaultStyle(id));
+            layer.setTooltipContent(buildTooltipText(meta, name, id));
+        });
+    });
+}
+
+function onEachFeature(feature, layer) {
+    const id = currentDataset === "political"
+        ? feature.properties.panstwo_id
+        : feature.properties.region_id;
+
+    if (!id) return;
+
+    const meta = metaMap[String(id)];
+    const name = meta ? meta.nazwa : "Nieznany obszar";
+
+    if (!areaLayers[id]) {
+        areaLayers[id] = [];
+    }
+
+    areaLayers[id].push(layer);
+
+    layer.bindTooltip(buildTooltipText(meta, name, id));
+
+    layer.on("mouseover", function() {
+        highlightArea(id);
+    });
+
+    layer.on("mouseout", function() {
+        resetArea(id);
+    });
+
+    layer.on("click", function() {
+        if (currentDataset === "political" && currentMode === "stosunki") {
+            fetch(`/api/mapa/stosunki/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    selectedCountryForRelations = data.selected_country;
+                    relationsData = data.relations;
+                    redrawStyles();
+                });
+            return;
+        }
+
+        if (currentDataset === "political") {
+            window.open("/panstwo/" + id, "_blank");
+        } else {
+            window.open("/region/" + id, "_blank");
+        }
+    });
+}
+
+function loadCities() {
+    const revision = ++cityLoadRevision;
+    clearCityLabels();
+
+    if (cityLayer) {
+        map.removeLayer(cityLayer);
+        cityLayer = null;
+        selectedCityLayer = null;
+    }
+
+    Promise.all([
+        fetch("{{ url_for('static', filename='maps/entenda_miasta.geojson') }}").then(r => r.json()),
+        fetch("/api/miasta_meta").then(r => r.json())
+    ]).then(([citiesGeo, citiesMeta]) => {
+        if (revision !== cityLoadRevision || !citiesVisible) return;
+
+        cityMetaMap = citiesMeta;
+
+        cityLayer = L.geoJSON(citiesGeo, {
+            pointToLayer: function(feature, latlng) {
+                const miastoId = String(feature.properties.miasto_id);
+                const meta = cityMetaMap[miastoId];
+
+                if (capitalsOnly && !meta?.czy_stolica) {
+                    return null;
+                }
+
+                return L.circleMarker(latlng, {...getCityStyle(meta), pane: 'worldCities'});
+            },
+
+            onEachFeature: function(feature, layer) {
+                const miastoId = String(feature.properties.miasto_id);
+                const meta = cityMetaMap[miastoId];
+
+                const cityName = meta?.nazwa || `Miasto ${miastoId}`;
+                const pop = meta?.populacja || 0;
+                const capitalText = meta?.czy_stolica ? "<br>Stolica państwa" : "";
+
+                layer.on("mouseover", function() {
+                    if (!layer._cityLabel) {
+                        layer.bindTooltip(
+                            `${cityName}<br>Populacja: ${pop.toLocaleString()}${capitalText}`
+                        );
+                        layer.openTooltip();
+                    }
+                });
+
+                layer.on("mouseout", function() {
+                    if (!layer._cityLabel) {
+                        layer.closeTooltip();
+                        layer.unbindTooltip();
+                    }
+                });
+
+                layer.on("click", function() {
+                    window.open("/miasto/" + miastoId, "_blank");
+                });
+            }
+        });
+
+        if (citiesVisible) {
+            cityLayer.addTo(map);
+            refreshCityLabels();
+        }
+    });
+}
+
+function selectCity(cityId) {
+
+    if (!cityLayer) {
+        return;
+    }
+
+    cityLayer.eachLayer(layer => {
+
+        const meta =
+            cityMetaMap[
+                String(layer.feature.properties.miasto_id)
+            ];
+
+        layer.setStyle(
+            getCityStyle(meta)
+        );
+    });
+
+    cityLayer.eachLayer(layer => {
+
+        const id =
+            String(layer.feature.properties.miasto_id);
+
+        if (id === String(cityId)) {
+
+            selectedCityLayer = layer;
+
+            map.setView(
+                layer.getLatLng(),
+                3
+            );
+
+            layer.setStyle({
+                radius: 14,
+                fillColor: "#ffff00",
+                color: "#ff0000",
+                weight: 3
+            });
+        }
+    });
+}
+
+function getCityLabelThreshold() {
+    const zoom = map.getZoom();
+
+    if (zoom <= -3) return 5000000;   // tylko megamiasta
+    if (zoom <= -2) return 2000000;
+    if (zoom <= -1) return 1000000;
+    if (zoom <= 0)  return 500000;
+    if (zoom <= 1)  return 200000;
+    if (zoom <= 2)  return 100000;
+
+    return 0; // wszystko
+}
+
+function clearCityLabels() {
+    if (!cityLayer) return;
+
+    cityLayer.eachLayer(layer => {
+        if (layer._cityTextLabel) {
+            map.removeLayer(layer._cityTextLabel);
+            layer._cityTextLabel = null;
+        }
+    });
+}
+
+function refreshCityLabels() {
+
+    if (!citiesVisible) {
+        clearCityLabels();
+        return;
+    }
+
+    if (!cityLayer) {
+        return;
+    }
+
+    const zoom = map.getZoom();
+
+    cityLayer.eachLayer(layer => {
+        const meta = cityMetaMap[String(layer.feature.properties.miasto_id)];
+        if (!meta) return;
+
+        const pop = meta.populacja || 0;
+        const name = meta.nazwa || "";
+
+        let showLabel = false;
+
+        if (pop >= 5000000 && zoom >= -5) {
+            showLabel = true;
+        } else if (pop >= 1000000 && zoom >= -1) {
+            showLabel = true;
+        } else if (pop >= 500000 && zoom >= 0) {
+            showLabel = true;
+        } else if (pop >= 100000 && zoom >= 1) {
+            showLabel = true;
+        } else if (zoom >= 2) {
+            showLabel = true;
+        }
+
+        if (showLabel) {
+            if (!layer._cityTextLabel) {
+                layer._cityTextLabel = L.marker(layer.getLatLng(), {
+                    interactive: false,
+                    icon: L.divIcon({
+                        className: "city-text-label",
+                        html: name,
+                        iconSize: null
+                    })
+                });
+
+                layer._cityTextLabel.addTo(map);
+            } else {
+                layer._cityTextLabel.setLatLng(layer.getLatLng());
+            }
+        } else {
+            if (layer._cityTextLabel) {
+                map.removeLayer(layer._cityTextLabel);
+                layer._cityTextLabel = null;
+            }
+        }
+    });
+}
+
+function getCityStyle(meta) {
+    const pop = meta?.populacja || 0;
+    const isCapital = meta?.czy_stolica || false;
+
+    let radius = 4;
+
+    if (pop >= 5000000) {
+        radius = 10;
+    } else if (pop >= 1000000) {
+        radius = 7;
+    }
+
+    return {
+        radius: radius,
+        fillColor: isCapital ? "#d32f2f" : "#ffffff",
+        color: isCapital ? "#8b0000" : "#000000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.95
+    };
+}
+
+function loadRegionTypes() {
+
+    fetch("/api/mapa/typy-regionow")
+        .then(r => r.json())
+        .then(data => {
+
+            const parent =
+                document.getElementById("regionTypeParent");
+
+            const child =
+                document.getElementById("regionTypeChild");
+
+            data.nadrzedne.forEach(x => {
+                parent.innerHTML += `
+                    <option value="${x.id}">
+                        ${x.nazwa}
+                    </option>
+                `;
+            });
+
+            data.podrzedne.forEach(x => {
+                child.innerHTML += `
+                    <option value="${x.id}">
+                        ${x.nazwa}
+                    </option>
+                `;
+            });
+        });
+}
+
+function loadMap(dataset) {
+    currentDataset = dataset;
+    const filtersSection =
+        document.getElementById("regionFiltersSection");
+
+    filtersSection.style.display =
+        dataset === "regional"
+            ? "block"
+            : "none";
+    currentMode = "ogolne";
+    areaLayers = {};
+    activeArea = null;
+    selectedCountryForRelations = null;
+    relationsData = {};
+
+    renderModeButtons(dataset);
+
+    const geoUrl = dataset === "political"
+        ? "{{ url_for('region_sovereignty.country_boundaries') }}"
+        : "{{ url_for('static', filename='maps/entenda_regiony.geojson') }}";
+
+    const apiUrl = dataset === "political"
+        ? "/api/panstwa_meta"
+        : "/api/regiony_meta";
+
+    Promise.all([
+        fetch(geoUrl).then(r => r.json()),
+        fetch(apiUrl).then(r => r.json())
+    ]).then(([geo, meta]) => {
+        geoData = geo;
+        metaMap = meta;
+
+        if (geoLayer) {
+            map.removeLayer(geoLayer);
+        }
+
+        geoLayer = L.geoJSON(geoData, {
+            style: feature => getDefaultStyle(
+                dataset === "political"
+                    ? feature.properties.panstwo_id
+                    : feature.properties.region_id
+            ),
+            onEachFeature: onEachFeature
+        }).addTo(map);
+
+        const bounds = geoLayer.getBounds();
+        map.fitBounds(bounds, { padding: [20, 20] });
+        map.setMaxBounds(bounds.pad(0.5));
+        if (citiesVisible) {
+            loadCities();
+        }
+    });
+}
+
+function renderCityResults(results) {
+
+    const container =
+        document.getElementById("citySearchResults");
+
+    container.innerHTML = "";
+
+    results.forEach(city => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "city-search-result";
+
+        div.textContent =
+            `${city.nazwa} (#${city.id})`;
+
+        div.addEventListener("click", function() {
+
+            if (!citiesVisible) {
+
+                citiesVisible = true;
+
+                document.getElementById(
+                    "toggleCities"
+                ).checked = true;
+
+                loadCities();
+            }
+
+            setTimeout(() => {
+                selectCity(city.id);
+            }, 300);
+
+        });
+
+        container.appendChild(div);
+    });
+}
+
+function loadContinents() {
+
+    fetch("/api/kontynenty")
+        .then(r => r.json())
+        .then(data => {
+
+            const select =
+                document.getElementById("kontynentSelect");
+
+            data.forEach(k => {
+
+                select.innerHTML += `
+                    <option value="${k.id}">
+                        ${k.nazwa}
+                    </option>
+                `;
+            });
+        });
+}
+
+document.getElementById("tabPolitical").addEventListener("click", function() {
+    this.classList.add("active");
+    document.getElementById("tabRegional").classList.remove("active");
+    loadMap("political");
 });
 
-// ===============================
-// START
-// ===============================
-initViewBox();
+document.getElementById("tabRegional").addEventListener("click", function() {
+    this.classList.add("active");
+    document.getElementById("tabPolitical").classList.remove("active");
+    loadMap("regional");
+});
+
+document
+.getElementById("regionTypeParent")
+.addEventListener("change", function() {
+
+    selectedRegionTypeParent = this.value;
+    redrawStyles();
+});
+
+document
+.getElementById("regionTypeChild")
+.addEventListener("change", function() {
+
+    selectedRegionTypeChild = this.value;
+    redrawStyles();
+});
+
+document.getElementById("toggleCities").addEventListener("change", function() {
+    citiesVisible = this.checked;
+
+    if (citiesVisible) {
+        capitalsOnly = false;
+        document.getElementById("toggleCapitalsOnly").checked = false;
+        loadCities();
+    } else {
+        ++cityLoadRevision;
+        clearCityLabels();
+
+        if (cityLayer) {
+            map.removeLayer(cityLayer);
+            cityLayer = null;
+        }
+    }
+});
+
+document.getElementById("toggleCapitalsOnly").addEventListener("change", function() {
+    capitalsOnly = this.checked;
+
+    if (capitalsOnly && !citiesVisible) {
+        citiesVisible = true;
+        document.getElementById("toggleCities").checked = true;
+    }
+
+    if (citiesVisible) {
+        loadCities();
+    } else {
+        clearCityLabels();
+
+        if (cityLayer) {
+            map.removeLayer(cityLayer);
+            cityLayer = null;
+        }
+    }
+});
+
+document
+.getElementById("kontynentSelect")
+.addEventListener("change", function() {
+
+    const id = this.value;
+
+    const panstwoSelect =
+        document.getElementById("panstwoSelect");
+
+    panstwoSelect.innerHTML =
+        '<option value="">Wybierz państwo</option>';
+
+    fetch(`/api/panstwa?kontynent=${id}`)
+        .then(r => r.json())
+        .then(data => {
+
+            data.forEach(p => {
+
+                panstwoSelect.innerHTML += `
+                    <option value="${p.id}">
+                        ${p.nazwa}
+                    </option>
+                `;
+            });
+        });
+});
+
+document
+.getElementById("panstwoSelect")
+.addEventListener("change", function() {
+
+    const id = this.value;
+
+    const regionSelect =
+        document.getElementById("regionSelect");
+
+    regionSelect.innerHTML =
+        '<option value="">Wybierz region</option>';
+
+    fetch(`/api/regiony?panstwo_id=${id}`)
+        .then(r => r.json())
+        .then(data => {
+
+            data.forEach(r => {
+
+                regionSelect.innerHTML += `
+                    <option value="${r.region_id}">
+                        ${r.region_nazwa}
+                    </option>
+                `;
+            });
+        });
+});
+
+document
+.getElementById("regionSelect")
+.addEventListener("change", function() {
+
+    const id = this.value;
+
+    const miastoSelect =
+        document.getElementById("miastoSelect");
+
+    miastoSelect.innerHTML =
+        '<option value="">Wybierz miasto</option>';
+
+    fetch(`/api/region/${id}/miasta`)
+        .then(r => r.json())
+        .then(data => {
+
+            data.forEach(m => {
+
+                miastoSelect.innerHTML += `
+                    <option value="${m.id}">
+                        ${m.nazwa}
+                    </option>
+                `;
+            });
+        });
+});
+
+document
+.getElementById("miastoSelect")
+.addEventListener("change", function() {
+
+    const cityId = this.value;
+
+    if (!cityId) {
+        return;
+    }
+
+    if (!citiesVisible) {
+
+        citiesVisible = true;
+
+        document.getElementById(
+            "toggleCities"
+        ).checked = true;
+
+        loadCities();
+
+        setTimeout(() => {
+            selectCity(cityId);
+        }, 500);
+
+        return;
+    }
+
+    selectCity(cityId);
+});
+
+document
+.getElementById("citySearchBtn")
+.addEventListener("click", async function() {
+
+    const q =
+        document
+        .getElementById("citySearch")
+        .value
+        .trim();
+
+    const resultsContainer =
+        document.getElementById("citySearchResults");
+
+    resultsContainer.innerHTML = "";
+
+    if (q.length < 1) {
+        return;
+    }
+
+    const data = await fetch(
+        `/api/miasto_suggest?q=${encodeURIComponent(q)}`
+    ).then(r => r.json());
+
+    renderCityResults(data);
+});
+
+loadContinents();
+loadRegionTypes();
+loadMap("political");
+
+map.on("zoomend", function() {
+
+    if (!citiesVisible) {
+        clearCityLabels();
+        return;
+    }
+
+    refreshCityLabels();
+});
 </script>
+
 {% endblock %}

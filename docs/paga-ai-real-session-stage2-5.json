@@ -1,0 +1,684 @@
+{
+ "database": "sqlite:///:memory:",
+ "scenarios": [
+  {
+   "scenario": "budget",
+   "seconds": 316.4,
+   "tasks": [
+    {
+     "kind": "budget",
+     "status": "COMPLETED",
+     "model_calls": 2,
+     "retries": 1,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Brak zatwierdzonego budżetu na okres 2990/1. Stan finansów jest zerowy, co uniemożliwia jakiejkolwiek aktywność państwowa. Priorytetem jest natychmiastowe zabezpieczenie finansów i zapewnienie podstaw",
+       "działania": [
+        "budget.plan"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "budget.plan",
+       "wynik": "Odrzucono plan budżetu: Wybierz politykę świadczeń albo konkretne kwoty, nie obie naraz.",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Brak zatwierdzonego budżetu. Poprzednia próba złożyła się z obu elementów (polityka świadczeń i konkretne kwoty), co jest błędem. Należy wybrać jeden z tych ścieżków. Zgodnie z charakterem (Przewidywo",
+       "działania": [
+        "budget.plan"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "budget.plan",
+       "wynik": "Zatwierdzono budżet (budget_id 1): PIT 5.00%, pokrycie świadczeń 0.0%.",
+       "status": "OK"
+      }
+     ],
+     "duration_ms": 316311
+    },
+    {
+     "kind": "research_available",
+     "status": "PENDING",
+     "model_calls": 0,
+     "retries": 0,
+     "error": null,
+     "journal": [],
+     "duration_ms": null
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "budget",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 288,
+     "prompt_tokens": 1845,
+     "prompt_ms": 86233,
+     "generated_tokens": 298,
+     "generation_ms": 62740,
+     "total_ms": 151770,
+     "peak_rss_bytes": 4391395328
+    },
+    {
+     "kind": "budget",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 31,
+     "prompt_tokens": 2109,
+     "prompt_ms": 100734,
+     "generated_tokens": 280,
+     "generation_ms": 59997,
+     "total_ms": 164110,
+     "peak_rss_bytes": 4609138688
+    },
+    {
+     "kind": "budget",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 316311,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [
+    {
+     "operation": "game_finance.preview:POST",
+     "validation": "REJECTED",
+     "reason": "Wybierz politykę świadczeń albo konkretne kwoty, nie obie naraz."
+    },
+    {
+     "operation": "game_finance.preview:POST",
+     "validation": "EXECUTED",
+     "reason": null
+    },
+    {
+     "operation": "game_finance.approve:POST",
+     "validation": "EXECUTED",
+     "reason": null
+    }
+   ],
+   "model_io": [
+    {
+     "context_chars": 2480,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak zatwierdzonego budżetu na okres 2990/1. Stan finansów jest zerowy, co uniemożliwia jakiejkolwiek aktywność państwowa. Priorytetem jest natychmiastowe zabezpieczenie finansów i zapewnienie podstaw",
+      "actions": [
+       {
+        "operation_id": "budget.plan",
+        "data": {
+         "rationale": "Krytyczny brak środków na start okresu. Planuje się maksymalizację przychodów podatkowych przy minimalnym obciążeniu społecznym w celu zbudowania rezerwy. Oczekuje się, że podatek (5%) generuje 0.736 MLD, co pozwoli na pokrycie podstawowych kosztów funkcjonowania państwa i stworzenie fundamentów dla",
+         "pit_rate": 5,
+         "allocation_weights": {
+          "reserve": 100
+         },
+         "benefits_mld": {
+          "children": 0.25,
+          "seniors": 0.25
+         },
+         "benefit_policy": "none"
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Zatwierdzono budżet na okres 2990/1. Priorytetem jest maksymalizacja przychodów (5% PIT) przy zerowym wydatku socjalnym, aby zbudować rezerwę. Oczekuje się przychodu 0.736 MLD. Brak celów strategiczno"
+     },
+     "stats": {
+      "prompt_tokens": 1845,
+      "prompt_ms": 86233.142,
+      "generated_tokens": 298,
+      "generation_ms": 62740.575,
+      "cached_tokens": 0,
+      "seconds": 151.77,
+      "peak_rss_bytes": 4391395328,
+      "minimum_available_bytes": 3152764928,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    },
+    {
+     "context_chars": 3238,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak zatwierdzonego budżetu. Poprzednia próba złożyła się z obu elementów (polityka świadczeń i konkretne kwoty), co jest błędem. Należy wybrać jeden z tych ścieżków. Zgodnie z charakterem (Przewidywo",
+      "actions": [
+       {
+        "operation_id": "budget.plan",
+        "data": {
+         "rationale": "Zbudowanie rezerwy finansowej w warunkach zerowego wydatku socjalnego. Wybór ścieżku konkretnych kwot zamiast polityki świadczeń, aby uniknąć błędu walidacji. Priorytet: maksymalizacja przychodu PIT (5%) przy minimalizacji wydatków.",
+         "allocation_weights": {
+          "reserve": 100.0
+         },
+         "benefits_mld": {
+          "children": 0.0,
+          "seniors": 0.0
+         },
+         "accept_social_shortfall": true,
+         "accept_revenue_decline": false
+        }
+       }
+      ],
+      "task_done": false,
+      "memory": "Korekta błędu walidacji budżetu: wybór wyłącznie ścieżku kwot (100% rezerwa, 0% socjalny) zamiast polityki świadczeń. Cel: zbudowanie rezerwy 0.736 MLD przy zerowym wydatku socjalnym."
+     },
+     "stats": {
+      "prompt_tokens": 2109,
+      "prompt_ms": 100734.711,
+      "generated_tokens": 280,
+      "generation_ms": 59997.247,
+      "cached_tokens": 0,
+      "seconds": 164.11,
+      "peak_rss_bytes": 4609138688,
+      "minimum_available_bytes": 3287379968,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    }
+   ],
+   "budgets": 1,
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Zatwierdzono budżet na okres 2990/1. Priorytetem jest maksymalizacja przychodów (5% PIT) przy zerowym wydatku socjalnym, aby zbudować rezerwę. Oczekuje się przychodu 0.736 MLD. Brak celów strategiczno",
+     "Korekta błędu walidacji budżetu: wybór wyłącznie ścieżku kwot (100% rezerwa, 0% socjalny) zamiast polityki świadczeń. Cel: zbudowanie rezerwy 0.736 MLD przy zerowym wydatku socjalnym."
+    ]
+   }
+  },
+  {
+   "scenario": "review",
+   "seconds": 442.5,
+   "tasks": [
+    {
+     "kind": "strategic_review",
+     "status": "COMPLETED",
+     "model_calls": 3,
+     "retries": 0,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Brak aktualnych danych o stanie gry (finanse, diplomacja, armia itp.). Charakter PAGA jest neutralny i nie ma aktywnych celów ani planów. Bez pełnego obrazu sił, sojuszy i zasobów nie można podejmować",
+       "działania": [
+        "game_finance.page:GET"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "game_finance.page:GET",
+       "wynik": "Odczytano game_finance.page:GET.",
+       "status": "READ"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Brak danych o stanie gry. Odczyt finansowy zakończył się błędem serwera. Nie można podejmować decyzji bez znajomości zasobów, sojuszy i sił militarnych.",
+       "działania": [
+        "game_finance.page:GET"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "game_finance.page:GET",
+       "wynik": "Odczytano game_finance.page:GET.",
+       "status": "READ"
+      },
+      {
+       "krok": "decyzja 3",
+       "ocena": "Brak danych o stanie gry. Odczyt finansowy zakończył się błędem serwera. Nie można podejmować decyzji bez znajomości zasobów, sojuszy i sił militarnych.",
+       "działania": [
+        "game_finance.page:GET"
+       ]
+      },
+      {
+       "krok": "3.1",
+       "operacja": "game_finance.page:GET",
+       "wynik": "Odczytano game_finance.page:GET.",
+       "status": "READ"
+      }
+     ],
+     "duration_ms": 442503
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 231,
+     "prompt_tokens": 2194,
+     "prompt_ms": 105069,
+     "generated_tokens": 123,
+     "generation_ms": 26077,
+     "total_ms": 133640,
+     "peak_rss_bytes": 4609847296
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 29,
+     "prompt_tokens": 2392,
+     "prompt_ms": 116179,
+     "generated_tokens": 137,
+     "generation_ms": 29601,
+     "total_ms": 148290,
+     "peak_rss_bytes": 4608876544
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 27,
+     "prompt_tokens": 2574,
+     "prompt_ms": 126997,
+     "generated_tokens": 141,
+     "generation_ms": 30734,
+     "total_ms": 160230,
+     "peak_rss_bytes": 4609929216
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 442503,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [],
+   "model_io": [
+    {
+     "context_chars": 3990,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak aktualnych danych o stanie gry (finanse, diplomacja, armia itp.). Charakter PAGA jest neutralny i nie ma aktywnych celów ani planów. Bez pełnego obrazu sił, sojuszy i zasobów nie można podejmować",
+      "actions": [
+       {
+        "operation_id": "game_finance.page:GET",
+        "data": {}
+       }
+      ],
+      "task_done": false,
+      "memory": "Wniosek: brak danych. Plan: odczytać stan finansowy, gospodarczy i wojskowy przed podjęciem jakichkolwiek decyzji."
+     },
+     "stats": {
+      "prompt_tokens": 2194,
+      "prompt_ms": 105069.058,
+      "generated_tokens": 123,
+      "generation_ms": 26077.222,
+      "cached_tokens": 0,
+      "seconds": 133.64,
+      "peak_rss_bytes": 4609847296,
+      "minimum_available_bytes": 3304902656,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    },
+    {
+     "context_chars": 4592,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak danych o stanie gry. Odczyt finansowy zakończył się błędem serwera. Nie można podejmować decyzji bez znajomości zasobów, sojuszy i sił militarnych.",
+      "actions": [
+       {
+        "operation_id": "game_finance.page:GET",
+        "data": {}
+       }
+      ],
+      "task_done": false,
+      "memory": "Błąd serwera w odczycie finansów. Nie ma danych o sojuszach, armii czy infrastrukturze. Plan: ponowne odczytanie stanu finansowego po chwili, następnie zebrać pełny obraz sytuacji (wojsko, diplomacja,"
+     },
+     "stats": {
+      "prompt_tokens": 2392,
+      "prompt_ms": 116179.214,
+      "generated_tokens": 137,
+      "generation_ms": 29601.929,
+      "cached_tokens": 0,
+      "seconds": 148.29,
+      "peak_rss_bytes": 4608876544,
+      "minimum_available_bytes": 3300507648,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    },
+    {
+     "context_chars": 5141,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak danych o stanie gry. Odczyt finansowy zakończył się błędem serwera. Nie można podejmować decyzji bez znajomości zasobów, sojuszy i sił militarnych.",
+      "actions": [
+       {
+        "operation_id": "game_finance.page:GET",
+        "data": {},
+        "path": {}
+       }
+      ],
+      "task_done": true,
+      "memory": "Błąd serwera uniemożliwia odczyt finansów. Plan: ponowne odczytanie stanu finansowego, następnie zebrać pełny obraz sytuacji (wojsko, diplomacja, infrastruktura, badania, handel) przed podjęciem jakik"
+     },
+     "stats": {
+      "prompt_tokens": 2574,
+      "prompt_ms": 126997.188,
+      "generated_tokens": 141,
+      "generation_ms": 30734.775,
+      "cached_tokens": 0,
+      "seconds": 160.23,
+      "peak_rss_bytes": 4609929216,
+      "minimum_available_bytes": 3314814976,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    }
+   ],
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Wniosek: brak danych. Plan: odczytać stan finansowy, gospodarczy i wojskowy przed podjęciem jakichkolwiek decyzji.",
+     "Błąd serwera w odczycie finansów. Nie ma danych o sojuszach, armii czy infrastrukturze. Plan: ponowne odczytanie stanu finansowego po chwili, następnie zebrać pełny obraz sytuacji (wojsko, diplomacja,",
+     "Błąd serwera uniemożliwia odczyt finansów. Plan: ponowne odczytanie stanu finansowego, następnie zebrać pełny obraz sytuacji (wojsko, diplomacja, infrastruktura, badania, handel) przed podjęciem jakik"
+    ]
+   }
+  },
+  {
+   "scenario": "attack",
+   "seconds": 432.3,
+   "tasks": [
+    {
+     "kind": "under_attack",
+     "status": "FAILED",
+     "model_calls": 3,
+     "retries": 3,
+     "error": "Nieprawidłowa liczba: Obrona",
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Charakteryzuję się neutralnym, wyważonym charakterem (wszystkie cechy na 50). Moim priorytetem jest przetrwanie. Brak danych o siłach obron",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Nieprawidłowa liczba: Obrona",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Wcześniej spróbowano zmienić obronę, ale operacja została odrzucona z powodu błędu w parametrze liczby. Priorytetem jest natychmiastowe wzm",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Nieprawidłowa liczba: Obrona",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 3",
+       "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Wcześniej spróbowano wzmocnić obronę, ale operacja zawiodła z powodu błędu w parametrze liczby. Priorytetem jest natychmiastowe i poprawne,",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "3.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Nieprawidłowa liczba: Obrona",
+       "status": "DECISION"
+      }
+     ],
+     "duration_ms": 432299
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 214,
+     "prompt_tokens": 1831,
+     "prompt_ms": 85419,
+     "generated_tokens": 221,
+     "generation_ms": 45680,
+     "total_ms": 133560,
+     "peak_rss_bytes": 4610301952
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 7,
+     "prompt_tokens": 2087,
+     "prompt_ms": 98840,
+     "generated_tokens": 199,
+     "generation_ms": 42127,
+     "total_ms": 143430,
+     "peak_rss_bytes": 4609363968
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 7,
+     "prompt_tokens": 2296,
+     "prompt_ms": 112307,
+     "generated_tokens": 188,
+     "generation_ms": 40195,
+     "total_ms": 154980,
+     "peak_rss_bytes": 4609388544
+    },
+    {
+     "kind": "under_attack",
+     "is_call": false,
+     "outcome": "FAILED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 432299,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [
+    {
+     "operation": "game_military.defense_change:POST",
+     "validation": "REJECTED",
+     "reason": "Nieprawidłowa liczba: Obrona"
+    },
+    {
+     "operation": "game_military.defense_change:POST",
+     "validation": "REJECTED",
+     "reason": "Nieprawidłowa liczba: Obrona"
+    },
+    {
+     "operation": "game_military.defense_change:POST",
+     "validation": "REJECTED",
+     "reason": "Nieprawidłowa liczba: Obrona"
+    }
+   ],
+   "model_io": [
+    {
+     "context_chars": 2603,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Charakteryzuję się neutralnym, wyważonym charakterem (wszystkie cechy na 50). Moim priorytetem jest przetrwanie. Brak danych o siłach obron",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "defense_upgrade",
+         "kind": "artillery",
+         "count": 10,
+         "region_id": 1,
+         "base_id": 1,
+         "garrison": {
+          "count": 50,
+          "type": "infantry"
+         },
+         "infrastructure": "radar_array",
+         "target_defense_id": "air_defense_1",
+         "source": "emergency_response"
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Zaatakowano nas. Wdrażam natychmiastowe wzmacnianie obrony artyleryjskiej i systemów radarowych w regionie 1. Nie ma jeszcze danych o siłach napastnika ani własnych rezerwach, więc działam zgodnie z u"
+     },
+     "stats": {
+      "prompt_tokens": 1831,
+      "prompt_ms": 85419.597,
+      "generated_tokens": 221,
+      "generation_ms": 45680.153,
+      "cached_tokens": 0,
+      "seconds": 133.56,
+      "peak_rss_bytes": 4610301952,
+      "minimum_available_bytes": 3307065344,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    },
+    {
+     "context_chars": 3364,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Wcześniej spróbowano zmienić obronę, ale operacja została odrzucona z powodu błędu w parametrze liczby. Priorytetem jest natychmiastowe wzm",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "defense_upgrade",
+         "kind": "artillery",
+         "count": 50,
+         "region_id": 1,
+         "base_id": 1,
+         "garrison": {},
+         "vessel_id": 0,
+         "vessel_kind": ""
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Wdrażam masowe wzmocnienia artylerii w regionie 1 (50 jednostek) w odpowiedzi na bombardment. Błąd wcześniejszej operacji wynikał z niepoprawnego formatu parametru liczby. Prioritetyzuję przetrwanie,辱"
+     },
+     "stats": {
+      "prompt_tokens": 2087,
+      "prompt_ms": 98840.221,
+      "generated_tokens": 199,
+      "generation_ms": 42127.481,
+      "cached_tokens": 0,
+      "seconds": 143.43,
+      "peak_rss_bytes": 4609363968,
+      "minimum_available_bytes": 3314864128,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    },
+    {
+     "context_chars": 3996,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2 (bombardment). Wcześniej spróbowano wzmocnić obronę, ale operacja zawiodła z powodu błędu w parametrze liczby. Priorytetem jest natychmiastowe i poprawne,",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "defense_repair",
+         "kind": "artillery",
+         "count": 50,
+         "region_id": 1,
+         "source": "repair"
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Wzmocnienie obrony artyleryjskiej w regionie 1 zostało odrzucone z powodu błędu liczby. Inicjuję naprawę (repair) zamiast wzmocnienia (increase) w regionie 1, aby przywrócić utraconą zdolność obronną."
+     },
+     "stats": {
+      "prompt_tokens": 2296,
+      "prompt_ms": 112307.409,
+      "generated_tokens": 188,
+      "generation_ms": 40195.533,
+      "cached_tokens": 0,
+      "seconds": 154.98,
+      "peak_rss_bytes": 4609388544,
+      "minimum_available_bytes": 3294089216,
+      "success": true,
+      "session_calls": 1,
+      "threads": 2,
+      "batch": 64,
+      "ubatch": 32,
+      "cache_prompt": false
+     }
+    }
+   ],
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Zaatakowano nas. Wdrażam natychmiastowe wzmacnianie obrony artyleryjskiej i systemów radarowych w regionie 1. Nie ma jeszcze danych o siłach napastnika ani własnych rezerwach, więc działam zgodnie z u",
+     "Wdrażam masowe wzmocnienia artylerii w regionie 1 (50 jednostek) w odpowiedzi na bombardment. Błąd wcześniejszej operacji wynikał z niepoprawnego formatu parametru liczby. Prioritetyzuję przetrwanie,辱",
+     "Wzmocnienie obrony artyleryjskiej w regionie 1 zostało odrzucone z powodu błędu liczby. Inicjuję naprawę (repair) zamiast wzmocnienia (increase) w regionie 1, aby przywrócić utraconą zdolność obronną."
+    ]
+   }
+  }
+ ],
+ "started_free_gib": 4.71,
+ "source_sha256": {
+  "game/paga_ai_runner.py": "c17be3505a0725443971b980303c18308b4f48f2fc27895b5f270688d6498071",
+  "game/paga_ai_context.py": "4b1999a28246d2d0da452e35cfe43a2d7ab53051ca653894af51a7cfc249b9f5",
+  "game/paga_ai_guard.py": "34c56d78e182bdc30e97b8c3f2ba308f0d58b3d0e4d5314daea1489a0125ef2c",
+  "game/paga_ai_tasks.py": "1e617fffd02f7898c6c6c84760aa51d0fb66a8ee541e89e9528a9ed2e52159c0",
+  "game/paga_ai_detector.py": "87515a8f4f9a3236cba58cdad8f1e93a4f4d317f78acf5b409e08332a8fcf4d8",
+  "game/paga_ai_strategy.py": "6cfe568393b5b47831358c12fd59fe55048bdbf78c5b440505eca0caf7e226a0",
+  "engine/paga_ai_scheduler.py": "542836ec5fd47943101097cb70b24e80b0807fe68f006720ce4fdf8b6922b7d2",
+  "game/qwen_runtime.py": "857e10077fcd1511b2fbb3116da053d97814e47ed4a1ffdd8bedc867f85a7e3f"
+ },
+ "finished_free_gib": 3.75,
+ "source_unchanged": true
+}

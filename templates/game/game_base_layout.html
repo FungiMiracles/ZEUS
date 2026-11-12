@@ -1,0 +1,320 @@
+{% from "macros/icons.html" import icon %}
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="{{ url_for('static',filename='js/game_industry_view.js',v='20261108-ui20') }}"></script>
+<script src="{{ url_for('static',filename='js/game_money.js',v='20261025-2') }}"></script>
+<meta name="theme-color" content="#f3f3ed">
+<title>{% block title %}ENTENDA GAME — ZEUS{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_notifications.css', v='20261112-unread-6') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_country_summary.css', v='20261023-1') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-2') }}">
+{% block extra_css %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_ui.css', v='20261112-mail-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_theme.css', v='20261023-2') }}">
+{% block page_theme %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_command_chrome.css', v='20261025-4') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_war_room.css',v='20261025-1') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_defense_room.css',v='20261106-game0003-2') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_navy.css',v='20261025-7') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
+</head>
+<body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
+{# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
+<a class="game-skip-link" href="#main-content">Przejdź do treści</a>
+{% include '_sovereignty_banner.html' %}
+<div class="game-shell">
+<nav class="game-navigation" aria-label="Nawigacja gracza">
+  <a class="game-rail-brand" href="{{ game_home_url | default('/game',true) }}"><span class="game-rail-mark" aria-hidden="true">E</span><span>ENTENDA<small>STRATEGIA · PAŃSTWO · ŚWIAT</small></span></a>
+  <button type="button" class="game-mobile-toggle" id="game-nav-toggle" aria-expanded="false" aria-controls="game-nav-links">☰ Menu</button>
+  <div class="game-nav-links" id="game-nav-links" tabindex="0">
+    <span class="game-rail-section">ZARZĄDZANIE PAŃSTWEM</span>
+    <a href="{{ game_home_url | default('/game', true) }}" {% if game_active_page | default('main') == 'main' %}aria-current="page"{% endif %}>{% if game_country and game_country.flaga %}<img class="game-nav-country-flag" src="{{ game_country.flaga }}" alt="" width="23">{% endif %}Panel państwa</a>
+    {# Moduły dodajemy tu po utworzeniu ich tras i kontroli uprawnień. #}
+    {% block game_nav_items %}
+      <button type="button" class="game-nav-placeholder" disabled>
+        {{ icon('world') }} Świat
+    </button>
+      {% if config.get('GAME_FINANCE_ENABLED', false) %}
+    <a href="{{ url_for('game_finance.page') }}"
+    class="game-nav-placeholder"
+    {% if game_active_page | default('main') == 'finance' %}
+        aria-current="page"
+    {% endif %}>
+        {{ icon('finance') }} Podatki i budżet
+    </a>
+    {% else %}
+    <button type="button" class="game-nav-placeholder" disabled>
+        {{ icon('finance') }} Podatki i budżet
+    </button>
+    {% endif %}
+      <a href="/game/infrastruktura" {% if game_active_page | default('main') == 'infrastructure' %}aria-current="page"{% endif %}>
+          {{ icon('infrastructure') }} Infrastruktura i energetyka
+      </a>
+      <a href="{{ url_for('game_diplomacy.page') }}"
+         {% if game_active_page | default('main') == 'diplomacy' %}aria-current="page"{% endif %}>
+          {{ icon('diplomacy') }} Dyplomacja
+      </a>
+      <a href="/game/obrona-panstwa" {% if game_active_page | default('main') == 'defense' %}aria-current="page"{% endif %}>{{ icon('defense') }} Obrona państwa</a>
+      {% if game_can_war | default(false) %}<a href="/game/panel-wojenny" {% if game_active_page | default('main') == 'war' %}aria-current="page"{% endif %}>{{ icon('war') }} Panel wojenny</a>{% endif %}
+      <a href="/game/wywiad-wojskowy" {% if game_active_page | default('main') == 'intelligence' %}aria-current="page"{% endif %}>{{ icon('intelligence') }} Wywiad wojskowy</a>
+      <a href="/game/sily-zbrojne" {% if game_active_page | default('main') == 'army' %}aria-current="page"{% endif %}>
+          {{ icon('army') }} Siły zbrojne
+      </a>
+
+      <a href="{{ url_for('game_environment.page') }}"
+         {% if game_active_page | default('main') == 'environment' %}aria-current="page"{% endif %}>
+          {{ icon('environment') }} Środowisko
+      </a>
+
+      <a href="{{ url_for('game_demography.page') }}"
+        {% if game_active_page | default('main') == 'demography' %}
+        aria-current="page"
+        {% endif %}>
+            {{ icon('demography') }} Demografia
+        </a>
+      <button type="button" class="game-nav-placeholder" disabled>
+          {{ icon('law') }} Prawo
+      </button>
+      <a href="/game/spoleczenstwo" {% if game_active_page|default('main')=='society' %}aria-current="page"{% endif %}>{{ icon('society') }} Społeczeństwo</a>
+      <a href="/game/handel" {% if game_active_page | default('main') == 'trade' %}aria-current="page"{% endif %}>{{ icon('trade') }} Handel</a>
+      <a href="/game/badania" {% if game_active_page|default('main')=='research' %}aria-current="page"{% endif %}>{{ icon('research') }} Badania i rozwój</a>
+      <a href="/game/wydarzenia" {% if game_active_page|default('main')=='events' %}aria-current="page"{% endif %}>{{ icon('events') }} Wydarzenia</a>
+      <a href="{{ url_for('game_forum.page') }}"
+         {% if game_active_page | default('main') == 'forum' %}aria-current="page"{% endif %}>
+          {{ icon('forum') }} Forum międzynarodowe
+      </a>
+  {% endblock %}
+  </div>
+  <div class="game-rail-footer"><span>Zarządzasz państwem</span><strong>{{ game_country.nazwa if game_country else 'ENTENDA' }}</strong></div>
+</nav>
+<div class="game-workspace">
+<header class="game-topbar">
+  <div class="game-identity">
+    <div>
+      <div class="game-user">
+        <span>Zalogowany gracz</span>
+
+        <div class="game-user-row">
+            <strong>
+                {{ game_user.username if game_user else 'Gracz' }}
+            </strong>
+
+            <form method="post" action="{{ game_logout_url }}"
+                  class="game-logout-form">
+                <input type="hidden" name="csrf_token"
+                      value="{{ game_csrf_token }}">
+
+                <button class="game-logout" type="submit">
+                    Wyloguj
+                </button>
+            </form>
+        </div>
+    </div>
+    </div>
+  </div>
+  <div class="game-news" aria-label="Wydarzenia Entendy">
+    <div class="game-news-track">
+        {% if latest_events %}
+            {% for event in latest_events %}
+                <span class="game-news-item">
+                    <span class="game-news-date">
+                        [{{ event.data_entenda.strftime('%Y-%m-%d')
+                            if event.data_entenda else 'Entenda' }}]
+                    </span>
+                    {{ event.opis_wygenerowany or 'Brak opisu zdarzenia' }}
+                </span>
+            {% endfor %}
+        {% else %}
+            <span class="game-news-item">
+                Brak aktualnych wydarzeń.
+            </span>
+        {% endif %}
+    </div>
+</div>
+  <div class="game-tools">
+    <button type="button" class="game-mail-toggle" id="game-mail-toggle"
+            aria-label="Prywatne wiadomości" aria-haspopup="dialog" aria-controls="game-mail-dialog">
+        {{ icon('mailbox') }}<span class="game-notification-badge" id="game-mail-count" hidden></span>
+    </button>
+    <details class="game-notifications" id="game-notifications"
+             data-url="{{ url_for('game_forum.notifications') }}" data-read-url="{{ url_for('game_forum.read_notifications') }}" data-csrf="{{ game_csrf_token }}">
+      <summary aria-label="Powiadomienia systemowe" id="game-notifications-toggle">
+        {{ icon('notifications') }}
+        <span class="game-notification-badge" id="game-notification-count" hidden></span>
+      </summary>
+      <div class="game-notification-dropdown">
+        <strong>Powiadomienia</strong>
+        <p id="game-notification-status" role="status">Ładowanie powiadomień…</p>
+        <button type="button" id="game-notification-read-all" class="game-notification-read-all" hidden>Oznacz wszystkie jako przeczytane</button>
+        <div id="game-notification-list"></div>
+        <button type="button" id="game-notification-more" hidden>Pokaż starsze</button>
+      </div>
+    </details>
+    <div class="game-clock-group">    <div class="game-clock" id="game-entenda-clock" data-entenda="{{ ENTENDA_DATETIME | default('', true) }}" data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER|default(12) }}" {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %} aria-label="Aktualny czas Entendy">{{ ENTENDA_DATE | default('—', true) }} CE</div><span class="game-time-info"><button type="button" aria-label="Prędkość czasu w Entendzie" aria-describedby="game-time-tooltip">i</button><span id="game-time-tooltip" class="game-time-tooltip" role="tooltip">{{ entenda_time_description|default('Czas w Entendzie płynie 12 razy szybciej: 1 doba Entendy to 2 godziny rzeczywiste.') }}</span></span></div>
+    {# Formularz POST wymaga tokenu CSRF dostarczonego przez backend. #}
+  </div>
+</header>
+  {% if game_budget_overview is defined %}
+  <details class="game-budget-overview" open><summary>Budżet do wydania · {{ game_budget_overview.period }}. półrocze {{ game_budget_overview.year }}</summary>
+    {% if game_budget_overview['items'] %}<dl>{% for item in game_budget_overview['items'] %}<div data-budget-sector="{{ item.code }}"><dt>{{ item.label }}</dt><dd>{{ item.remaining|game_money }}</dd></div>{% endfor %}</dl>{% else %}<p>Brak zatwierdzonego planu na bieżące półrocze.</p>{% endif %}
+  </details>
+  <script>if(window.matchMedia('(max-width:900px)').matches)document.querySelector('.game-budget-overview').open=false;</script>
+  {% endif %}
+
+<div class="game-world-stats">Entenda: <strong>{{ E_WORLD_POP | default('—', true) }}</strong> ludzi • <strong>{{ E_WORLD_COUNTRIES | default('—', true) }}</strong> państw • <strong>{{ E_WORLD_REGIONS | default('—', true) }}</strong> regionów • <strong>{{ E_WORLD_CITIES | default('—', true) }}</strong> miast</div>
+{% if ENV_NAME | default('') == 'UAT' %}<div class="game-uat">JESTEŚ NA ŚRODOWISKU TESTOWYM</div>{% endif %}
+{% if game_country %}
+<section class="game-country-summary"
+         aria-label="Zarządzane państwo">
+
+    <div class="game-summary-identity">
+        {% if game_country.flaga %}
+        <img src="{{ game_country.flaga }}"
+             alt="Flaga państwa {{ game_country.nazwa }}">
+        {% endif %}
+
+        <div>
+            <span class="game-summary-label">Zarządzane państwo</span>
+            <h2>{{ game_country.nazwa }}</h2>
+            {% if game_country.territories %}<span class="game-summary-label">Zarząd obejmuje: {{ game_country.territories | join(", ") }}</span>{% endif %}
+        </div>
+    </div>
+
+    <dl class="game-country-metrics">
+        <div>
+            <dt>Populacja</dt>
+            <dd>
+                {{ game_country.populacja | spacenum
+                   if game_country.populacja is not none
+                   else 'Brak danych' }}
+            </dd>
+        </div>
+
+        <div>
+            <dt>PKB</dt>
+            <dd>
+                {% if game_country.pkb is not none %}
+                    {{ game_country.pkb | game_money }}
+                    <span class="game-roi-info">
+                        <button type="button" class="game-roi-info-button" aria-label="Informacja o walucie ROI" aria-describedby="game-roi-tooltip">i</button>
+                        <span role="tooltip" class="game-roi-tooltip" id="game-roi-tooltip">ROI to waluta Ozilandii, największego gospodarczo kraju świata. Każde państwo posiada własną walutę, ale to w ROI wyświetlane są wszystkie wartości finansowe w ZEUS.</span>
+                    </span>
+                {% else %}
+                    Brak danych
+                {% endif %}
+            </dd>
+        </div>
+
+        <div>
+            <dt>PKB per capita</dt>
+            <dd>
+                {% if game_country.pkb_per_capita is not none %}
+                    {{ game_country.pkb_per_capita | game_money }} 
+                {% else %}
+                    Brak danych
+                {% endif %}
+            </dd>
+        </div>
+
+        <div>
+            <dt>Średni poziom infrastruktury</dt>
+
+            {% set infra = game_country.infrastruktura %}
+            {% set infra_color =
+                'darkgreen' if infra is not none and infra >= 85 else
+                'green' if infra is not none and infra >= 70 else
+                '#f1c40f' if infra is not none and infra >= 60 else
+                '#e67e22' if infra is not none and infra >= 40 else
+                '#e74c3c' if infra is not none else '#7f8c8d'
+            %}
+
+            <dd style="color: {{ infra_color }}">
+                {{ (infra ~ ' / 100')
+                   if infra is not none else 'Brak danych' }}
+            </dd>
+        </div>
+    </dl>
+</section>
+{% endif %}
+
+<main class="game-main" id="main-content"><header class="game-section-header">{% include 'game/_page_heading.html' %}<div class="game-section-actions">{% block game_page_actions %}{% endblock %}</div></header>{% set funds = module_funds(game_active_page) if module_funds is defined and game_active_page is defined else none %}{% if funds %}{% include 'game/_module_funds.html' %}{% endif %}{% block content %}{% endblock %}</main>
+<dialog id="game-diplomacy-dialog" class="game-diplomacy-dialog" aria-labelledby="game-diplomacy-title">
+    <h2 id="game-diplomacy-title">Dyplomacja</h2>
+    <p id="game-diplomacy-text"></p>
+    <p id="game-diplomacy-relation"></p>
+    <p id="game-diplomacy-status" role="status"></p>
+    <p id="game-diplomacy-date"></p>
+    <div class="game-diplomacy-buttons">
+        <button type="button" id="game-diplomacy-accept">Akceptuj</button>
+        <button type="button" id="game-diplomacy-reject">Odrzuć</button>
+        <button type="button" id="game-diplomacy-close">Zamknij</button>
+    </div>
+</dialog>
+<dialog id="game-intelligence-dialog" class="game-actions-dialog" aria-labelledby="game-intelligence-title">
+<h2 id="game-intelligence-title"></h2><p id="game-intelligence-result"></p><p id="game-intelligence-date"></p><dl id="game-intelligence-entries"></dl><button type="button" id="game-intelligence-close">Zamknij</button>
+</dialog>
+<dialog id="game-event-dialog" class="game-actions-dialog" aria-labelledby="game-event-title">
+    <h2 id="game-event-title">Generator Zdarzeń</h2>
+    <p id="game-event-date"></p><p id="game-event-content" class="game-preserve-lines"></p>
+    <div id="game-event-effects" class="game-event-effects"></div>
+    <button type="button" id="game-event-close">Zamknij</button>
+</dialog>
+<dialog id="game-mail-dialog" class="game-mail-dialog" aria-labelledby="game-mail-title"
+        data-url="{{ url_for('game_messages.index') }}" data-recipients-url="{{ url_for('game_messages.addressees') }}" data-csrf="{{ game_csrf_token }}">
+    <header class="game-mail-heading"><h2 id="game-mail-title">Prywatne wiadomości</h2><button type="button" id="game-mail-close" aria-label="Zamknij wiadomości">✕</button></header>
+    <div class="game-mail-toolbar">
+        <label for="game-mail-folder">Folder</label><select id="game-mail-folder"><option value="inbox">Odebrane</option><option value="sent">Wysłane</option></select>
+        <button type="button" id="game-mail-new">Napisz wiadomość</button>
+    </div>
+    <p id="game-mail-status" role="status"></p>
+    <div class="game-mail-columns">
+        <section class="game-mail-inbox" aria-label="Lista wiadomości">
+            <div id="game-mail-list"></div><button type="button" id="game-mail-more" hidden>Pokaż starsze</button>
+        </section>
+        <section class="game-mail-detail" aria-label="Treść wiadomości">
+            <div id="game-mail-view"><p>Wybierz wiadomość z listy albo napisz nową.</p></div>
+            <form id="game-mail-compose" hidden>
+                <h3 id="game-mail-compose-title">Nowa wiadomość</h3>
+                <label for="game-mail-recipient">Adresat</label><select id="game-mail-recipient" name="recipient_id" required></select>
+                <input type="hidden" name="reply_to_id" id="game-mail-reply-id">
+                <p id="game-mail-reply-context"></p>
+                <label for="game-mail-content">Treść wiadomości</label><textarea name="content" id="game-mail-content" rows="10" required aria-describedby="game-mail-limit"></textarea>
+                <output id="game-mail-limit" for="game-mail-content" aria-live="polite">0 / 3000</output>
+                <div class="game-mail-compose-actions"><button type="button" id="game-mail-cancel">Anuluj</button><button type="submit">Wyślij</button></div>
+            </form>
+        </section>
+    </div>
+</dialog>
+<footer class="game-footer">ZEUS · ENTENDA GAME</footer>
+</div></div>
+<script>
+(() => {
+  const navToggle = document.getElementById('game-nav-toggle');
+  const navLinks = document.getElementById('game-nav-links');
+  navToggle.addEventListener('click', () => {
+    const expanded = navLinks.classList.toggle('is-open');
+    navToggle.setAttribute('aria-expanded', String(expanded));
+  });
+  navLinks.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      navLinks.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded','false');
+      navToggle.focus();
+    }
+  });
+})();
+</script>
+<script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
+<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261112-unread-2') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_ui.js', v='20261025-4') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_communication.js', v='20261112-mail-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

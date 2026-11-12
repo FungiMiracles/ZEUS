@@ -1,0 +1,52 @@
+{% extends "game/game_base_layout.html" %}
+{% from "macros/army.html" import army_fields %}
+{% from "macros/icons.html" import icon %}
+{% block title %}Siły zbrojne — {{ game_country.nazwa }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_army.css', v='20261111-training-1') }}">
+{% endblock %}
+{% block content %}
+<section class="game-panel game-army-panel">
+    <h2 class="game-panel-heading">Informacje o siłach zbrojnych</h2>
+    <div class="game-panel-body"><p class="game-army-parameters-note">Prędkości uzbrojenia i jednostek podano według czasu Entendy.</p><div class="game-army-resource">{{ icon('ammo') }} Amunicja przeciwrakietowa własnej produkcji: <strong>{{ interceptor_ammunition|spacenum }}</strong></div>
+        {% if army %}
+        <dl class="game-army-grid" aria-label="Siły zbrojne państwa {{ game_country.nazwa }}">
+            {% for field, label, icon_key in army_fields %}
+            <div class="game-army-resource">
+                <dt>{% if icon_key %}{{ icon(icon_key) }}{% endif %}<span>{{ 'Budżet sił zbrojnych na bieżące półrocze' if field == 'procent_PKB' else label }}</span></dt>
+                <dd>{% if field == 'procent_PKB' %}{{ military_budget_total|game_money }}{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</dd>
+                {% if field in weapon_parameters %}
+                {% set parameters = weapon_parameters[field] %}
+                <div class="game-army-parameters">
+                    {% if parameters.range is defined %}<div>Zasięg: <strong>{{ parameters.range[0]|spacenum }}–{{ parameters.range[1]|spacenum }} km</strong></div>{% endif %}
+                    <div>{{ 'Prędkość lotu' if parameters.flying else 'Prędkość poruszania się' }}: <strong>{{ parameters.speed|spacenum }} km/h</strong></div>
+                </div>
+                {% endif %}
+                {% if field != 'procent_PKB' and not field.startswith('liczba_baz') %}<div class="game-army-active">W służbie czynnej: <strong>{{ '{:,}'.format(active.get(field, 0)).replace(',', ' ') }}</strong></div>{% endif %}
+                {% if field in training_fields %}{% set branch = training_fields[field] %}
+                <div class="game-army-training">Poziom wyszkolenia: <strong data-training-level="{{ branch }}">{{ training.levels[branch] }}</strong> / {{ training.max }}
+                    <button type="button" class="game-army-train-button" data-train="{{ branch }}">Wyszkol</button></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </dl>
+        {% else %}
+        <p role="status">Brak danych wojskowych dla Twojego państwa.</p>
+        {% endif %}
+    </div>
+</section>
+<dialog id="army-training-dialog" aria-labelledby="army-training-title"><form id="army-training-form">
+    <h2 id="army-training-title">Szkolenie</h2>
+    <p id="army-training-current"></p>
+    <div class="army-training-stepper"><button type="button" id="army-training-minus" aria-label="Zmniejsz liczbę poziomów">−</button>
+        <input type="number" id="army-training-count" min="1" step="1" value="1" aria-label="Liczba poziomów wyszkolenia">
+        <button type="button" id="army-training-plus" aria-label="Zwiększ liczbę poziomów">+</button></div>
+    <p id="army-training-cost" role="status"></p>
+    <p id="army-training-error" class="army-training-error" role="alert"></p>
+    <div class="army-training-actions"><button type="button" id="army-training-cancel">Anuluj</button><button type="submit" id="army-training-confirm">Wyszkol</button></div>
+</form></dialog>
+<script type="application/json" id="army-training-config">{{ training|tojson }}</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/game_army_training.js', v='20261111-training-1') }}" defer></script>
+{% endblock %}

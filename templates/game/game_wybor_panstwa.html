@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+
+<meta charset="UTF-8">
+<script src="{{ url_for('static',filename='js/game_money.js',v='20261025-2') }}"></script>
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>ENTENDA GAME — Wybór państwa</title>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_registration.css', v='20261023-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_theme.css', v='20261023-1') }}">
+
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_navy.css',v='20261025-5') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_registration_updates.css',v='20261025-2') }}">
+</head>
+
+<body class="game-app game-registration game-navy">
+
+<!-- ============================================================
+     NAGŁÓWEK
+============================================================ -->
+
+<main class="registration-container">
+
+
+
+    <div class="map-wrapper">
+    <header class="game-header">
+        <div>
+            {% set heading_title = 'Wybór państwa' %}{% set heading_icon = 'world' %}{% include 'game/_page_heading.html' %}
+
+            <div class="game-subtitle"><span class="registration-desktop-help">Wybierz na mapie państwo, którym będziesz zarządzać przez całą rozgrywkę. Wybór kraju jest nieodwracalny.</span><span class="registration-mobile-help">Dotknij państwa na mapie. Wybór kraju jest nieodwracalny.</span></div>
+        </div>
+
+        <a href="{{ url_for('wejscie') }}" class="back-btn">
+            Powrót
+        </a>
+    </header>
+<aside id="map-country-preview" class="registration-country-preview" hidden aria-live="polite"></aside>
+        <div id="game-map"></div>
+    </div>
+
+</main>
+
+<!-- ============================================================
+     MODAL — INFORMACJE O PAŃSTWIE
+============================================================ -->
+<div id="country-modal" class="game-modal" role="dialog" aria-modal="true"
+     aria-labelledby="country-modal-title" aria-hidden="true">
+    <div class="game-modal-card game-country-card">
+        <h2 id="country-modal-title" class="game-modal-heading">Wybrane państwo</h2>
+        <div class="game-modal-country">
+            <img id="selected-country-flag" class="game-modal-flag" alt="Flaga państwa">
+            <div>
+                <div id="selected-country-name" class="game-modal-name"></div>
+                <div id="selected-country-full-name" class="game-modal-full-name"></div>
+            </div>
+        </div>
+        <div class="country-sections">
+            <section class="country-section">
+                <h3>🌍 Geografia i społeczeństwo</h3>
+                <dl class="country-stats">
+                    <div><dt>Stolica</dt><dd id="selected-country-capital"></dd></div>
+                    <div><dt>Kontynent</dt><dd id="selected-country-continent"></dd></div>
+                    <div><dt>Powierzchnia</dt><dd id="selected-country-area"></dd></div>
+                    <div><dt>Populacja</dt><dd id="selected-country-population"></dd></div>
+                    <div><dt>Gęstość zaludnienia</dt><dd id="selected-country-density"></dd></div>
+                    <div><dt>Urbanizacja</dt><dd id="selected-country-urbanization"></dd></div>
+                    <div><dt>Język</dt><dd id="selected-country-language"></dd></div>
+                    <div><dt>Religia</dt><dd id="selected-country-religion"></dd></div>
+                    <div><dt>Niezależność</dt><dd><span id="selected-country-independence" class="country-status"></span></dd></div>
+                </dl>
+            </section>
+            <section class="country-section">
+                <h3>💰 Gospodarka i infrastruktura</h3>
+                <dl class="country-stats">
+                    <div><dt>PKB</dt><dd id="selected-country-gdp"></dd></div>
+                    <div><dt>PKB per capita</dt><dd id="selected-country-gdp-capita"></dd></div>
+                    <div><dt>Waluta</dt><dd id="selected-country-currency"></dd></div>
+                </dl>
+                <div class="country-infrastructure-label">
+                    <span>Średni poziom infrastruktury</span>
+                    <strong id="selected-country-infrastructure"></strong>
+                </div>
+                <div id="country-infrastructure-track" class="country-progress" role="progressbar" aria-label="Poziom infrastruktury" aria-valuemin="0" aria-valuemax="100">
+                    <div id="selected-country-infrastructure-bar" class="country-progress-fill"></div>
+                </div>
+            </section>
+            <section class="country-section">
+                <h3>🏙️ Administracja</h3>
+                <dl class="country-stats">
+                    <div><dt>Liczba regionów</dt><dd id="selected-country-regions"></dd></div>
+                    <div><dt>Liczba miast</dt><dd id="selected-country-cities"></dd></div>
+                </dl>
+            </section>
+        </div>
+        <div class="game-modal-actions">
+            <button type="button" id="country-back-btn" class="game-modal-btn game-modal-btn-secondary">Wróć do mapy</button>
+            <button type="button" id="country-confirm-btn" class="game-modal-btn game-modal-btn-primary">Zatwierdź wybór i zarejestruj się</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODAL — REJESTRACJA
+============================================================ -->
+<div id="registration-modal" class="game-modal" role="dialog" aria-modal="true"
+     aria-labelledby="registration-modal-title" aria-hidden="true">
+    <div class="game-modal-card">
+        <h2 id="registration-modal-title" class="game-modal-heading">Rejestracja gracza</h2>
+        <div class="game-modal-country">
+            <img id="registration-country-flag" class="game-modal-flag" alt="Flaga wybranego państwa">
+            <div>
+                <div class="game-modal-full-name">Wybrane państwo</div>
+                <div id="registration-country-name" class="game-modal-name"></div>
+            </div>
+        </div>
+        <form id="game-registration-form" autocomplete="on">
+            <input type="hidden" name="panstwo_id" id="registration-country-id">
+            <label class="game-form-label">Nazwa użytkownika
+                <input class="game-form-input" name="username" type="text" minlength="3" maxlength="50" autocomplete="username" required>
+            </label>
+            <label class="game-form-label">Adres e-mail
+                <input class="game-form-input" name="email" type="email" maxlength="254" autocomplete="email" required>
+            </label>
+            <label class="game-form-label">Hasło
+                <input class="game-form-input" name="password" type="password" minlength="12" autocomplete="new-password" required>
+            </label>
+            <label class="game-form-label">Powtórz hasło
+                <input class="game-form-input" name="password_confirm" type="password" minlength="12" autocomplete="new-password" required>
+            </label>
+            <p id="registration-message" class="game-form-message" role="status" aria-live="polite" hidden></p>
+            <div class="game-modal-actions">
+                <button type="button" id="registration-back-btn" class="game-modal-btn game-modal-btn-secondary">Wróć do wyboru państwa</button>
+                <button type="submit" class="game-modal-btn game-modal-btn-primary">Utwórz konto</button>
+            </div>
+            <p class="game-modal-note">Konto będzie aktywne od razu po rejestracji. Adres e-mail nie wymaga potwierdzenia.</p>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
+<script>
+
+/* ============================================================
+   MAPA ENTENDY
+============================================================ */
+
+const map = L.map("game-map", {
+    crs: L.CRS.Simple,
+    zoomControl: true,
+    attributionControl: false,
+
+    // Pozwalamy oddalać mapę znacznie bardziej
+    minZoom: -10,
+    maxZoom: 8,
+
+    // Płynniejsze przybliżanie i oddalanie
+    zoomSnap: 0.25,
+    zoomDelta: 0.5
+});
+
+/* ============================================================
+   FORMATOWANIE DANYCH
+============================================================ */
+
+function formatPopulation(value) {
+
+    if (value === null || value === undefined) {
+        return "Brak danych";
+    }
+
+    return Number(value).toLocaleString("pl-PL");
+}
+
+function formatGDP(value) { return window.GameMoney.format(value); }
+
+/* ============================================================
+   WCZYTYWANIE MAPY I DANYCH
+============================================================ */
+
+Promise.all([
+
+    fetch("{{ url_for('region_sovereignty.country_boundaries') }}")
+        .then(response => {
+            if (!response.ok) throw new Error("Nie udało się pobrać mapy");
+            return response.json();
+        }),
+
+    fetch("/game/api/panstwa")
+        .then(response => {
+            if (!response.ok) throw new Error("Nie udało się pobrać państw");
+            return response.json();
+        })
+
+])
+
+.then(([geojson, countries]) => {
+
+    /* ============================================================
+    PODŚWIETLANIE WSZYSTKICH CZĘŚCI PAŃSTWA
+    ============================================================ */
+
+    function highlightCountry(countryId) {
+
+        if (countries[countryId]?.niedostepne === true) {
+            return;
+        }
+
+        layer.eachLayer(function(countryLayer) {
+
+            const feature = countryLayer.feature;
+
+            if (!feature || !feature.properties) {
+                return;
+            }
+
+            const featureCountryId =
+                String(feature.properties.panstwo_id);
+
+            if (featureCountryId === countryId) {
+
+                countryLayer.setStyle({
+                    color: "#e4c477",
+                    weight: 2,
+                    fillColor: "#607da6",
+                    fillOpacity: 0.95
+                });
+
+            }
+        });
+    }
+
+    function resetCountry(countryId) {
+
+        layer.eachLayer(function(countryLayer) {
+
+            const feature = countryLayer.feature;
+
+            if (!feature || !feature.properties) {
+                return;
+            }
+
+            const featureCountryId =
+                String(feature.properties.panstwo_id);
+
+            if (featureCountryId === countryId) {
+                layer.resetStyle(countryLayer);
+            }
+        });
+    }
+
+    const layer = L.geoJSON(geojson, {
+
+        coordsToLatLng: function(coords) {
+            return L.latLng(coords[1], coords[0]);
+        },
+
+        style: function(feature) {
+            const id = String(feature.properties.panstwo_id);
+            const unavailable = countries[id]?.niedostepne === true;
+
+            return {
+                color: unavailable ? "#9299a3" : "#7185a5",
+                weight: 1,
+                fillColor: unavailable ? "#737b86" : "#344b69",
+                fillOpacity: 0.85
+            };
+        },
+
+        onEachFeature: function(feature, countryLayer) {
+
+            const id = String(feature.properties.panstwo_id);
+
+            const country = countries[id];
+
+            if (!country) {
+                return;
+            }
+
+            const tooltipHTML = `
+
+                <div class="country-header">
+
+                    <img
+                        src="${escapeHTML(country.flaga || "")}"
+                        alt="Flaga państwa"
+                        class="country-flag"
+                        onerror="this.style.display='none'"
+                    >
+
+                    <div class="country-header-text">
+
+                        <div class="country-name">
+                            ${escapeHTML(country.nazwa || "Nieznane państwo")}
+                        </div>
+
+                        ${country.niedostepne === true
+                            ? `<span class="country-unavailable-badge">${escapeHTML(country.powod_niedostepnosci || 'Państwo niedostępne')}</span>`
+                            : ''}
+
+                        <div class="country-full-name">
+                            ${escapeHTML(country.pelna_nazwa || "")}
+                        </div>
+                        
+
+                    </div>
+
+                </div>
+
+                <div class="country-info">
+
+                    <div>
+                        <strong>Stolica:</strong>
+                        ${escapeHTML(country.stolica || "Brak danych")}
+                    </div>
+
+                    <div>
+                        <strong>Populacja:</strong>
+                        ${formatPopulation(country.populacja)}
+                    </div>
+
+                    <div>
+                        <strong>PKB:</strong>
+                        ${formatGDP(country.pkb)}
+                    </div>
+
+                </div>
+            `;
+
+            countryLayer.on("click", function() {
+                openCountryModal(id, country);
+            });
+
+            countryLayer.on('mouseover',()=>{const preview=document.getElementById('map-country-preview');preview.innerHTML=tooltipHTML;preview.hidden=false;});
+            countryLayer.on('mouseout',()=>document.getElementById('map-country-preview').hidden=true);
+
+            /* ============================================================
+            NAJECHANIE NA PAŃSTWO
+            ============================================================ */
+
+            countryLayer.on("mouseover", function() {
+
+                highlightCountry(id);
+
+            });
+
+            /* ============================================================
+            OPUSZCZENIE PAŃSTWA
+            ============================================================ */
+
+            countryLayer.on("mouseout", function() {
+
+                resetCountry(id);
+
+            });
+
+            countryLayer.on("mouseout", function() {
+
+                layer.resetStyle(this);
+
+            });
+
+        }
+
+    }).addTo(map);
+
+    const bounds = layer.getBounds();
+
+    if (bounds.isValid()) {
+
+        // Dopasowanie całej mapy do dostępnej przestrzeni
+        map.fitBounds(bounds, {
+            padding: window.matchMedia('(max-width:600px)').matches?[14,14]:[40,40],
+            animate: false
+        });
+
+        // Pozwalamy dodatkowo oddalać mapę
+        map.setMinZoom(map.getZoom() - 3);
+
+        // Nie ograniczamy przesuwania mapy do jej granic
+        map.setMaxBounds(null);
+    }
+
+})
+
+.catch(error => {
+
+    console.error("ENTENDA GAME — błąd mapy:", error);
+
+    alert("Nie udało się wczytać mapy Entendy.");
+
+});
+
+
+/* ============================================================
+   ENTENDA GAME — OBSŁUGA MODALI
+============================================================ */
+
+const countryModal = document.getElementById("country-modal");
+const registrationModal = document.getElementById("registration-modal");
+let selectedCountry = null;
+let focusBeforeModal = null;
+
+function showModal(modal) {
+    focusBeforeModal = document.activeElement;
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+
+    // Ustaw fokus bez automatycznego przewijania do przycisku.
+    modal.querySelector("button, input")?.focus({
+        preventScroll: true
+    });
+
+    // Każde otwarcie zaczyna się od początku treści.
+    const card = modal.querySelector(".game-modal-card");
+
+    if (card) {
+        card.scrollTop = 0;
+        card.scrollLeft = 0;
+    }
+
+    modal.scrollTop = 0;
+}
+
+function hideModal(modal, restoreFocus = true) {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    if (!document.querySelector(".game-modal.is-open")) {
+        document.body.classList.remove("modal-open");
+    }
+    if (restoreFocus && focusBeforeModal?.isConnected) focusBeforeModal.focus();
+}
+
+function setFlag(element, url) {
+    element.hidden = !url;
+    element.onerror = () => { element.hidden = true; };
+    if (url) element.src = url;
+    else element.removeAttribute("src");
+}
+
+function formatCountryNumber(value, digits = 0, suffix = "") {
+    if (value === null || value === undefined || value === "") return "Brak danych";
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "Brak danych";
+    return number.toLocaleString("pl-PL", { maximumFractionDigits: digits }) + suffix;
+}
+
+function setCountryField(id, value) {
+    document.getElementById(id).textContent = value;
+}
+
+function openCountryModal(id, country) {
+    if (country.niedostepne === true || country.czy_suwerenny !== true) {
+        return;
+    }
+
+    selectedCountry = { id, country };
+    setCountryField("selected-country-name", country.nazwa || "Nieznane państwo");
+    setCountryField("selected-country-full-name", [country.pelna_nazwa, country.terytoria_zalezne?.length ? "Zarząd obejmuje: " + country.terytoria_zalezne.join(", ") : ""].filter(Boolean).join(" · "));
+    setCountryField("selected-country-capital", country.stolica || "Brak danych");
+    setCountryField("selected-country-continent", country.kontynent || "Brak danych");
+    setCountryField("selected-country-area", formatCountryNumber(country.powierzchnia, 2, " km²"));
+    setCountryField("selected-country-population", formatPopulation(country.populacja));
+    setCountryField("selected-country-density", formatCountryNumber(country.gestosc_zaludnienia, 2, " os./km²"));
+    setCountryField("selected-country-urbanization", formatCountryNumber(country.urbanizacja, 1, "%"));
+    setCountryField("selected-country-language", country.jezyk || "Brak danych");
+    setCountryField("selected-country-religion", country.religia || "Brak danych");
+    setCountryField("selected-country-gdp", formatGDP(country.pkb));
+    setCountryField("selected-country-gdp-capita", window.GameMoney.format(country.pkb_per_capita));
+    setCountryField("selected-country-currency", country.waluta || "Brak danych");
+    setCountryField("selected-country-regions", formatCountryNumber(country.liczba_regionow));
+    setCountryField("selected-country-cities", formatCountryNumber(country.liczba_miast));
+
+    const status = document.getElementById("selected-country-independence");
+    status.className = "country-status";
+    status.textContent = country.status_niezaleznosci || "Brak danych";
+    if (country.czy_suwerenny === true) status.classList.add("is-sovereign");
+    else if (country.czy_suwerenny === false) status.classList.add("is-dependent");
+
+    const infrastructure = country.infrastruktura;
+    const infrastructureNumber = infrastructure === null || infrastructure === undefined || infrastructure === ""
+        ? NaN : Number(infrastructure);
+    const validInfrastructure = Number.isFinite(infrastructureNumber);
+    setCountryField("selected-country-infrastructure", validInfrastructure
+        ? formatCountryNumber(infrastructureNumber, 1, " / 100") : "Brak danych");
+    document.getElementById("selected-country-infrastructure-bar").style.width =
+        (validInfrastructure ? Math.min(100, Math.max(0, infrastructureNumber)) : 0) + "%";
+    const track = document.getElementById("country-infrastructure-track");
+    if (validInfrastructure) track.setAttribute("aria-valuenow", String(infrastructureNumber));
+    else track.removeAttribute("aria-valuenow");
+
+    setFlag(document.getElementById("selected-country-flag"), country.flaga);
+    showModal(countryModal);
+}
+
+document.getElementById("country-back-btn").addEventListener("click", () => hideModal(countryModal));
+
+document.getElementById("country-confirm-btn").addEventListener("click", () => {
+    if (!selectedCountry || selectedCountry.country.niedostepne === true || selectedCountry.country.czy_suwerenny !== true) return;
+    hideModal(countryModal, false);
+    document.getElementById("registration-country-id").value = selectedCountry.id;
+    document.getElementById("registration-country-name").textContent = selectedCountry.country.nazwa || "Nieznane państwo";
+    setFlag(document.getElementById("registration-country-flag"), selectedCountry.country.flaga);
+    document.getElementById("registration-message").hidden = true;
+    showModal(registrationModal);
+});
+
+document.getElementById("registration-back-btn").addEventListener("click", () => {
+    hideModal(registrationModal);
+    document.getElementById("game-registration-form").reset();
+    selectedCountry = null;
+});
+
+for (const modal of [countryModal, registrationModal]) {
+    modal.addEventListener("click", event => {
+        if (event.target === modal) {
+            hideModal(modal);
+            if (modal === registrationModal) selectedCountry = null;
+        }
+    });
+}
+
+document.addEventListener("keydown", event => {
+    const modal = document.querySelector(".game-modal.is-open");
+    if (!modal) return;
+    if (event.key === "Escape") {
+        hideModal(modal);
+        if (modal === registrationModal) selectedCountry = null;
+    }
+    if (event.key === "Tab") {
+        const focusable = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled])')];
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+});
+
+document.getElementById("game-registration-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const message = document.getElementById("registration-message");
+    const submitButton = form.querySelector('button[type="submit"]');
+    message.hidden = false;
+    if (form.elements.password.value !== form.elements.password_confirm.value) {
+        message.textContent = "Podane hasła nie są identyczne.";
+        return;
+    }
+    submitButton.disabled = true;
+    message.textContent = "Tworzenie konta…";
+    try {
+        const csrfResponse = await fetch("{{ url_for('game_registration_csrf') }}", {
+            credentials: "same-origin"
+        });
+        if (!csrfResponse.ok) throw new Error("Nie udało się przygotować formularza.");
+        const { csrf_token } = await csrfResponse.json();
+        const response = await fetch("{{ url_for('game_registration_submit') }}", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf_token },
+            body: JSON.stringify({
+                panstwo_id: form.elements.panstwo_id.value,
+                username: form.elements.username.value,
+                email: form.elements.email.value,
+                password: form.elements.password.value,
+                password_confirm: form.elements.password_confirm.value
+            })
+        });
+        const result = await response.json();
+        message.textContent = result.message || result.error || "Nieznana odpowiedź serwera.";
+        if (response.ok && result.ok) {
+            form.reset();
+            form.querySelectorAll("input").forEach(input => {
+                input.disabled = true;
+            });
+
+            submitButton.textContent = "Przechodzenie do panelu…";
+
+            window.location.assign(result.redirect_url);
+            return;
+        }
+    } catch (error) {
+        console.error("ENTENDA GAME — rejestracja:", error);
+        message.textContent = "Błąd połączenia z serwerem. Spróbuj ponownie.";
+    } finally {
+        if (!form.querySelector('input[name="username"]').disabled) submitButton.disabled = false;
+    }
+});
+
+/* ============================================================
+   ZABEZPIECZENIE TEKSTU W TOOLTIPACH
+============================================================ */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+</script>
+
+</body>
+</html>

@@ -44,6 +44,21 @@
     box-sizing: border-box; /* Zapewnia, że padding nie rozpycha inputa */
 }
 
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 0.9em;
+    background-color: #fff;
+    color: #2c3e50;
+    appearance: none; /* usuwa natywny styl (ważne na mobile) */
+}
+
 /* ================= CHECKBOX (AKTYWNA) ================= */
 .form-checkbox-main {
     display: flex;

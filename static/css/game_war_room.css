@@ -1,0 +1,95 @@
+/* War-room prototype. Scoped to the war panel; other game screens keep their theme. */
+.game-app.war-room{--text:#e0e4d7;--paper:#1b2925;--border:#405044;--game-blue:#416354;--game-blue-hover:#527b64;--game-green:#547b55;--game-red:#a14d40;--game-red-hover:#bc6251;background:radial-gradient(ellipse at 70% 0%,#29382c 0,transparent 65%),#101b18;color:#e0e4d7;font-family:'Segoe UI',Tahoma,sans-serif;color-scheme:dark}
+.war-room .game-main{max-width:1800px;width:100%;padding:28px clamp(16px,3vw,48px) 48px;margin:0 auto}
+.war-room .game-topbar{background:#111c18;border-bottom:1px solid #46503b;box-shadow:0 2px 16px #0004}
+.war-room .game-topbar,.war-room .game-topbar strong,.war-room .game-topbar a{color:#e0e4d7}
+.war-room .game-news{background:#1d2922;border-color:#394737;color:#bbc5ae}
+.war-room .game-navigation{background:#17231e;border-color:#3b493b;box-shadow:none}
+.war-room .game-nav-links > a,.war-room .game-nav-links > button{color:#b9c4b2;background:transparent;border-color:transparent;border-radius:3px}
+.war-room .game-nav-links > a:hover{color:#f1d698;background:#2d3d2d}
+.war-room .game-nav-links > a[aria-current=page]{color:#f5d895;background:#32422d;border-color:#a58d51;box-shadow:inset 0 -2px #c0a366}
+.war-room .game-nav-links > button:disabled{color:#778578;opacity:.55}
+.war-room .game-nav-links img{opacity:.85}
+.war-room .game-panel{border:1px solid #415044;border-radius:5px;background:linear-gradient(145deg,#213029,#19251f);box-shadow:0 10px 24px #0003}
+.war-room a{color:#e1c37f}.war-room a:hover{color:#ffe7b0}
+.war-room button{border:1px solid #6c7c56;border-radius:3px;background:linear-gradient(#4a6346,#344b35);box-shadow:inset 0 1px #ffffff10,0 2px 3px #0003;font-size:13px;letter-spacing:.025em}
+.war-room button:hover{background:#526d49;border-color:#c2ac71}
+.war-room button:focus-visible,.war-room a:focus-visible,.war-room select:focus-visible,.war-room input:focus-visible{outline:2px solid #f0d191;outline-offset:3px}
+.war-room input:not([type=hidden]),.war-room select{color:#e3e7da;background:#14221c;border:1px solid #52614b;border-radius:3px;font:inherit}
+.war-room option{background:#18251f;color:#e3e7da}
+.war-room h1,.war-room h2,.war-room h3{color:#f1e9cf}
+.war-room .war-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 0 25px}
+.war-room .war-heading-identity{display:flex;align-items:center;gap:18px;min-width:0}
+.war-room .war-emblem{display:grid;place-items:center;width:74px;height:78px;flex-shrink:0;border:1px solid #8f8155;background:linear-gradient(145deg,#435038,#243225);clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)}
+.war-room .war-emblem img{width:48px;height:48px;object-fit:contain;filter:sepia(.5)}
+.war-room .war-eyebrow{font-size:10px;letter-spacing:.2em;color:#b8ab7a;font-weight:700;margin:0 0 5px;line-height:1.6}
+.war-room .war-heading h1{text-align:left;margin:0;font-size:clamp(30px,3vw,42px);font-weight:750;letter-spacing:-.04em}
+.war-room .war-country{margin:7px 0 0;font-size:15px;color:#e0ddc8}
+.war-room .war-country>span{margin-left:14px;padding-left:14px;border-left:1px solid #667057;color:#96a48e;font-size:12px}
+.war-room .war-status{font-size:11px;font-weight:700;letter-spacing:.12em;color:#e1a28b;text-align:right;white-space:nowrap}
+.war-room .war-status a{display:block;font-size:12px;letter-spacing:normal;font-weight:500;margin-top:12px}
+.war-room .war-status-light{display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#d58b6b;box-shadow:0 0 10px #d58b6b80}
+.war-room .war-readiness{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:22px;border:1px solid #44513e;background:linear-gradient(90deg,#2a3829,#1b2a22);border-radius:4px;box-shadow:inset 0 1px #ffffff09}
+.war-room .war-readiness>div{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px 24px;min-width:0;border-right:1px solid #44513e}
+.war-room .war-readiness>div:last-child{border-right:0}
+.war-room .war-readiness span{color:#b2bda5;font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+.war-room .war-readiness strong{font:500 27px/1.2 'Consolas',monospace;color:#e8d4a2;font-variant-numeric:tabular-nums}
+.war-room .military-layout{grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+.war-room .war-map-panel{overflow:hidden;position:relative}
+.war-room .war-panel-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 20px;border-bottom:1px solid #42503e;background:linear-gradient(90deg,#2b392a,#223026)}
+.war-room .war-panel-bar h2{font-size:18px;margin:0;letter-spacing:.02em}
+.war-room .war-panel-bar button{font-size:11px;padding:7px 11px;min-height:34px;white-space:nowrap;background:#1c2b21;color:#d1cfad;border-color:#5f6d50}
+.war-room .war-map-legend{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:10px 20px;background:#17251e;color:#bac4af;font-size:11px;border-bottom:1px solid #384b3b}
+.war-room .war-map-legend>span{display:inline-flex;align-items:center;gap:6px}
+.war-room .war-map-legend i{width:8px;height:8px;display:inline-block;border-radius:1px;border:1px solid #ffffff20}
+.war-room .war-own{background:#628d79}.war-room .war-enemy{background:#a46054}.war-room .war-neutral{background:#59655b}
+.war-room .war-map-legend .war-map-hint{margin-left:auto;color:#889b86}
+.war-room #military-map{height:clamp(520px,68vh,880px);background-color:#182d28;background-image:linear-gradient(#96bfa509 1px,transparent 1px),linear-gradient(90deg,#96bfa509 1px,transparent 1px),radial-gradient(ellipse at center,#29443a 0%,#14251f 100%);background-size:40px 40px,40px 40px,100% 100%}
+.war-room .leaflet-control-zoom{border:1px solid #697455;box-shadow:0 3px 10px #0005}
+.war-room .leaflet-control-zoom a{background:#203227;color:#e5d5a5;border-color:#495a40}
+.war-room .leaflet-control-zoom a:hover{background:#354b34}
+.war-room .leaflet-control-scale-line{color:#d7dfc9;background:#17261bd9;border-color:#a8b28f;text-shadow:none;font-family:Consolas,monospace}
+.war-room .leaflet-tooltip{background:#1b2b22;color:#f0e9cf;border:1px solid #84916a;box-shadow:0 4px 16px #0006;font-size:12px}
+.war-room .leaflet-tooltip-left:before{border-left-color:#84916a}.war-room .leaflet-tooltip-right:before{border-right-color:#84916a}.war-room .leaflet-tooltip-top:before{border-top-color:#84916a}
+.war-room .military-sidebar{padding:0;overflow:visible;min-width:0}
+.war-room .military-sidebar>:not(.war-panel-bar){margin-left:20px;margin-right:20px}
+.war-room .military-sidebar .war-order-hint{font-size:12px;color:#abb89e;margin-top:17px;line-height:1.7}
+.war-room .war-crosshair{font:32px/1 monospace;color:#b0aa77}
+.war-room .military-sidebar>label{display:block;color:#b5bc9e;text-transform:uppercase;font-size:10px;letter-spacing:.12em;margin-top:22px;margin-bottom:8px}
+.war-room .military-sidebar>select{width:calc(100% - 40px);font-size:13px}
+.war-room #military-region-name{padding-top:22px;margin-top:22px;border-top:1px solid #43503c;font-size:21px;color:#ead9a9}
+.war-room #military-region-actions{padding-bottom:20px}
+.war-room #military-region-actions>p{color:#b2bda7;font-size:12px;line-height:1.7}
+.war-room .military-action{padding:12px 14px;min-height:49px;margin:8px 0;font-size:12px;text-align:left;position:relative}
+.war-room .military-action img{padding:3px;background:#ffffffd9;border-radius:3px;flex-shrink:0}
+.war-room .military-attack{background:linear-gradient(110deg,#754537,#4c332b);border:1px solid #a77150;border-left:3px solid #ce9b60;color:#f4e1c6}
+.war-room .military-attack:hover{background:linear-gradient(110deg,#925640,#624031);border-color:#dfb276}
+.war-room .military-action:disabled{opacity:.42;filter:saturate(.5)}
+.war-room .military-base{background:#19271f;border-color:#43563d}
+.war-room .military-missions{padding:0;margin-top:22px;overflow:hidden}
+.war-room .war-log-label{font-size:10px;letter-spacing:.12em;color:#9eab8c}
+.war-room #military-flights{padding:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-height:420px;overflow:auto}
+.war-room .war-operation{padding:16px;border:1px solid #42533c;border-left:3px solid #ac9961;background:#19271f;min-width:0;border-radius:3px}
+.war-room .war-operation-heading{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.war-room .war-operation-heading strong{color:#e6d9b2;font-size:14px}
+.war-room .war-operation-status{font-size:10px;color:#d0d5b7;background:#33452e;padding:3px 7px;border:1px solid #546542;border-radius:2px}
+.war-room .war-operation p{font-size:12px;color:#aebca3;line-height:1.7;margin:9px 0 0}
+.war-room .war-log-empty{grid-column:1/-1;padding:20px;text-align:center;color:#aebd9f;border:1px dashed #4a5b41}
+.war-room .war-log-empty strong{font-size:14px;color:#d3d7bc}.war-room .war-log-empty p{font-size:12px;margin:8px 0 0}
+.war-room #military-dialog{background:linear-gradient(145deg,#29392b,#17251d);color:#d9dfcd;border:1px solid #9a8e5f;border-radius:5px;box-shadow:0 25px 100px #0009}
+.war-room #military-dialog::backdrop{background:#06120dd4;backdrop-filter:blur(4px)}
+.war-room #military-dialog-title{padding-bottom:18px;border-bottom:1px solid #526047;color:#ecd6a2;font-size:23px}
+.war-room #military-dialog-fields label{font-size:12px;color:#bbc7ac}
+.war-room #military-dialog-fields p{font-size:12px;line-height:1.8}
+.war-room #military-dialog-confirm{background:linear-gradient(#617c48,#3d5834);border-color:#94a771}
+.war-room #military-dialog-cancel{background:#52382e;border-color:#88604c}
+.war-room #military-error,.war-room #military-dialog-error,.war-room .military-range-error{color:#ffab92}
+.war-room #military-feedback{color:#c5dba1}
+.war-room #military-map-status{color:#f0c38a;margin:0;background:#352d20}
+.war-room .game-notification-dropdown,.war-room .game-mail-dialog{color-scheme:light}
+@media(min-width:1450px){.war-room .military-layout{grid-template-columns:minmax(0,1fr) 380px}}
+@media(max-width:1050px){.war-room .military-layout{grid-template-columns:minmax(0,1fr) 300px}.war-room .war-readiness>div{padding:15px}.war-room .war-map-hint{display:none!important}}
+@media(max-width:800px){.war-room .military-layout{grid-template-columns:1fr}.war-room .war-readiness{grid-template-columns:repeat(2,minmax(0,1fr))}.war-room .war-readiness>div:nth-child(2){border-right:0}.war-room .war-readiness>div:nth-child(-n+2){border-bottom:1px solid #44513e}.war-room #military-map{height:58vh;min-height:400px}.war-room .war-heading{align-items:flex-start}.war-room .war-status{font-size:9px}.war-room .war-status a{max-width:130px;white-space:normal}.war-room .war-country>span{display:block;margin:4px 0 0;padding:0;border:0}.war-room .war-emblem{width:52px;height:60px}.war-room .war-emblem img{width:34px;height:34px}.war-room .war-heading-identity{gap:12px}.war-room .war-eyebrow{font-size:9px;letter-spacing:.12em}.war-room #military-flights{grid-template-columns:1fr}}
+@media(max-width:480px){.war-room .war-heading{flex-wrap:wrap;gap:14px}.war-room .war-status{text-align:left;display:flex;align-items:center;gap:8px;width:100%}.war-room .war-status a{margin:0 0 0 auto;max-width:none}.war-room .war-readiness>div{padding:14px 12px}.war-room .war-readiness span{font-size:9px}.war-room .war-readiness strong{font-size:23px}.war-room .war-log-label{display:none}.war-room .game-main{padding-top:20px}}
+
+.war-room .war-panel-bar h2,.war-room #military-region-name,.war-room .war-operation h3{text-align:left}.war-room .game-user{color:#aebaa6}.war-room .game-navigation .game-nav-placeholder:disabled:hover{background:transparent;color:#778578}

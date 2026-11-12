@@ -1,0 +1,17 @@
+{% extends 'base_layout.html' %}
+{% block title %}Budżet gry — {{ country.panstwo_nazwa }}{% endblock %}
+{% block content %}
+<style>.admin-finance{max-width:1150px;margin:auto}.admin-finance section{padding:22px;background:white;border:1px solid #cdd5cf;border-radius:8px;margin:18px 0}.admin-finance label{display:block;margin:12px 0}.admin-finance input:not([type=checkbox]),.admin-finance select,.admin-finance textarea{display:block;width:100%;max-width:620px;padding:9px}.admin-finance table{width:100%;border-collapse:collapse}.admin-finance th,.admin-finance td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.admin-finance .table-scroll{overflow:auto}</style>
+<div class="admin-finance"><h1>Budżet gry — {{ country.panstwo_nazwa }}</h1><p><a href="{{ url_for('gospodarka_form',panstwo_id=country.PANSTWO_ID) }}">Dane gospodarcze państwa</a> · <a href="{{ url_for('admin_panel') }}">Panel administratora</a></p>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<section><h2>Środki państwa</h2><p>Rezerwa: <strong>{{ account.reserve_balance if account else 0 }} ROI</strong></p>{% if plan %}<p>Ostatni budżet: {{ plan.game_year }}, półrocze {{ plan.period }}.</p><div class="table-scroll"><table><thead><tr><th>Sektor</th><th>Dostępne środki</th><th>Wydano</th></tr></thead><tbody>{% for code,name in categories %}<tr><th>{{ name }}</th><td>{{ balances[code].remaining }}</td><td>{{ balances[code].spent }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}</section>
+<section><h2>Korekta budżetu i podatków</h2><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="request_id" value="{{ request_id }}">
+<label>Sektor<select name="category">{% for code,name in categories %}<option value="{{ code }}" {% if code == 'reserve' %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+<label>Zmiana środków w ROI<input name="amount" type="number" step="0.01" value="{{ request.form.get('amount','0') }}" required></label><p>Kwota dodatnia dodaje środki; ujemna odejmuje. Można odejmować wyłącznie niewydane środki. Korekty rezerwy są dostępne także przed pierwszym budżetem.</p>
+<label><input type="checkbox" name="change_taxes" {% if request.form.get('change_taxes') %}checked{% endif %}> Zmień stawki podatków</label>
+<label>Podatek ogólny (%)<input name="pit_rate" type="number" min="0" max="100" step="0.01" value="{{ request.form.get('pit_rate',tax_policy.pit_rate if tax_policy else 5) }}"></label>
+
+<p>Stawki administratora obowiązują przy kolejnych zatwierdzeniach budżetu, także przy automatycznym powtarzaniu. Zatwierdzone historyczne naliczenia pozostają w historii. Bieżące środki można skorygować powyżej.</p>
+<label>Uzasadnienie<textarea name="reason" required minlength="3" maxlength="500">{{ request.form.get('reason','') }}</textarea></label><button type="submit">Zapisz korektę</button></form></section>
+<section><h2>Historia korekt</h2><div class="table-scroll"><table><thead><tr><th>Data</th><th>Administrator</th><th>Sektor</th><th>Kwota ROI</th><th>Podatki</th><th>Uzasadnienie</th></tr></thead><tbody>{% for row in changes %}<tr><td>{{ row.created_at }}</td><td>{{ row.admin_actor }}</td><td>{{ row.category }}</td><td>{{ row.amount }}</td><td>{% if row.policy_after %}Podatek ogólny {{ row.policy_after.pit_rate }}%{% endif %}</td><td>{{ row.reason }}</td></tr>{% else %}<tr><td colspan="6">Brak korekt.</td></tr>{% endfor %}</tbody></table></div></section></div>
+{% endblock %}

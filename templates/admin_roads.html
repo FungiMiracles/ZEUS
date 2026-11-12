@@ -1,0 +1,15 @@
+{% extends 'base_layout.html' %}
+{% block title %}Drogi świata — administrator ZEUS{% endblock %}
+{% block content %}
+<script src="{{ url_for('static',filename='js/game_money.js',v='20261025-2') }}"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/road_builder.css',v='20261025-2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wiki_roads.css', v='20261026-2') }}">
+<div class="wiki-roads">
+<header class="wiki-roads-header"><h1>Budowa dróg</h1><p>Wyznacz trasę między miastami lub punktami na mapie i zarządzaj siecią dróg świata.</p></header>
+{% include 'shared/road_builder.html' %}
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
+<script src="{{ url_for('static',filename='js/road_builder.js',v='20261026-1') }}" defer></script>
+{% endblock %}

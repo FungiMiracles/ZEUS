@@ -1,0 +1,24 @@
+<section class="game-panel diplomacy-proposals" id="diplomacy-proposals" aria-labelledby="diplomacy-proposals-title">
+  <div class="diplomacy-panel-bar"><h2 id="diplomacy-proposals-title">Oczekujące propozycje dyplomatyczne</h2></div>
+  <div class="game-panel-body">
+    {% for outgoing,title in [(false,'Otrzymane propozycje'),(true,'Wysłane propozycje')] %}
+    <section class="diplomacy-proposal-group" aria-label="{{ title }}">
+      <h3>{{ title }}</h3>
+      {% for proposal in diplomacy_proposals if proposal.outgoing == outgoing %}
+      <article class="diplomacy-proposal-card" data-proposal-id="{{ proposal.id }}">
+        <p><strong>{% if outgoing %}Oczekuje na odpowiedź od {{ proposal.country }}{% else %}{{ proposal.country }} oczekuje na Twoją odpowiedź{% endif %}</strong></p>
+        <p>{% if proposal.kind == 'RELATION' %}Proponowana relacja{% else %}Propozycja{% endif %}: <strong>{{ proposal.relation }}</strong></p>
+        {% if not outgoing %}
+        <form method="post" action="{{ proposal.decisionUrl }}" data-diplomacy-proposal-form>
+          <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+          <button type="submit" name="decision" value="accept">Akceptuj</button>
+          <button type="submit" name="decision" value="reject">Odrzuć</button>
+          <p data-proposal-result role="status" hidden></p>
+        </form>
+        {% endif %}
+      </article>
+      {% else %}<p class="diplomacy-proposals-empty">Brak oczekujących propozycji.</p>{% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+</section>

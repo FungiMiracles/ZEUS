@@ -1,0 +1,491 @@
+{
+  "database": "isolated SQLite in memory",
+  "tests": 22,
+  "passed": true,
+  "summary": {
+    "game_infrastructure.industry_change:POST": {
+      "EXECUTED": 2,
+      "REJECTED": 2
+    },
+    "game_trade.change:POST": {
+      "EXECUTED": 1
+    },
+    "game_trade.mining_build:POST": {
+      "EXECUTED": 1
+    },
+    "game_loans.change:POST": {
+      "EXECUTED": 1
+    },
+    "game_military.defense_change:POST": {
+      "EXECUTED": 3
+    },
+    "game_research.change:POST": {
+      "EXECUTED": 1,
+      "REJECTED": 3
+    },
+    "game_diplomacy.create_action:POST": {
+      "EXECUTED": 2
+    },
+    "game_intelligence.change:POST": {
+      "EXECUTED": 2
+    },
+    "game_military.war_order:POST": {
+      "REJECTED": 1,
+      "EXECUTED": 1
+    },
+    "game_infrastructure.roads_change:POST": {
+      "REJECTED": 2,
+      "EXECUTED": 4
+    },
+    "game_forum.page:POST": {
+      "EXECUTED": 1
+    },
+    "game_forum.edit:POST": {
+      "REJECTED": 1,
+      "EXECUTED": 1
+    },
+    "game_finance.approve:POST": {
+      "REJECTED": 9,
+      "EXECUTED": 9
+    },
+    "game_finance.preview:POST": {
+      "EXECUTED": 13,
+      "REJECTED": 9,
+      "BLOCKED": 3
+    }
+  },
+  "operations": [
+    {
+      "operation": "game_infrastructure.industry_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.industry_change:POST",
+      "validation": "REJECTED",
+      "reason": "Wskaż punkt we własnym regionie.",
+      "status": 400
+    },
+    {
+      "operation": "game_infrastructure.industry_change:POST",
+      "validation": "REJECTED",
+      "reason": "Wymagane technologie: Chip prosty.",
+      "status": 400
+    },
+    {
+      "operation": "game_trade.change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_trade.mining_build:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_loans.change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_military.defense_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_research.change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_diplomacy.create_action:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 201
+    },
+    {
+      "operation": "game_diplomacy.create_action:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 201
+    },
+    {
+      "operation": "game_intelligence.change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_military.war_order:POST",
+      "validation": "REJECTED",
+      "reason": "Państwo nie znajduje się w stanie wojny.",
+      "status": 400
+    },
+    {
+      "operation": "game_military.defense_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_military.defense_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_military.war_order:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.industry_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "REJECTED",
+      "reason": "Najpierw odczytaj stan lub wykonaj wycenę tej decyzji. ZEUS uzupełni pola techniczne z obejrzanego wyniku.",
+      "status": 400
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "REJECTED",
+      "reason": "Decyzja różni się od ostatniej wyceny. Najpierw wyceń poprawiony plan.",
+      "status": 400
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_infrastructure.roads_change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_forum.page:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 303
+    },
+    {
+      "operation": "game_forum.edit:POST",
+      "validation": "REJECTED",
+      "reason": "Odrzucono przez standardową walidację ZEUS.",
+      "status": 409
+    },
+    {
+      "operation": "game_forum.edit:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 303
+    },
+    {
+      "operation": "game_research.change:POST",
+      "validation": "REJECTED",
+      "reason": "Najpierw odczytaj stan lub wykonaj wycenę tej decyzji. ZEUS uzupełni pola techniczne z obejrzanego wyniku.",
+      "status": 400
+    },
+    {
+      "operation": "game_research.change:POST",
+      "validation": "REJECTED",
+      "reason": "Cena punktu rozwoju zmieniła się. Odśwież stronę przed zakupem.",
+      "status": 400
+    },
+    {
+      "operation": "game_research.change:POST",
+      "validation": "REJECTED",
+      "reason": "Nie podawaj technicznej ceny. Odczytaj game_research.state:GET przed zakupem.",
+      "status": 400
+    },
+    {
+      "operation": "game_intelligence.change:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Najpierw przelicz poprawny plan budżetu, oceń wynik, następnie zatwierdź go bez parametrów technicznych.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Zatwierdzenie dotyczy ostatniego podglądu. Zmianę podatku lub udziałów prześlij do podglądu; token i okres przygotowuje ZEUS.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Zatwierdzenie dotyczy ostatniego podglądu. Zmianę podatku lub udziałów prześlij do podglądu; token i okres przygotowuje ZEUS.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Suma udziałów przekracza 100%.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "BLOCKED",
+      "reason": "Powtórzona odrzucona decyzja bez zmiany danych lub zaobserwowanego stanu. Popraw parametry albo odczytaj zmieniony stan. Poprzedni błąd: Suma udziałów przekracza 100%.",
+      "status": 409
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Suma udziałów przekracza 100%.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "BLOCKED",
+      "reason": "Powtórzona odrzucona decyzja bez zmiany danych lub zaobserwowanego stanu. Popraw parametry albo odczytaj zmieniony stan. Poprzedni błąd: Suma udziałów przekracza 100%.",
+      "status": 409
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Świadczenia przekraczają dostępny budżet polityki socjalnej.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "infrastructure: wartość musi wynosić od 0 do 100%.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "BLOCKED",
+      "reason": "Powtórzona odrzucona decyzja bez zmiany danych lub zaobserwowanego stanu. Popraw parametry albo odczytaj zmieniony stan. Poprzedni błąd: infrastructure: wartość musi wynosić od 0 do 100%.",
+      "status": 409
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Plan wypłat świadczeń wynosi 0, przy oczekiwaniach 500000000.00; niedobór 500000000.00. Popraw plan albo świadomie zaakceptuj niedobór: accept_social_shortfall=true i uzasadnij strategię w rationale.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Plan zmniejsza dochody względem wariantu bazowego. Popraw plan albo podaj accept_revenue_decline=true i uzasadnij finansowanie potrzeb w rationale.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Plan wypłat świadczeń wynosi 367899375.00, przy oczekiwaniach 500000000.00; niedobór 132100625.00. Popraw plan albo świadomie zaakceptuj niedobór: accept_social_shortfall=true i uzasadnij strategię w rationale.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Wagi priorytetów muszą być nieujemne i co najmniej jedna dodatnia.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Wagi priorytetów muszą być nieujemne i co najmniej jedna dodatnia.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Nieznany parametr ścieżki.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Wybierz jeden sposób podziału: względne allocation_weights albo dokładne shares, nie oba.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Wybierz jedną jednostkę świadczeń: benefits_millions albo benefits, nie obie.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "REJECTED",
+      "reason": "Wybierz politykę świadczeń albo konkretne kwoty, nie obie naraz.",
+      "status": 400
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Zmieniło się półrocze. Odśwież formularz budżetu.",
+      "status": 409
+    },
+    {
+      "operation": "game_finance.preview:POST",
+      "validation": "EXECUTED",
+      "reason": null,
+      "status": 200
+    },
+    {
+      "operation": "game_finance.approve:POST",
+      "validation": "REJECTED",
+      "reason": "Dane państwa lub rezerwa zmieniły się. Odśwież podgląd.",
+      "status": 409
+    }
+  ]
+}

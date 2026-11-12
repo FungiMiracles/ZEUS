@@ -59,7 +59,10 @@
                     "liczba_baz_ladowych": "Bazy lądowe",
                     "liczba_baz_morskich": "Bazy morskie",
                     "liczba_baz_powietrznych": "Bazy powietrzne",
-                    "bron_atomowa_ilosc": "Broń atomowa"
+                    "bron_atomowa_ilosc": "Broń atomowa",
+                    "rakiety_krotkiego_zasiegu": "Rakiety krótkiego zasięgu",
+                    "rakiety_sredniego_zasiegu": "Rakiety średniego zasięgu",
+                    "rakiety_dalekiego_zasiegu": "Rakiety dalekiego zasięgu"
                 } %}
 
                 {% for field, label in fields.items() %}
@@ -73,6 +76,16 @@
                 </tr>
                 {% endfor %}
 
+                {% for field, label in {"wyszkolenie_ladowe": "Poziom wyszkolenia wojsk lądowych", "wyszkolenie_morskie": "Poziom wyszkolenia marynarki wojennej", "wyszkolenie_powietrzne": "Poziom wyszkolenia sił powietrznych"}.items() %}
+                <tr>
+                    <td style="padding:10px;">{{ label }} (0–1000)</td>
+                    <td style="padding:10px;">
+                        <input type="number" min="0" max="1000" name="{{ field }}"
+                            value="{{ form_data[field] if form_data else (wojsko | attr(field) if wojsko | attr(field) is not none else 100) }}"
+                            style="width:100%; padding:6px;">
+                    </td>
+                </tr>
+                {% endfor %}
 
             </tbody>
         </table>
@@ -92,7 +105,7 @@
 
             <a href="{{ url_for('wojsko_form', panstwo_id=panstwo.PANSTWO_ID) }}"
                style="
-                background:#c0392b;
+                background:#c73424;
                 padding:10px 20px;
                 color:white;
                 border-radius:6px;

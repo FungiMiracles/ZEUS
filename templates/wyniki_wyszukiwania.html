@@ -98,10 +98,32 @@
     padding: 6px 8px;
 }
 
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
 /* Kolory akcji */
-.btn-view { background-color: #5d7dce; }
-.btn-edit { background-color: #7f8c8d; }
-.btn-delete { background-color: #c0392b; }
+.btn-view { background-color: #2c73d2; }
+.btn-view:hover { background-color: #1f5bb0; }
+.btn-edit { background-color: #2c73d2; }
+.btn-edit:hover { background-color: #1f5bb0; }
+.btn-delete { background-color: #c73424;}
+.btn-delete:hover { background-color: #96271b;}
 
 /* ===== BRAK WYNIKÓW ===== */
 
@@ -272,7 +294,7 @@
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    background-color: #5d7dce;
+    background-color: #2c73d2;
     color: #ffffff;
 }
 
@@ -367,6 +389,14 @@
     </div>
 
     <div class="zeus-filter-box">
+
+    <div class="filter-group">
+    <label for="country-status">Status państwa</label>
+    <select id="country-status" name="status">
+    <option value="aktywne" {% if selected_status == 'aktywne' %}selected{% endif %}>aktywne</option>
+    <option value="usunięte" {% if selected_status == 'usunięte' %}selected{% endif %}>usunięte</option>
+    </select>
+    </div>
 
     <!-- KONTYNENT -->
     <div class="filter-group">
@@ -500,6 +530,10 @@
     </div>
     </form>
 
+    <div class="results-count">
+        Ilość znalezionych państw: {{ total }}
+    </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="region-flash">
@@ -512,10 +546,6 @@
         {% endif %}
     {% endwith %}
 
-    <div class="results-count">
-        Ilość znalezionych państw: {{ total }}
-    </div>
-
     <h1>Wyniki wyszukiwania państw</h1>
 
     {% if empty %}
@@ -525,7 +555,7 @@
         </div>
 
         <div class="footer-actions" style="text-align:center;">
-            <a href="{{ url_for('home_page') }}" class="btn-return">
+            <a href="{{ url_for('home_page') }}" class="btn-zeus btn-return">
                 Wróć do wyszukiwania
             </a>
         </div>
@@ -548,26 +578,29 @@
                         </div>
                         <div class="country-meta">
                             ID: {{ row.PANSTWO_ID }} • {{ row.kontynent_rel.kontynent_nazwa if row.kontynent_rel else "—" }}
+                            • Status: {{ row.status }}
                         </div>
                     </div>
 
                     <!-- PRAWA STRONA -->
                     <div class="country-actions">
 
+                        {% if row.status == 'aktywne' %}
+
                         <a href="{{ url_for('panstwo_form', panstwo_id=row.PANSTWO_ID) }}"
-                           class="btn-view"
+                           class="btn-zeus btn-view"
                            target="_blank">
                             Wyświetl
                         </a>
                         
                         {% if session.rola == "wszechmocny" %}
                         <a href="{{ url_for('panstwo_form_edit', panstwo_id=row.PANSTWO_ID) }}"
-                           class="btn-edit">
+                           class="btn-zeus btn-edit">
                             Edytuj
                         </a>
                         {% else %}
                         <a href="#"
-                           class="btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                           class="btn-zeus btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                             Edytuj
                         </a>
                         {% endif %}
@@ -578,18 +611,19 @@
                                   class="delete-form"
                                   onsubmit="return confirm('Czy na pewno chcesz usunąć to państwo?');">
                                 <button type="submit"
-                                        class="btn-delete">
+                                        class="btn-zeus btn-delete">
                                     Usuń
                                 </button>
                             </form>
                         {% else %}
                             <button type="button"
-                                    class="btn-delete"
+                                    class="btn-zeus btn-delete"
                                     onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                                 Usuń
                             </button>
                         {% endif %}
 
+                        {% endif %}
                     </div>
 
                 </div>
@@ -649,7 +683,7 @@
             {% endif %}
 
         <div class="footer-actions">
-            <a href="{{ url_for('home_page') }}" class="btn-return">
+            <a href="{{ url_for('home_page') }}" class="btn-zeus btn-return">
                 Wróć do wyszukiwania
             </a>
         </div>
@@ -668,9 +702,11 @@ advanced.style.display = toggle.checked ? "grid" : "none";
 toggle.addEventListener("change", updateAdvanced);
 
 const advancedUsed = [
-"{{ request.args.get('panstwo_ustroj','') }}",
+"{{ request.args.get('ustroj_id','') }}",
 "{{ request.args.get('pkb_od','') }}",
-"{{ request.args.get('pkb_do','') }}"
+"{{ request.args.get('pkb_do','') }}",
+"{{ request.args.get('pkb_pc_od','') }}",
+"{{ request.args.get('pkb_pc_do','') }}"
 ].some(v => v !== "");
 
 if (advancedUsed){

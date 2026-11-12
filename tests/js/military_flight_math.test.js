@@ -1,0 +1,27 @@
+(() => {
+    const assert=(value,message)=>{if(!value)throw new Error(message);};
+    const start=Date.parse('3000-01-01T00:00:00Z'),stamp=seconds=>new Date(start+seconds*1000).toISOString();
+    const flight={kind:'air',source:[0,0],target:[100,0],startsAt:stamp(0),fighterArrivesAt:stamp(400),impactAt:stamp(3600),returnsAt:stamp(4000)};
+    let state=MilitaryFlightMath.sample(flight,start);
+    assert(state.rocket[1]===0&&state.jet[1]===0,'Początek w bazie');
+    assert(!state.rocketVisible&&state.jetVisible,'Bombardowanie pokazuje wyłącznie myśliwiec');
+    const missile={...flight,kind:'missile'};
+    assert(MilitaryFlightMath.sample(missile,start+1000).rocketVisible,'Zwykły ostrzał pokazuje rakietę');
+    assert(!MilitaryFlightMath.sample(missile,start+3600000).rocketVisible,'Rakieta znika po trafieniu');
+    state=MilitaryFlightMath.sample(flight,start+400000);
+    assert(state.jet[1]===100&&Math.abs(state.rocket[1]-100/9)<1e-8,'Myśliwiec leci 900 km/h niezależnie od rakiety');
+    state=MilitaryFlightMath.sample(flight,start+3600000);
+    assert(!state.rocketVisible&&state.jet[1]===100&&state.jetVisible,'Powrót następuje dopiero po bombardowaniu');
+    state=MilitaryFlightMath.sample(flight,start+3800000);
+    assert(state.jet[1]===50,'Myśliwiec pokonuje drogę powrotną');
+    state=MilitaryFlightMath.sample(flight,start+4000000);
+    assert(state.jet[1]===0&&!state.jetVisible,'Powrót do tej samej bazy');
+    assert(MilitaryFlightMath.gameTime(start,0,300000,12)===start+3600000,'Godzina Entendy trwa pięć minut rzeczywistych');
+    const fasterRocket={...flight,impactAt:stamp(300),returnsAt:stamp(800)};
+    state=MilitaryFlightMath.sample(fasterRocket,start+300000);
+    assert(state.jet[1]===75,'Szybsza rakieta nie teleportuje myśliwca do celu');
+    state=MilitaryFlightMath.sample(fasterRocket,start+600000);
+    assert(state.jet[1]===50,'Myśliwiec zawraca po dotarciu do celu');
+    const restored=MilitaryFlightMath.sample(flight,start+3800000);
+    assert(restored.jet[1]===50,'Stan odtwarzany po odświeżeniu');
+})();

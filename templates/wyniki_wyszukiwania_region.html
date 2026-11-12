@@ -78,9 +78,12 @@
 }
 
 /* Kolory akcji */
-.btn-view { background-color: #5d7dce; }
-.btn-edit { background-color: #7f8c8d; }
-.btn-delete { background-color: #c0392b; }
+.btn-view { background-color: #2c73d2; }
+.btn-view:hover { background-color: #1f5bb0; }
+.btn-edit { background-color: #2c73d2; }
+.btn-edit:hover { background-color: #1f5bb0; }
+.btn-delete { background-color: #c73424;}
+.btn-delete:hover { background-color: #96271b;}
 
 /* ===== BRAK WYNIKÓW ===== */
 
@@ -187,7 +190,7 @@
     border: none;
     cursor: pointer;
 
-    background-color: #5d7dce;
+    background-color: #2c73d2;
     color: #ffffff;
     transition: background-color 0.15s ease;
 }
@@ -227,6 +230,43 @@
     font-size: 0.95em;
     color: #34495e;
 }
+
+    .region-flash {
+    max-width: 100%;
+    margin-bottom: 20px;
+    
+    }
+
+    .region-flash-item {
+        max-width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .region-flash-item.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .region-flash-item.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .region-flash-item.warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .region-flash-item.info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
 
 /* ============================================================
    MOBILE — LISTA REGIONÓW (FINAL, STABILNA)
@@ -340,6 +380,12 @@
         </select>
     </div>
 
+    <div class="filter-group">
+        <label>ID regionu</label>
+        <input type="number" name="region_id" 
+        value="{{ request.args.get('region_id') }}">
+    </div>
+
     <!-- ===== POPULACJA OD ===== -->
     <div class="filter-group">
         <label>Ludność od</label>
@@ -381,6 +427,23 @@
         {{ p.nazwa }}
         </option>
         {% endfor %}
+        </select>
+        </div>
+
+        <div class="filter-group">
+        <label>Półkula</label>
+        <select name="polkula">
+        <option value="">— wszystkie —</option>
+
+        <option value="NORTH"
+        {% if request.args.get('polkula') == 'NORTH' %}selected{% endif %}>
+        Północna
+        </option>
+
+        <option value="SOUTH"
+        {% if request.args.get('polkula') == 'SOUTH' %}selected{% endif %}>
+        Południowa
+        </option>
         </select>
         </div>
 
@@ -485,6 +548,18 @@
         value="{{ request.args.get('infra_porty','') }}">
         </div>
 
+        <div class="filter-group">
+            <label>Stolica regionu</label>
+
+            <label class="checkbox-label">
+                <input type="checkbox"
+                    name="bez_stolicy"
+                    value="1"
+                    {% if request.args.get('bez_stolicy') %}checked{% endif %}>
+                Bez stolicy (i nie stołeczne)
+            </label>
+        </div>
+
         </div>
 
     <!-- ===== AKCJA ===== -->
@@ -502,6 +577,18 @@
     <div class="results-count">
         Ilość znalezionych regionów: {{ total }}
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="region-flash">
+                {% for category, message in messages %}
+                    <div class="region-flash-item {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <h1>Wyniki wyszukiwania regionów</h1>
 

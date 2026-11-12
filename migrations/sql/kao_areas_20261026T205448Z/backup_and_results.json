@@ -1,0 +1,166 @@
+{
+  "database": "entenda_uat_db",
+  "source": "/home/oskar_zeus_admin/ZEUS_UAT/static/maps/entenda_panstwa.geojson",
+  "source_sha256": "8ea367eef375173ebbbbfe38c7217684235a3fffaeeac9646f77ec586c846b6e",
+  "calibration": {
+    "id": 1,
+    "reference_city_a": 1,
+    "reference_city_b": 852,
+    "reference_km": 100.0,
+    "km_per_unit": 3.910919870403471,
+    "reference_a_x": 954.7510623012616,
+    "reference_a_y": -1801.62366708549,
+    "reference_b_x": 952.4987942837062,
+    "reference_b_y": -1776.1536230000308
+  },
+  "method": "Planar union of country polygons, holes excluded; area * km_per_unit^2; rounded to nearest whole km²",
+  "countries": [
+    {
+      "PANSTWO_ID": 1,
+      "panstwo_nazwa": "Tunganiria",
+      "panstwo_powierzchnia": 963120,
+      "map_area": 138692.89103375177,
+      "new_area_km2": 2121349
+    },
+    {
+      "PANSTWO_ID": 2,
+      "panstwo_nazwa": "Hopia",
+      "panstwo_powierzchnia": 597898,
+      "map_area": 77228.02312581558,
+      "new_area_km2": 1181225
+    },
+    {
+      "PANSTWO_ID": 3,
+      "panstwo_nazwa": "Nuveco",
+      "panstwo_powierzchnia": 631557,
+      "map_area": 82520.47576564217,
+      "new_area_km2": 1262175
+    },
+    {
+      "PANSTWO_ID": 4,
+      "panstwo_nazwa": "Alata",
+      "panstwo_powierzchnia": 29154,
+      "map_area": 3684.0821162379107,
+      "new_area_km2": 56349
+    },
+    {
+      "PANSTWO_ID": 6,
+      "panstwo_nazwa": "Izziko",
+      "panstwo_powierzchnia": 32541,
+      "map_area": 4194.214330802833,
+      "new_area_km2": 64152
+    },
+    {
+      "PANSTWO_ID": 7,
+      "panstwo_nazwa": "Ozilandia",
+      "panstwo_powierzchnia": 331507,
+      "map_area": 43324.99846008841,
+      "new_area_km2": 662669
+    },
+    {
+      "PANSTWO_ID": 9,
+      "panstwo_nazwa": "Prewaria",
+      "panstwo_powierzchnia": 502665,
+      "map_area": 87940.26286359978,
+      "new_area_km2": 1345072
+    },
+    {
+      "PANSTWO_ID": 14,
+      "panstwo_nazwa": "Grafonia",
+      "panstwo_powierzchnia": 852156,
+      "map_area": 112935.5393942599,
+      "new_area_km2": 1727382
+    },
+    {
+      "PANSTWO_ID": 15,
+      "panstwo_nazwa": "Itrandia",
+      "panstwo_powierzchnia": 331275,
+      "map_area": 51539.13598746704,
+      "new_area_km2": 788306
+    },
+    {
+      "PANSTWO_ID": 17,
+      "panstwo_nazwa": "Essowinia",
+      "panstwo_powierzchnia": 602321,
+      "map_area": 66739.92408477265,
+      "new_area_km2": 1020807
+    },
+    {
+      "PANSTWO_ID": 25,
+      "panstwo_nazwa": "Lantania Północna",
+      "panstwo_powierzchnia": 23777,
+      "map_area": 2640.6934042471203,
+      "new_area_km2": 40390
+    },
+    {
+      "PANSTWO_ID": 28,
+      "panstwo_nazwa": "Małpiony",
+      "panstwo_powierzchnia": 39475,
+      "map_area": 4910.4362009995575,
+      "new_area_km2": 75107
+    },
+    {
+      "PANSTWO_ID": 51,
+      "panstwo_nazwa": "Atuna",
+      "panstwo_powierzchnia": 98541,
+      "map_area": 11934.11752375104,
+      "new_area_km2": 182536
+    },
+    {
+      "PANSTWO_ID": 58,
+      "panstwo_nazwa": "Olet",
+      "panstwo_powierzchnia": 205002,
+      "map_area": 15944.944211644728,
+      "new_area_km2": 243883
+    },
+    {
+      "PANSTWO_ID": 68,
+      "panstwo_nazwa": "Caria",
+      "panstwo_powierzchnia": 24115,
+      "map_area": 3031.1586323106203,
+      "new_area_km2": 46362
+    },
+    {
+      "PANSTWO_ID": 115,
+      "panstwo_nazwa": "Cicirici",
+      "panstwo_powierzchnia": 99815,
+      "map_area": 12501.738080363219,
+      "new_area_km2": 191218
+    },
+    {
+      "PANSTWO_ID": 116,
+      "panstwo_nazwa": "Czymony",
+      "panstwo_powierzchnia": 113224,
+      "map_area": 14248.427648698926,
+      "new_area_km2": 217934
+    },
+    {
+      "PANSTWO_ID": 117,
+      "panstwo_nazwa": "Iwo",
+      "panstwo_powierzchnia": 7748,
+      "map_area": 473.10906981605933,
+      "new_area_km2": 7236
+    },
+    {
+      "PANSTWO_ID": 118,
+      "panstwo_nazwa": "Etos",
+      "panstwo_powierzchnia": 27441,
+      "map_area": 3614.707338584177,
+      "new_area_km2": 55288
+    },
+    {
+      "PANSTWO_ID": 120,
+      "panstwo_nazwa": "Arastania",
+      "panstwo_powierzchnia": 619547,
+      "map_area": 77030.88733548981,
+      "new_area_km2": 1178210
+    },
+    {
+      "PANSTWO_ID": 121,
+      "panstwo_nazwa": "Ikko",
+      "panstwo_powierzchnia": 58412,
+      "map_area": 9707.686396268195,
+      "new_area_km2": 148482
+    }
+  ]
+}

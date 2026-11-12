@@ -110,7 +110,7 @@
 
 .form-actions {
     text-align: center;
-    margin-top: 28px;
+    margin-top: 30px;
 }
 
 .form-actions button,
@@ -125,23 +125,23 @@
 }
 
 .form-actions button {
-    background: #5d7dce;
+    background: #27ae60;
     color: #fff;
     border: none;
 }
 
 .form-actions button:hover {
-    background: #4171d1;
+    background: #1e8749;
 }
 
 .form-actions a {
-    background: #c0392b;
+    background: #c73424;
     color: #fff;
     margin-left: 10px;
 }
 
 .form-actions a:hover {
-    background: #96281b;
+    background: #96271b;
 }
 
 /* ===================== MOBILE ===================== */
@@ -276,6 +276,20 @@
                         </option>
                         <option value="NIE"
                             {% if form_data and form_data.get('czy_na_mapie') == 'NIE' %}selected{% endif %}>
+                            NIE
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Miasto portowe</label>
+                    <select name="czy_portowe">
+                        <option value="TAK"
+                            {% if not form_data or form_data.get('czy_portowe') == 'TAK' %}selected{% endif %}>
+                            TAK
+                        </option>
+                        <option value="NIE"
+                            {% if form_data and form_data.get('czy_portowe') == 'NIE' %}selected{% endif %}>
                             NIE
                         </option>
                     </select>

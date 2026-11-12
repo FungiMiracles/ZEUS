@@ -16,7 +16,7 @@
     </div>
     {% endif %}
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
 
         <table style="
             width:100%;
@@ -34,6 +34,29 @@
             </thead>
 
             <tbody>
+
+                <tr>
+                    <td style="padding:10px;">Flaga państwa</td>
+                    <td style="padding:10px;">
+                        <input type="file" name="flaga" accept=".jpg,.jpeg,.png">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px;">Mapa państwa</td>
+                    <td style="padding:10px;">
+                        <input type="file" name="mapa" accept=".jpg,.jpeg,.png">
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td style="padding:10px; font-weight:600; text-align: right; background-color: #c35f5f;">⚠️</td>
+                        <td style="padding:10px; text-align: left; background-color: #c35f5f; color: #fff">
+                            Obrazy mogą nie być od razu widoczne na formularzu państwa.<br>
+                            Aby je zobaczyć, wyczyść pamięć podręczną (cache) swojej przeglądarki. <br>
+                        </td>
+                    </tr>
+                </div>
 
                 <tr>
                     <td style="padding:10px;">Nazwa państwa</td>
@@ -94,11 +117,9 @@
                 </tr>
 
                 <tr>
-                    <td style="padding:10px;">Stolica</td>
+                    <td style="padding:10px">Kadencja przywódcy</td>
                     <td style="padding:10px;">
-                        <input type="text" name="panstwo_stolica"
-                               value="{{ form_data.panstwo_stolica if form_data else p.panstwo_stolica }}"
-                               style="width:100%; padding:6px;">
+                        <input type="number" name="kadencja_przywodcy" value="{{ form_data.kadencja_przywodcy if form_data else p.kadencja_przywodcy}}">
                     </td>
                 </tr>
 
@@ -139,15 +160,6 @@
                 </tr>
 
                 <tr>
-                    <td style="padding:10px;">PKB per capita</td>
-                    <td style="padding:10px;">
-                        <input type="number" name="panstwo_PKB_per_capita"
-                               value="{{ form_data.panstwo_PKB_per_capita if form_data else p.panstwo_PKB_per_capita }}"
-                               style="width:100%; padding:6px;">
-                    </td>
-                </tr>
-
-                <tr>
                     <td style="padding:10px;">
                         Państwo suwerenne:
                     </td>
@@ -168,13 +180,38 @@
                             </option>
                         </select>
                     </td>
+                    <tr id="zwierzch-row">
+                        <td style="padding:10px;">
+                            Państwo zwierzchnicze
+                        </td>
+                        <td style="padding:10px;">
+                            <select
+                                name="zwierzch_panstwo_id"
+                                id="zwierzch_panstwo_id"
+                                style="width:100%; padding:6px;">
+
+                                <option value="">— Wybierz państwo —</option>
+
+                                {% for panstwo in panstwa_suwerenne %}
+                                    <option value="{{ panstwo.PANSTWO_ID }}"
+                                        {% if p.zwierzch_panstwo_id == panstwo.PANSTWO_ID %}
+                                            selected
+                                        {% endif %}>
+                                        {{ panstwo.panstwo_nazwa }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                        </td>
+                    </tr>
                 </tr>
 
                 <tr>
-                    <td style="padding:10px; font-weight:600;">Edycja danych zablokowana:</td>
-                    <td style="padding:10px; color:#555;">
-                        Populacja – edycja w module demograficznym.<br>
-                        Języki urzędowe – edycja w module kulturowym.
+                    <td style="padding:10px; font-weight:600; background-color:rgb(255, 255, 206); text-align: right;">ℹ️</td>
+                    <td style="padding:10px; color:#000000; background-color:rgb(255, 255, 206)">
+                        Populacja: edycja w module demograficznym.<br>
+                        Języki urzędowe: edycja w module kulturowym. <br>
+                        Stolica państwa: edycja na formularzu miasta.
                     </td>
                 </tr>
 
@@ -187,12 +224,53 @@
             </button>
 
             <a href="{{ url_for('panstwo_form', panstwo_id=p.PANSTWO_ID) }}"
-               style="padding:10px 20px; background:#c0392b; color:white; border-radius:6px; text-decoration:none; font-weight:600; margin-left:10px;">
+               style="padding:10px 20px; background:#c73424; color:white; border-radius:6px; text-decoration:none; font-weight:600; margin-left:10px;">
                Anuluj
             </a>
         </div>
 
     </form>
 </div>
+
+<script>
+function updateZwierzchPanstwo() {
+
+    const suwerenny =
+        document.querySelector(
+            '[name="czy_suwerenny"]'
+        );
+
+    const row =
+        document.getElementById(
+            'zwierzch-row'
+        );
+
+    const select =
+        document.getElementById(
+            'zwierzch_panstwo_id'
+        );
+
+    if (suwerenny.value === 'NIE') {
+        row.style.display = '';
+        select.required = true;
+    } else {
+        row.style.display = 'none';
+        select.required = false;
+        select.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    updateZwierzchPanstwo();
+
+    document
+        .querySelector('[name="czy_suwerenny"]')
+        .addEventListener(
+            'change',
+            updateZwierzchPanstwo
+        );
+});
+</script>
 
 {% endblock %}

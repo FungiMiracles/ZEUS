@@ -90,9 +90,9 @@
         Ludność i populacja
     </a>
 
-    <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+    <a href="{{ url_for('wiki_civic.population_page') }}" class="demo-tile">
         <div class="icon">📊</div>
-        Struktura ludności [niedostępne]
+        Struktura ludności
     </a>
 
     <a href="#" class="demo-tile" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
@@ -115,6 +115,11 @@
         Generator miast technicznych
     </a>
     {% endif %}
+
+    <a href="{{ url_for('demografia_spoleczenstwo_lista') }}" class="demo-tile">
+        <div class="icon">🧑‍🤝‍🧑</div>
+        Społeczeństwa
+    </a>
 
 </div>
 

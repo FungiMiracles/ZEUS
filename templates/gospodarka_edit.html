@@ -2,6 +2,7 @@
 {% block title %}Edytuj gospodarkę – {{ panstwo.panstwo_nazwa }}{% endblock %}
 
 {% block content %}
+{% if session.get('rola') == 'wszechmocny' %}<p><a href="{{ url_for('wiki_civic.budget',country_id=panstwo.PANSTWO_ID) }}">Zarządzaj budżetem gry i podatkami państwa</a></p>{% endif %}
 
 <style>
 /* style zgodne z wcześniejszymi (kolorystyka gospodarka) */
@@ -23,8 +24,10 @@
 
 /* akcje */
 .action-row { text-align:center; margin-top:20px; }
-.btn-save { padding:10px 22px; background:#2c73d2; color:white; border-radius:8px; border:none; font-weight:700; }
-.btn-back { padding:10px 22px; background:#bdc3c7; color:#1f1f1f; border-radius:8px; border:none; font-weight:700; margin-left:8px; }
+.btn-save { padding:10px 22px; background:#27ae60; color:white; border-radius:8px; border:none; font-weight:700; }
+.btn-save:hover { padding:10px 22px; background:#1e8749; color:white; border-radius:8px; border:none; font-weight:700; }
+.btn-back { padding:10px 22px; background:#949494; color:#ffffff; border-radius:8px; border:none; font-weight:700; margin-left:8px; }
+.btn-back:hover { padding:10px 22px; background:#757575; color:#ffffff; border-radius:8px; border:none; font-weight:700; margin-left:8px; text-decoration: none !important; }
 </style>
 
 <div class="gosp-edit">
@@ -88,49 +91,6 @@
             </div>
         </div>
 
-        <!-- ==================== SUROWCE ==================== -->
-        <div class="section-box">
-            <h2>Surowce naturalne – wydobycie</h2>
-
-            <div class="section-grid">
-                <div><label>Ropa (baryłki)</label><input name="ropa_wydobycie" value="{{ fd.ropa_wydobycie or (g.ropa_wydobycie if g.ropa_wydobycie is not none else '') }}"></div>
-                <div><label>Gaz (m³)</label><input name="gaz_wydobycie" value="{{ fd.gaz_wydobycie or (g.gaz_wydobycie if g.gaz_wydobycie is not none else '') }}"></div>
-                <div><label>Węgiel (t)</label><input name="wegiel_wydobycie" value="{{ fd.wegiel_wydobycie or (g.wegiel_wydobycie if g.wegiel_wydobycie is not none else '') }}"></div>
-                <div><label>Uran (t)</label><input name="uran_wydobycie" value="{{ fd.uran_wydobycie or (g.uran_wydobycie if g.uran_wydobycie is not none else '') }}"></div>
-                <div><label>Złoto (kg)</label><input name="zloto_wydobycie" value="{{ fd.zloto_wydobycie or (g.zloto_wydobycie if g.zloto_wydobycie is not none else '') }}"></div>
-                <div><label>Kerbit (t)</label><input name="kerbit_wydobycie" value="{{ fd.kerbit_wydobycie or (g.kerbit_wydobycie if g.kerbit_wydobycie is not none else '') }}"></div>
-                <div><label>Natsyt (t)</label><input name="natsyt_wydobycie" value="{{ fd.natsyt_wydobycie or (g.natsyt_wydobycie if g.natsyt_wydobycie is not none else '') }}"></div>
-                <div><label>Cemium (t)</label><input name="cemium_wydobycie" value="{{ fd.cemium_wydobycie or (g.cemium_wydobycie if g.cemium_wydobycie is not none else '') }}"></div>
-            </div>
-        </div>
-
-        <!-- ==================== PRODUKCJA ==================== -->
-        <div class="section-box">
-            <h2>Produkcja – wartość roczna</h2>
-
-            {% if errs.produkcja %}
-                <div class="section-errors">
-                    {% for e in errs.produkcja %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}
-                </div>
-            {% endif %}
-
-            <div class="section-grid">
-                <div><label>Technologie</label><input name="technologie_wartosc_prod" value="{{ fd.technologie_wartosc_prod or (g.technologie_wartosc_prod if g.technologie_wartosc_prod is not none else '') }}"></div>
-                <div><label>Uzbrojenie</label><input name="uzbrojenie_wartosc_prod" value="{{ fd.uzbrojenie_wartosc_prod or (g.uzbrojenie_wartosc_prod if g.uzbrojenie_wartosc_prod is not none else '') }}"></div>
-                <div><label>Budownictwo</label><input name="budownictwo_wartosc_prod" value="{{ fd.budownictwo_wartosc_prod or (g.budownictwo_wartosc_prod if g.budownictwo_wartosc_prod is not none else '') }}"></div>
-
-                <div><label>Przemysł ciężki</label><input name="przemysl_ciezki_wartosc_prod" value="{{ fd.przemysl_ciezki_wartosc_prod or (g.przemysl_ciezki_wartosc_prod if g.przemysl_ciezki_wartosc_prod is not none else '') }}"></div>
-                <div><label>Przemysł lekki</label><input name="przemysl_lekki_wartosc_prod" value="{{ fd.przemysl_lekki_wartosc_prod or (g.przemysl_lekki_wartosc_prod if g.przemysl_lekki_wartosc_prod is not none else '') }}"></div>
-                <div><label>Produkcja żywności</label><input name="produkcja_zywnosci_wartosc_prod" value="{{ fd.produkcja_zywnosci_wartosc_prod or (g.produkcja_zywnosci_wartosc_prod if g.produkcja_zywnosci_wartosc_prod is not none else '') }}"></div>
-
-                <div><label>Usługi finansowe</label><input name="uslugi_finansowe_wartosc_prod" value="{{ fd.uslugi_finansowe_wartosc_prod or (g.uslugi_finansowe_wartosc_prod if g.uslugi_finansowe_wartosc_prod is not none else '') }}"></div>
-                <div><label>Przemysł farmaceutyczny</label><input name="przemysl_farmaceut_wartosc_prod" value="{{ fd.przemysl_farmaceut_wartosc_prod or (g.przemysl_farmaceut_wartosc_prod if g.przemysl_farmaceut_wartosc_prod is not none else '') }}"></div>
-                <div><label>Przemysł samochodowy</label><input name="przemysl_samochodowy_wartosc_prod" value="{{ fd.przemysl_samochodowy_wartosc_prod or (g.przemysl_samochodowy_wartosc_prod if g.przemysl_samochodowy_wartosc_prod is not none else '') }}"></div>
-
-                <div><label>Przemysł rozrywkowy</label><input name="przemysl_rozrywkowy_wartosc_prod" value="{{ fd.przemysl_rozrywkowy_wartosc_prod or (g.przemysl_rozrywkowy_wartosc_prod if g.przemysl_rozrywkowy_wartosc_prod is not none else '') }}"></div>
-            </div>
-        </div>
-
         <!-- ==================== BUDŻET I ENERGIA ==================== -->
         <div class="section-box">
             <h2>Budżet i energetyka</h2>
@@ -160,10 +120,8 @@
             {% endif %}
 
             <div class="section-grid">
-                <div><label>Stabilność (%)</label><input name="indeks_stabilnosci_gosp" value="{{ fd.indeks_stabilnosci_gosp or (g.indeks_stabilnosci_gosp if g.indeks_stabilnosci_gosp is not none else '') }}"></div>
                 <div><label>Korupcja (%)</label><input name="indeks_korupcji_gosp" value="{{ fd.indeks_korupcji_gosp or (g.indeks_korupcji_gosp if g.indeks_korupcji_gosp is not none else '') }}"></div>
                 <div><label>Innowacyjność (%)</label><input name="indeks_innowacji_gosp" value="{{ fd.indeks_innowacji_gosp or (g.indeks_innowacji_gosp if g.indeks_innowacji_gosp is not none else '') }}"></div>
-                <div><label>Rozwój ludzki (%)</label><input name="indeks_rozwoju_ludzkiego" value="{{ fd.indeks_rozwoju_ludzkiego or (g.indeks_rozwoju_ludzkiego if g.indeks_rozwoju_ludzkiego is not none else '') }}"></div>
             </div>
         </div>
 

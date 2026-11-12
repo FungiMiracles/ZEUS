@@ -1,0 +1,8 @@
+{% extends 'game/game_base_layout.html' %}
+{% block title %}Informacje o zmianach — ENTENDA GAME{% endblock %}
+{% block content %}
+<section class="game-panel game-changes-page" aria-labelledby="game-changes-title">
+    <h2 id="game-changes-title">Informacje o zmianach w ENTENDA GAME</h2>
+    <div class="game-changes-content">{{ changelog_html | safe }}</div>
+</section>
+{% endblock %}

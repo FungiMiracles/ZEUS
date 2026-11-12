@@ -1,0 +1,306 @@
+/* Wspólny styl ENTENDA GAME, oparty na ekranach państwa i regionu ZEUS WIKI.
+   Ten arkusz jest ładowany po stylach komponentów i nie jest używany przez WIKI. */
+.game-app {
+    --navy: #0b1f3a;
+    --navy2: #193453;
+    --gold: #c9a44c;
+    --border: #b9cbed;
+    --text: #2c3e50;
+    --paper: #fff;
+    --game-blue: #2c73d2;
+    --game-blue-hover: #1f5bb0;
+    --game-green: #27ae60;
+    --game-green-hover: #1e8749;
+    --game-red: #c73424;
+    --game-red-hover: #96271b;
+    --game-sky: #3689bb;
+    --game-shadow: 0 4px 12px rgb(0 0 0 / 9%);
+    margin: 0;
+    background: #f6f8fb;
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+}
+.game-app *, .game-app *::before, .game-app *::after { box-sizing: border-box; }
+.game-app img, .game-app svg { max-width: 100%; }
+.game-app a { color: var(--game-blue); }
+.game-app a:hover { color: var(--game-blue-hover); }
+.game-app h1, .game-app h2, .game-app h3 { line-height: 1.3; overflow-wrap: anywhere; }
+.game-app h1 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 700; text-align: center; margin: 0 0 24px; }
+.game-app h2 { font-size: 21px; }
+.game-app h3 { font-size: 17px; }
+.game-app p { overflow-wrap: anywhere; }
+.game-app button, .game-app .back-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    max-width: 100%;
+    padding: 9px 14px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--game-blue);
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    text-decoration: none;
+    white-space: normal;
+    cursor: pointer;
+    transition: background-color .16s, border-color .16s;
+}
+.game-app button:hover, .game-app .back-btn:hover { background: var(--game-blue-hover); color: white; }
+.game-app button:disabled, .game-app input:disabled, .game-app select:disabled { opacity: .55; cursor: not-allowed; }
+.game-app button:focus-visible, .game-app a:focus-visible, .game-app summary:focus-visible,
+.game-app input:focus-visible, .game-app select:focus-visible, .game-app textarea:focus-visible {
+    outline: 3px solid #5d7dce; outline-offset: 3px;
+}
+.game-app input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.game-app select, .game-app textarea {
+    min-height: 44px;
+    max-width: 100%;
+    padding: 9px 11px;
+    border: 1px solid #aabedd;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+}
+.game-app input[type="checkbox"], .game-app input[type="radio"] { width: 18px; height: 18px; accent-color: var(--game-blue); flex-shrink: 0; }
+.game-app input[readonly] { background: #eef3fb; color: #526780; }
+.game-app textarea { width: 100%; resize: vertical; }
+.game-app summary { cursor: pointer; }
+.game-app [hidden] { display: none !important; }
+
+/* Pasek gracza i jasna nawigacja zgodna z WIKI. */
+.game-topbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 24px;
+    background: white;
+    border-bottom: 1px solid #e2e6f0;
+}
+.game-identity { display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 340px; }
+.game-identity > div { min-width: 0; }
+.game-logo { flex-shrink: 0; }
+.game-logo img { display: block; width: 76px; max-height: 76px; object-fit: contain; }
+.game-user { color: #63748b; font-size: 12px; }
+.game-user-row { display: flex; align-items: flex-start; flex-direction: column; gap: 7px; margin-top: 3px; min-width: 0; }
+.game-user strong { font-size: 16px; color: var(--navy); overflow-wrap: anywhere; }
+.game-logout-form { margin: 0; }
+.game-app .game-logout { min-height: 34px; padding: 6px 10px; font-size: 12px; background: var(--game-red); }
+.game-app .game-logout:hover { background: var(--game-red-hover); }
+.game-news { height: 38px; display: flex; align-items: center; min-width: 0; overflow: hidden; background: var(--navy); border-radius: 10px; }
+.game-news-track { display: flex; gap: 40px; white-space: nowrap; width: max-content; padding-left: 100%; animation: gameTicker 75s linear infinite; }
+.game-news:hover .game-news-track { animation-play-state: paused; }
+.game-news-item { color: #e6ecff; font-size: 13px; }
+.game-news-date { color: #ffb300; font-weight: 700; }
+@keyframes gameTicker { to { transform: translateX(-100%); } }
+.game-tools { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
+.game-clock { --day-progress: 0deg; border: 4px solid transparent; border-radius: 10px; padding: 7px 12px; white-space: nowrap; font-size: 18px; font-weight: 800; color: var(--navy); background: linear-gradient(white,white) padding-box,conic-gradient(var(--navy) 0deg,var(--navy) var(--day-progress),#dfe6ee var(--day-progress),#dfe6ee 360deg) border-box; }
+.game-app .game-mail-toggle, .game-app .game-notifications summary { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; color: var(--navy); background: #f9fbff; font-size: 21px; }
+.game-app .game-mail-toggle:hover, .game-app .game-notifications summary:hover { background: #e9edf5; color: var(--navy); }
+.game-world-stats { padding: 8px 14px; text-align: center; font-size: 13px; background: #eef2f7; border-bottom: 1px solid #e2e6f0; }
+.game-uat { padding: 8px 12px; text-align: center; background: #fff0b8; color: #795000; font-size: 12px; font-weight: 700; }
+.game-navigation { padding: 12px 24px; background: white; border-bottom: 1px solid #dcdcdc; }
+.game-nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-width: 0; }
+.game-app .game-nav-links > a, .game-app .game-nav-placeholder {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 44px; padding: 9px 12px; border: 1px solid transparent; border-radius: 7px;
+    background: white; color: #333; font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.game-app .game-nav-links > a:hover { background: #e9edf5; color: #1f5bb0; }
+.game-app .game-nav-links > a[aria-current="page"] { border-color: #b9cbed; background: #eaf1ff; color: #1f5bb0; }
+.game-app .game-nav-placeholder:disabled { opacity: .55; }
+.game-app .game-mobile-toggle { display: none; }
+.game-menu { position: relative; }
+.game-menu-dropdown { position: absolute; right: 0; z-index: 100; width: min(240px, 90vw); padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: white; box-shadow: var(--game-shadow); }
+.game-menu-dropdown a { display: block; padding: 10px; }
+
+/* Pasek państwa i karty. */
+.game-country-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 22px 24px; background: white; border-bottom: 1px solid #e2e6f0; }
+.game-summary-identity { display: flex; align-items: center; gap: 16px; flex: 1 1 260px; min-width: 0; }
+.game-summary-identity > div { min-width: 0; }
+.game-summary-identity img { width: 72px; height: 48px; object-fit: contain; border: 1px solid black; flex-shrink: 0; }
+.game-summary-identity h2 { margin: 4px 0 0; font-size: 23px; color: var(--navy); }
+.game-summary-label, .game-country-metrics dt { color: #63748b; font-size: 12px; }
+.game-country-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); flex: 2 1 650px; gap: 18px; margin: 0; }
+.game-country-metrics > div { min-width: 0; }
+.game-country-metrics dd { margin: 5px 0 0; font-size: 18px; font-weight: 700; color: var(--navy); overflow-wrap: anywhere; }
+.game-main { max-width: 1600px; width: 100%; margin: 28px auto; padding: 0 24px 30px; }
+.game-main > *, .game-panel-body > *, .game-mail-columns > * { min-width: 0; }
+.game-panel, .game-app .finance-editor { border: 1px solid #5d7dce; border-radius: 10px; background: white; box-shadow: var(--game-shadow); margin-bottom: 22px; overflow: hidden; }
+.game-panel-heading { padding: 18px 20px 8px; margin: 0; text-align: center; background: transparent; color: var(--text); border: 0; font-size: 18px; font-weight: 700; }
+.game-panel-body { padding: 20px; }
+.game-map-heading, .demo-map-heading { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; height: auto; }
+.game-map-heading > h2, .demo-map-heading > h2 { margin: 0; font-size: inherit; }
+.demo-page-heading { justify-content: center; }
+.game-page-heading { text-align: center; }
+.game-app .game-page-country { flex-wrap: wrap; max-width: 100%; }
+.game-footer { padding: 20px; text-align: center; color: #63748b; border-top: 1px solid #e2e6f0; font-size: 12px; }
+
+/* Semantika przycisków odpowiada WIKI: niebieski / zielony / czerwony. */
+.game-app .forum-actions button, .game-app #diplomacy-form button,
+.game-app .finance-primary, .game-app .finance-modal .finance-primary, .game-app .finance-secondary[data-finance-repeat],
+.game-app .game-mail-compose-actions button[type="submit"], .game-app #game-mail-new,
+.game-app #game-diplomacy-accept, .game-app .game-modal-btn-primary,
+.game-app .diplomacy-action-button.action-relation { background: var(--game-green); color: white; border-color: transparent; }
+.game-app .forum-actions button:hover, .game-app #diplomacy-form button:hover,
+.game-app .finance-primary:hover, .game-app .finance-modal .finance-primary:hover, .game-app .finance-secondary[data-finance-repeat]:hover,
+.game-app .game-mail-compose-actions button[type="submit"]:hover, .game-app #game-mail-new:hover,
+.game-app #game-diplomacy-accept:hover, .game-app .game-modal-btn-primary:hover,
+.game-app .diplomacy-action-button.action-relation:hover { background: var(--game-green-hover); filter: none; }
+.game-app #game-diplomacy-reject, .game-app #game-mail-cancel,
+.game-app .diplomacy-action-button.action-war { background: var(--game-red); color: white; border-color: transparent; }
+.game-app #game-diplomacy-reject:hover, .game-app #game-mail-cancel:hover,
+.game-app .diplomacy-action-button.action-war:hover { background: var(--game-red-hover); filter: none; }
+.game-app .diplomacy-action-button.action-peace, .game-app .diplomacy-action-button.action-ceasefire { background: var(--game-sky); color: white; }
+.game-app .diplomacy-action-button.action-peace:hover, .game-app .diplomacy-action-button.action-ceasefire:hover { background: #23638c; filter: none; }
+.game-app .finance-secondary, .game-app #diplomacy-actions-close, .game-app #game-event-close,
+.game-app #game-diplomacy-close, .game-app #game-mail-close, .game-app .game-modal-btn-secondary { background: var(--game-blue); color: white; border-color: transparent; }
+.game-app .finance-secondary:hover, .game-app #diplomacy-actions-close:hover, .game-app #game-event-close:hover,
+.game-app #game-diplomacy-close:hover, .game-app #game-mail-close:hover, .game-app .game-modal-btn-secondary:hover { background: var(--game-blue-hover); }
+.game-app .game-roi-info-button { display: inline-flex; min-height: 24px; width: 24px; height: 24px; padding: 0; border: 1px solid #526780; border-radius: 50%; background: white; color: var(--navy2); }
+.game-app .game-roi-info-button:hover { background: #eaf1ff; color: var(--navy2); }
+
+/* Tabele, formularze i mapy: przewijanie pozostaje wewnątrz komponentu. */
+.game-app .finance-table-scroll, .game-app .environment-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.game-app .finance-table, .game-app .environment-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #b9cbed; border-radius: 7px; background: #f9fbff; }
+.game-app .finance-table thead, .game-app .finance-modal .finance-table thead, .game-app .environment-table thead { background: #e6efff; color: #193453; font-size: 13px; }
+.game-app .finance-table th, .game-app .finance-table td, .game-app .environment-table th, .game-app .environment-table td { padding: 11px 12px; border-bottom: 1px solid #dce5f4; }
+.game-app .finance-table { min-width: 540px; }
+.game-app .environment-table { min-width: 440px; }
+.game-app .finance-editor { padding: 22px; }
+.game-app .finance-heading, .game-app .finance-modal .finance-heading { justify-content: center; text-align: center; background: transparent; color: var(--text); margin: 0 0 22px; padding: 0; gap: 14px; }
+.game-app .finance-heading h2, .game-app .finance-modal .finance-heading h2 { color: var(--text); font-size: 22px; letter-spacing: normal; }
+.game-app .finance-badge, .game-app .finance-modal .finance-badge { color: #244984; border: 1px solid #c1d2ee; background: #eaf1ff; }
+.game-app .finance-modal .finance-editor { background: white; border: 0; margin: 0; padding: 24px; box-shadow: none; }
+.game-app .finance-modal .finance-section { border-color: #b9cbed; background: #f9fbff; box-shadow: none; }
+.game-app .finance-modal .finance-metrics > div { background: white; border: 1px solid #dce5f4; }
+.game-app .finance-actions, .game-app .finance-modal .finance-actions { position: static; justify-content: flex-end; margin: 18px 0 0; padding: 16px 0 0; background: white; border-top: 1px solid #dce5f4; }
+.game-app .finance-primary, .game-app .finance-modal .finance-primary { box-shadow: none; }
+.game-app .finance-budget-legend { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.game-app .finance-budget-legend-item { overflow-wrap: anywhere; }
+.game-app .finance-budget-dot { flex-shrink: 0; }
+.game-app .finance-budget-tooltip { max-width: min(280px, calc(100vw - 40px)); white-space: normal; }
+.game-app .forum-recipient-picker { background: #f9fbff; border-color: #b9cbed; }
+.game-app .forum-recipient-picker summary { min-height: 44px; padding: 12px; }
+.game-app .forum-recipient-option { min-height: 44px; }
+.game-app .forum-content { line-height: 1.7; }
+.game-app .forum-dates { color: #63748b; }
+.game-app .forum-reply-context { background: #f1f6ff; border-color: #5d7dce; border-radius: 5px; }
+.game-app .demo-metric, .game-app .environment-metrics .game-panel { background: #f9fbff; }
+.game-app .environment-tabs button[aria-selected="true"] { background: var(--game-blue-hover); color: white; }
+.game-app .demo-map-reset, .game-app .environment-map-reset, .game-app .diplomacy-map-reset { font-size: 13px; }
+.game-app .leaflet-touch .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+
+/* Wszystkie okna mają wspólne obramowanie i odstępy. */
+.game-app dialog { box-sizing: border-box; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); padding: 24px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid #5d7dce; border-radius: 12px; background: white; color: var(--text); box-shadow: 0 18px 60px #0003; }
+.game-app dialog::backdrop { background: #0b1f3a99; backdrop-filter: none; }
+.game-app dialog h2 { text-align: center; margin-top: 0; }
+.game-app .game-mail-dialog { width: min(1100px, calc(100vw - 24px)); }
+.game-app .finance-modal { width: min(1000px, calc(100vw - 24px)); padding: 0; background: white; }
+.game-app .game-actions-dialog, .game-app .game-diplomacy-dialog { width: min(560px, calc(100vw - 24px)); }
+.game-app .game-notification-dropdown { border: 1px solid #5d7dce; border-radius: 10px; box-shadow: var(--game-shadow); font-size: 14px; }
+.game-app .game-notification-item { display: block; width: 100%; text-align: left; background: var(--game-sky); border: 2px solid #23638c; color: white; line-height: 1.6; }
+.game-app .game-notification-item:hover { background: #2776a7; }
+.game-app .game-notification-item.notification-war { background: var(--game-red); border-color: #861e1e; }
+.game-app .game-notification-item.notification-war:hover { background: var(--game-red-hover); }
+.game-app .game-mail-item { display: block; text-align: left; background: #f9fbff; color: var(--text); border: 1px solid #b9cbed; }
+.game-app .game-mail-item:hover { background: #eaf1ff; color: var(--text); }
+.game-app .game-mail-item.unread { background: #eaf1ff; border-left: 4px solid var(--game-blue); }
+.game-app .game-mail-toolbar { justify-content: flex-start; }
+.game-app .game-mail-detail { padding: 18px; border: 1px solid #b9cbed; border-radius: 8px; background: #f9fbff; }
+.game-app .game-mail-detail h3 { text-align: center; margin-top: 0; }
+.game-app .game-mail-compose-actions { margin-top: 8px; }
+
+@media (max-width: 1023px) {
+    .game-topbar { grid-template-columns: minmax(0, 1fr) auto; gap: 14px; }
+    .game-news { grid-column: 1 / -1; grid-row: 2; }
+    .game-tools { grid-column: 2; grid-row: 1; }
+    .game-app .demo-top { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+    .game-main { margin: 20px auto; padding: 0 12px 20px; }
+    .game-navigation { padding: 10px 12px; }
+    .game-app .game-mobile-toggle { display: inline-flex; width: 100%; }
+    .game-nav-links { display: none; margin-top: 10px; }
+    .game-nav-links.is-open { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .game-app .game-nav-links > a, .game-app .game-nav-placeholder { width: 100%; padding: 10px 8px; font-size: 13px; }
+    .game-country-summary { padding: 18px 14px; gap: 18px; }
+    .game-country-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); flex-basis: 100%; gap: 14px; }
+    .game-country-metrics dd { font-size: 16px; }
+    .game-panel-body { padding: 16px; }
+    .game-panel-heading { padding: 16px 16px 6px; font-size: 17px; }
+    .game-app .finance-editor, .game-app .finance-modal .finance-editor { padding: 16px; }
+    .game-app .finance-modal .finance-section { padding: 13px; }
+    .game-app .finance-modal .finance-metrics, .game-app .finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .game-app .finance-modal .finance-heading h2 { font-size: 20px; }
+    .game-app .finance-tax-fields { gap: 14px; }
+    .game-app .finance-tax-fields label { flex: 1 1 150px; }
+    .game-app .finance-tax-fields input { width: 100%; }
+    .game-app .finance-actions { flex-direction: column; align-items: stretch; }
+    .game-app .finance-actions button { width: 100%; }
+    .game-app .forum-form-help { align-items: flex-start; }
+    .game-app .forum-form-help output { flex-shrink: 0; }
+    .game-app .demo-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .game-app .demo-column { height: 230px; }
+    .game-app .environment-metrics { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .game-app .environment-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .game-app .environment-tabs button { padding: 9px; font-size: 14px; }
+    .game-app .game-mail-columns { grid-template-columns: minmax(0, 1fr); }
+    .game-app .game-mail-inbox { max-height: 230px; }
+    .game-app .game-mail-detail { padding: 14px; }
+    .game-app .game-mail-toolbar select { flex: 1; min-width: 0; }
+    .game-app .game-mail-toolbar #game-mail-new { flex-basis: 100%; }
+    .game-app dialog { padding: 18px; }
+    .game-app .finance-modal { padding: 0; }
+    .game-app #game-country-map, .game-app #environment-map, .game-app #diplomacy-map { height: clamp(320px, 55svh, 550px); }
+    .game-app #demography-map { height: 340px; }
+    .game-app .diplomacy-country-chooser { align-items: stretch; }
+    .game-app #diplomacy-country { width: 100%; }
+}
+@media (max-width: 599px) {
+    .game-topbar { grid-template-columns: minmax(0, 1fr); padding: 14px; gap: 14px; }
+    .game-identity { max-width: none; }
+    .game-logo img { width: 56px; }
+    .game-user-row { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .game-tools { grid-column: 1; grid-row: 2; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
+    .game-news { grid-row: 3; }
+    .game-clock { margin-left: auto; font-size: 16px; padding: 7px 9px; }
+    .game-summary-identity img { width: 60px; height: 40px; }
+    .game-summary-identity h2 { font-size: 21px; }
+    .game-app .forum-message-heading { gap: 10px; flex-wrap: wrap; }
+    .game-app .forum-flag { width: 48px; height: 32px; }
+    .game-app .forum-actions { flex-wrap: wrap; }
+    .game-app .forum-actions button { flex-basis: 100%; }
+    .game-app .game-mail-compose-actions { flex-wrap: wrap; }
+    .game-app .game-mail-compose-actions button { flex: 1 1 100px; }
+    .game-app .game-diplomacy-buttons { flex-direction: column; }
+    .game-app .game-diplomacy-buttons button { width: 100%; }
+    .game-app #diplomacy-form button { width: 100%; justify-self: stretch; }
+}
+@media (max-width: 374px) {
+    .game-nav-links.is-open { grid-template-columns: minmax(0, 1fr); }
+    .game-app .demo-metrics { grid-template-columns: minmax(0, 1fr); }
+    .game-app .finance-metrics, .game-app .finance-modal .finance-metrics { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .game-app *, .game-app *::before, .game-app *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; scroll-behavior: auto !important; }
+    .game-news-track { animation: none; padding-left: 12px; }
+}
+
+.game-app .game-nav-placeholder:disabled:hover { background: white; color: #63748b; }
+.game-app .leaflet-container svg { max-width: none; }
+.game-main h2, .game-main h3 { text-align: center; }
+.game-app .finance-budget-tooltip { position: fixed; bottom: auto; left: 12px; top: 120px; transform: none; z-index: 1500; }
+.game-app button { overflow-wrap: anywhere; }
+.game-app .forum-message-heading > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.game-app #game-map-reset { width: auto; min-width: 0; min-height: 22px; padding: 4.5px 7px; font-size: 9px; line-height: 1.35; }

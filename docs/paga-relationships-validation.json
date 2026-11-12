@@ -1,0 +1,47 @@
+{
+  "scope": "ZEUS_UAT",
+  "feature": "PAGA diplomatic preferences",
+  "regression": {
+    "tests": 501,
+    "passed": 501,
+    "seconds": 72.931
+  },
+  "focused_tests_after_direction_clarification": {
+    "tests": 34,
+    "passed": 34
+  },
+  "browser": "PASS: all statuses, satellite direction, reversed pair, persistence/removal, validation, 390px, no JavaScript errors",
+  "migration": "APPLIED: two new tables, no current relations or switch modified",
+  "live_http": [
+    "/admin/paga/powiazania/panstwa 200 records 99",
+    "/admin/paga/powiazania 200 records 0",
+    "AI setting unchanged: enabled False revision 8"
+  ],
+  "ai_status_preserved": {
+    "enabled": false,
+    "revision": 8
+  },
+  "pending": null,
+  "synthetic_model": "Initial synthetic choice respected preferences; own-role ambiguity led to explicit direction fields. Follow-up verification interrupted to avoid concurrent live inference.",
+  "deployment": {
+    "reload": "complete",
+    "master_pid": 378484,
+    "new_workers": [
+      "392166",
+      "392183"
+    ],
+    "ai_enabled": false,
+    "revision": 8,
+    "http_verification": [
+      "/admin/paga/powiazania/panstwa 200 records 99",
+      "/admin/paga/powiazania 200 records 0",
+      "AI setting unchanged: enabled False revision 8"
+    ],
+    "time_utc": "2026-11-08T23:11:12.073198+00:00"
+  },
+  "user_decision_after_reload": "Keep AI disabled, explicitly confirmed by user on 2026-11-09.",
+  "final_ai_status": {
+    "enabled": false,
+    "revision": 10
+  }
+}

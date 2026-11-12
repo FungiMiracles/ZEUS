@@ -1,0 +1,670 @@
+{
+ "database": "sqlite:///:memory:",
+ "scenarios": [
+  {
+   "scenario": "budget",
+   "seconds": 111.9,
+   "tasks": [
+    {
+     "kind": "budget",
+     "status": "COMPLETED",
+     "model_calls": 1,
+     "retries": 0,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Budżet jest w pełni zatwierdzony (0.736 MLD) i pokrywa wszystkie podstawowe wydatki (0.5 MLD na społeczeństwo + 0.236 MLD na resztę). Brak nadwyżki na inwestycje w infrastrukturę, badania czy obronę,共",
+       "działania": [
+        "budget.plan"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "budget.plan",
+       "wynik": "Zatwierdzono budżet (budget_id 1): PIT 5.00%, pokrycie świadczeń 100.0%.",
+       "status": "OK"
+      }
+     ],
+     "duration_ms": 74394
+    },
+    {
+     "kind": "research_available",
+     "status": "COMPLETED",
+     "model_calls": 1,
+     "retries": 0,
+     "error": null,
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Brak danych o stanie gospodarki, technologii i zasobach. Nie można podejmować decyzji inwestycyjnych ani badawczych bez wiedzy o obecnych zasobach, poziomie technologii i budżecie. Własna notatka wsk努",
+       "działania": [
+        "game_research.state:GET"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "game_research.state:GET",
+       "wynik": "game_research.state:GET: te dane są już w dane_gry.",
+       "status": "READ"
+      }
+     ],
+     "duration_ms": 37480
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "budget",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 284,
+     "prompt_tokens": 1902,
+     "prompt_ms": 30457,
+     "generated_tokens": 228,
+     "generation_ms": 41024,
+     "total_ms": 74020,
+     "peak_rss_bytes": 4642172928
+    },
+    {
+     "kind": "budget",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 74394,
+     "peak_rss_bytes": null
+    },
+    {
+     "kind": "research_available",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 75,
+     "prompt_tokens": 858,
+     "prompt_ms": 13928,
+     "generated_tokens": 131,
+     "generation_ms": 23346,
+     "total_ms": 37400,
+     "peak_rss_bytes": 4923392000
+    },
+    {
+     "kind": "research_available",
+     "is_call": false,
+     "outcome": "COMPLETED",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 37480,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [
+    {
+     "operation": "game_finance.preview:POST",
+     "validation": "EXECUTED",
+     "reason": null
+    },
+    {
+     "operation": "game_finance.approve:POST",
+     "validation": "EXECUTED",
+     "reason": null
+    }
+   ],
+   "model_io": [
+    {
+     "context_chars": 2649,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Budżet jest w pełni zatwierdzony (0.736 MLD) i pokrywa wszystkie podstawowe wydatki (0.5 MLD na społeczeństwo + 0.236 MLD na resztę). Brak nadwyżki na inwestycje w infrastrukturę, badania czy obronę,共",
+      "actions": [
+       {
+        "operation_id": "budget.plan",
+        "data": {
+         "pit_rate": 5,
+         "allocation_weights": {
+          "social_policy": 68.75,
+          "reserve": 31.25
+         },
+         "rationale": "Zatwierdzam obecny budżet, który zapewnia stabilność socjalną, ale nie pozwala na rozwój. Planuję zwiększenie wydatków w kolejnym kwartale po zbadaniu rynku.",
+         "benefits_mld": {
+          "children": 0.25,
+          "seniors": 0.25
+         }
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Budżet zatwierdzony. Obecny stan jest minimalny dla rozwoju. Potrzebuję danych o stanie gospodarki i technologii przed planowaniem inwestycji."
+     },
+     "stats": {
+      "prompt_tokens": 1902,
+      "prompt_ms": 30457.683,
+      "generated_tokens": 228,
+      "generation_ms": 41024.627,
+      "cached_tokens": 0,
+      "seconds": 74.02,
+      "peak_rss_bytes": 4642172928,
+      "minimum_available_bytes": 3429785600,
+      "success": true,
+      "session_calls": 1,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    },
+    {
+     "context_chars": 2669,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Brak danych o stanie gospodarki, technologii i zasobach. Nie można podejmować decyzji inwestycyjnych ani badawczych bez wiedzy o obecnych zasobach, poziomie technologii i budżecie. Własna notatka wsk努",
+      "actions": [
+       {
+        "operation_id": "game_research.state:GET",
+        "data": {}
+       }
+      ],
+      "task_done": true,
+      "memory": "Zaistniał brak danych o stanie gospodarki i technologii. Konieczne odczytanie stanu przed planowaniem inwestycji lub badań. Własne notatki wymagają aktualizacji na podstawie nowych danych."
+     },
+     "stats": {
+      "prompt_tokens": 858,
+      "prompt_ms": 13928.924,
+      "generated_tokens": 131,
+      "generation_ms": 23346.838,
+      "cached_tokens": 974,
+      "seconds": 37.4,
+      "peak_rss_bytes": 4923392000,
+      "minimum_available_bytes": 3165425664,
+      "success": true,
+      "session_calls": 2,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    }
+   ],
+   "budgets": 1,
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Budżet zatwierdzony. Obecny stan jest minimalny dla rozwoju. Potrzebuję danych o stanie gospodarki i technologii przed planowaniem inwestycji.",
+     "Zaistniał brak danych o stanie gospodarki i technologii. Konieczne odczytanie stanu przed planowaniem inwestycji lub badań. Własne notatki wymagają aktualizacji na podstawie nowych danych."
+    ]
+   }
+  },
+  {
+   "scenario": "review",
+   "seconds": 201.6,
+   "tasks": [
+    {
+     "kind": "strategic_review",
+     "status": "PENDING",
+     "model_calls": 2,
+     "retries": 2,
+     "error": "Błąd modelu: Przerwano generowanie, aby ochronić pamięć serwera gry.",
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Państwo 1 jest nowo utworzone (2990-01-01) z zerowym budżetem inwestycyjnym, ale pełnym gotówką (0,736 MLD) z podatków. Brak sojuszy, celów strategicznych i planów. Charakter PAGA jest neutralny (wsz语",
+       "działania": [
+        "goal.create",
+        "intent.create"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "goal.create",
+       "wynik": "Cel nadrzędny nie istnieje wśród celów naszego państwa.",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Państwo 1 jest nowo utworzone z pełną gotówką (0,736 MLD) i zerowymi celami. Brak sojuszy i zagrożeń zewnętrznych. Wymagane jest utworzenie celów nadrzędnych, aby kierować przyszłymi decyzjami, oraz z",
+       "działania": [
+        "goal.create",
+        "intent.create"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "goal.create",
+       "wynik": "Cel nadrzędny nie istnieje wśród celów naszego państwa.",
+       "status": "DECISION"
+      }
+     ],
+     "duration_ms": 201546
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 266,
+     "prompt_tokens": 2629,
+     "prompt_ms": 45418,
+     "generated_tokens": 356,
+     "generation_ms": 65986,
+     "total_ms": 113920,
+     "peak_rss_bytes": 4643475456
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 40,
+     "prompt_tokens": 1900,
+     "prompt_ms": 31092,
+     "generated_tokens": 295,
+     "generation_ms": 55442,
+     "total_ms": 86690,
+     "peak_rss_bytes": 4953395200
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": true,
+     "outcome": "MODEL_ERROR",
+     "context_ms": 41,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 560,
+     "peak_rss_bytes": 5163864064
+    },
+    {
+     "kind": "strategic_review",
+     "is_call": false,
+     "outcome": "MODEL_ERROR",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 201546,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [],
+   "model_io": [
+    {
+     "context_chars": 5302,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 jest nowo utworzone (2990-01-01) z zerowym budżetem inwestycyjnym, ale pełnym gotówką (0,736 MLD) z podatków. Brak sojuszy, celów strategicznych i planów. Charakter PAGA jest neutralny (wsz语",
+      "actions": [
+       {
+        "operation_id": "goal.create",
+        "data": {
+         "title": "Fundamenty Państwa",
+         "description": "Zbudowanie stabilnej gospodarki, silnej armii i systemu bezpieczeństwa w pierwszej dekadzie istnienia. Priorytet: przetrwanie i wzrost sił zbrojnych.",
+         "priority": 1,
+         "parent_id": 0,
+         "criteria": [
+          {
+           "metric": "reserve_mld",
+           "op": ">=",
+           "value": 0.5
+          },
+          {
+           "metric": "army:czolgi_ilosc",
+           "op": ">=",
+           "value": 50
+          },
+          {
+           "metric": "army:piechur_ilosc",
+           "op": ">=",
+           "value": 200
+          }
+         ]
+        }
+       },
+       {
+        "operation_id": "intent.create",
+        "data": {
+         "note": "Zainicjowanie badań nad energią czystą i zaawansowanymi materiałami budowlanymi w celu przyspieszenia modernizacji infrastruktury.",
+         "when": {
+          "type": "after_game_days",
+          "days": 30
+         },
+         "domain": "intelligence",
+         "goal_id": 1
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Inicjacja celu długoterminowego 'Fundamenty Państwa' skupionego na budowie armii i rezerwach finansowych. Stworzenie zamiaru na 30 dni: badania nad energią i materiałami. Brak zewnętrznych zagrożeń, w"
+     },
+     "stats": {
+      "prompt_tokens": 2629,
+      "prompt_ms": 45418.253,
+      "generated_tokens": 356,
+      "generation_ms": 65986.848,
+      "cached_tokens": 0,
+      "seconds": 113.92,
+      "peak_rss_bytes": 4643475456,
+      "minimum_available_bytes": 3323052032,
+      "success": true,
+      "session_calls": 1,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    },
+    {
+     "context_chars": 6035,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 jest nowo utworzone z pełną gotówką (0,736 MLD) i zerowymi celami. Brak sojuszy i zagrożeń zewnętrznych. Wymagane jest utworzenie celów nadrzędnych, aby kierować przyszłymi decyzjami, oraz z",
+      "actions": [
+       {
+        "operation_id": "goal.create",
+        "data": {
+         "title": "Fundamenty Państwa",
+         "description": "Zbudowanie silnej armii i rezerw finansowych jako priorytetu absolutnego dla przetrwania.",
+         "priority": 1,
+         "parent_id": 0,
+         "criteria": [
+          {
+           "metric": "reserve_mld",
+           "op": ">=",
+           "value": 1.0
+          },
+          {
+           "metric": "army:<kolumna czolgi_ilosc>",
+           "op": ">=",
+           "value": 50
+          }
+         ]
+        }
+       },
+       {
+        "operation_id": "intent.create",
+        "data": {
+         "note": "Badania nad energią alternatywną i materiałami strategicznymi.",
+         "when": {
+          "type": "after_game_days",
+          "days": 30
+         },
+         "domain": "intelligence",
+         "goal_id": 1
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Utworzono cel nadrzędny 'Fundamenty Państwa' skupiony na armii i rezerwach finansowych. Stworzono zamiar na 30 dni: badania nad energią i materiałami. Brak zewnętrznych zagrożeń, weryfikacja stanu woś"
+     },
+     "stats": {
+      "prompt_tokens": 1900,
+      "prompt_ms": 31092.835,
+      "generated_tokens": 295,
+      "generation_ms": 55442.099,
+      "cached_tokens": 974,
+      "seconds": 86.69,
+      "peak_rss_bytes": 4953395200,
+      "minimum_available_bytes": 3171012608,
+      "success": true,
+      "session_calls": 2,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    }
+   ],
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Inicjacja celu długoterminowego 'Fundamenty Państwa' skupionego na budowie armii i rezerwach finansowych. Stworzenie zamiaru na 30 dni: badania nad energią i materiałami. Brak zewnętrznych zagrożeń, w",
+     "Utworzono cel nadrzędny 'Fundamenty Państwa' skupiony na armii i rezerwach finansowych. Stworzono zamiar na 30 dni: badania nad energią i materiałami. Brak zewnętrznych zagrożeń, weryfikacja stanu woś"
+    ]
+   }
+  },
+  {
+   "scenario": "attack",
+   "seconds": 166.3,
+   "tasks": [
+    {
+     "kind": "under_attack",
+     "status": "PENDING",
+     "model_calls": 2,
+     "retries": 2,
+     "error": "Błąd modelu: Przerwano generowanie, aby ochronić pamięć serwera gry.",
+     "journal": [
+      {
+       "krok": "decyzja 1",
+       "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2. Charakter PAGA (50/50 w każdym aspekcie) nie skłania do natychmiastowej wojny rewanżystycznej ani całkowitej uległości, ale wymaga szybkiej reakcji obron",
+       "działania": [
+        "game_military.defense_change:POST",
+        "game_military.defense_change:POST",
+        "game_diplomacy.create_action:POST"
+       ]
+      },
+      {
+       "krok": "1.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Uzupełnij garnizon wybranego rodzaju bazy.",
+       "status": "DECISION"
+      },
+      {
+       "krok": "decyzja 2",
+       "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2. Charakter PAGA (50/50) wymaga natychmiastowej reakcji obronnej, aby zapewnienie przetrwania, jednocześnie unikając eskalacji rewanżystycznej czy całkowit",
+       "działania": [
+        "game_military.defense_change:POST"
+       ]
+      },
+      {
+       "krok": "2.1",
+       "operacja": "game_military.defense_change:POST",
+       "wynik": "Odrzucono: Ta sama decyzja została już odrzucona przy niezmienionym stanie. Zmień decyzję.",
+       "status": "BLOCKED"
+      }
+     ],
+     "duration_ms": 166244
+    }
+   ],
+   "metrics": [
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 155,
+     "prompt_tokens": 2276,
+     "prompt_ms": 36292,
+     "generated_tokens": 327,
+     "generation_ms": 59726,
+     "total_ms": 98520,
+     "peak_rss_bytes": 4642553856
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "OK",
+     "context_ms": 7,
+     "prompt_tokens": 1721,
+     "prompt_ms": 28875,
+     "generated_tokens": 202,
+     "generation_ms": 37970,
+     "total_ms": 66980,
+     "peak_rss_bytes": 4942585856
+    },
+    {
+     "kind": "under_attack",
+     "is_call": true,
+     "outcome": "MODEL_ERROR",
+     "context_ms": 7,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 530,
+     "peak_rss_bytes": 5143756800
+    },
+    {
+     "kind": "under_attack",
+     "is_call": false,
+     "outcome": "MODEL_ERROR",
+     "context_ms": null,
+     "prompt_tokens": null,
+     "prompt_ms": null,
+     "generated_tokens": null,
+     "generation_ms": null,
+     "total_ms": 166244,
+     "peak_rss_bytes": null
+    }
+   ],
+   "player_writes": [
+    {
+     "operation": "game_military.defense_change:POST",
+     "validation": "REJECTED",
+     "reason": "Uzupełnij garnizon wybranego rodzaju bazy."
+    }
+   ],
+   "model_io": [
+    {
+     "context_chars": 3999,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2. Charakter PAGA (50/50 w każdym aspekcie) nie skłania do natychmiastowej wojny rewanżystycznej ani całkowitej uległości, ale wymaga szybkiej reakcji obron",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "deploy",
+         "kind": "air",
+         "region_id": 1,
+         "x": 0,
+         "y": 0,
+         "target_id": 2,
+         "target_base_id": null,
+         "target_vessel_id": null,
+         "target_mine_id": null,
+         "target_defense_id": null,
+         "source": null
+        },
+        "path": {}
+       },
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "deploy",
+         "kind": "land",
+         "region_id": 1,
+         "x": 0,
+         "y": 0,
+         "target_id": 2,
+         "target_base_id": null,
+         "target_vessel_id": null,
+         "target_mine_id": null,
+         "target_defense_id": null,
+         "source": null
+        },
+        "path": {}
+       },
+       {
+        "operation_id": "game_diplomacy.create_action:POST",
+        "data": {
+         "target_id": 2,
+         "kind": "RELATION",
+         "relation_id": 1
+        },
+        "path": {}
+       }
+      ],
+      "task_done": true,
+      "memory": "Założono natychmiastową obronę powietrzną i lądową na terytorium Państwa 1 w odpowiedzi na bombardment. Inicjowano kontakt dyplomatyczny z Państwem 2, aby sprawdzić motywację i ewentualne warunki, nie"
+     },
+     "stats": {
+      "prompt_tokens": 2276,
+      "prompt_ms": 36292.637,
+      "generated_tokens": 327,
+      "generation_ms": 59726.467,
+      "cached_tokens": 0,
+      "seconds": 98.52,
+      "peak_rss_bytes": 4642553856,
+      "minimum_available_bytes": 3631333376,
+      "success": true,
+      "session_calls": 1,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    },
+    {
+     "context_chars": 5239,
+     "system_chars": 3277,
+     "decision": {
+      "ocena": "Państwo 1 zostało zaatakowane przez Państwo 2. Charakter PAGA (50/50) wymaga natychmiastowej reakcji obronnej, aby zapewnienie przetrwania, jednocześnie unikając eskalacji rewanżystycznej czy całkowit",
+      "actions": [
+       {
+        "operation_id": "game_military.defense_change:POST",
+        "data": {
+         "action": "deploy",
+         "kind": "air",
+         "region_id": 1,
+         "x": 0,
+         "y": 0,
+         "target_id": 2,
+         "target_base_id": null,
+         "target_vessel_id": null,
+         "target_mine_id": null,
+         "target_defense_id": null,
+         "source": null
+        }
+       }
+      ],
+      "task_done": true,
+      "memory": "Inicjowano natychmiastowe wzmocnienie obrony powietrznej na terytorium Państwa 1 w odpowiedzi na bombardment. Oczekuję na potwierdzenie systemu i ewentualne dodatkowe wymagania dotyczące garnizonów."
+     },
+     "stats": {
+      "prompt_tokens": 1721,
+      "prompt_ms": 28875.685,
+      "generated_tokens": 202,
+      "generation_ms": 37970.202,
+      "cached_tokens": 974,
+      "seconds": 66.98,
+      "peak_rss_bytes": 4942585856,
+      "minimum_available_bytes": 3319169024,
+      "success": true,
+      "session_calls": 2,
+      "threads": 6,
+      "batch": 512,
+      "ubatch": 256,
+      "cache_prompt": true
+     }
+    }
+   ],
+   "goals": [],
+   "plans": [],
+   "strategy_memory": {
+    "notes": [
+     "Założono natychmiastową obronę powietrzną i lądową na terytorium Państwa 1 w odpowiedzi na bombardment. Inicjowano kontakt dyplomatyczny z Państwem 2, aby sprawdzić motywację i ewentualne warunki, nie",
+     "Inicjowano natychmiastowe wzmocnienie obrony powietrznej na terytorium Państwa 1 w odpowiedzi na bombardment. Oczekuję na potwierdzenie systemu i ewentualne dodatkowe wymagania dotyczące garnizonów."
+    ]
+   }
+  }
+ ],
+ "started_free_gib": 5.06,
+ "source_sha256": {
+  "game/paga_ai_runner.py": "0e7669419eb8fa07b1b9388c2af31351633deb07a0d832931ff167b81b178b08",
+  "game/paga_ai_context.py": "3702f11388c14acaac23f9300511884beff99a11e4cc86826117023399e2cd92",
+  "game/paga_ai_guard.py": "34c56d78e182bdc30e97b8c3f2ba308f0d58b3d0e4d5314daea1489a0125ef2c",
+  "game/paga_ai_tasks.py": "1e617fffd02f7898c6c6c84760aa51d0fb66a8ee541e89e9528a9ed2e52159c0",
+  "game/paga_ai_detector.py": "87515a8f4f9a3236cba58cdad8f1e93a4f4d317f78acf5b409e08332a8fcf4d8",
+  "game/paga_ai_strategy.py": "125b6012fc806a9564c36c330d6d8635e22e72b37c2022c8f3a96d95d557aeb8",
+  "engine/paga_ai_scheduler.py": "542836ec5fd47943101097cb70b24e80b0807fe68f006720ce4fdf8b6922b7d2",
+  "game/qwen_runtime.py": "13bf717cd2ae911400bd3e85ff99b2ea8c0c2d51cba8e1347b49cbf605bc4b5b"
+ },
+ "finished_free_gib": 5.2,
+ "source_unchanged": true
+}

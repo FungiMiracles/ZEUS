@@ -2,3 +2,15 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Local inference weights, isolated runtime and transient logs.
+runtime/
+
+# Sekrety i konfiguracja lokalna
+.env
+.env.*
+!.env.example
+# Lokalne środowisko i dane UAT (12 Nov 2026): wirtualne środowisko, konfiguracja z sekretami, kopie zapasowe danych
+venv/
+config.py
+backups/

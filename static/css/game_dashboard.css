@@ -1,0 +1,7 @@
+/* Układ i mapa panelu państwa; wygląd komponentów pochodzi z game_theme.css. */
+.game-dashboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 22px; align-items: start; }
+.game-dashboard > * { min-width: 0; }
+#game-country-map { height: clamp(360px, 65dvh, 720px); background: #e7edf5; isolation: isolate; z-index: 0; }
+.game-map-status { margin: 0; padding: 12px 16px; color: #63748b; font-size: 13px; }
+.leaflet-tooltip.game-region-tooltip, .leaflet-tooltip.game-city-tooltip { width: max-content; max-width: min(300px, 75vw); white-space: normal; overflow-wrap: anywhere; border: 1px solid #5d7dce; border-radius: 6px; color: #0b1f3a; font-weight: 600; }
+@media (max-width: 960px) { .game-dashboard { grid-template-columns: minmax(0, 1fr); } }

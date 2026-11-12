@@ -1,0 +1,201 @@
+{
+ "cpu": 12,
+ "free_gib_start": 4.75,
+ "prompt_chars": {
+  "system": 3277,
+  "user": 6081
+ },
+ "results": [
+  {
+   "threads": 2,
+   "batch": 64,
+   "ubatch": 32,
+   "cache_prompt": false,
+   "calls": [
+    {
+     "ok": true,
+     "wall_s": 187.3,
+     "prompt_tokens": 2843,
+     "prompt_ms": 145459.149,
+     "generated_tokens": 176,
+     "generation_ms": 39375.985,
+     "cached_tokens": 0,
+     "peak_rss_bytes": 4610052096,
+     "minimum_available_bytes": 3266134016,
+     "actions": [
+      "game_finance.page:GET",
+      "game_army.page:GET",
+      "game_trade.state:GET"
+     ]
+    },
+    {
+     "ok": true,
+     "wall_s": 175.0,
+     "prompt_tokens": 2865,
+     "prompt_ms": 145826.851,
+     "generated_tokens": 130,
+     "generation_ms": 28922.654,
+     "cached_tokens": 0,
+     "peak_rss_bytes": 4928892928,
+     "minimum_available_bytes": 3187642368,
+     "actions": [
+      "game_finance.page:GET"
+     ]
+    }
+   ],
+   "load_before": 0.73046875,
+   "load_after": 2.0009765625,
+   "web_ms_median": 35,
+   "web_ms_max": 63,
+   "web_failures": 0
+  },
+  {
+   "threads": 4,
+   "batch": 512,
+   "ubatch": 256,
+   "cache_prompt": false,
+   "calls": [
+    {
+     "ok": false,
+     "wall_s": 0.0,
+     "error": "RuntimeError: Za mało dostępnej pamięci na bezpieczny start Qwen 4B; zadanie nie zostało wykonane.",
+     "peak_rss_bytes": 0,
+     "minimum_available_bytes": null
+    },
+    {
+     "ok": false,
+     "wall_s": 0.0,
+     "error": "RuntimeError: Za mało dostępnej pamięci na bezpieczny start Qwen 4B; zadanie nie zostało wykonane.",
+     "peak_rss_bytes": 0,
+     "minimum_available_bytes": null
+    }
+   ],
+   "load_before": 2.0009765625,
+   "load_after": 2.0009765625,
+   "web_ms_median": null,
+   "web_ms_max": null,
+   "web_failures": 0
+  },
+  {
+   "threads": 6,
+   "batch": 512,
+   "ubatch": 256,
+   "cache_prompt": false,
+   "calls": [
+    {
+     "ok": true,
+     "wall_s": 79.3,
+     "prompt_tokens": 2843,
+     "prompt_ms": 45421.388,
+     "generated_tokens": 168,
+     "generation_ms": 31295.989,
+     "cached_tokens": 0,
+     "peak_rss_bytes": 4643602432,
+     "minimum_available_bytes": 3447922688,
+     "actions": [
+      "game_finance.page:GET",
+      "game_diplomacy.page:GET",
+      "game_army.page:GET"
+     ]
+    },
+    {
+     "ok": true,
+     "wall_s": 71.0,
+     "prompt_tokens": 2865,
+     "prompt_ms": 45886.802,
+     "generated_tokens": 135,
+     "generation_ms": 24999.185,
+     "cached_tokens": 0,
+     "peak_rss_bytes": 4954234880,
+     "minimum_available_bytes": 3184570368,
+     "actions": [
+      "game_finance.page:GET"
+     ]
+    }
+   ],
+   "load_before": 2.0009765625,
+   "load_after": 5.72021484375,
+   "web_ms_median": 57,
+   "web_ms_max": 66,
+   "web_failures": 0
+  },
+  {
+   "threads": 6,
+   "batch": 256,
+   "ubatch": 128,
+   "cache_prompt": false,
+   "calls": [
+    {
+     "ok": false,
+     "wall_s": 0.0,
+     "error": "RuntimeError: Za mało dostępnej pamięci na bezpieczny start Qwen 4B; zadanie nie zostało wykonane.",
+     "peak_rss_bytes": 0,
+     "minimum_available_bytes": null
+    },
+    {
+     "ok": false,
+     "wall_s": 0.0,
+     "error": "RuntimeError: Za mało dostępnej pamięci na bezpieczny start Qwen 4B; zadanie nie zostało wykonane.",
+     "peak_rss_bytes": 0,
+     "minimum_available_bytes": null
+    }
+   ],
+   "load_before": 5.72021484375,
+   "load_after": 5.72021484375,
+   "web_ms_median": null,
+   "web_ms_max": null,
+   "web_failures": 0
+  },
+  {
+   "threads": 6,
+   "batch": 512,
+   "ubatch": 256,
+   "cache_prompt": true,
+   "calls": [
+    {
+     "ok": true,
+     "wall_s": 83.4,
+     "prompt_tokens": 2843,
+     "prompt_ms": 45791.031,
+     "generated_tokens": 186,
+     "generation_ms": 35039.989,
+     "cached_tokens": 0,
+     "peak_rss_bytes": 4643602432,
+     "minimum_available_bytes": 3466301440,
+     "actions": [
+      "game_finance.page:GET",
+      "game_diplomacy.page:GET",
+      "game_army.page:GET"
+     ]
+    },
+    {
+     "ok": true,
+     "wall_s": 65.5,
+     "prompt_tokens": 1891,
+     "prompt_ms": 30957.383,
+     "generated_tokens": 184,
+     "generation_ms": 34400.718,
+     "cached_tokens": 974,
+     "peak_rss_bytes": 4954861568,
+     "minimum_available_bytes": 3134144512,
+     "actions": [
+      "game_finance.page:GET",
+      "game_diplomacy.page:GET",
+      "game_army.page:GET"
+     ]
+    }
+   ],
+   "load_before": 5.72021484375,
+   "load_after": 6.005859375,
+   "web_ms_median": 58,
+   "web_ms_max": 66,
+   "web_failures": 0
+  }
+ ],
+ "web_ms_idle": [
+  50,
+  81,
+  36
+ ],
+ "free_gib_end": 2.98
+}

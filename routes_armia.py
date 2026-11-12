@@ -4,6 +4,14 @@ from extensions import db
 from models import Panstwo, Wojsko, DictKontynent
 from permissions import wymaga_roli
 
+
+# Poziomy wyszkolenia sił zbrojnych (0–1000), WIKI 11 Nov 2026.
+TRAINING_FIELDS = [
+    ("wyszkolenie_ladowe", "Poziom wyszkolenia wojsk lądowych"),
+    ("wyszkolenie_morskie", "Poziom wyszkolenia marynarki wojennej"),
+    ("wyszkolenie_powietrzne", "Poziom wyszkolenia sił powietrznych"),
+]
+
 def init_armia_routes(app):
 
     # ------------------------------------------------------------
@@ -110,7 +118,7 @@ def init_armia_routes(app):
                 "liczba_baz_ladowych", "liczba_baz_morskich", "liczba_baz_powietrznych",
                 "czolgi_ilosc", "mysliwce_ilosc", "wozy_opancerzone_ilosc",
                 "wyrzutnie_rakiet_ilosc", "okrety_wojenne_ilosc", "lotniskowce_ilosc",
-                "okrety_podwodne_ilosc", "drony_ilosc", "bron_atomowa_ilosc"
+                "okrety_podwodne_ilosc", "drony_ilosc", "bron_atomowa_ilosc", "rakiety_krotkiego_zasiegu", "rakiety_sredniego_zasiegu", "rakiety_dalekiego_zasiegu"
             ]
 
             numeric_values = {}
@@ -126,6 +134,17 @@ def init_armia_routes(app):
                     return render_template(
                         "wojsko_form_add.html",
                         error=f"Pole '{field}' musi być liczbą ≥ 0.",
+                        form_data=form_data
+                    )
+                numeric_values[field] = int(val)
+
+            # 4b. Poziomy wyszkolenia 0–1000
+            for field, label in TRAINING_FIELDS:
+                val = (form_data.get(field) or "").strip()
+                if not val.isdigit() or int(val) > 1000:
+                    return render_template(
+                        "wojsko_form_add.html",
+                        error=f"Pole '{label}' musi być liczbą całkowitą od 0 do 1000.",
                         form_data=form_data
                     )
                 numeric_values[field] = int(val)
@@ -321,7 +340,7 @@ def init_armia_routes(app):
                 "liczba_baz_ladowych", "liczba_baz_morskich", "liczba_baz_powietrznych",
                 "czolgi_ilosc", "mysliwce_ilosc", "okrety_wojenne_ilosc",
                 "lotniskowce_ilosc", "okrety_podwodne_ilosc", "wyrzutnie_rakiet_ilosc",
-                "wozy_opancerzone_ilosc", "drony_ilosc", "bron_atomowa_ilosc",
+                "wozy_opancerzone_ilosc", "drony_ilosc", "bron_atomowa_ilosc", "rakiety_krotkiego_zasiegu", "rakiety_sredniego_zasiegu", "rakiety_dalekiego_zasiegu",
             ]
 
             values = {}
@@ -331,6 +350,13 @@ def init_armia_routes(app):
 
                 if not value.isdigit():
                     errors.append(f"Pole '{field}' musi być liczbą całkowitą ≥ 0.")
+                else:
+                    values[field] = int(value)
+
+            for field, label in TRAINING_FIELDS:
+                value = form.get(field, "").strip()
+                if not value.isdigit() or int(value) > 1000:
+                    errors.append(f"Pole '{label}' musi być liczbą całkowitą od 0 do 1000.")
                 else:
                     values[field] = int(value)
 

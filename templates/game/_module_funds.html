@@ -1,0 +1,5 @@
+{# Same container on every module screen (styled after the infrastructure budget card). #}
+<section class="module-funds" aria-label="Środki dostępne w module">
+{% if funds.sector %}<div class="industry-budget-card module-funds-card"><span>Dostępne środki — {{ funds.label }}</span><strong id="module-funds-available">{% if funds.approved %}{{ funds.available }} ROI{% else %}budżet niezatwierdzony{% endif %}</strong></div>{% endif %}
+<div class="industry-budget-card module-funds-card"><span>Rezerwa budżetowa</span><strong id="module-funds-reserve">{{ funds.reserve }} ROI</strong></div>
+</section>

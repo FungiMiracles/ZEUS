@@ -78,18 +78,23 @@ Artykuły
 }
 </style>
 
-
 <!-- ===================== KAFELKI ===================== -->
 <div class="art-tiles">
-
-    <a class="art-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+    {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+    <a class="art-tile" href="{{ url_for('artykul_add') }}">
         <div class="icon">✏️</div>
-        Stwórz nowy artykuł [niedostępne]
+        Stwórz nowy artykuł
     </a>
+    {% else %}
+    <a class="art-tile" href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+        <div class="icon" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">✏️</div>
+        Stwórz nowy artykuł
+    </a>
+    {% endif %}
 
-    <a class="art-tile" href="#" onclick="event.preventDefault(); zeusToast('Ta opcja nie jest jeszcze dostępna');">
+    <a class="art-tile" href="{{ url_for('artykuly_lista') }}">
         <div class="icon">📚</div>
-        Przeglądaj artykuły [niedostępne]
+        Przeglądaj artykuły
     </a>
 
 </div>

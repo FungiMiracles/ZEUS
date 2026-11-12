@@ -101,30 +101,40 @@
 
 /* Wróć */
 .btn-back {
-    background-color: #eaeaea;
-    color: #34495e;
+    background-color: #949494;
+    color: #ffffff;
     border: 1.5px solid #bdc3c7;
+    text-decoration: none;
 }
 .btn-back:hover {
-    background-color: #999999;
+    background-color: #757575;
+    text-decoration: none;
 }
 
 /* Edytuj */
 .btn-edit {
-    background-color: #3498db;
+    background-color: #2c73d2;
     color: white;
 }
 .btn-edit:hover {
-    background-color: #1d6da3;
+    background-color: #1f5bb0;
 }
 
 /* Usuń */
 .btn-delete {
-    background-color: #c0392b;
+    background-color: #c73424;
     color: white;
 }
 .btn-delete:hover {
-    background-color: #962d22;
+    background-color: #96271b;
+}
+
+a.btn-edit:hover,
+a.btn-back:hover,
+a.btn-back:focus,
+a.btn-back:active {
+    text-decoration: none !important;
+    color: #ffffff !important;
 }
 
 /* ============================================================
@@ -184,9 +194,17 @@
             <strong>Epoka:</strong> {{ h.epoka_label }}
         </div>
 
+        {% if h.data_od %}
         <div class="historia-meta-row">
-            <strong>Data:</strong> {{ h.zakres_dat_label }}
+            <strong>Data od:</strong> {{ h.data_od }}
         </div>
+        {% endif %}
+
+        {% if h.data_do %}
+        <div class="historia-meta-row">
+            <strong>Data do:</strong> {{ h.data_do }}
+        </div>
+        {% endif %}
 
         {% if h.kontynent %}
         <div class="historia-meta-row">

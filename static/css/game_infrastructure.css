@@ -1,0 +1,54 @@
+#infrastructure-map { height: clamp(520px, 76vh, 920px); background: #e7edf5; isolation: isolate; }
+#infrastructure-map-status { padding: 12px 18px; }
+.infrastructure-legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 16px 0 22px; }
+.infrastructure-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.infrastructure-legend i { width: 14px; height: 14px; border: 1px solid #94a3b8; }
+.infrastructure-table-scroll { overflow-x: auto; }
+.infrastructure-table { width: 100%; border-collapse: collapse; }
+.infrastructure-table th, .infrastructure-table td { padding: 10px; border-bottom: 1px solid #d8e0e9; text-align: center; }
+.infrastructure-table td { font-weight: 700; }
+.infrastructure-table th:first-child { text-align: left; }
+.game-app .infrastructure-map-reset { margin: 0; font-size: 12px; padding: 8px 12px; }
+@media(max-width:600px) { #infrastructure-map { height: 70vh; min-height: 440px; } }
+
+.infrastructure-layout { display:grid; grid-template-columns:minmax(0, 2fr) minmax(280px, 1fr); gap:20px; }
+.infrastructure-details { padding:20px; }
+.infrastructure-detail-row { border-bottom:1px solid #d8e0e9; padding:12px 0; }
+.infrastructure-detail-row progress { width:100%; margin-top:12px; }
+#infrastructure-expand-dialog { max-width:560px; width:calc(100% - 40px); padding:24px; border:1px solid #b7c5d6; border-radius:12px; }
+#infrastructure-expand-dialog::backdrop { background:#10244099; }
+.infrastructure-stepper { display:flex; gap:20px; align-items:center; }
+@media(max-width:900px) { .infrastructure-layout { grid-template-columns:1fr; } }
+.infrastructure-detail-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.infrastructure-detail-label { display:flex; align-items:center; gap:9px; min-width:0; }
+.infrastructure-detail-label img { flex:0 0 28px; }
+.game-app .infrastructure-expand-button { flex:0 0 auto; min-height:30px; padding:5px 9px; font-size:12px; margin:0; }
+.infrastructure-modal-title { display:flex; align-items:center; gap:10px; }
+.infrastructure-modal-title img { flex:0 0 32px; }
+.infrastructure-stepper { justify-content:center; margin:22px 0; }
+#expand-levels { min-width:44px; text-align:center; font-size:24px; font-weight:700; }
+.infrastructure-quote-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; margin:20px 0; }
+.infrastructure-quote-card { border:1px solid #2f4fa3; border-radius:8px; padding:12px 14px; background:#f9fbff; }
+.infrastructure-quote-label { font-size:1.05em; font-weight:650; color:#091739; margin-bottom:6px; }
+.infrastructure-quote-value { font-size:.95em; font-weight:500; color:#2c3e50; overflow-wrap:anywhere; }
+.infrastructure-modal-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:20px; }
+.game-app #expand-confirm { background:#218838; color:white; }
+.game-app #expand-confirm:hover { background:#17652a; }
+.game-app #expand-cancel { background:#c53434; color:white; }
+.game-app #expand-cancel:hover { background:#a12727; }
+@media(max-width:420px) { .infrastructure-quote-grid { grid-template-columns:1fr; } }
+
+.infrastructure-construction-marker { box-sizing:border-box; padding:4px; border:1px solid #c58a16; border-radius:8px; background:#fff8e6; box-shadow:0 2px 6px #19345340; }
+
+.infrastructure-expand-button img { flex:0 0 18px; object-fit:contain; }
+.game-app #expand-error, .game-app #expand-funding-warning { color:#c12727; font-weight:600; }
+
+.infrastructure-construction-tooltip-row { display:flex; gap:8px; align-items:center; padding:4px 0; }
+.infrastructure-construction-tooltip-row img { width:24px; height:24px; object-fit:contain; }
+#infrastructure-region-select { width:100%; margin:6px 0 18px; }
+
+.leaflet-tooltip.infrastructure-construction-leaflet-tooltip { width:max-content; max-width:min(310px,calc(100vw - 40px)); white-space:normal; box-sizing:border-box; }
+.infrastructure-construction-tooltip { min-width:0; overflow-wrap:anywhere; }
+.infrastructure-construction-tooltip-row { min-width:0; }
+.infrastructure-construction-tooltip-row img { flex:0 0 24px; }
+.infrastructure-construction-tooltip-row span { min-width:0; white-space:normal; overflow-wrap:anywhere; }

@@ -1,7 +1,9 @@
 {% extends 'base_layout.html' %}
+{% from "macros/icons.html" import icon %}
 {% block title %}Siły zbrojne państw{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261024-1') }}">
 
 <style>
     .filter-box {
@@ -34,7 +36,7 @@
 
     .filter-btn {
         padding: 10px 20px;
-        background: #c0392b;
+        background: #2c73d2;
         color: white;
         font-weight: bold;
         border: none;
@@ -44,7 +46,7 @@
     }
 
     .filter-btn:hover {
-        background: #892116;
+        background: #1f5bb0;
     }
 
     .cancel-btn {
@@ -185,7 +187,7 @@
     }
 
     .btn-view {
-        background:#c0392b;
+        background:#2c73d2;
         color:white;
         padding:6px 12px;
         border-radius:6px;
@@ -193,7 +195,7 @@
         font-weight:600;
     }
     .btn-view:hover  {
-        background:#892116;
+        background:#1f5bb0;
         color:white;
         text-decoration:none;
     }
@@ -287,7 +289,7 @@
         <thead>
             <tr>
                 <th>Państwo</th>
-                <th>Liczba żołnierzy</th>
+                <th>{{ icon("person") }} Liczba żołnierzy</th>
                 <th>% PKB</th>
                 <th>Sprzęt kluczowy (skrót)</th>
                 <th>Szczegóły</th>
@@ -308,9 +310,9 @@
                     </td>
                     
                     <td data-label="Sprzęt kluczowy">
-                        Czołgi: {{ row.czolgi or 0 }} •
-                        Myśliwce: {{ row.mysliwce or 0 }} •
-                        Okręty: {{ row.okrety or 0 }}
+                        {{ icon("tank") }} Czołgi: {{ row.czolgi or 0 }} •
+                        {{ icon("army") }} Myśliwce: {{ row.mysliwce or 0 }} •
+                        {{ icon("warship") }} Okręty: {{ row.okrety or 0 }}
                     </td>
                     
                     <td data-label="Szczegóły">

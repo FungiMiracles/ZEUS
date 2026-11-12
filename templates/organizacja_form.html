@@ -105,26 +105,43 @@ textarea {
     margin-top: 20px;
 }
 
-.btn {
-    padding: 10px 18px;
-    border-radius: 6px;
+.btn-zeus {
     font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
     border: none;
     cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-primary { background: #2d76c9; color: white; }
-.btn-primary:hover { background: #154e91; }
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary {
-    background: #af1515;
-    border: 1px solid #af1515;
-}
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary:hover {
-    background: #600101;
-    color: #ffffff;
-}
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 
 .org-member {
     display: flex;
@@ -193,13 +210,19 @@ textarea {
 .btn-restore {
     background: #2c73d2;
     color: white;
+    font-size: small;
 }
 
 .btn-restore:hover {
     background: #1f5bb5;
 }
 
+.opis-box {
+    white-space: pre-line;
+}
+
 @media (max-width: 768px) {
+    
     .org-container {
         margin: 16px auto;
         padding-bottom: 24px;
@@ -229,54 +252,142 @@ textarea {
         gap: 12px;
     }
 
-    .org-member {
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 8px 0;
+    .org-member{
+        display:flex;
+        flex-wrap:wrap;
+        align-items:flex-start;
+        gap:8px;
+    }
+
+    .flag-region{
+        width:36px;
+        height:24px;
+        flex:0 0 36px;
+    }
+
+    .member-name{
+        flex:1 1 calc(100% - 44px);
+        margin:0;
+    }
+
+    .member-status{
+        flex:0 0 100%;
+        margin:0;
+        padding-left:0;
+    }
+
+    .member-actions{
+        flex:0 0 100%;
+        margin:0;
+        padding:0;
+
+        display:flex;
+        flex-direction:row;
+        flex-wrap:wrap;
+        gap:8px;
+    }
+
+    .member-actions form{
+        margin:0;
+    }
+
+    .member-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:6px;
+    }
+
+    .member-actions form{
+        width:auto;
+        flex:0 0 auto;
+    }
+
+    .member-actions button{
+        width:auto;
+    }
+
+    .btn-action,
+    .btn-zeus {
+        white-space: nowrap;
     }
 
     .flag-region {
         height: 24px;
     }
 
-    .member-name,
-    .member-status {
-        width: calc(100% - 36px);
-    }
-
-    .member-actions {
-        margin-left: 0;
-        width: 100%;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .member-actions form,
-    .member-actions .btn-action {
-        width: 100%;
-    }
-
-    .btn-action {
-        width: 100%;
-        padding: 8px 10px;
-        font-size: 0.85rem;
-    }
-
     .action-row {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 10px;
     }
 
-    .action-row .btn,
-    .action-row a {
+    /* Dodaj państwo + Edytuj */
+    .action-row > *:nth-child(1),
+    .action-row > *:nth-child(2) {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    /* Historia zmian */
+    .action-row > *:nth-child(3) {
+        flex: 0 0 100%;
+    }
+
+    /* Wróć */
+    .action-row > *:nth-child(4) {
+        flex: 0 0 100%;
+    }
+
+    .action-row a,
+    .action-row form {
+        display: block;
+    }
+
+    .action-row button {
         width: 100%;
     }
 
-    .action-row .btn {
-        width: 100%;
+    .opis-box {
+        white-space: pre-line;
     }
+
+    #historiaModal > div {
+        width: calc(100% - 12px) !important;
+        max-width: calc(100% - 12px) !important;
+        margin: 6px auto !important;
+        padding: 10px !important;
+        max-height: calc(100vh - 12px) !important;
+    }
+
+    #historiaModal h3 {
+        font-size: 1.05rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    #historiaModal table {
+        width: 100%;
+        table-layout: fixed;
+        font-size: 0.72rem;
+        margin-bottom: 10px;
+    }
+
+    #historiaModal th,
+    #historiaModal td {
+        padding: 4px 3px;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    #historiaModal th:nth-child(1),
+    #historiaModal td:nth-child(1) {
+        width: 28%;
+    }
+
+    #historiaModal th:nth-child(2),
+    #historiaModal td:nth-child(2) {
+        width: 22%;
+    }
+
 }
 </style>
 
@@ -325,7 +436,7 @@ textarea {
 
     <div class="section-box">
         <h2>Opis</h2>
-        <div class="value-box">{{ org.org_opis }}</div>
+        <div class="value-box opis-box">{{ org.org_opis }}</div>
     </div>
 
     <div class="section-box">
@@ -362,38 +473,49 @@ textarea {
                 <div class="member-actions">
 
                     {% if m.status_czlonkostwa == "czlonek" %}
-
+                        {% if session.rola == "wszechmocny" %}
                         <form method="POST"
                             action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/suspend"
                             onsubmit="return confirm('Czy na pewno chcesz zawiesić członkostwo?');">
 
-                            <button class="btn-action btn-suspend">Zawieś</button>
+                            <button class="btn-zeus btn-suspend">Zawieś</button>
                         </form>
 
                         <form method="POST"
                             action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/leave"
                             onsubmit="return confirm('Czy na pewno państwo ma opuścić organizację?');">
 
-                            <button class="btn-action btn-leave">Opuść</button>
+                            <button class="btn-zeus btn-leave">Opuść</button>
                         </form>
+                        {% else %}
+                            <button class="btn-zeus btn-suspend" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Zawieś</button>
+                            <button class="btn-zeus btn-leave" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Opuść</button>
+                        {% endif %}
+
 
                     {% elif m.status_czlonkostwa == "zawieszony" %}
-
+                        {% if session.rola == "wszechmocny" %}
                         <form method="POST"
                             action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/unsuspend"
                             onsubmit="return confirm('Przywrócić członkostwo państwa?');">
 
-                            <button class="btn-action btn-restore">Wycofaj zawieszenie</button>
+                            <button class="btn-zeus btn-restore">Wycofaj zawieszenie</button>
                         </form>
+                        {% else %}
+                            <button class="btn-zeus btn-restore" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Wycofaj zawieszenie</button>
+                        {% endif %}
 
                     {% elif m.status_czlonkostwa == "byly_czlonek" %}
-
+                        {% if session.rola == "wszechmocny" %}
                         <form method="POST"
                             action="/dyplomacja/organizacja/{{ org.ORG_ID }}/member/{{ m.panstwo_id }}/rejoin"
                             onsubmit="return confirm('Czy państwo ma ponownie dołączyć do organizacji?');">
 
                             <button class="btn-action btn-restore">Dołącz ponownie</button>
                         </form>
+                        {% else %}
+                            <button class="btn-action btn-restore" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Dołącz ponownie</button>
+                        {% endif %}
 
                     {% endif %}
 
@@ -405,19 +527,127 @@ textarea {
     </div>
 
     <div class="action-row">
+        {% if session.rola == "wszechmocny" %}
         <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/add_country">
-            <button class="btn btn-primary">Dodaj państwo</button>
+            <button class="btn-zeus btn-add">Dodaj państwo</button>
+        </a>
+        {% else %}
+            <button class="btn-zeus btn-add" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Dodaj państwo</button>
+        {% endif %}
+
+        {% if session.rola == "wszechmocny" %}
+        <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/edit">
+            <button class="btn-zeus btn-edit">Edytuj</button>
         </a>
 
-        <a href="/dyplomacja/organizacja/{{ org.ORG_ID }}/edit">
-            <button class="btn btn-primary">Edytuj</button>
-        </a>
+        <button
+            class="btn-zeus btn-view"
+            onclick="loadHistoria()">
+            Historia zmian
+        </button>
+
+        {% else %}
+            <button class="btn-zeus btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj</button>
+        {% endif %}
 
         <a href="/dyplomacja/organizacje">
-            <button class="btn btn-secondary">Wróć</button>
+            <button class="btn-zeus btn-back">Wróć</button>
         </a>
     </div>
 
+<div id="historiaModal"
+     style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.45);
+        z-index:9999;
+     ">
+
+    <div style="
+        background:#fff;
+        width:1100px;
+        max-width:95%;
+        margin:60px auto;
+        border-radius:10px;
+        padding:20px;
+        max-height:80vh;
+        overflow:auto;
+    ">
+
+        <h3>Historia zmian członkostwa</h3>
+
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>Państwo</th>
+                    <th>Status członkostwa</th>
+                    <th>Data zmiany w Entendzie</th>
+                    <th>Data zmiany</th>
+                </tr>
+            </thead>
+
+            <tbody id="historiaBody"></tbody>
+
+        </table>
+
+        <div style="text-align:right;margin-top:15px;">
+            <button
+                id="closeHistoryModal"
+                class="btn-zeus btn-view">
+                Zamknij
+            </button>
+        </div>
+
+    </div>
+
 </div>
+
+</div>
+
+<script>
+
+async function loadHistoria() {
+
+    const response = await fetch(
+        "/api/organizacje/historia/{{ org.ORG_ID }}"
+    );
+
+    const dane = await response.json();
+
+    const body = document.getElementById("historiaBody");
+
+    body.innerHTML = "";
+
+    dane.forEach(r => {
+
+        body.innerHTML += `
+            <tr>
+                <td>${r.panstwo}</td>
+                <td>${r.status}</td>
+                <td>${r.data_entenda}</td>
+                <td>${r.data}</td>
+            </tr>
+        `;
+
+    });
+
+    document.getElementById("historiaModal").style.display = "block";
+
+}
+
+document
+    .getElementById("closeHistoryModal")
+    .addEventListener("click", () => {
+
+        document.getElementById(
+            "historiaModal"
+        ).style.display = "none";
+
+    });
+
+
+</script>
 
 {% endblock %}

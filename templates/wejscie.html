@@ -251,6 +251,238 @@
       }
     }
 
+    /* ============================================================
+    ZEUS WIKI + ENTENDA GAME — NOWY UKŁAD
+    ============================================================ */
+
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .center-wrapper {
+        padding: 35px 20px;
+        box-sizing: border-box;
+    }
+
+    .login-container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 25px;
+        width: 100%;
+        max-width: 1050px;
+        align-items: stretch;
+    }
+
+    .gate {
+        width: auto;
+        margin: 0;
+        padding: 35px;
+        box-sizing: border-box;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .gate h1 {
+        font-size: 1.6em;
+        margin: 0 0 10px;
+    }
+
+    .gate-description {
+        color: #7f8c8d;
+        font-size: 0.9em;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    /* ================= ZEUS WIKI ================= */
+
+    .wiki-gate {
+        border-top: 5px solid #5d7dce;
+    }
+
+    /* ================= ENTENDA GAME ================= */
+
+    .game-gate {
+        border-top: 5px solid #c9a44c;
+        background: #202a3d;
+        color: #ffffff;
+    }
+
+    .game-gate h1 {
+        color: #e4c477;
+    }
+
+    .game-gate .gate-description {
+        color: #b8c2d3;
+    }
+
+    .game-form {
+        margin-top: 35px;
+    }
+
+    .game-field {
+        margin-bottom: 22px;
+        text-align: left;
+    }
+
+    .game-field label {
+        display: block;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #d8deea;
+    }
+
+    .game-field input {
+        width: 100%;
+        padding: 13px;
+        border-radius: 8px;
+        border: 1px solid #526078;
+        background: #151d2c;
+        color: white;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .game-field input:focus {
+        outline: none;
+        border-color: #e4c477;
+    }
+
+    .game-btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        background: #c9a44c;
+        color: #172033;
+        font-size: 1em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .game-btn:hover:not(:disabled) {
+        background: #e4c477;
+    }
+
+    .game-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .game-register {
+        margin-top: 25px;
+        font-size: 0.9em;
+        color: #b8c2d3;
+    }
+
+    .game-register span {
+        color: #e4c477;
+        font-weight: 600;
+    }
+
+    /* ================= RESPONSYWNOŚĆ ================= */
+
+    @media (max-width: 768px) {
+
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .center-wrapper {
+            padding: 20px 12px;
+        }
+
+        .login-container {
+            grid-template-columns: 1fr;
+            max-width: 480px;
+            gap: 20px;
+        }
+
+        .gate {
+            width: 100%;
+            margin: 0;
+            padding: 28px 24px;
+        }
+
+        .gate h1 {
+            font-size: 1.4em;
+        }
+    }
+
+    /* ============================================================
+    ENTENDA GAME — LINK REJESTRACJI
+    ============================================================ */
+
+    .game-register-link {
+        color: #e4c477;
+        font-weight: 700;
+        text-decoration: none;
+        margin-left: 5px;
+    }
+
+    .game-register-link:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    /* Tryb rozgrywki — wygląd zgodny z ZEUS WIKI */
+    .game-gate {
+        border-top: 5px solid #5d7dce;
+        background: #fff;
+        color: #2c3e50;
+    }
+
+    .game-gate h1 {
+        color: #2c3e50;
+    }
+
+    .game-gate .gate-description,
+    .game-register {
+        color: #7f8c8d;
+    }
+
+    .game-field label {
+        color: #2c3e50;
+    }
+
+    .game-field input {
+        background: #fff;
+        color: #2c3e50;
+        border: 1px solid #cbd5e1;
+    }
+
+    .game-field input::placeholder {
+        color: #64748b;
+    }
+
+    .game-field input:focus {
+        outline: 2px solid #5d7dce;
+        outline-offset: 2px;
+        border-color: #5d7dce;
+    }
+
+    .game-btn {
+        background: #5d7dce;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .game-btn:hover:not(:disabled) {
+        background: #4a6ab8;
+    }
+
+    .game-register-link {
+        color: #5d7dce;
+    }
+
+    .game-register-link:hover {
+        color: #4a6ab8;
+        text-decoration: underline;
+    }
+
     </style>
 </head>
 
@@ -260,14 +492,23 @@
 <div class="fog"></div>
 
 <div class="center-wrapper">
-    <div class="gate">
+
+    <div class="login-container">
+
+        <!-- ================= ZEUS WIKI ================= -->
+
+        <div class="gate wiki-gate" id="wiki-login-panel" hidden>
 
         <div class="zeus-logo">
             <img src="{{ url_for('static', filename='ZEUS_oficjalne_logo_tlo.jpg') }}"
-                 alt="ZEUS">
+                alt="ZEUS">
         </div>
 
-        <h1>Wchodzę do Entendy jako:</h1>
+        <h1>Panel administratora</h1>
+
+        <p class="gate-description">
+            Wybierz uprawnienie:
+        </p>
 
         <form method="POST">
 
@@ -298,7 +539,7 @@
             </div>
 
             <button class="enter-btn" type="submit">
-                Wejdź do Entendy
+                Wejdź
             </button>
 
             {% with messages = get_flashed_messages(category_filter=["error"]) %}
@@ -308,8 +549,146 @@
             {% endwith %}
 
         </form>
+
+        </div>
+
+        <!-- ================= ENTENDA GAME ================= -->
+
+        <div class="gate game-gate">
+
+            <div class="zeus-logo">
+                <img
+                    src="{{ url_for('static', filename='zeus_rozgrywka.png') }}"
+                    alt="ZEUS — moduł rozgrywki"
+                >
+            </div>
+
+            <h1>Moduł rozgrywki</h1>
+
+            <p class="gate-description">
+                Zaloguj się do gry:
+            </p>
+
+            <form
+                class="game-form"
+                id="game-login-form"
+                method="post"
+                action="{{ url_for('game_login_submit') }}"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ game_csrf_token }}"
+                >
+
+                <div class="game-field">
+                    <label for="game-login">
+                        Login
+                    </label>
+
+                    <input
+                        type="text"
+                        id="game-login"
+                        name="game_login"
+                        placeholder="Wprowadź login"
+                        autocomplete="username"
+                        required
+                        maxlength="50"
+                    >
+                </div>
+
+                <div class="game-field">
+                    <label for="game-password">
+                        Hasło
+                    </label>
+
+                    <input
+                        type="password"
+                        id="game-password"
+                        name="game_password"
+                        placeholder="Wprowadź hasło"
+                        autocomplete="current-password"
+                        required
+                        maxlength="128"
+                    >
+                </div>
+
+                <button
+                    class="game-btn"
+                    id="game-login-submit"
+                    type="submit"
+                    disabled
+                >
+                    Zaloguj
+                </button>
+
+                {% with messages = get_flashed_messages(category_filter=["game_success"]) %}
+                    {% if messages %}<p role="status">{{ messages[0] }}</p>{% endif %}
+                {% endwith %}
+                {% with messages = get_flashed_messages(category_filter=["game_error"]) %}
+                    {% if messages %}
+                        <div class="error" role="alert">{{ messages[0] }}</div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="game-register">
+
+                    Nie masz konta?
+
+                    <a href="{{ url_for('game_rejestracja') }}"
+                       class="game-register-link">
+                        Zarejestruj się
+                    </a>
+                    <button type="button" id="admin-login-toggle" aria-controls="wiki-login-panel" aria-expanded="false">Zaloguj jako administrator</button>
+
+                </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
     </div>
+
 </div>
+
+<style>.wiki-gate[hidden]{display:none!important}.login-container{grid-template-columns:minmax(0,1fr);max-width:530px}.login-container.admin-login-open{max-width:1050px;grid-template-columns:repeat(2,minmax(0,1fr))}.game-gate{order:0}.wiki-gate{order:1}#admin-login-toggle{display:block;margin:18px auto 0;padding:10px 14px;width:100%;border:1px solid #266337;border-radius:6px;background:#2e7d42;color:#fff;font-weight:700;cursor:pointer}#admin-login-toggle:hover{background:#246735}#admin-login-toggle:focus-visible{outline:3px solid #86bd92;outline-offset:3px}@media(max-width:760px){.login-container.admin-login-open{grid-template-columns:minmax(0,1fr)}}</style>
+<script>const adminToggle=document.getElementById('admin-login-toggle'),adminPanel=document.getElementById('wiki-login-panel');function showAdminLogin(){const open=adminPanel.hidden;adminPanel.hidden=!open;adminToggle.setAttribute('aria-expanded',String(open));document.querySelector('.login-container').classList.toggle('admin-login-open',open);if(open){adminPanel.scrollIntoView({block:'nearest'});document.getElementById('haslo').focus();}}adminToggle.addEventListener('click',showAdminLogin);{% if get_flashed_messages(category_filter=['error']) %}showAdminLogin();{% endif %}</script>
+<script>
+sessionStorage.removeItem("leadershipChecked");
+</script>
+
+<script>
+(() => {
+    const form = document.getElementById("game-login-form");
+    const login = document.getElementById("game-login");
+    const password = document.getElementById("game-password");
+    const button = document.getElementById("game-login-submit");
+
+    function updateButton() {
+        button.disabled = !(
+            login.value.trim() &&
+            password.value &&
+            form.checkValidity()
+        );
+    }
+
+    form.addEventListener("input", updateButton);
+    form.addEventListener("change", updateButton);
+    window.addEventListener("pageshow", updateButton);
+
+    // Uwzględnij dane uzupełniane przez menedżery haseł.
+    const autofillCheck = window.setInterval(updateButton, 500);
+    window.addEventListener("pagehide", () => {
+        window.clearInterval(autofillCheck);
+    }, { once: true });
+
+    updateButton();
+})();
+</script>
 
 </body>
 </html>
+
+

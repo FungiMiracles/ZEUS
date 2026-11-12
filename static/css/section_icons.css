@@ -1,0 +1,15 @@
+.zeus-section-icon {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    max-width: none;
+    flex: 0 0 28px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-inline-end: 6px;
+}
+.game-nav-links .zeus-section-icon { margin-inline-end: 0; }
+.resources-technology label { display: inline-flex; align-items: center; }
+.resources-table th .zeus-section-icon { display: block; margin: 0 auto 6px; }
+
+.game-tools .zeus-section-icon { margin-inline-end: 0; }

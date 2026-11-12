@@ -1,0 +1,187 @@
+{% extends "base_layout.html" %}
+{% block title %}Dodaj artykuł{% endblock %}
+
+{% block content %}
+
+<style>
+.art-form-container {
+    max-width: 900px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+/* ===== CARD ===== */
+.art-form-card {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ===== TITLE ===== */
+.art-form-title {
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+/* ===== FORM GRID ===== */
+.art-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* textarea na całą szerokość */
+.art-form-full {
+    grid-column: span 2;
+}
+
+/* ===== INPUTS ===== */
+.art-form-card input,
+.art-form-card textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.95em;
+}
+
+.art-form-card textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+/* ===== FILE INPUT ===== */
+.art-file {
+    padding: 6px;
+    background: #f4f6f8;
+}
+
+/* ===== BUTTONS ===== */
+.art-form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
+
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+
+/* ===== ALERT ===== */
+.alert {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+
+    .art-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .art-form-full {
+        grid-column: span 1;
+    }
+
+    .art-form-actions {
+        flex-direction: column;
+    }
+
+    .art-form-actions button,
+    .art-form-actions a {
+        width: 100%;
+    }
+
+    .art-form-card {
+        padding: 16px;
+    }
+}
+</style>
+
+<div class="art-form-container">
+
+<div class="art-form-card">
+
+<div class="art-form-title">Dodaj artykuł</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data">
+
+<div class="art-form-grid">
+
+    <input name="tytul" placeholder="Tytuł" required>
+
+    <input name="autor" placeholder="Autor" required>
+
+    <input type="date" name="data_publikacji">
+
+    <input type="file" name="obraz" class="art-file" required>
+
+    <textarea name="tresc" placeholder="Treść artykułu" class="art-form-full"></textarea>
+
+</div>
+
+<div class="art-form-actions">
+    <button type="submit" class="btn-zeus btn-save">Zapisz</button>
+    <a href="{{ url_for('artykuly_lista') }}">
+        <button type="button" class="btn-zeus btn-cancel">Anuluj</button>
+    </a>
+</div>
+
+</form>
+
+</div>
+</div>
+
+{% endblock %}

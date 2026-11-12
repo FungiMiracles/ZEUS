@@ -1,0 +1,127 @@
+"""Drogi świata i finanse gry w panelu administratora WIKI."""
+import hmac,secrets
+from uuid import uuid4
+from flask import Blueprint,abort,request,session,jsonify,render_template,redirect,url_for,flash
+from sqlalchemy import select
+from sqlalchemy.orm import lazyload
+from extensions import db
+from permissions import wymaga_roli
+from models import Panstwo,Region,Miasto
+from game.civic_models import Road,TreasuryAdjustment,CountryTaxPolicy
+from game.finance_models import StateBudget,StateFinancialAccount,StateTaxAssessment
+from game.finance_service import FinanceError
+
+wiki_civic_bp=Blueprint('wiki_civic',__name__,url_prefix='/admin')
+
+
+def token():
+    session.setdefault('wiki_civic_csrf',secrets.token_urlsafe(32));return session['wiki_civic_csrf']
+
+
+def validate():
+    supplied=request.headers.get('X-CSRF-Token','') or request.form.get('csrf_token','')
+    if not session.get('wiki_civic_csrf') or not hmac.compare_digest(session['wiki_civic_csrf'].encode(),supplied.encode()):abort(403,description='Sesja formularza wygasła.')
+
+
+def actor():return str(session.get('username') or session.get('user_id') or 'Administrator WIKI')[:120]
+
+
+@wiki_civic_bp.get('/drogi')
+@wymaga_roli('wszechmocny')
+def roads_page():
+    countries=dict(db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa).order_by(Panstwo.panstwo_nazwa)).all())
+    return render_template('admin_roads.html',road_config={
+        'admin':True,'csrf':token(),'countries':{str(id):name for id,name in countries.items()},
+        'countryId':request.args.get('country_id',type=int) or next(iter(countries),0),
+        'cities':{str(id):{'name':name,'regionId':str(region),'population':population,'capital':city_type==1} for id,name,region,population,city_type in db.session.execute(select(Miasto.miasto_id,Miasto.miasto_nazwa,Miasto.region_id,Miasto.miasto_populacja,Miasto.miasto_typ_id).where(Miasto.czy_na_mapie=='TAK'))},
+        'regionOwners':{str(id):owner for id,owner in db.session.execute(select(Region.region_id,Region.panstwo_id))},
+        'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
+        'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
+        'stateUrl':url_for('wiki_civic.roads_state'),'quoteUrl':url_for('wiki_civic.roads_change',operation='wycena'),'buildUrl':url_for('wiki_civic.roads_change',operation='buduj')})
+
+
+@wiki_civic_bp.get('/drogi/stan')
+@wymaga_roli('wszechmocny')
+def roads_state():
+    from game.roads import road_data
+    response=jsonify(roads=[road_data(road) for road in db.session.scalars(select(Road).order_by(Road.id))]);response.headers['Cache-Control']='no-store';return response
+
+
+@wiki_civic_bp.post('/drogi/<operation>')
+@wymaga_roli('wszechmocny')
+def roads_change(operation):
+    from game.roads import quote_road,build_road
+    validate();data=request.get_json(silent=True)
+    if not isinstance(data,dict) or type(data.get('country_id')) is not int:return jsonify(error='Wybierz państwo.'),400
+    try:
+        if operation in ('ulepsz','ulepsz-wycena'):
+            from game.road_projects import upgrade_road
+            result=upgrade_road(None,data,admin_country_id=data['country_id'],admin_actor=actor(),preview=operation=='ulepsz-wycena')
+            return jsonify(**({'quote':result} if operation=='ulepsz-wycena' else {'road':result}))
+        if operation=='wycena':return jsonify(quote=quote_road(db.session,data['country_id'],data,admin=True))
+        if operation=='buduj':return jsonify(road=build_road(None,data,admin_country_id=data['country_id'],admin_actor=actor()))
+    except FinanceError as exc:return jsonify(error=str(exc)),400
+    return jsonify(error='Nieprawidłowa operacja.'),404
+
+
+@wiki_civic_bp.route('/gospodarka/<int:country_id>/budzet',methods=['GET','POST'])
+@wymaga_roli('wszechmocny')
+def budget(country_id):
+    from game.admin_finance import adjust
+    from game.budget_transfers import sector_balances
+    from game.budget_categories import CODES
+    from game.finance_models import BudgetCategory
+    country=db.session.scalar(select(Panstwo).options(lazyload('*')).where(Panstwo.PANSTWO_ID==country_id))
+    if country is None:abort(404)
+    error=None
+    if request.method=='POST':
+        validate()
+        try:
+            data={name:request.form.get(name) for name in ('request_id','category','amount','reason')}
+            if request.form.get('change_taxes'):data['taxes']={'pit_rate':request.form.get('pit_rate')}
+            adjust(country_id,data,actor());flash('Zapisano korektę finansów państwa.','success');return redirect(url_for('wiki_civic.budget',country_id=country_id),code=303)
+        except FinanceError as exc:error=str(exc)
+    account=db.session.get(StateFinancialAccount,country_id)
+    plan=db.session.get(StateBudget,account.last_budget_id) if account and account.last_budget_id else None
+    policy=db.session.get(CountryTaxPolicy,country_id)
+    assessment=db.session.scalar(select(StateTaxAssessment).where(StateTaxAssessment.budget_id==plan.id)) if plan else None
+    return render_template('admin_state_budget.html',country=country,account=account,plan=plan,balances=sector_balances(db.session,plan) if plan else {},
+        categories=list(db.session.execute(select(BudgetCategory.code,BudgetCategory.name_pl).where(BudgetCategory.code.in_(CODES)).order_by(BudgetCategory.display_order))),tax_policy=policy or assessment,csrf=token(),request_id=request.form.get('request_id') or str(uuid4()),error=error,
+        changes=list(db.session.scalars(select(TreasuryAdjustment).where(TreasuryAdjustment.panstwo_id==country_id).order_by(TreasuryAdjustment.id.desc()).limit(50)))) ,400 if error else 200
+
+
+@wiki_civic_bp.get('/struktura-ludnosci')
+@wymaga_roli('wszechmocny')
+def population_page():
+    from game.population_structure import PopulationStructure
+    from services.wiki_world_stats import world_population_structure
+    countries=dict(db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa).order_by(Panstwo.panstwo_nazwa)).all())
+    return render_template('admin_population_structure.html',population_config={'csrf':token(),'stateUrl':url_for('wiki_civic.population_state',country_id=0),'saveUrl':url_for('wiki_civic.population_save'),
+        'countries':{str(id):name for id,name in countries.items()},'countryId':request.args.get('country_id',type=int),
+        'structuredCountries':list(db.session.scalars(select(PopulationStructure.panstwo_id))),
+        'worldStructure':world_population_structure(db.session),
+        'countriesUrl':url_for('region_sovereignty.country_boundaries')})
+
+
+@wiki_civic_bp.get('/struktura-ludnosci/stan/<int:country_id>')
+@wymaga_roli('wszechmocny')
+def population_state(country_id):
+    from game.population_structure import structure_data
+    try:
+        data=structure_data(db.session,country_id);data['population']=str(data['population']) if data['population'] is not None else None;return jsonify(data)
+    except FinanceError as exc:return jsonify(error=str(exc)),404
+
+
+@wiki_civic_bp.post('/struktura-ludnosci/zapisz')
+@wymaga_roli('wszechmocny')
+def population_save():
+    from game.population_structure import save_structure
+    validate();data=request.get_json(silent=True)
+    if not isinstance(data,dict) or type(data.get('country_id')) is not int:return jsonify(error='Wybierz państwo.'),400
+    try:
+        result=save_structure(db.session,data['country_id'],data,actor());db.session.commit()
+        from services.wiki_world_stats import world_population_structure
+        result['worldStructure']=world_population_structure(db.session)
+        result['population']=str(result['population']) if result['population'] is not None else None
+        return jsonify(result)
+    except FinanceError as exc:db.session.rollback();return jsonify(error=str(exc)),400

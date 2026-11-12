@@ -1,0 +1,22 @@
+{% from 'macros/icons.html' import icon %}
+{% set page_headings = {
+    'research':('Badania i rozwój','research'),
+    'changes':('Informacje o zmianach','events'),
+    'main': ('Panel państwa', 'world'),
+    'finance': ('Podatki i budżet', 'finance'),
+    'defense': ('Obrona państwa', 'defense'),
+    'war': ('Panel wojenny', 'war'),
+    'army': ('Siły zbrojne', 'army'),
+    'intelligence': ('Wywiad wojskowy', 'intelligence'),
+    'infrastructure': ('Infrastruktura i energetyka', 'infrastructure'),
+    'resources': ('Surowce naturalne', 'resources'),
+    'trade': ('Handel', 'trade'),
+    'society': ('Społeczeństwo', 'society'),
+    'events': ('Wydarzenia', 'events'),
+    'diplomacy': ('Dyplomacja', 'diplomacy'),
+    'demography': ('Demografia', 'demography'),
+    'environment': ('Środowisko', 'environment'),
+    'forum': ('Forum międzynarodowe', 'forum')
+} %}
+{% set current_heading = page_headings.get(game_active_page | default('main'), page_headings['main']) %}
+<h1 class="game-section-title">{{ icon(heading_icon | default(current_heading[1])) }}<span>{{ heading_title | default(current_heading[0]) }}</span></h1>

@@ -105,26 +105,43 @@ textarea {
     margin-top: 20px;
 }
 
-.btn {
-    padding: 10px 18px;
-    border-radius: 6px;
+.btn-zeus {
     font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
     border: none;
     cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-primary { background: #2d76c9; color: white; }
-.btn-primary:hover { background: #154e91; }
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary {
-    background: #af1515;
-    border: 1px solid #af1515;
-}
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
 
-.btn-secondary:hover {
-    background: #600101;
-    color: #600101;
-}
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
 
 @media (max-width: 768px) {
     .org-container {
@@ -205,9 +222,18 @@ textarea {
                     <input name="org_skrot" value="{{ org.org_skrot }}">
                 </div>
 
-                <div>
+                <div class="form-group">
                     <label>Typ</label>
-                    <input name="org_typ" value="{{ org.org_typ }}">
+                    <select name="org_typ">
+                        <option value="">— wybierz —</option>
+                        <option value="polityczna">Polityczna</option>
+                        <option value="wojskowa">Wojskowa</option>
+                        <option value="gospodarcza">Gospodarcza</option>
+                        <option value="naukowa">Naukowa</option>
+                        <option value="polityczno-gospodarcza">Polityczno-gospodarcza</option>
+                        <option value="polityczno-wojskowa">Polityczno-wojskowa</option>
+                        <option value="gospodarczo-wojskowa">Gospodarczo-wojskowa</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -232,9 +258,9 @@ textarea {
         </div>
 
         <div class="action-row">
-            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <button type="submit" class="btn-zeus btn-save">Zapisz</button>
             <a href="/dyplomacja/organizacje">
-                <button type="button" class="btn btn-secondary">Wróć</button>
+                <button type="button" class="btn-zeus btn-back">Wróć</button>
             </a>
         </div>
 

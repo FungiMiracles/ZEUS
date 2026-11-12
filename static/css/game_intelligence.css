@@ -1,0 +1,26 @@
+.intel-panel { padding:20px; margin:20px 0; }
+#intel-map { height:clamp(480px,70vh,850px); background:#e7edf5; isolation:isolate; }
+.intel-panel label { display:block; margin:12px 0; }
+.intel-panel input,.intel-panel select { display:block; box-sizing:border-box; width:100%; margin-top:6px; padding:9px; }
+#intel-recruit { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; }
+#intel-recruit label { flex:1 1 180px; }
+#intel-error,#intel-confirm-error { color:#c12727; font-weight:600; }
+.intel-card { border:1px solid #d8e0e9; border-radius:8px; padding:12px; margin:10px 0; }
+.intel-card progress { width:100%; }
+#intel-agents { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+#intel-confirm { max-width:540px; width:calc(100vw - 40px); box-sizing:border-box; }
+#intel-confirm::backdrop { background:#10244099; }
+
+/* 12 Nov 2026: agent na mapie w regionie trwającej misji */
+.intel-map-agent-marker { background: transparent; border: 0; }
+.intel-map-agent { display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: auto; }
+.intel-map-agent img { width: 26px; height: 26px; padding: 2px; border-radius: 50%; background: #fff; border: 1px solid #244984; box-shadow: 0 1px 4px #0005; }
+.intel-map-progress { width: 30px; height: 5px; border: 0; border-radius: 3px; background: #dbe4ef; overflow: hidden; appearance: none; }
+.intel-map-progress::-webkit-progress-bar { background: #dbe4ef; border-radius: 3px; }
+.intel-map-progress::-webkit-progress-value { background: #2f9e57; border-radius: 3px; }
+.intel-map-progress::-moz-progress-bar { background: #2f9e57; border-radius: 3px; }
+
+/* 12 Nov 2026: ikona agenta w nagłówkach („Wyślij agenta”, okno rekrutacji) */
+.intel-heading { display:flex; align-items:center; gap:10px; }
+.intel-heading-icon { width:34px; height:34px; flex:0 0 34px; padding:3px; box-sizing:border-box; border-radius:50%; background:#fff; border:1px solid #244984; }
+.intel-heading-icon[hidden] { display:none; }

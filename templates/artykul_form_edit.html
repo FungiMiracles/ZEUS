@@ -1,0 +1,198 @@
+{% extends "base_layout.html" %}
+{% block title %}Edytuj artykuł{% endblock %}
+
+{% block content %}
+
+<style>
+.art-form-container {
+    max-width: 900px;
+    margin: 20px auto 40px auto;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    color: #2c3e50;
+}
+
+.art-form-card {
+    background: #ffffff;
+    border: 1px solid #d3d7dc;
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.art-form-title {
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.art-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.art-form-full {
+    grid-column: span 2;
+}
+
+.art-form-card input,
+.art-form-card textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+    font-size: 0.95em;
+}
+
+.art-form-card textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.art-file {
+    padding: 6px;
+    background: #f4f6f8;
+}
+
+.art-current-image {
+    grid-column: span 2;
+    text-align: center;
+}
+
+.art-current-image img {
+    max-height: 220px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-top: 6px;
+}
+
+.art-form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-main {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    background-color: #2c73d2;
+    color: white;
+}
+
+.btn-main:hover {
+    background-color: #17519c;
+}
+
+.btn-cancel {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #962316;
+}
+
+@media (max-width:768px){
+
+    .art-form-container{
+        margin:8px;
+    }
+
+    .art-form-card{
+        padding:12px;
+    }
+
+    .art-form-grid{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .art-form-card input,
+    .art-form-card textarea,
+    .art-file{
+        width:100%;
+        box-sizing:border-box;
+    }
+
+    .art-form-card textarea{
+        min-height:60vh;
+        font-size:16px;
+    }
+
+    .art-current-image img{
+        max-width:100%;
+        height:auto;
+    }
+
+    .art-form-actions{
+        flex-direction:column;
+    }
+
+    .btn-main,
+    .btn-cancel{
+        width:100%;
+        text-align:center;
+    }
+
+    .art-form-card input[type="date"] {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+}
+</style>
+
+<div class="art-form-container">
+<div class="art-form-card">
+
+<div class="art-form-title">Edytuj artykuł</div>
+
+<form method="POST" enctype="multipart/form-data">
+
+<div class="art-form-grid">
+
+    <input name="tytul" value="{{ a.artykul_tytul }}" required>
+
+    <input name="autor" value="{{ a.artykul_autor }}" required>
+
+    <input type="date" name="data_publikacji"
+           value="{{ a.data_publikacji }}">
+
+    <input type="file" name="obraz" class="art-file">
+
+    {% if a.artykul_obraz %}
+    <div class="art-current-image">
+        <div>Obecny obraz:</div>
+        <img src="{{ url_for('artykul_obraz', id=a.artykul_id) }}">
+    </div>
+    {% endif %}
+
+    <textarea name="tresc" class="art-form-full">{{ a.artykul_tresc }}</textarea>
+
+</div>
+
+<div class="art-form-actions">
+    <button type="submit" class="btn-main">Zapisz zmiany</button>
+
+    <a href="{{ url_for('artykul_form', id=a.artykul_id) }}">
+        <button type="button" class="btn-cancel">Anuluj</button>
+    </a>
+</div>
+
+</form>
+
+</div>
+</div>
+
+{% endblock %}

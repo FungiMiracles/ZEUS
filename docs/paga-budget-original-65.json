@@ -1,0 +1,1191 @@
+[
+  {
+    "audit_id": 88,
+    "country": "Tunganiria",
+    "job_id": 168,
+    "decision": {
+      "benefits": {
+        "crime": 0,
+        "health": 0,
+        "education": 0,
+        "stability": 0,
+        "satisfaction": 0,
+        "infrastructure": 55.7
+      },
+      "basis_token": "Tunganiria",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 89,
+    "country": "Tunganiria",
+    "job_id": 168,
+    "decision": {
+      "benefits": {
+        "crime": 0,
+        "health": 0,
+        "education": 0,
+        "stability": 0,
+        "satisfaction": 0,
+        "infrastructure": 55.7
+      },
+      "basis_token": "Tunganiria",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 90,
+    "country": "Tunganiria",
+    "job_id": 168,
+    "decision": {
+      "benefits": {
+        "crime": 0,
+        "health": 0,
+        "education": 0,
+        "stability": 0,
+        "satisfaction": 0,
+        "infrastructure": 55.7
+      },
+      "basis_token": "Tunganiria",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 91,
+    "country": "Tunganiria",
+    "job_id": 168,
+    "decision": {
+      "benefits": {
+        "crime": 0,
+        "health": 0,
+        "education": 0,
+        "stability": 0,
+        "satisfaction": 0,
+        "infrastructure": 55.7
+      },
+      "basis_token": "Tunganiria",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 92,
+    "country": "Tunganiria",
+    "job_id": 168,
+    "decision": {
+      "benefits": {
+        "crime": 0,
+        "health": 0,
+        "education": 0,
+        "stability": 0,
+        "satisfaction": 0,
+        "infrastructure": 55.7
+      },
+      "basis_token": "Tunganiria",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 98,
+    "country": "Nuveco",
+    "job_id": 169,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 103,
+    "country": "Izziko",
+    "job_id": 170,
+    "decision": {
+      "shares": {
+        "inne": 10,
+        "sport": 10,
+        "wojsko": 10,
+        "kultura": 10,
+        "zdrowie": 10,
+        "oświata": 10,
+        "przemysł": 10,
+        "rolnictwo": 10,
+        "transport": 10,
+        "energetyka": 10,
+        "gospodarka": 10,
+        "administracja": 10,
+        "infrastruktura": 10,
+        "bezpieczeństwo": 10,
+        "środki_ogrodnicze": 10
+      },
+      "pit_rate": 0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja,bezpieczeństwo,energetyka,gospodarka,infrastruktura,inne,kultura,oświata,przemysł,rolnictwo,sport,transport,wojsko,zdrowie,środki_ogrodnicze",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 104,
+    "country": "Izziko",
+    "job_id": 170,
+    "decision": {
+      "shares": {
+        "inne": 10,
+        "sport": 10,
+        "wojsko": 10,
+        "kultura": 10,
+        "zdrowie": 10,
+        "oświata": 10,
+        "przemysł": 10,
+        "rolnictwo": 10,
+        "transport": 10,
+        "energetyka": 10,
+        "gospodarka": 10,
+        "administracja": 10,
+        "infrastruktura": 10,
+        "bezpieczeństwo": 10,
+        "środki_ogrodnicze": 10
+      },
+      "pit_rate": 0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja,bezpieczeństwo,energetyka,gospodarka,infrastruktura,inne,kultura,oświata,przemysł,rolnictwo,sport,transport,wojsko,zdrowie,środki_ogrodnicze",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 106,
+    "country": "Prewaria",
+    "job_id": 171,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 107,
+    "country": "Prewaria",
+    "job_id": 171,
+    "decision": {
+      "year": 3001,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 109,
+    "country": "Prewaria",
+    "job_id": 171,
+    "decision": {
+      "pit_rate": 0.05,
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 110,
+    "country": "Prewaria",
+    "job_id": 171,
+    "decision": {
+      "year": 2025,
+      "period": 1,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "wrong_game_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 114,
+    "country": "Nopalia",
+    "job_id": 172,
+    "decision": {
+      "shares": {
+        "obrona": 15.0,
+        "zdrowie": 15.0,
+        "edukacja": 10.0,
+        "gospodarka": 30.0,
+        "infrastruktura": 20.0,
+        "administracja_pub": 10.0
+      },
+      "pit_rate": 0.0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja_pub,edukacja,gospodarka,infrastruktura,obrona,zdrowie"
+    ]
+  },
+  {
+    "audit_id": 115,
+    "country": "Nopalia",
+    "job_id": 172,
+    "decision": {
+      "shares": {
+        "obrona": 15.0,
+        "zdrowie": 15.0,
+        "edukacja": 10.0,
+        "gospodarka": 30.0,
+        "infrastruktura": 20.0,
+        "administracja_pub": 10.0
+      },
+      "pit_rate": 0.0,
+      "repeat_previous": true
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja_pub,edukacja,gospodarka,infrastruktura,obrona,zdrowie"
+    ]
+  },
+  {
+    "audit_id": 116,
+    "country": "Nopalia",
+    "job_id": 172,
+    "decision": {
+      "year": 2024,
+      "period": 2,
+      "shares": {
+        "obrona": 15.0,
+        "zdrowie": 15.0,
+        "edukacja": 10.0,
+        "gospodarka": 30.0,
+        "infrastruktura": 20.0,
+        "administracja_pub": 10.0
+      },
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja_pub,edukacja,gospodarka,infrastruktura,obrona,zdrowie"
+    ]
+  },
+  {
+    "audit_id": 126,
+    "country": "Grafonia",
+    "job_id": 174,
+    "decision": {
+      "benefits": {
+        "social": 0.0,
+        "industry": 0.0,
+        "military": 0.0,
+        "research": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "0.0",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 127,
+    "country": "Grafonia",
+    "job_id": 174,
+    "decision": {
+      "benefits": {
+        "social": 0.0,
+        "industry": 0.0,
+        "military": 0.0,
+        "research": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "2024",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 128,
+    "country": "Grafonia",
+    "job_id": 174,
+    "decision": {
+      "benefits": {
+        "social": 0.0,
+        "industry": 0.0,
+        "military": 0.0,
+        "research": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "2024",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 130,
+    "country": "Itrandia",
+    "job_id": 175,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 131,
+    "country": "Itrandia",
+    "job_id": 175,
+    "decision": {
+      "year": 2024,
+      "period": 3
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "wrong_game_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 133,
+    "country": "Itrandia",
+    "job_id": 175,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 145,
+    "country": "Essowinia",
+    "job_id": 177,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 149,
+    "country": "Kamblia",
+    "job_id": 178,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 150,
+    "country": "Kamblia",
+    "job_id": 178,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 152,
+    "country": "Kamblia",
+    "job_id": 178,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 158,
+    "country": "Hostlandia",
+    "job_id": 179,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 160,
+    "country": "Rannisjaon",
+    "job_id": 180,
+    "decision": {
+      "benefits": {
+        "podatki": 0,
+        "rezerwa": 0,
+        "wydatki": 0
+      },
+      "pit_rate": 0,
+      "basis_token": "admin_token_placeholder",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 161,
+    "country": "Rannisjaon",
+    "job_id": 180,
+    "decision": {
+      "benefits": {
+        "podatki": 0,
+        "rezerwa": 0,
+        "wydatki": 0
+      },
+      "pit_rate": 0,
+      "basis_token": "admin_token_placeholder",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 162,
+    "country": "Rannisjaon",
+    "job_id": 180,
+    "decision": {
+      "benefits": {
+        "podatki": 10,
+        "rezerwa": 5,
+        "wydatki": 20
+      },
+      "pit_rate": 0,
+      "basis_token": "admin_token_placeholder",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 163,
+    "country": "Rannisjaon",
+    "job_id": 180,
+    "decision": {
+      "benefits": {
+        "podatki": 10,
+        "rezerwa": 5,
+        "wydatki": 20
+      },
+      "pit_rate": 0,
+      "basis_token": "admin_token_placeholder",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 164,
+    "country": "Rannisjaon",
+    "job_id": 180,
+    "decision": {
+      "benefits": {
+        "podatki": 10,
+        "rezerwa": 5,
+        "wydatki": 20
+      },
+      "pit_rate": 0,
+      "basis_token": "admin_token_placeholder",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 172,
+    "country": "Małpiony",
+    "job_id": 185,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 176,
+    "country": "Małpiony",
+    "job_id": 185,
+    "decision": {
+      "benefits": {
+        "defense": 0.2,
+        "industry": 0.2,
+        "research": 0.1,
+        "public_health": 0.1,
+        "administrative": 0.15,
+        "infrastructure": 0.25
+      },
+      "basis_token": "202310271234567890",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 178,
+    "country": "Lajdos",
+    "job_id": 186,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 179,
+    "country": "Lajdos",
+    "job_id": 186,
+    "decision": {
+      "year": 2024,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 182,
+    "country": "Lajdos",
+    "job_id": 186,
+    "decision": {
+      "year": 3001,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 188,
+    "country": "Soto",
+    "job_id": 188,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 189,
+    "country": "Soto",
+    "job_id": 188,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 191,
+    "country": "Soto",
+    "job_id": 188,
+    "decision": {
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 193,
+    "country": "Jowia",
+    "job_id": 189,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 197,
+    "country": "Jowia",
+    "job_id": 189,
+    "decision": {
+      "shares": {
+        "sport": 5,
+        "obrona": 10,
+        "wojsko": 25,
+        "energia": 5,
+        "kultura": 5,
+        "zdrowie": 5,
+        "edukacja": 5,
+        "rolnictwo": 5,
+        "transport": 5,
+        "gospodarka": 20,
+        "administracja": 15,
+        "infrastruktura": 20,
+        "bezpieczeństwo": 5
+      },
+      "pit_rate": 10
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:administracja,bezpieczeństwo,edukacja,energia,gospodarka,infrastruktura,kultura,obrona,rolnictwo,sport,transport,wojsko,zdrowie",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 199,
+    "country": "Sorchenian",
+    "job_id": 190,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 200,
+    "country": "Sorchenian",
+    "job_id": 190,
+    "decision": {
+      "year": 2024,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 203,
+    "country": "Sorchenian",
+    "job_id": 190,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 206,
+    "country": "Kosliw Południowy",
+    "job_id": 191,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 207,
+    "country": "Kosliw Południowy",
+    "job_id": 191,
+    "decision": {
+      "year": 2024,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 219,
+    "country": "Halwar",
+    "job_id": 193,
+    "decision": {
+      "benefits": {
+        "crime": 0.0,
+        "education": 0.0,
+        "stability": 0.0,
+        "satisfaction": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "0",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 220,
+    "country": "Halwar",
+    "job_id": 193,
+    "decision": {
+      "benefits": {
+        "crime": 0.0,
+        "education": 0.0,
+        "stability": 0.0,
+        "satisfaction": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "2024",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 221,
+    "country": "Halwar",
+    "job_id": 193,
+    "decision": {
+      "benefits": {
+        "crime": 0.0,
+        "education": 0.0,
+        "stability": 0.0,
+        "satisfaction": 0.0,
+        "public_health": 0.0,
+        "infrastructure": 0.0
+      },
+      "basis_token": "2024",
+      "repeat_previous": false
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 223,
+    "country": "Sajstan",
+    "job_id": 194,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 225,
+    "country": "Sajstan",
+    "job_id": 194,
+    "decision": {
+      "year": 3001,
+      "repeat_previous": true
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 226,
+    "country": "Sajstan",
+    "job_id": 194,
+    "decision": {
+      "year": 3001,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 230,
+    "country": "Parmia",
+    "job_id": 195,
+    "decision": {
+      "shares": {
+        "adm": 100.0
+      },
+      "pit_rate": 0.0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:adm"
+    ]
+  },
+  {
+    "audit_id": 231,
+    "country": "Parmia",
+    "job_id": 195,
+    "decision": {
+      "shares": {
+        "adm": 100.0,
+        "year": 2024,
+        "quarter": 3
+      },
+      "pit_rate": 0.0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:adm,quarter,year",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 232,
+    "country": "Parmia",
+    "job_id": 195,
+    "decision": {
+      "shares": {
+        "adm": 100.0,
+        "year": 2024,
+        "quarter": 4
+      },
+      "pit_rate": 0.0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:adm,quarter,year",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 233,
+    "country": "Parmia",
+    "job_id": 195,
+    "decision": {
+      "shares": {
+        "adm": 100.0,
+        "year": 2025,
+        "quarter": 1
+      },
+      "pit_rate": 0.0
+    },
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "unknown_budget_categories:adm,quarter,year",
+      "shares_over_100"
+    ]
+  },
+  {
+    "audit_id": 235,
+    "country": "Atuna",
+    "job_id": 196,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 236,
+    "country": "Atuna",
+    "job_id": 196,
+    "decision": {
+      "year": 3001,
+      "period": 3
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 239,
+    "country": "Atuna",
+    "job_id": 196,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": false
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 241,
+    "country": "Litia",
+    "job_id": 197,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 242,
+    "country": "Litia",
+    "job_id": 197,
+    "decision": {
+      "year": 2024,
+      "period": 3
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "wrong_game_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 245,
+    "country": "Litia",
+    "job_id": 197,
+    "decision": {
+      "year": 3001,
+      "period": 2,
+      "repeat_previous": true
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "missing_or_invalid_basis_token"
+    ]
+  },
+  {
+    "audit_id": 247,
+    "country": "Benimia",
+    "job_id": 198,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 248,
+    "country": "Benimia",
+    "job_id": 198,
+    "decision": {
+      "year": 2024,
+      "period": 2
+    },
+    "validation_error": "Brak aktualnego podglądu. Przelicz budżet ponownie.",
+    "additional_detected_issues": [
+      "wrong_game_year",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  },
+  {
+    "audit_id": 251,
+    "country": "Benimia",
+    "job_id": 198,
+    "decision": {},
+    "validation_error": "Nieprawidłowy rok lub półrocze.",
+    "additional_detected_issues": [
+      "missing_or_invalid_year",
+      "missing_or_invalid_period",
+      "missing_or_invalid_basis_token",
+      "incomplete_manual_plan"
+    ]
+  }
+]

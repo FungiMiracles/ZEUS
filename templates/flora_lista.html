@@ -1,0 +1,516 @@
+{% extends "base_layout.html" %}
+{% block title %}Flora{% endblock %}
+
+{% block content %}
+
+<style>
+/* ================= ZEUS – FLORA LIST ================= */
+
+.flora-list {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #2c3e50;
+    padding-bottom: 40px;
+}
+
+.page-header {
+    text-align: center;
+    margin: 20px 0 25px 0;
+}
+
+.page-header h1 {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #34495e;
+}
+
+/* ===== FILTR ===== */
+
+.filter-box {
+    max-width: 900px;
+    margin: 0 auto 25px auto;
+    background: #ffffff;
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #d3d6da;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-box select {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #bfc5cc;
+    font-weight: 600;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== TABELA ===== */
+
+.results-table {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+.results-table thead tr {
+    background: linear-gradient(90deg, #5d7dce, #adc8ff);
+    color: white;
+}
+
+.results-table th {
+    padding: 12px;
+    font-weight: 700;
+}
+
+.results-table td {
+    padding: 10px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.results-table td {
+    vertical-align: middle;
+}
+
+.results-table tbody tr:nth-child(even) {
+    background: #eef2ff;
+}
+
+.results-table tbody tr:hover {
+    background: #d6e0ff;
+}
+
+/* ===== PRZYCISKI AKCJI ===== */
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-view { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-view:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-delete { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-delete:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+.btn-add { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-add:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+.btn-back { background-color: #949494; text-decoration: none !important; color: #ffffff;} 
+.btn-back:hover { background-color: #757575; text-decoration: none !important; color: #ffffff;}
+
+/* klik */
+.btn-view:active,
+.btn-edit:active,
+.btn-delete:active,
+.btn-search:active,
+.btn-add:active {
+    transform: scale(0.97);
+}
+
+.actions-cell {
+    text-align: right;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.flora-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.flora-thumb {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #d3d6da;
+}
+
+.cell-badges {
+    padding: 0 10px; /* zachowaj spacing */
+}
+
+.cell-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 320px;
+
+    align-items: center;      /* 🔥 poziome */
+    min-height: 100%;         /* 🔥 klucz */
+}
+
+.results-table td {
+    vertical-align: middle;
+}
+
+.badge {
+    background: #dea30e;
+    color: #2c3e50;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+.badge.more {
+    background: #dfe6e9;
+}
+
+/* ===== MOBILE – SPÓJNE Z FAUNĄ ===== */
+
+@media (max-width: 768px) {
+
+    /* FILTER */
+    .filter-box {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .btn-search,
+    .btn-add,
+    .btn-back {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* ===== TABLE → CARDS ===== */
+
+    .results-table,
+    .results-table tbody,
+    .results-table tr,
+    .results-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .results-table {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .results-table thead {
+        display: none;
+    }
+
+    .results-table tr {
+        background: #ffffff;
+        margin: 0 10px 15px 10px;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .results-table td {
+        padding: 6px 0;
+        border: none;
+    }
+
+    /* ===== HEADER (IDENTYCZNY JAK FAUNA) ===== */
+
+    .flora-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .flora-thumb {
+        width: 60px;
+        height: 60px;
+    }
+
+    .flora-name span {
+        font-size: 1.1em;
+        font-weight: 700;
+    }
+
+    /* ===== LABELKI – IDENTYCZNE ===== */
+
+    .results-table td:nth-child(2)::before {
+        content: "Kontynenty";
+        display: block;
+        font-size: 0.75em;
+        color: #7f8c8d;
+        margin-bottom: 2px;
+    }
+
+    .results-table td:nth-child(3)::before {
+        content: "Państwa";
+        display: block;
+        font-size: 0.75em;
+        color: #7f8c8d;
+        margin-bottom: 2px;
+    }
+
+    /* ===== BADGES – IDENTYCZNE ===== */
+
+    .cell-inner {
+        max-width: 100%;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    /* ===== ACTIONS – IDENTYCZNE ===== */
+
+    .actions-cell {
+        margin-top: 10px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-buttons a,
+    .action-buttons button {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+}
+</style>
+
+<div class="flora-list">
+
+    <div class="page-header">
+        <h1>Flora świata Entendy</h1>
+    </div>
+
+    <!-- ===== FILTR ===== -->
+    <form method="GET" class="filter-box">
+
+        <select name="kontynent_id" id="kontynent">
+            <option value="">-- Kontynent --</option>
+            {% for k in kontynenty %}
+                <option value="{{ k.kontynent_id }}"
+                    {% if selected_kontynent and selected_kontynent|int == k.kontynent_id %}selected{% endif %}>
+                    {{ k.kontynent_nazwa }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="panstwo_id" id="panstwo">
+            <option value="">-- Państwo --</option>
+        </select>
+
+        <select name="flora_id">
+            <option value="">-- Wszystkie rośliny --</option>
+            {% for f in flora_all %}
+                <option value="{{ f.flora_id }}"
+                    {% if selected_flora and selected_flora|int == f.flora_id %}selected{% endif %}>
+                    {{ f.nazwa }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn-zeus btn-search">Szukaj</button>
+            {% if session.rola in ["tworzyciel", "wszechmocny"] %}
+            <a href="{{ url_for('flora_add') }}" class="btn-zeus btn-add">Dodaj</a>
+            {% else %}
+            <a href="#" class="btn-zeus btn-add" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Dodaj</a>
+            {% endif %}
+            <a href="/natura" class="btn-zeus btn-back">Wróć</a>
+        </div>
+
+    </form>
+
+    <!-- ===== TABELA ===== -->
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Nazwa i zdjęcie rośliny</th>
+                <th>Kontynenty</th>
+                <th>Państwa</th>
+                <th style="text-align:right; padding-right: 100px;">Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% if not results %}
+                <tr>
+                    <td colspan="4" style="text-align:center;">Brak wyników</td>
+                </tr>
+            {% endif %}
+
+            {% for f in results %}
+            <tr>
+                <td class="flora-name">
+                    <img src="/flora/{{ f.flora_id }}/image"
+                        class="flora-thumb"
+                        onerror="this.style.display='none'">
+
+                    <span>{{ f.nazwa }}</span>
+                </td>
+                <td>{{ f.kontynenty_names or "—" }}</td>
+
+                <td class="cell-badges">
+                    <div class="cell-inner">
+                        {% set limit = 5 %}
+                        {% if f.panstwa %}
+                            {% for p in f.panstwa[:limit] %}
+                                <span class="badge">{{ p.panstwo_nazwa }}</span>
+                            {% endfor %}
+
+                            {% if f.panstwa|length > limit %}
+                                <span class="badge more">
+                                    +{{ f.panstwa|length - limit }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="actions-cell">
+                    <div class="action-buttons">
+                        <a href="/flora/{{ f.flora_id }}" class="btn-zeus btn-view">Podgląd</a>
+                        {% if session.rola == "wszechmocny" %}
+                        <a href="/flora/{{ f.flora_id }}/edit" class="btn-zeus btn-edit">Edytuj</a>
+                        {% else %}
+                        <a href="#" class="btn-edit" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Edytuj</a>
+                        {% endif %}
+
+                        {% if session.rola == "wszechmocny" %}
+                        <form method="POST"
+                            action="/flora/{{ f.flora_id }}/delete"
+                            onsubmit="return confirm('Czy na pewno chcesz usunąć tę roślinę?');">
+                            <button type="submit" class="btn-zeus btn-delete">Usuń</button>
+                        </form>
+                        {% else %}
+                        <form method="POST"
+                            action="#";>
+                            <button type="button" class="btn-zeus btn-delete" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">Usuń</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</div>
+
+<!-- ===== JS ===== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const kontynentSelect = document.getElementById("kontynent");
+    const panstwoSelect   = document.getElementById("panstwo");
+
+    const selectedPanstwo = "{{ selected_panstwo or '' }}";
+    const selectedKontynent = "{{ selected_kontynent or '' }}";
+
+    function loadPanstwa(kontynent) {
+
+        panstwoSelect.innerHTML = "";
+
+        if (!kontynent) {
+            panstwoSelect.disabled = true;
+            panstwoSelect.innerHTML = "<option value=''>— wybierz kontynent —</option>";
+            return;
+        }
+
+        panstwoSelect.disabled = true;
+        panstwoSelect.innerHTML = "<option value=''>Ładowanie państw...</option>";
+
+        fetch(`/api/panstwa_by_kontynent?kontynent_id=${encodeURIComponent(kontynent)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Błąd pobierania państw");
+                }
+                return response.json();
+            })
+            .then(data => {
+
+                panstwoSelect.disabled = false;
+                panstwoSelect.innerHTML = "<option value=''>— wszystkie państwa —</option>";
+
+                data.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.textContent = p.nazwa;
+
+                    // 🔥 przywrócenie wyboru
+                    if (selectedPanstwo && String(p.id) === String(selectedPanstwo)) {
+                        opt.selected = true;
+                    }
+
+                    panstwoSelect.appendChild(opt);
+                });
+
+            })
+            .catch(err => {
+                console.error(err);
+                panstwoSelect.innerHTML = "<option value=''>Błąd ładowania</option>";
+            });
+    }
+
+    // zmiana kontynentu
+    kontynentSelect.addEventListener("change", function () {
+        loadPanstwa(this.value);
+    });
+
+    // 🔥 INIT – przywrócenie stanu
+    if (selectedKontynent) {
+        kontynentSelect.value = selectedKontynent;
+        loadPanstwa(selectedKontynent);
+    }
+
+});
+</script>
+
+{% endblock %}

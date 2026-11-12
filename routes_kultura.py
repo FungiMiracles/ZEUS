@@ -23,24 +23,18 @@ def init_kultura_routes(app):
         kontynent_id = request.args.get("kontynent_id", type=int)
         panstwo_id = request.args.get("panstwo", type=int)
         jezyk_id = request.args.get("jezyk", type=int)
+        rodzina_id = request.args.get("rodzina_id", type=int)
+        rodziny_jezykowe = DictJezykRodzina.query.order_by(
+            DictJezykRodzina.nazwa
+        ).all()
 
         query = db.session.query(Jezyk)
 
         if jezyk_id:
             query = query.filter(Jezyk.jezyk_id == jezyk_id)
 
-        if panstwo_id:
-            query = query.join(
-                JezykiPerPanstwo,
-                (JezykiPerPanstwo.jezyk_urzedowy1 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_urzedowy2 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_urzedowy3 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_mniejszosciowy1 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_mniejszosciowy2 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_mniejszosciowy3 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_mniejszosciowy4 == Jezyk.jezyk_id) |
-                (JezykiPerPanstwo.jezyk_mniejszosciowy5 == Jezyk.jezyk_id)
-            ).filter(JezykiPerPanstwo.panstwo_id == panstwo_id)
+        if rodzina_id:
+            query = query.filter(Jezyk.jezyk_rodzina_id == rodzina_id)
 
         joined = False
 
@@ -70,12 +64,62 @@ def init_kultura_routes(app):
 
         wyniki = query.distinct().order_by(Jezyk.jezyk_nazwa.asc()).all()
 
+        panstwa_per_jezyk = {}
+
+        for jezyk in wyniki:
+
+            profile = JezykiPerPanstwo.query.join(Panstwo).filter(
+                (JezykiPerPanstwo.jezyk_urzedowy1 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy2 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy3 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy1 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy2 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy3 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy4 == jezyk.jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy5 == jezyk.jezyk_id)
+            ).all()
+
+            panstwa_per_jezyk[jezyk.jezyk_id] = [
+                p.panstwo for p in profile
+            ]
+
         return render_template(
             "kultura_jezyki.html",
             wyniki=wyniki,
+            panstwa_per_jezyk=panstwa_per_jezyk,
             selected_kontynent=kontynent_id,
             selected_panstwo=panstwo_id,
-            selected_jezyk=jezyk_id
+            selected_jezyk=jezyk_id,
+            rodziny_jezykowe=rodziny_jezykowe,
+            selected_rodzina=rodzina_id,
+        )
+    
+    @app.route("/api/kultura/dodaj_rodzine", methods=["POST"])
+    def dodaj_rodzine():
+        data = request.get_json()
+
+        nazwa = (data.get("nazwa") or "").strip()
+
+        if not nazwa:
+            return jsonify(success=False, error="Brak nazwy")
+
+        # sprawdzenie duplikatu
+        istnieje = DictJezykRodzina.query.filter_by(nazwa=nazwa).first()
+        if istnieje:
+            return jsonify(
+                success=True,
+                id=istnieje.jezyk_rodzina_id,
+                nazwa=istnieje.nazwa
+            )
+
+        nowa = DictJezykRodzina(nazwa=nazwa)
+        db.session.add(nowa)
+        db.session.commit()
+
+        return jsonify(
+            success=True,
+            id=nowa.jezyk_rodzina_id,
+            nazwa=nowa.nazwa
         )
 
     # ===============================
@@ -167,7 +211,7 @@ def init_kultura_routes(app):
             db.session.add(jezyk)
             db.session.commit()
 
-            flash("Język dodany.", "success")
+            flash("Język został dodany.", "success")
             return redirect(url_for("kultura_jezyki"))
 
         return render_template("kultura_jezyk_add.html", rodziny=rodziny)
@@ -236,9 +280,124 @@ def init_kultura_routes(app):
 
         jezyk = Jezyk.query.get_or_404(jezyk_id)
 
+        profile = (
+            JezykiPerPanstwo.query
+            .join(Panstwo)
+            .filter(
+                (JezykiPerPanstwo.jezyk_urzedowy1 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy2 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_urzedowy3 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy1 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy2 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy3 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy4 == jezyk_id) |
+                (JezykiPerPanstwo.jezyk_mniejszosciowy5 == jezyk_id)
+            )
+            .order_by(Panstwo.panstwo_nazwa)
+            .all()
+        )
+
+        panstwa_jezyka = []
+
+        pola = [
+            "jezyk_urzedowy1",
+            "jezyk_urzedowy2",
+            "jezyk_urzedowy3",
+            "jezyk_mniejszosciowy1",
+            "jezyk_mniejszosciowy2",
+            "jezyk_mniejszosciowy3",
+            "jezyk_mniejszosciowy4",
+            "jezyk_mniejszosciowy5",
+        ]
+
+        for profil in profile:
+
+            for pole in pola:
+
+                if getattr(profil, pole) == jezyk_id:
+
+                    panstwa_jezyka.append({
+                        "profil_id": profil.id,
+                        "panstwo": profil.panstwo,
+                        "pole": pole
+                    })
+
         return render_template(
             "kultura_jezyk_form.html",
-            jezyk=jezyk
+            jezyk=jezyk,
+            panstwa_jezyka=panstwa_jezyka
+        )
+    
+    @app.route(
+    "/kultura/jezyki/<int:jezyk_id>/odpinij/<int:profil_id>/<pole>",
+    methods=["POST"]
+    )
+    @wymaga_roli("wszechmocny")
+    def kultura_jezyk_odpinij(
+        jezyk_id,
+        profil_id,
+        pole
+    ):
+
+        dozwolone_pola = {
+            "jezyk_urzedowy1",
+            "jezyk_urzedowy2",
+            "jezyk_urzedowy3",
+            "jezyk_mniejszosciowy1",
+            "jezyk_mniejszosciowy2",
+            "jezyk_mniejszosciowy3",
+            "jezyk_mniejszosciowy4",
+            "jezyk_mniejszosciowy5",
+        }
+
+        if pole not in dozwolone_pola:
+
+            flash(
+                "Błąd 048: niepoprawne pole językowe.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "kultura_jezyk_form",
+                    jezyk_id=jezyk_id
+                )
+            )
+
+        profil = JezykiPerPanstwo.query.get_or_404(profil_id)
+
+        if getattr(profil, pole) != jezyk_id:
+
+            flash(
+                "Błąd 048: wskazane powiązanie nie istnieje.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "kultura_jezyk_form",
+                    jezyk_id=jezyk_id
+                )
+            )
+
+        setattr(
+            profil,
+            pole,
+            None
+        )
+
+        db.session.commit()
+
+        flash(
+            "Powiązanie zostało usunięte.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "kultura_jezyk_form",
+                jezyk_id=jezyk_id
+            )
         )
 
     # ===============================
@@ -344,29 +503,23 @@ def init_kultura_routes(app):
                 panstwo_id=int(panstwo_id)
             ).first()
 
-            if profil:
-                return render_template(
-                    "kultura_jezyk_przypisz.html",
-                    panstwa=panstwa,
-                    jezyki=jezyki,
-                    error="To państwo ma już przypisane języki.",
-                    form_data=request.form
+            if not profil:
+                profil = JezykiPerPanstwo(
+                    panstwo_id=int(panstwo_id)
                 )
+                db.session.add(profil)
 
-            # ===== ZAPIS =====
-            profil = JezykiPerPanstwo(
-                panstwo_id=int(panstwo_id),
+            profil.jezyk_urzedowy1 = int(urzedowe[0]) if urzedowe[0] else None
+            profil.jezyk_urzedowy2 = int(urzedowe[1]) if urzedowe[1] else None
+            profil.jezyk_urzedowy3 = int(urzedowe[2]) if urzedowe[2] else None
 
-                jezyk_urzedowy1=int(urzedowe[0]) if urzedowe[0] else None,
-                jezyk_urzedowy2=int(urzedowe[1]) if urzedowe[1] else None,
-                jezyk_urzedowy3=int(urzedowe[2]) if urzedowe[2] else None,
+            profil.jezyk_mniejszosciowy1 = int(mniejszosciowe[0]) if mniejszosciowe[0] else None
+            profil.jezyk_mniejszosciowy2 = int(mniejszosciowe[1]) if mniejszosciowe[1] else None
+            profil.jezyk_mniejszosciowy3 = int(mniejszosciowe[2]) if mniejszosciowe[2] else None
+            profil.jezyk_mniejszosciowy4 = int(mniejszosciowe[3]) if mniejszosciowe[3] else None
+            profil.jezyk_mniejszosciowy5 = int(mniejszosciowe[4]) if mniejszosciowe[4] else None
 
-                jezyk_mniejszosciowy1=int(mniejszosciowe[0]) if mniejszosciowe[0] else None,
-                jezyk_mniejszosciowy2=int(mniejszosciowe[1]) if mniejszosciowe[1] else None,
-                jezyk_mniejszosciowy3=int(mniejszosciowe[2]) if mniejszosciowe[2] else None,
-                jezyk_mniejszosciowy4=int(mniejszosciowe[3]) if mniejszosciowe[3] else None,
-                jezyk_mniejszosciowy5=int(mniejszosciowe[4]) if mniejszosciowe[4] else None,
-            )
+            db.session.commit()
 
             db.session.add(profil)
             db.session.commit()
@@ -379,3 +532,54 @@ def init_kultura_routes(app):
             jezyki=jezyki,
             form_data={}
         )
+
+    @app.route("/api/jezyki_per_panstwo/<int:panstwo_id>")
+    @wymaga_roli("wszechmocny")
+    def api_jezyki_per_panstwo(panstwo_id):
+
+        profil = JezykiPerPanstwo.query.filter_by(
+            panstwo_id=panstwo_id
+        ).first()
+
+        if not profil:
+            return jsonify({
+                "jezyk_urzedowy1": None,
+                "jezyk_urzedowy2": None,
+                "jezyk_urzedowy3": None,
+                "jezyk_mniejszosciowy1": None,
+                "jezyk_mniejszosciowy2": None,
+                "jezyk_mniejszosciowy3": None,
+                "jezyk_mniejszosciowy4": None,
+                "jezyk_mniejszosciowy5": None
+            })
+
+        return jsonify({
+            "jezyk_urzedowy1": profil.jezyk_urzedowy1,
+            "jezyk_urzedowy2": profil.jezyk_urzedowy2,
+            "jezyk_urzedowy3": profil.jezyk_urzedowy3,
+            "jezyk_mniejszosciowy1": profil.jezyk_mniejszosciowy1,
+            "jezyk_mniejszosciowy2": profil.jezyk_mniejszosciowy2,
+            "jezyk_mniejszosciowy3": profil.jezyk_mniejszosciowy3,
+            "jezyk_mniejszosciowy4": profil.jezyk_mniejszosciowy4,
+            "jezyk_mniejszosciowy5": profil.jezyk_mniejszosciowy5
+        })
+
+    @app.route("/usun_rodzine_jezykowa/<int:rodzina_id>", methods=["POST"])
+    @wymaga_roli("wszechmocny")
+    def usun_rodzine_jezykowa(rodzina_id):
+
+        rodzina = DictJezykRodzina.query.get_or_404(rodzina_id)
+
+        Jezyk.query.filter(
+            Jezyk.jezyk_rodzina_id == rodzina_id
+        ).update(
+            {Jezyk.jezyk_rodzina_id: None},
+            synchronize_session=False
+        )
+
+        db.session.delete(rodzina)
+        db.session.commit()
+
+        flash("Rodzina językowa została usunięta.", "success")
+
+        return redirect(url_for("kultura_jezyki"))

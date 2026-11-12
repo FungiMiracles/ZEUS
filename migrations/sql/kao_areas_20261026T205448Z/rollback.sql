@@ -1,0 +1,24 @@
+-- Database: entenda_uat_db; restore only if the computed value is still present.
+START TRANSACTION;
+UPDATE panstwa SET panstwo_powierzchnia=963120 WHERE PANSTWO_ID=1 AND kontynent_id=1 AND panstwo_powierzchnia=2121349;
+UPDATE panstwa SET panstwo_powierzchnia=597898 WHERE PANSTWO_ID=2 AND kontynent_id=1 AND panstwo_powierzchnia=1181225;
+UPDATE panstwa SET panstwo_powierzchnia=631557 WHERE PANSTWO_ID=3 AND kontynent_id=1 AND panstwo_powierzchnia=1262175;
+UPDATE panstwa SET panstwo_powierzchnia=29154 WHERE PANSTWO_ID=4 AND kontynent_id=1 AND panstwo_powierzchnia=56349;
+UPDATE panstwa SET panstwo_powierzchnia=32541 WHERE PANSTWO_ID=6 AND kontynent_id=1 AND panstwo_powierzchnia=64152;
+UPDATE panstwa SET panstwo_powierzchnia=331507 WHERE PANSTWO_ID=7 AND kontynent_id=1 AND panstwo_powierzchnia=662669;
+UPDATE panstwa SET panstwo_powierzchnia=502665 WHERE PANSTWO_ID=9 AND kontynent_id=1 AND panstwo_powierzchnia=1345072;
+UPDATE panstwa SET panstwo_powierzchnia=852156 WHERE PANSTWO_ID=14 AND kontynent_id=1 AND panstwo_powierzchnia=1727382;
+UPDATE panstwa SET panstwo_powierzchnia=331275 WHERE PANSTWO_ID=15 AND kontynent_id=1 AND panstwo_powierzchnia=788306;
+UPDATE panstwa SET panstwo_powierzchnia=602321 WHERE PANSTWO_ID=17 AND kontynent_id=1 AND panstwo_powierzchnia=1020807;
+UPDATE panstwa SET panstwo_powierzchnia=23777 WHERE PANSTWO_ID=25 AND kontynent_id=1 AND panstwo_powierzchnia=40390;
+UPDATE panstwa SET panstwo_powierzchnia=39475 WHERE PANSTWO_ID=28 AND kontynent_id=1 AND panstwo_powierzchnia=75107;
+UPDATE panstwa SET panstwo_powierzchnia=98541 WHERE PANSTWO_ID=51 AND kontynent_id=1 AND panstwo_powierzchnia=182536;
+UPDATE panstwa SET panstwo_powierzchnia=205002 WHERE PANSTWO_ID=58 AND kontynent_id=1 AND panstwo_powierzchnia=243883;
+UPDATE panstwa SET panstwo_powierzchnia=24115 WHERE PANSTWO_ID=68 AND kontynent_id=1 AND panstwo_powierzchnia=46362;
+UPDATE panstwa SET panstwo_powierzchnia=99815 WHERE PANSTWO_ID=115 AND kontynent_id=1 AND panstwo_powierzchnia=191218;
+UPDATE panstwa SET panstwo_powierzchnia=113224 WHERE PANSTWO_ID=116 AND kontynent_id=1 AND panstwo_powierzchnia=217934;
+UPDATE panstwa SET panstwo_powierzchnia=7748 WHERE PANSTWO_ID=117 AND kontynent_id=1 AND panstwo_powierzchnia=7236;
+UPDATE panstwa SET panstwo_powierzchnia=27441 WHERE PANSTWO_ID=118 AND kontynent_id=1 AND panstwo_powierzchnia=55288;
+UPDATE panstwa SET panstwo_powierzchnia=619547 WHERE PANSTWO_ID=120 AND kontynent_id=1 AND panstwo_powierzchnia=1178210;
+UPDATE panstwa SET panstwo_powierzchnia=58412 WHERE PANSTWO_ID=121 AND kontynent_id=1 AND panstwo_powierzchnia=148482;
+COMMIT;

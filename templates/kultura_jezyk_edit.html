@@ -65,6 +65,99 @@ Kultura — Edytuj język
     text-align: center;
 }
 
+.form-row select {
+    width: 100%;
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid #b4b9be;
+    font-family: inherit;
+    background-color: #ffffff;
+}
+
+.btn-add-inline {
+    margin-top: 8px;
+}
+
+.btn-add { background-color: #27ae60; color:#ffffff; }
+.btn-add:hover { background-color: #1e8749; color:#ffffff; }
+
+.btn-zeus {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+/* Primary ZEUS */
+.btn-primary {
+    background: #2c73d2;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #1f5bb0;
+    color: #ffffff;
+}
+
+/* Success (dla spójności przy okazji) */
+.btn-save {
+    background-color: #27ae60 !important;
+    color: white;
+}
+
+.btn-save:hover {
+    background-color: #1e8749;
+    color: white;
+    text-decoration: none !important;
+}
+
+.btn-back {
+    background-color: #949494;
+    color: #ffffff;
+    border: 1.5px solid #bdc3c7;
+    text-decoration: none;
+}
+.btn-back:hover {
+    background-color: #757575;
+    color: #ffffff;
+    text-decoration: none !important;
+}
+
+.modal-hidden {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.modal-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 320px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-box input {
+    width: 100%;
+    padding: 8px;
+    margin: 12px 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
 /* ===== MOBILE ===== */
 
 @media (max-width: 768px) {
@@ -117,14 +210,23 @@ Kultura — Edytuj język
             </div>
 
             <!-- RODZINA -->
-            <select name="jezyk_rodzina_id" required>
-                {% for r in rodziny %}
-                    <option value="{{ r.jezyk_rodzina_id }}"
-                        {% if jezyk.jezyk_rodzina_id == r.jezyk_rodzina_id %}selected{% endif %}>
-                        {{ r.nazwa }}
-                    </option>
-                {% endfor %}
-            </select>
+            <div class="form-row">
+                <label for="jezykRodzinaSelect">Rodzina językowa *</label>
+
+                <select name="jezyk_rodzina_id" id="jezykRodzinaSelect" required>
+                    <option value="">— wybierz —</option>
+                    {% for r in rodziny %}
+                        <option value="{{ r.jezyk_rodzina_id }}"
+                            {% if jezyk.jezyk_rodzina_id == r.jezyk_rodzina_id %}selected{% endif %}>
+                            {{ r.nazwa }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button type="button" class="btn-zeus btn-add btn-add-inline" id="addRodzinaBtn">
+                    + Dodaj rodzinę
+                </button>
+            </div>
 
             <!-- PRZYKŁAD PL -->
             <div class="form-row">
@@ -146,12 +248,12 @@ Kultura — Edytuj język
 
             <!-- AKCJE -->
             <div class="form-actions">
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn-zeus btn-save">
                     Zapisz zmiany
                 </button>
 
                 <a href="{{ url_for('kultura_jezyk_form', jezyk_id=jezyk.jezyk_id) }}"
-                   class="btn btn-secondary">
+                   class="btn-zeus btn-back">
                     Wróć
                 </a>
             </div>
@@ -160,6 +262,79 @@ Kultura — Edytuj język
 
     </div>
 
+    <div id="rodzinaModal" class="modal-hidden">
+        <div class="modal-box">
+            <h3>Dodaj rodzinę językową</h3>
+
+            <input type="text" id="nowaRodzinaInput" placeholder="Nazwa rodziny">
+
+            <div class="modal-actions">
+                <button class="btn-zeus btn-save" id="saveRodzinaBtn">
+                    Zapisz
+                </button>
+                <button class="btn-zeus btn-cancel" id="closeModalBtn">
+                    Anuluj
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const modal = document.getElementById("rodzinaModal");
+    const openBtn = document.getElementById("addRodzinaBtn");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const saveBtn = document.getElementById("saveRodzinaBtn");
+    const input = document.getElementById("nowaRodzinaInput");
+    const select = document.getElementById("jezykRodzinaSelect");
+
+    openBtn.addEventListener("click", () => {
+        modal.style.display = "flex";
+        input.value = "";
+    });
+
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    saveBtn.addEventListener("click", () => {
+        const nazwa = input.value.trim();
+
+        if (!nazwa) {
+            alert("Podaj nazwę");
+            return;
+        }
+
+        fetch("/api/kultura/dodaj_rodzine", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nazwa })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || "Błąd");
+                return;
+            }
+
+            // dodanie do selecta
+            const opt = document.createElement("option");
+            opt.value = data.id;
+            opt.textContent = data.nazwa;
+            opt.selected = true;
+
+            select.appendChild(opt);
+
+            modal.style.display = "none";
+        })
+        .catch(() => alert("Błąd zapisu"));
+    });
+
+});
+</script>
 
 {% endblock %}

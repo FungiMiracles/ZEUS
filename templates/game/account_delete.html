@@ -1,0 +1,29 @@
+{% extends "game/game_base_layout.html" %}
+{% block title %}ENTENDA GAME — Usuń konto{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_account.css',v='20261106-1') }}">{% endblock %}
+{% block content %}
+<section class="game-panel">
+  <div class="game-panel-heading">Usuń konto</div>
+  <div class="game-panel-body">
+    {% if not confirmed %}
+    <h2>Czy jesteś pewien, że chcesz usunąć konto?</h2>
+    <p>Adres e-mail i hasło zostaną usunięte. Historia decyzji i wiadomości na forum zostanie zachowana. Państwo zachowa swój obecny stan; jeśli ma zatwierdzoną konfigurację PAGA, zostanie przekazane do zarządzania autonomicznego.</p>
+    <form class="game-account-form" method="get" action="{{ url_for('game_account.remove') }}">
+      <input type="hidden" name="confirm" value="1">
+      <button type="submit">Tak</button>
+      <a href="{{ url_for('game_main_page') }}">Nie, wróć do Panelu państwa</a>
+    </form>
+    {% else %}
+    <h2>Potwierdź usunięcie konta hasłem</h2>
+    {% if error %}<p class="game-account-error" role="alert">{{ error }}</p>{% endif %}
+    <form class="game-account-form" method="post" action="{{ url_for('game_account.remove') }}">
+      <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+      <label for="delete-account-password">Hasło do konta</label>
+      <input id="delete-account-password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+      <button type="submit">Usuń konto</button>
+      <a href="{{ url_for('game_main_page') }}">Anuluj</a>
+    </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

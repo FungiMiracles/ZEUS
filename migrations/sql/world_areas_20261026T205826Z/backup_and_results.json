@@ -1,0 +1,720 @@
+{
+  "database": "entenda_uat_db",
+  "source": "/home/oskar_zeus_admin/ZEUS_UAT/static/maps/entenda_panstwa.geojson",
+  "source_sha256": "8ea367eef375173ebbbbfe38c7217684235a3fffaeeac9646f77ec586c846b6e",
+  "calibration": {
+    "id": 1,
+    "reference_city_a": 1,
+    "reference_city_b": 852,
+    "reference_km": 100.0,
+    "km_per_unit": 3.910919870403471,
+    "reference_a_x": 954.7510623012616,
+    "reference_a_y": -1801.62366708549,
+    "reference_b_x": 952.4987942837062,
+    "reference_b_y": -1776.1536230000308
+  },
+  "geometry_repairs": [
+    {
+      "country_id": 49,
+      "reason": "Self-intersection[4020.35222415063 -2975.73032822752]",
+      "old_map_area": 210695.0672806128,
+      "repaired_map_area": 210695.0672806125
+    }
+  ],
+  "method": "Planar union of country polygons, holes excluded; area * km_per_unit^2; rounded to nearest whole km²",
+  "countries": [
+    {
+      "PANSTWO_ID": 1,
+      "panstwo_nazwa": "Tunganiria",
+      "panstwo_powierzchnia": 2121349,
+      "map_area": 138692.89103375177,
+      "new_area_km2": 2121349
+    },
+    {
+      "PANSTWO_ID": 2,
+      "panstwo_nazwa": "Hopia",
+      "panstwo_powierzchnia": 1181225,
+      "map_area": 77228.02312581558,
+      "new_area_km2": 1181225
+    },
+    {
+      "PANSTWO_ID": 3,
+      "panstwo_nazwa": "Nuveco",
+      "panstwo_powierzchnia": 1262175,
+      "map_area": 82520.47576564217,
+      "new_area_km2": 1262175
+    },
+    {
+      "PANSTWO_ID": 4,
+      "panstwo_nazwa": "Alata",
+      "panstwo_powierzchnia": 56349,
+      "map_area": 3684.0821162379107,
+      "new_area_km2": 56349
+    },
+    {
+      "PANSTWO_ID": 6,
+      "panstwo_nazwa": "Izziko",
+      "panstwo_powierzchnia": 64152,
+      "map_area": 4194.214330802833,
+      "new_area_km2": 64152
+    },
+    {
+      "PANSTWO_ID": 7,
+      "panstwo_nazwa": "Ozilandia",
+      "panstwo_powierzchnia": 662669,
+      "map_area": 43324.99846008841,
+      "new_area_km2": 662669
+    },
+    {
+      "PANSTWO_ID": 9,
+      "panstwo_nazwa": "Prewaria",
+      "panstwo_powierzchnia": 1345072,
+      "map_area": 87940.26286359978,
+      "new_area_km2": 1345072
+    },
+    {
+      "PANSTWO_ID": 10,
+      "panstwo_nazwa": "Nopalia",
+      "panstwo_powierzchnia": 1085016,
+      "map_area": 143658.01290370605,
+      "new_area_km2": 2197292
+    },
+    {
+      "PANSTWO_ID": 11,
+      "panstwo_nazwa": "Dahader",
+      "panstwo_powierzchnia": 894180,
+      "map_area": 119628.38196867326,
+      "new_area_km2": 1829751
+    },
+    {
+      "PANSTWO_ID": 12,
+      "panstwo_nazwa": "Kodun",
+      "panstwo_powierzchnia": 77145,
+      "map_area": 6366.767229246457,
+      "new_area_km2": 97382
+    },
+    {
+      "PANSTWO_ID": 13,
+      "panstwo_nazwa": "Ilandia",
+      "panstwo_powierzchnia": 339672,
+      "map_area": 44046.732717475184,
+      "new_area_km2": 673708
+    },
+    {
+      "PANSTWO_ID": 14,
+      "panstwo_nazwa": "Grafonia",
+      "panstwo_powierzchnia": 1727382,
+      "map_area": 112935.5393942599,
+      "new_area_km2": 1727382
+    },
+    {
+      "PANSTWO_ID": 15,
+      "panstwo_nazwa": "Itrandia",
+      "panstwo_powierzchnia": 788306,
+      "map_area": 51539.13598746704,
+      "new_area_km2": 788306
+    },
+    {
+      "PANSTWO_ID": 16,
+      "panstwo_nazwa": "Hamblia",
+      "panstwo_powierzchnia": 89116,
+      "map_area": 11800.695183991435,
+      "new_area_km2": 180495
+    },
+    {
+      "PANSTWO_ID": 17,
+      "panstwo_nazwa": "Essowinia",
+      "panstwo_powierzchnia": 1020807,
+      "map_area": 66739.92408477265,
+      "new_area_km2": 1020807
+    },
+    {
+      "PANSTWO_ID": 18,
+      "panstwo_nazwa": "Kamblia",
+      "panstwo_powierzchnia": 97145,
+      "map_area": 13087.419599546907,
+      "new_area_km2": 200176
+    },
+    {
+      "PANSTWO_ID": 19,
+      "panstwo_nazwa": "Hostlandia",
+      "panstwo_powierzchnia": 1005748,
+      "map_area": 146903.97509688605,
+      "new_area_km2": 2246940
+    },
+    {
+      "PANSTWO_ID": 20,
+      "panstwo_nazwa": "Rannisjaon",
+      "panstwo_powierzchnia": 1019016,
+      "map_area": 139757.85822031213,
+      "new_area_km2": 2137638
+    },
+    {
+      "PANSTWO_ID": 21,
+      "panstwo_nazwa": "Markanowia",
+      "panstwo_powierzchnia": 566120,
+      "map_area": 96361.94975412799,
+      "new_area_km2": 1473884
+    },
+    {
+      "PANSTWO_ID": 22,
+      "panstwo_nazwa": "Kosliw Wschodni",
+      "panstwo_powierzchnia": 115441,
+      "map_area": 13549.534920157608,
+      "new_area_km2": 207244
+    },
+    {
+      "PANSTWO_ID": 23,
+      "panstwo_nazwa": "Kosliw Północny",
+      "panstwo_powierzchnia": 96115,
+      "map_area": 9940.5932564441,
+      "new_area_km2": 152044
+    },
+    {
+      "PANSTWO_ID": 24,
+      "panstwo_nazwa": "Irea",
+      "panstwo_powierzchnia": 86115,
+      "map_area": 8834.997554949248,
+      "new_area_km2": 135134
+    },
+    {
+      "PANSTWO_ID": 25,
+      "panstwo_nazwa": "Lantania Północna",
+      "panstwo_powierzchnia": 40390,
+      "map_area": 2640.6934042471203,
+      "new_area_km2": 40390
+    },
+    {
+      "PANSTWO_ID": 26,
+      "panstwo_nazwa": "Tantalia",
+      "panstwo_powierzchnia": 26113,
+      "map_area": 4368.993204719603,
+      "new_area_km2": 66825
+    },
+    {
+      "PANSTWO_ID": 27,
+      "panstwo_nazwa": "Parea",
+      "panstwo_powierzchnia": 191776,
+      "map_area": 17364.922856469086,
+      "new_area_km2": 265602
+    },
+    {
+      "PANSTWO_ID": 28,
+      "panstwo_nazwa": "Małpiony",
+      "panstwo_powierzchnia": 75107,
+      "map_area": 4910.4362009995575,
+      "new_area_km2": 75107
+    },
+    {
+      "PANSTWO_ID": 29,
+      "panstwo_nazwa": "Test",
+      "panstwo_powierzchnia": 115497,
+      "map_area": 7726.430155128235,
+      "new_area_km2": 118178
+    },
+    {
+      "PANSTWO_ID": 31,
+      "panstwo_nazwa": "Lajdos",
+      "panstwo_powierzchnia": 23557,
+      "map_area": 3103.4726521968773,
+      "new_area_km2": 47469
+    },
+    {
+      "PANSTWO_ID": 32,
+      "panstwo_nazwa": "Mostol",
+      "panstwo_powierzchnia": 283060,
+      "map_area": 42263.35032353227,
+      "new_area_km2": 646430
+    },
+    {
+      "PANSTWO_ID": 33,
+      "panstwo_nazwa": "Soto",
+      "panstwo_powierzchnia": 27415,
+      "map_area": 4539.224410941726,
+      "new_area_km2": 69429
+    },
+    {
+      "PANSTWO_ID": 34,
+      "panstwo_nazwa": "Szandenia",
+      "panstwo_powierzchnia": 289785,
+      "map_area": 46318.880598383876,
+      "new_area_km2": 708461
+    },
+    {
+      "PANSTWO_ID": 35,
+      "panstwo_nazwa": "Jowia",
+      "panstwo_powierzchnia": 898587,
+      "map_area": 140146.179819635,
+      "new_area_km2": 2143577
+    },
+    {
+      "PANSTWO_ID": 36,
+      "panstwo_nazwa": "Sorchenian",
+      "panstwo_powierzchnia": 279031,
+      "map_area": 34688.090331892614,
+      "new_area_km2": 530565
+    },
+    {
+      "PANSTWO_ID": 37,
+      "panstwo_nazwa": "Solonia",
+      "panstwo_powierzchnia": 69158,
+      "map_area": 5013.725418998482,
+      "new_area_km2": 76686
+    },
+    {
+      "PANSTWO_ID": 38,
+      "panstwo_nazwa": "Josom",
+      "panstwo_powierzchnia": 366190,
+      "map_area": 65591.03347599259,
+      "new_area_km2": 1003234
+    },
+    {
+      "PANSTWO_ID": 39,
+      "panstwo_nazwa": "Kosliw Południowy",
+      "panstwo_powierzchnia": 123887,
+      "map_area": 14904.712702249315,
+      "new_area_km2": 227972
+    },
+    {
+      "PANSTWO_ID": 40,
+      "panstwo_nazwa": "Farhan",
+      "panstwo_powierzchnia": 53009,
+      "map_area": 4797.105722624472,
+      "new_area_km2": 73373
+    },
+    {
+      "PANSTWO_ID": 41,
+      "panstwo_nazwa": "Dolwar",
+      "panstwo_powierzchnia": 7512,
+      "map_area": 565.8809532154236,
+      "new_area_km2": 8655
+    },
+    {
+      "PANSTWO_ID": 42,
+      "panstwo_nazwa": "Palwar",
+      "panstwo_powierzchnia": 103111,
+      "map_area": 13492.248425152493,
+      "new_area_km2": 206368
+    },
+    {
+      "PANSTWO_ID": 43,
+      "panstwo_nazwa": "Hasja",
+      "panstwo_powierzchnia": 91548,
+      "map_area": 8980.874985014381,
+      "new_area_km2": 137365
+    },
+    {
+      "PANSTWO_ID": 44,
+      "panstwo_nazwa": "Prometenia",
+      "panstwo_powierzchnia": 84597,
+      "map_area": 8057.999178507841,
+      "new_area_km2": 123249
+    },
+    {
+      "PANSTWO_ID": 45,
+      "panstwo_nazwa": "Rentia",
+      "panstwo_powierzchnia": 7119,
+      "map_area": 321.91846675394635,
+      "new_area_km2": 4924
+    },
+    {
+      "PANSTWO_ID": 46,
+      "panstwo_nazwa": "Strefa Kaskurska",
+      "panstwo_powierzchnia": 15479,
+      "map_area": 1030.9401917625335,
+      "new_area_km2": 15769
+    },
+    {
+      "PANSTWO_ID": 47,
+      "panstwo_nazwa": "Czeboria",
+      "panstwo_powierzchnia": 28647,
+      "map_area": 1680.0899656876418,
+      "new_area_km2": 25697
+    },
+    {
+      "PANSTWO_ID": 48,
+      "panstwo_nazwa": "Halwar",
+      "panstwo_powierzchnia": 100285,
+      "map_area": 12759.08029338043,
+      "new_area_km2": 195154
+    },
+    {
+      "PANSTWO_ID": 49,
+      "panstwo_nazwa": "Sajstan",
+      "panstwo_powierzchnia": 1485136,
+      "map_area": 211665.12774629524,
+      "new_area_km2": 3237480
+    },
+    {
+      "PANSTWO_ID": 50,
+      "panstwo_nazwa": "Parmia",
+      "panstwo_powierzchnia": 511236,
+      "map_area": 56173.32078245322,
+      "new_area_km2": 859187
+    },
+    {
+      "PANSTWO_ID": 51,
+      "panstwo_nazwa": "Atuna",
+      "panstwo_powierzchnia": 182536,
+      "map_area": 11934.11752375104,
+      "new_area_km2": 182536
+    },
+    {
+      "PANSTWO_ID": 52,
+      "panstwo_nazwa": "Litia",
+      "panstwo_powierzchnia": 375119,
+      "map_area": 39031.75413479039,
+      "new_area_km2": 597002
+    },
+    {
+      "PANSTWO_ID": 53,
+      "panstwo_nazwa": "Benimia",
+      "panstwo_powierzchnia": 109553,
+      "map_area": 10518.693776941634,
+      "new_area_km2": 160887
+    },
+    {
+      "PANSTWO_ID": 54,
+      "panstwo_nazwa": "Ceon",
+      "panstwo_powierzchnia": 29753,
+      "map_area": 2620.4309887630025,
+      "new_area_km2": 40080
+    },
+    {
+      "PANSTWO_ID": 55,
+      "panstwo_nazwa": "Malgebia",
+      "panstwo_powierzchnia": 28745,
+      "map_area": 2037.5361106892622,
+      "new_area_km2": 31165
+    },
+    {
+      "PANSTWO_ID": 56,
+      "panstwo_nazwa": "Kosliw Zachodni",
+      "panstwo_powierzchnia": 91114,
+      "map_area": 8539.54118535434,
+      "new_area_km2": 130615
+    },
+    {
+      "PANSTWO_ID": 57,
+      "panstwo_nazwa": "Pendulam",
+      "panstwo_powierzchnia": 1125613,
+      "map_area": 173331.60778653837,
+      "new_area_km2": 2651158
+    },
+    {
+      "PANSTWO_ID": 58,
+      "panstwo_nazwa": "Olet",
+      "panstwo_powierzchnia": 243883,
+      "map_area": 15944.944211644728,
+      "new_area_km2": 243883
+    },
+    {
+      "PANSTWO_ID": 59,
+      "panstwo_nazwa": "Wyspy Świętego Walezego",
+      "panstwo_powierzchnia": 94197,
+      "map_area": 6565.939707379145,
+      "new_area_km2": 100428
+    },
+    {
+      "PANSTWO_ID": 60,
+      "panstwo_nazwa": "Ekletius",
+      "panstwo_powierzchnia": 227129,
+      "map_area": 40964.41491657783,
+      "new_area_km2": 626563
+    },
+    {
+      "PANSTWO_ID": 61,
+      "panstwo_nazwa": "Euchus",
+      "panstwo_powierzchnia": 192724,
+      "map_area": 30074.177078705237,
+      "new_area_km2": 459993
+    },
+    {
+      "PANSTWO_ID": 62,
+      "panstwo_nazwa": "Nabassimi",
+      "panstwo_powierzchnia": 22441,
+      "map_area": 1053.5952569711226,
+      "new_area_km2": 16115
+    },
+    {
+      "PANSTWO_ID": 63,
+      "panstwo_nazwa": "Egerea",
+      "panstwo_powierzchnia": 27711,
+      "map_area": 2902.9395527473466,
+      "new_area_km2": 44401
+    },
+    {
+      "PANSTWO_ID": 64,
+      "panstwo_nazwa": "Zanalia",
+      "panstwo_powierzchnia": 203119,
+      "map_area": 30061.546290341455,
+      "new_area_km2": 459800
+    },
+    {
+      "PANSTWO_ID": 65,
+      "panstwo_nazwa": "Maurycja",
+      "panstwo_powierzchnia": 105387,
+      "map_area": 11089.668981348716,
+      "new_area_km2": 169620
+    },
+    {
+      "PANSTWO_ID": 66,
+      "panstwo_nazwa": "Daljamicja",
+      "panstwo_powierzchnia": 215409,
+      "map_area": 27794.165075929508,
+      "new_area_km2": 425120
+    },
+    {
+      "PANSTWO_ID": 67,
+      "panstwo_nazwa": "Riwalia",
+      "panstwo_powierzchnia": 77114,
+      "map_area": 5528.350922162859,
+      "new_area_km2": 84558
+    },
+    {
+      "PANSTWO_ID": 68,
+      "panstwo_nazwa": "Caria",
+      "panstwo_powierzchnia": 46362,
+      "map_area": 3031.1586323106203,
+      "new_area_km2": 46362
+    },
+    {
+      "PANSTWO_ID": 69,
+      "panstwo_nazwa": "Lankitiawa",
+      "panstwo_powierzchnia": 126874,
+      "map_area": 14111.501858986758,
+      "new_area_km2": 215840
+    },
+    {
+      "PANSTWO_ID": 70,
+      "panstwo_nazwa": "Hulta",
+      "panstwo_powierzchnia": 68719,
+      "map_area": 2373.7441800497177,
+      "new_area_km2": 36307
+    },
+    {
+      "PANSTWO_ID": 115,
+      "panstwo_nazwa": "Cicirici",
+      "panstwo_powierzchnia": 191218,
+      "map_area": 12501.738080363219,
+      "new_area_km2": 191218
+    },
+    {
+      "PANSTWO_ID": 116,
+      "panstwo_nazwa": "Czymony",
+      "panstwo_powierzchnia": 217934,
+      "map_area": 14248.427648698926,
+      "new_area_km2": 217934
+    },
+    {
+      "PANSTWO_ID": 117,
+      "panstwo_nazwa": "Iwo",
+      "panstwo_powierzchnia": 7236,
+      "map_area": 473.10906981605933,
+      "new_area_km2": 7236
+    },
+    {
+      "PANSTWO_ID": 118,
+      "panstwo_nazwa": "Etos",
+      "panstwo_powierzchnia": 55288,
+      "map_area": 3614.707338584177,
+      "new_area_km2": 55288
+    },
+    {
+      "PANSTWO_ID": 120,
+      "panstwo_nazwa": "Arastania",
+      "panstwo_powierzchnia": 1178210,
+      "map_area": 77030.88733548981,
+      "new_area_km2": 1178210
+    },
+    {
+      "PANSTWO_ID": 121,
+      "panstwo_nazwa": "Ikko",
+      "panstwo_powierzchnia": 148482,
+      "map_area": 9707.686396268195,
+      "new_area_km2": 148482
+    },
+    {
+      "PANSTWO_ID": 122,
+      "panstwo_nazwa": "Palland",
+      "panstwo_powierzchnia": 1471912,
+      "map_area": 207249.3367634328,
+      "new_area_km2": 3169940
+    },
+    {
+      "PANSTWO_ID": 123,
+      "panstwo_nazwa": "Findehalia",
+      "panstwo_powierzchnia": 391487,
+      "map_area": 65968.42346559062,
+      "new_area_km2": 1009006
+    },
+    {
+      "PANSTWO_ID": 124,
+      "panstwo_nazwa": "Dżamblia",
+      "panstwo_powierzchnia": 96553,
+      "map_area": 11140.834066113104,
+      "new_area_km2": 170402
+    },
+    {
+      "PANSTWO_ID": 125,
+      "panstwo_nazwa": "Arkantenia",
+      "panstwo_powierzchnia": 887139,
+      "map_area": 96067.79086914602,
+      "new_area_km2": 1469385
+    },
+    {
+      "PANSTWO_ID": 126,
+      "panstwo_nazwa": "Burgundia",
+      "panstwo_powierzchnia": 376108,
+      "map_area": 55873.054460892046,
+      "new_area_km2": 854595
+    },
+    {
+      "PANSTWO_ID": 127,
+      "panstwo_nazwa": "Surpata",
+      "panstwo_powierzchnia": 622732,
+      "map_area": 81827.36571682789,
+      "new_area_km2": 1251574
+    },
+    {
+      "PANSTWO_ID": 128,
+      "panstwo_nazwa": "Pobelia",
+      "panstwo_powierzchnia": 362316,
+      "map_area": 44244.60705987645,
+      "new_area_km2": 676734
+    },
+    {
+      "PANSTWO_ID": 129,
+      "panstwo_nazwa": "Imbiria",
+      "panstwo_powierzchnia": 141530,
+      "map_area": 13382.40717628321,
+      "new_area_km2": 204688
+    },
+    {
+      "PANSTWO_ID": 130,
+      "panstwo_nazwa": "Elgia",
+      "panstwo_powierzchnia": 78145,
+      "map_area": 6866.424221194949,
+      "new_area_km2": 105024
+    },
+    {
+      "PANSTWO_ID": 131,
+      "panstwo_nazwa": "Oakas",
+      "panstwo_powierzchnia": 164792,
+      "map_area": 18224.85163281879,
+      "new_area_km2": 278754
+    },
+    {
+      "PANSTWO_ID": 132,
+      "panstwo_nazwa": "Nemius",
+      "panstwo_powierzchnia": 87213,
+      "map_area": 7630.57631899044,
+      "new_area_km2": 116712
+    },
+    {
+      "PANSTWO_ID": 133,
+      "panstwo_nazwa": "Urchabis",
+      "panstwo_powierzchnia": 83256,
+      "map_area": 5813.884576980246,
+      "new_area_km2": 88925
+    },
+    {
+      "PANSTWO_ID": 134,
+      "panstwo_nazwa": "Teon",
+      "panstwo_powierzchnia": 203795,
+      "map_area": 23732.82078004221,
+      "new_area_km2": 363000
+    },
+    {
+      "PANSTWO_ID": 135,
+      "panstwo_nazwa": "Metycja",
+      "panstwo_powierzchnia": 201657,
+      "map_area": 26561.917391124724,
+      "new_area_km2": 406272
+    },
+    {
+      "PANSTWO_ID": 136,
+      "panstwo_nazwa": "Tersa",
+      "panstwo_powierzchnia": 2038032,
+      "map_area": 275076.25522995216,
+      "new_area_km2": 4207372
+    },
+    {
+      "PANSTWO_ID": 137,
+      "panstwo_nazwa": "Henza",
+      "panstwo_powierzchnia": 200456,
+      "map_area": 29334.30615957816,
+      "new_area_km2": 448677
+    },
+    {
+      "PANSTWO_ID": 138,
+      "panstwo_nazwa": "Kermia",
+      "panstwo_powierzchnia": 305704,
+      "map_area": 32582.731110555203,
+      "new_area_km2": 498362
+    },
+    {
+      "PANSTWO_ID": 139,
+      "panstwo_nazwa": "Arlania",
+      "panstwo_powierzchnia": 373639,
+      "map_area": 50325.12878081024,
+      "new_area_km2": 769738
+    },
+    {
+      "PANSTWO_ID": 140,
+      "panstwo_nazwa": "Iskalia i Wyspy",
+      "panstwo_powierzchnia": 118540,
+      "map_area": 6429.255921705174,
+      "new_area_km2": 98337
+    },
+    {
+      "PANSTWO_ID": 141,
+      "panstwo_nazwa": "Tuawa",
+      "panstwo_powierzchnia": 6102,
+      "map_area": 246.24208668445965,
+      "new_area_km2": 3766
+    },
+    {
+      "PANSTWO_ID": 142,
+      "panstwo_nazwa": "Osatio",
+      "panstwo_powierzchnia": 22372,
+      "map_area": 1346.7815904139225,
+      "new_area_km2": 20599
+    },
+    {
+      "PANSTWO_ID": 143,
+      "panstwo_nazwa": "Piris i Kafert",
+      "panstwo_powierzchnia": 2342,
+      "map_area": 152.20823899936715,
+      "new_area_km2": 2328
+    },
+    {
+      "PANSTWO_ID": 144,
+      "panstwo_nazwa": "Wyspy Wężowe",
+      "panstwo_powierzchnia": 22946,
+      "map_area": 728.4082939402298,
+      "new_area_km2": 11141
+    },
+    {
+      "PANSTWO_ID": 145,
+      "panstwo_nazwa": "Republika Zontyjska",
+      "panstwo_powierzchnia": 52493,
+      "map_area": 3566.3697089872194,
+      "new_area_km2": 54549
+    },
+    {
+      "PANSTWO_ID": 146,
+      "panstwo_nazwa": "Darhut",
+      "panstwo_powierzchnia": 25137,
+      "map_area": 1734.3303310875228,
+      "new_area_km2": 26527
+    },
+    {
+      "PANSTWO_ID": 164,
+      "panstwo_nazwa": "Kalepary",
+      "panstwo_powierzchnia": 9847,
+      "map_area": 685.3371124924442,
+      "new_area_km2": 10482
+    }
+  ]
+}

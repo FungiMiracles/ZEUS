@@ -1,0 +1,4 @@
+<section class="game-panel loan-panel" id="state-loans" data-state-url="{{ url_for('game_loans.state') }}" data-change-url="{{ url_for('game_loans.change') }}" data-csrf="{{ game_csrf_token }}">
+<h2 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/POŻYCZKA.svg') }}" alt="" width="30" height="30">Pożyczki między państwami</h2><p>Poproś inne państwo o środki. Wypłata i spłata korzystają z rezerw budżetowych obu stron. Bez automatycznych odsetek i terminów.</p>
+<form id="loan-request-form"><label>Państwo udzielające pożyczki<select id="loan-lender" required></select></label><label>Kwota (MLD)<input name="amount" type="number" min="1" step="1" required inputmode="numeric" data-money-input="MLD" title="Podaj pełne miliardy: 1 oznacza 1 miliard ROI."></label><button type="submit">Wyślij zapytanie o pożyczkę</button></form>
+<p id="loan-status" role="status" aria-live="polite"></p><div id="loan-list"></div></section>

@@ -1,0 +1,293 @@
+{% extends "base_layout.html" %}
+{% block title %}Dodaj roślinę{% endblock %}
+
+{% block content %}
+
+<style>
+.form-box {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #d3d6da;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.form-box h2 {
+    margin-bottom: 15px;
+    color: #34495e;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #bfc5cc;
+}
+
+.actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
+    border: none;
+    cursor: pointer;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
+}
+
+.btn-save { background-color: #27ae60; text-decoration: none !important; color: #ffffff;} 
+.btn-save:hover { background-color: #1e8749; text-decoration: none !important; color: #ffffff;}
+
+.btn-cancel { background-color: #c73424; text-decoration: none !important; color: #ffffff;}
+.btn-cancel:hover { background-color: #96271b; text-decoration: none !important; color: #ffffff;}
+
+.placeholder {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.list-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    line-height: 1.2;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.list-item:hover {
+    background: #f2f5ff;
+}
+
+/* 🔥 INPUT + ODSTĘP */
+.list-item input[type="checkbox"],
+.list-item input[type="radio"] {
+    display: inline-block !important;
+    width: auto !important;
+    margin: 0 8px 0 0 !important;   /* ← TU masz odstęp */
+}
+
+/* tekst */
+.label-text {
+    display: inline-block;
+    line-height: 1.2;
+}
+
+/* placeholder */
+.placeholder {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.btn-save:active {
+    transform: scale(0.97);
+}
+
+.btn-cancel:active {
+    transform: scale(0.97);
+}
+
+.region-flash-item {
+    max-width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.region-flash-item.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.region-flash-item.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.region-flash-item.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.region-flash-item.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+</style>
+
+<div class="form-box">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="region-flash">
+                {% for category, message in messages %}
+                    <div class="region-flash-item {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h2>Dodaj roślinę</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <!-- NAZWA -->
+        <div class="form-group">
+            <label>Nazwa *</label>
+            <input name="nazwa" required>
+        </div>
+
+        <!-- OPIS -->
+        <div class="form-group">
+            <label>Opis *</label>
+            <textarea name="opis" rows="4" required></textarea>
+        </div>
+
+        <!-- KONTYNENTY -->
+        <div class="form-group">
+            <label>Kontynent</label>
+            <div class="list-compact">
+                {% for k in kontynenty %}
+                    <label class="list-item">
+                        <input type="checkbox"
+                            name="kontynent_id"
+                            value="{{ k.kontynent_id }}">
+                        <span class="label-text">{{ k.kontynent_nazwa }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PAŃSTWA -->
+        <div class="form-group">
+            <label>Państwa</label>
+            <div id="panstwa-box" class="list-compact">
+                <span class="placeholder">Najpierw wybierz kontynent</span>
+            </div>
+        </div>
+
+        <!-- OBRAZ -->
+        <div class="form-group">
+            <label>Obraz</label>
+            <input type="file" name="obraz" accept="image/png, image/jpeg">
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="actions">
+            <button type="submit" class="btn-zeus btn-save">Zapisz</button>
+            <a href="/flora" class="btn-zeus btn-cancel">Anuluj</a>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const kontynenty = document.querySelectorAll("input[name='kontynent_id']");
+    const panstwaBox = document.getElementById("panstwa-box");
+
+    function loadPanstwa() {
+
+        const checked = Array.from(kontynenty)
+            .filter(c => c.checked)
+            .map(c => c.value);
+
+        if (checked.length === 0) {
+            panstwaBox.innerHTML = "<span class='placeholder'>Wybierz kontynent</span>";
+            return;
+        }
+
+        panstwaBox.innerHTML = "<span class='placeholder'>Ładowanie...</span>";
+
+        Promise.all(
+            checked.map(id =>
+                fetch(`/api/panstwa_by_kontynent?kontynent_id=${id}`)
+                    .then(res => res.json())
+            )
+        ).then(results => {
+
+            // deduplikacja państw
+            const all = {};
+            results.flat().forEach(p => {
+                all[p.id] = p;
+            });
+
+            panstwaBox.innerHTML = "";
+
+            Object.values(all).forEach(p => {
+
+                const label = document.createElement("label");
+                label.className = "list-item";
+
+                const input = document.createElement("input");
+                input.type = "checkbox";
+                input.name = "panstwo_id";
+                input.value = p.id;
+
+                const text = document.createElement("span");
+                text.className = "label-text";
+                text.textContent = p.nazwa;
+
+                label.appendChild(input);
+                label.appendChild(text);
+
+                panstwaBox.appendChild(label);
+            });
+
+        }).catch(err => {
+            console.error(err);
+            panstwaBox.innerHTML = "<span class='placeholder'>Błąd ładowania</span>";
+        });
+    }
+
+    kontynenty.forEach(c => {
+        c.addEventListener("change", loadPanstwa);
+    });
+
+});
+</script>
+
+{% endblock %}

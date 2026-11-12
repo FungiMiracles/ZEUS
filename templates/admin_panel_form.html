@@ -1,0 +1,35 @@
+{% extends "base_layout.html" %}
+{% block title %}Procesy roczne i retencja — ZEUS{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wiki_process_logs.css', v='20261026-1') }}">
+<div class="process-logs-page">
+    <header class="process-logs-header">
+        <h1>Zestawienie potwierdzeń procesów rocznych i retencji w systemie ZEUS</h1>
+        <p>Historia wykonania procesów systemowych, uporządkowana od najnowszych wpisów.</p>
+    </header>
+    <section class="process-logs-card" aria-labelledby="process-logs-title">
+        <div class="process-logs-toolbar">
+            <h2 id="process-logs-title">Dziennik procesów <span class="process-logs-count">{{ logi_systemowe|length }}</span></h2>
+            <a href="{{ url_for('wiki_civic.roads_page') }}" class="process-logs-link">Budowa dróg</a>
+        </div>
+        <div class="process-logs-table-wrapper">
+            <table class="process-logs-table">
+                <thead><tr><th scope="col">ID</th><th scope="col">Zdarzenie</th><th scope="col">Data Entendy</th><th scope="col">Data rzeczywista</th><th scope="col">Opis</th></tr></thead>
+                <tbody>
+                {% for log in logi_systemowe %}
+                    <tr>
+                        <td data-label="ID"><span class="process-log-id">#{{ log.id }}</span></td>
+                        <td data-label="Zdarzenie">{{ log.zdarzenie.zdarzenie_systemowe_nazwa if log.zdarzenie else 'Brak danych' }}</td>
+                        <td data-label="Data Entendy">{{ log.data_entenda or '—' }}</td>
+                        <td data-label="Data rzeczywista">{{ log.data_rzeczywista.strftime("%Y-%m-%d %H:%M") if log.data_rzeczywista else '—' }}</td>
+                        <td data-label="Opis">{{ log.opis or '—' }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="process-logs-empty">Brak potwierdzeń procesów do wyświetlenia.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

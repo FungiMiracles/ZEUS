@@ -1,0 +1,50 @@
+{
+  "scope": "ZEUS_UAT only",
+  "regression": {
+    "tests": 553,
+    "passed": true
+  },
+  "controlled_scenarios": 22,
+  "controlled_post_operations": {
+    "EXECUTED": 42,
+    "REJECTED": 27,
+    "BLOCKED": 3
+  },
+  "successful_state_changes": 27,
+  "successful_previews_and_quotes": 15,
+  "real_model": {
+    "passed": true,
+    "model_steps": 2,
+    "model_successful_operations": 2,
+    "model_rejected_operations": 0,
+    "injected_rejected_decision": 1,
+    "injected_duplicate_block": 1,
+    "saved": {
+      "id": 1,
+      "pit_rate": "5.00",
+      "year": 2990,
+      "period": 1,
+      "benefit_payments": {
+        "children": "100000000.00",
+        "seniors": "100000000.00"
+      }
+    },
+    "source_unchanged": true
+  },
+  "deployment": {
+    "uat_reload": true,
+    "port": 5001,
+    "ai_enabled": false,
+    "revision": 14,
+    "regression_tests": 553,
+    "production_changed": false,
+    "reload_revision": 12,
+    "external_enable_revision_detected": 13,
+    "external_revision_observed_operations": {
+      "operations.list": 1,
+      "game_finance.page:GET": 1
+    },
+    "external_revision_game_writes": 0,
+    "external_jobs_cancelled": 41
+  }
+}

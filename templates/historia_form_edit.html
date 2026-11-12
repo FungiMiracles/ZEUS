@@ -105,13 +105,14 @@ a.btn-zeus:active {
 }
 
 .btn-cancel {
-    background-color: #eaeaea;
-    color: #34495e;
-    border: 1.5px solid #bdc3c7;
+    background-color: #c73424;
+    color: #ffffff;
 }
 
 .btn-cancel:hover {
-    background-color: #999999;
+    background-color: #96271b;
+    color: #ffffff;
+    text-decoration: none !important;
 }
 
 .btn-save {
@@ -222,7 +223,7 @@ a.btn-zeus:active {
                 <label>Data od *</label>
                 <input type="text"
                        name="data_od"
-                       value="{{ h.data_od.year }}"
+                       value="{{ h.data_od }}"
                        required>
             </div>
 
@@ -230,7 +231,7 @@ a.btn-zeus:active {
                 <label>Data do</label>
                 <input type="text"
                        name="data_do"
-                       value="{{ h.data_do.year if h.data_do }}">
+                       value="{{ h.data_do if h.data_do }}">
             </div>
         </div>
 

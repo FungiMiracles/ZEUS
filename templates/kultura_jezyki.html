@@ -49,7 +49,7 @@ Kultura — Języki
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 18px;
     align-items: end;
 }
@@ -129,7 +129,7 @@ Kultura — Języki
 
 /* Zeus — standard (niebieski) */
 .btn-zeus {
-    background: #5d7dce;
+    background: #284692;
     color: #ffffff;
     text-align: center;
 }
@@ -140,9 +140,31 @@ Kultura — Języki
     text-decoration: none;
 }
 
+.btn-cancel {
+    background: #c73424;
+    color: #ffffff;
+    text-align: center;
+}
+
+.btn-cancel:hover {
+    background: #96271b;
+    color: #ffffff;
+    text-align: center;
+}
+
+.btn-back {
+    background: #949494;
+    color: #ffffff;
+}
+
+.btn-back:hover {
+    background: #757575;
+    color: #ffffff;
+}
+
 /* Zeus — ciemny (szczegóły) */
 .btn-zeus-dark {
-    background: #5d7dce;
+    background: #284692;
     color: #ffffff;
 }
 
@@ -151,30 +173,43 @@ Kultura — Języki
     color: #ffffff;
 }
 
-/* Danger */
-.btn-danger {
-    background: #a00d0d;
-    background-color: #c0392b;;
-    border: none;
-}
-
-.btn-danger:hover {
-    background: #96271b;
-}
-
 /* Zachowane globalne */
-.btn-success {
+.btn-add {
     background-color: #27ae60;
     color: #ffffff;
 }
 
-.btn-success:hover {
-    background-color: #107038;
+.btn-add:hover {
+    background-color: #1e8749;
+    color: #ffffff;
+}
+
+.btn-view {
+    background-color: #2c73d2;
+    color: #ffffff;
+}
+
+.btn-view:hover {
+    background-color: #1f5bb0;
+    color: #ffffff;
+}
+
+.btn-assign {
+    background-color: #E8AC2E;
+    color: #ffffff;
+}
+
+.btn-assign:hover {
+    background-color: #C78E18;
     color: #ffffff;
 }
 
 .btn-edit {
-   background-color: #7f8c8d;
+   background-color: #2c73d2;
+}
+
+.btn-edit:hover {
+   background-color: #1f5bb0;
 }
 
 .btn-primary {
@@ -200,6 +235,157 @@ Kultura — Języki
     margin-top: 16px;
 }
 
+.zeus-modal {
+    display:none;
+    position:fixed;
+    z-index:9999;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.45);
+}
+
+.zeus-modal-content {
+    background:white;
+
+    width:700px;
+    max-width:92%;
+
+    margin:60px auto;
+    padding:25px;
+
+    border-radius:12px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.zeus-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.zeus-modal-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:20px;
+}
+
+.zeus-modal-header h3 {
+    margin:0;
+}
+
+.zeus-close-btn {
+    border:none;
+    background:#6c757d;
+    color:white;
+
+    padding:8px 16px;
+    border-radius:6px;
+
+    font-weight:600;
+    cursor:pointer;
+}
+
+.rodzina-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:12px 0;
+
+    border-bottom:1px solid #e3e3e3;
+}
+
+.btn-delete-rodzina {
+    border:none;
+
+    background:#c73424;
+    color:white;
+
+    padding:8px 14px;
+    border-radius:6px;
+
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-delete-rodzina:hover {
+    background:#96271b;
+}
+
+.modal-hidden {
+    display: none;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#rodzinaModal {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 10000;
+}
+
+.modal-box {
+    background: white;
+
+    width: 420px;
+    max-width: 92%;
+
+    padding: 24px;
+    border-radius: 12px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.modal-box input {
+    width: 100%;
+    padding: 10px 12px;
+
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+
+    margin-top: 12px;
+    margin-bottom: 18px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.language-flags {
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    margin-top:6px;
+}
+
+.flag-mini {
+    height:32px;
+    border:1px solid #888;
+    border-radius:2px;
+}
+
+.flag-mini:hover {
+    transform: scale(1.1);
+}
 
 /* ============================================================
    MOBILE
@@ -359,6 +545,23 @@ Kultura — Języki
                     </select>
                 </div>
 
+                <div>
+                    <label><strong>Rodzina językowa</strong></label>
+
+                    <select name="rodzina_id" class="form-control">
+
+                        <option value="">— wszystkie rodziny —</option>
+
+                        {% for r in rodziny_jezykowe %}
+                        <option value="{{ r.jezyk_rodzina_id }}"
+                            {% if selected_rodzina == r.jezyk_rodzina_id %}selected{% endif %}>
+                            {{ r.nazwa }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
             </div>
 
             <div class="filter-actions">
@@ -374,24 +577,37 @@ Kultura — Języki
     <div class="actions">
 
         {% if session.rola in ["tworzyciel", "wszechmocny"] %}
-        <a href="{{ url_for('kultura_jezyk_add') }}" class="btn-zeus btn-success">
+        <a href="{{ url_for('kultura_jezyk_add') }}" class="btn-zeus btn-add">
             Dodaj nowy język
         </a>
         {% else %}
-        <a href="#" class="btn-zeus btn-success" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+        <a href="#" class="btn-zeus btn-add" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
             Dodaj nowy język
         </a>
         {% endif %}
        
         {% if session.rola == "wszechmocny" %}
-        <a href="{{ url_for('kultura_jezyk_przypisz') }}" class="btn-zeus btn-success">
+        <a href="{{ url_for('kultura_jezyk_przypisz') }}" class="btn-zeus btn-assign">
             Przypisz język do państwa
         </a>
         {% else %}
-        <a href="#" class="btn-zeus btn-success" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+        <a href="#" class="btn-zeus btn-assign" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
             Przypisz język do państwa
         </a>
-        {% endif %}
+        {% endif %}  
+        {% if session.rola == "wszechmocny" %}
+        <a href="#"
+        class="btn-zeus btn-view"
+        onclick="openRodzinyModal()">
+            Wyświetl listę rodzin językowych
+        </a>
+        {% else %}
+        <a href="#"
+        class="btn-zeus btn-view"
+        onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+            Wyświetl listę rodzin językowych
+        </a>
+        {% endif %}    
     </div>
 
     <!-- ===== WYNIKI ===== -->
@@ -412,7 +628,7 @@ Kultura — Języki
                         </h3>
 
                         <p style="font-size:0.85em; color:#666;">
-                            Rodzina: {{ j.jezyk_rodzina or "—" }}
+                            Rodzina: {{ j.jezyk_rodzina.nazwa if j.jezyk_rodzina else "—" }}
                         </p>
 
                         <table class="lang-table">
@@ -425,12 +641,29 @@ Kultura — Języki
                                 <td>{{ j.przyklad_docelowy or "—" }}</td>
                             </tr>
                         </table>
+                        <div class="language-flags">
+
+                        {% for panstwo in panstwa_per_jezyk.get(j.jezyk_id, []) %}
+
+                            <a href="{{ url_for('panstwo_form', panstwo_id=panstwo.PANSTWO_ID) }}"
+                            title="{{ panstwo.panstwo_nazwa }}">
+
+                                <img
+                                    src="{{ url_for('static', filename='flags/' + panstwo.panstwo_nazwa.replace(' ','_') + '.jpg') }}"
+                                    class="flag-mini"
+                                    onerror="this.src='{{ url_for('static', filename='flags/default.png') }}'">
+
+                            </a>
+
+                        {% endfor %}
+
+                        </div>
 
                        <!-- ===== AKCJE JĘZYKA ===== -->
                             <div class="language-actions">
                         
                                 <a href="{{ url_for('kultura_jezyk_form', jezyk_id=j.jezyk_id) }}"
-                                   class="btn-zeus btn-zeus-dark">
+                                   class="btn-zeus btn-view">
                                     Szczegóły
                                 </a>
                                 {% if session.rola == "wszechmocny" %}
@@ -448,13 +681,13 @@ Kultura — Języki
 
                                 {% if session.rola == "wszechmocny" %}
                                 <a href="{{ url_for('kultura_jezyk_usun', jezyk_id=j.jezyk_id) }}"
-                                   class="btn-zeus btn-danger"
+                                   class="btn-zeus btn-cancel"
                                    onclick="return confirm('Czy na pewno chcesz usunąć ten język?');">
                                     Usuń
                                 </a>
                                 {% else %}
                                 <a href="#"
-                                   class="btn-zeus btn-danger"
+                                   class="btn-zeus btn-cancel"
                                    onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
                                     Usuń
                                 </a>
@@ -471,7 +704,76 @@ Kultura — Języki
 
         </div>
     {% endif %}
+    <!-- MODAL: RODZINY JĘZYKOWE -->
+    <div id="rodzinyModal" class="zeus-modal">
 
+        <div class="zeus-modal-content">
+
+            <div class="zeus-modal-header">
+
+                <h3>Rodziny językowe</h3>
+
+                <div style="display:flex; gap:10px;">
+
+                    <button type="button"
+                            class="btn-zeus btn-add"
+                            onclick="openRodzinaModal()">
+                        Dodaj rodzinę językową
+                    </button>
+
+                    <button type="button"
+                            class="btn-zeus btn-back"
+                            onclick="closeRodzinyModal()">
+                        Wróć
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="zeus-modal-body">
+
+                {% for rodzina in rodziny_jezykowe %}
+                <div class="rodzina-row">
+
+                    <div>
+                        <strong>{{ rodzina.nazwa }}</strong>
+                    </div>
+
+                    <form action="{{ url_for('usun_rodzine_jezykowa', rodzina_id=rodzina.jezyk_rodzina_id) }}"
+                        method="POST"
+                        onsubmit="return confirm('Czy na pewno chcesz usunąć tę rodzinę językową?');">
+
+                        <button type="submit" class="btn-delete-rodzina">
+                            Usuń
+                        </button>
+
+                    </form>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+    <div id="rodzinaModal" class="modal-hidden">
+        <div class="modal-box">
+            <h3>Dodaj rodzinę językową</h3>
+
+            <input type="text" id="nowaRodzinaInput" placeholder="Nazwa rodziny">
+
+            <div class="modal-actions">
+                <button class="btn-zeus btn-success" id="saveRodzinaBtn">
+                    Zapisz
+                </button>
+                <button class="btn-zeus btn-cancel" id="closeModalBtn">
+                    Anuluj
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -566,6 +868,80 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error(err);
             jezykSelect.innerHTML = "<option value=''>Błąd ładowania języków</option>";
         });
+
+});
+</script>
+
+<script>
+
+function openRodzinyModal() {
+    document.getElementById("rodzinyModal").style.display = "block";
+}
+
+function closeRodzinyModal() {
+    document.getElementById("rodzinyModal").style.display = "none";
+}
+
+function openRodzinaModal() {
+    const modal = document.getElementById("rodzinaModal");
+    modal.style.display = "flex";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("rodzinyModal");
+
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const modal = document.getElementById("rodzinaModal");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const saveBtn = document.getElementById("saveRodzinaBtn");
+    const input = document.getElementById("nowaRodzinaInput");
+
+    window.openRodzinaModal = function() {
+        modal.style.display = "flex";
+        input.value = "";
+    };
+
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    saveBtn.addEventListener("click", () => {
+        const nazwa = input.value.trim();
+
+        if (!nazwa) {
+            alert("Podaj nazwę");
+            return;
+        }
+
+        fetch("/api/kultura/dodaj_rodzine", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nazwa })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || "Błąd");
+                return;
+            }
+
+            modal.style.display = "none";
+            location.reload();
+
+        })
+        .catch(() => alert("Błąd zapisu"));
+    });
 
 });
 </script>

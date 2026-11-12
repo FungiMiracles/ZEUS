@@ -4,7 +4,8 @@ from flask import (
     redirect,
     url_for,
     flash,
-    jsonify
+    jsonify,
+    current_app
 )
 from extensions import db
 
@@ -15,13 +16,16 @@ from models import (
     DictStosunkiStan,
     DictStosunkiRelacja,
     OrganizacjaMiedzynarodowa,
-    OrganizacjaPanstwo
+    OrganizacjaPanstwo,
+    AudytStosunki,
+    AudytOrganizacje
 )
 
 from permissions import wymaga_roli
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from datetime import datetime
+from engine.clock import get_current_entenda_date
 
 
 def init_dyplomacja_routes(app):
@@ -40,8 +44,11 @@ def init_dyplomacja_routes(app):
             .all()
         )
 
+        from game.paga import approved_country_ids
+        paga_ids=approved_country_ids(db.session) if current_app.config.get("PAGA_ENABLED") else set()
         return render_template(
             "dyplomacja_list.html",
+            paga_ids=paga_ids,
             stosunki=stosunki,
             panstwa=panstwa
         )
@@ -88,11 +95,31 @@ def init_dyplomacja_routes(app):
         # ─────────────────────────────
         if request.method == "POST":
 
+            old_relacja_id = stosunek.relacja_id
+            old_stan_id = stosunek.stan_id
+
             relacja_id = request.form.get("relacja_id")
             stan_id = request.form.get("stan_id")
 
             stosunek.relacja_id = int(relacja_id)
             stosunek.stan_id = int(stan_id)
+
+            if (
+                old_relacja_id != stosunek.relacja_id
+                or old_stan_id != stosunek.stan_id
+            ):
+
+                audyt = AudytStosunki(
+                    panstwo_id=stosunek.PANSTWO_ID,
+                    panstwo_id2=stosunek.PANSTWO_ID2,
+                    relacja_id=stosunek.relacja_id,
+                    stan_id=stosunek.stan_id,
+                    data_zmiany_entenda=get_current_entenda_date(),
+                    data_zmiany_rzeczywista=datetime.now()
+                )
+
+                db.session.add(audyt)
+            
 
             try:
                 db.session.commit()
@@ -204,6 +231,74 @@ def init_dyplomacja_routes(app):
             "relacja": rel.relacja.relacja_nazwa if rel.relacja else "Neutralne",
             "stan": rel.stan.stan_nazwa if rel.stan else "Pokój"
         })
+
+    @app.route("/api/dyplomacja/historia")
+    def api_dyplomacja_historia():
+
+        p1 = request.args.get("p1", type=int)
+        p2 = request.args.get("p2", type=int)
+
+        if not p1 or not p2:
+            return jsonify([])
+
+        a, b = sorted([p1, p2])
+
+        historia = (
+            AudytStosunki.query
+            .filter_by(
+                panstwo_id=a,
+                panstwo_id2=b
+            )
+            .order_by(
+                AudytStosunki.data_zmiany_entenda.desc()
+            )
+            .all()
+        )
+
+        panstwo1 = Panstwo.query.get(a)
+        panstwo2 = Panstwo.query.get(b)
+
+        wynik = []
+
+        for h in historia:
+
+            relacja = DictStosunkiRelacja.query.get(
+                h.relacja_id
+            )
+
+            stan = DictStosunkiStan.query.get(
+                h.stan_id
+            )
+
+            wynik.append({
+
+                "panstwo1": panstwo1.panstwo_nazwa,
+
+                "panstwo2": panstwo2.panstwo_nazwa,
+
+                "relacja": (
+                    relacja.relacja_nazwa
+                    if relacja else ""
+                ),
+
+                "stan": (
+                    stan.stan_nazwa
+                    if stan else ""
+                ),
+
+                "data_entenda": (
+                    h.data_zmiany_entenda.strftime("%d.%m.%Y")
+                    if h.data_zmiany_entenda else ""
+                ),
+
+                "data_rzeczywista": (
+                    h.data_zmiany_rzeczywista.strftime("%d.%m.%Y %H:%M")
+                    if h.data_zmiany_rzeczywista else ""
+                )
+
+            })
+
+        return jsonify(wynik)
 
     @app.route("/api/dyplomacja/kontynenty")
     def api_dyplomacja_kontynenty():
@@ -559,6 +654,7 @@ def init_dyplomacja_routes(app):
                 )
 
                 db.session.add(rel)
+                zapisz_audyt_organizacji(rel)
                 db.session.commit()
 
                 flash("Państwo dodane do organizacji.", "success")
@@ -575,7 +671,7 @@ def init_dyplomacja_routes(app):
         )
     
     @app.route("/dyplomacja/organizacja/add", methods=["GET", "POST"])
-    @wymaga_roli("wszechmocny")
+    @wymaga_roli("tworzyciel", "wszechmocny")
     def organizacja_add():
 
         # 🔽 ZAWSZE przygotuj dane do formularza (GET + POST)
@@ -671,7 +767,9 @@ def init_dyplomacja_routes(app):
             flash("Nie znaleziono członka organizacji.", "error")
             return redirect(request.referrer or url_for("organizacje_view"))
 
-        rel.status_czlonkostwa = "byly_czlonek"
+        if rel.status_czlonkostwa != "byly_czlonek":
+            rel.status_czlonkostwa = "byly_czlonek"
+            zapisz_audyt_organizacji(rel)
 
         db.session.commit()
 
@@ -691,7 +789,9 @@ def init_dyplomacja_routes(app):
             flash("Nie znaleziono członka organizacji.", "error")
             return redirect(request.referrer or url_for("organizacje_view"))
 
-        rel.status_czlonkostwa = "zawieszony"
+        if rel.status_czlonkostwa != "zawieszony":
+            rel.status_czlonkostwa = "zawieszony"
+            zapisz_audyt_organizacji(rel)
 
         db.session.commit()
 
@@ -711,7 +811,9 @@ def init_dyplomacja_routes(app):
             flash("Nie znaleziono członka organizacji.", "error")
             return redirect(request.referrer or url_for("organizacje_view"))
 
-        rel.status_czlonkostwa = "czlonek"
+        if rel.status_czlonkostwa != "czlonek":
+            rel.status_czlonkostwa = "czlonek"
+            zapisz_audyt_organizacji(rel)
 
         db.session.commit()
 
@@ -731,12 +833,47 @@ def init_dyplomacja_routes(app):
             flash("Nie znaleziono członka organizacji.", "error")
             return redirect(request.referrer or url_for("organizacje_view"))
 
-        rel.status_czlonkostwa = "czlonek"
+        if rel.status_czlonkostwa != "czlonek":
+            rel.status_czlonkostwa = "czlonek"
+            zapisz_audyt_organizacji(rel)
 
         db.session.commit()
 
         flash("Państwo ponownie dołączyło do organizacji.", "success")
         return redirect(request.referrer or url_for("organizacje_view"))
+
+    def zapisz_audyt_organizacji(rel):
+        audyt = AudytOrganizacje(
+            org_id=rel.org_id,
+            panstwo_id=rel.panstwo_id,
+            status_czlonkostwa=rel.status_czlonkostwa,
+            data_zmiany_entenda=get_current_entenda_date(),
+            data_zmiany_rzeczywista=datetime.now()
+        )
+
+        db.session.add(audyt)
+
+    @app.route("/api/organizacje/historia/<int:org_id>")
+    def api_historia_organizacji(org_id):
+
+        historia = (
+            AudytOrganizacje.query
+            .filter_by(org_id=org_id)
+            .order_by(
+                AudytOrganizacje.data_zmiany_entenda.desc()
+            )
+            .all()
+        )
+
+        return jsonify([
+            {
+                "panstwo": h.panstwo.panstwo_nazwa,
+                "status": h.status_czlonkostwa,
+                "data_entenda": h.data_zmiany_entenda.strftime("%d.%m.%Y"),
+                "data": h.data_zmiany_rzeczywista.strftime("%d.%m.%Y %H:%M")
+            }
+            for h in historia
+        ])
     
 
     

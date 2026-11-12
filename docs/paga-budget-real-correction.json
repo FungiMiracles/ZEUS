@@ -1,0 +1,122 @@
+{
+  "passed": true,
+  "source_sha256": {
+    "game/paga_ai_budget.py": "87744de2b5887a9ef1b79b686a1499f427f84f150ce98da6e4ed0ceaa9e8aecc",
+    "game/paga_ai_executor.py": "05c57f9c2230d4de1133bc1780059650639986a7ad1cc22a45f9800c9cd44100",
+    "game/player_operations.py": "fb38c068fbb57cac8b2109cb69b0b125453a48659bf22640033e3f7fc0a90349",
+    "game/paga_ai_quotes.py": "4d96441ce19827f3528caf75f7021cf34940ea4f8f4224f814b3b8d2987f63d3",
+    "game/paga_ai_retry.py": "52a0577d2482c21d0fc62c6fddd6065b3d8e06aaa1130c55ebb655d3659aa5db",
+    "game/paga_ai_observation.py": "5b0eb2175107ef30818f27615f41698acf82e3ed70bec7674a8bf1b145b39695"
+  },
+  "real_model": true,
+  "database": "sqlite:///:memory:",
+  "correction_scenario": true,
+  "steps": [
+    {
+      "operation": "initial_finance_read",
+      "result": {
+        "status": 200,
+        "audit_id": 1,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.page:GET\", \"result\": {\"state\": {\"approved\": false, \"year\": 2990, \"period\": 1, \"has_previous\": false, \"pit_rate\": \"5.00\", \"cit_rate\": \"0.00\", \"shares\": {\"administration\": \"0.00\", \"infrastructure\": \"0.00\", \"armed_forces\": \"0.00\", \"social_policy\": \"0.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"education\": \"0.00\", \"research\": \"0.00\", \"security_services\": \"0.00\", \"propaganda\": \"0.00\", \"reserve\": \"100.00\"}, \"tax_total\": \"735798750.00\", \"budget_total\": \"735798750.00\", \"opening_reserve\": \"0.00\", \"closing_reserve\": \"735798750.00\", \"allocations\": {\"administration\": \"0.00\", \"infrastructure\": \"0.00\", \"armed_forces\": \"0.00\", \"social_policy\": \"0.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"education\": \"0.00\", \"research\": \"0.00\", \"security_services\": \"0.00\", \"propaganda\": \"0.00\", \"reserve\": \"735798750.00\"}, \"benefits\": {\"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}, \"carry_in\": \"0\"}, \"tax_penalty\": 0, \"revenue_basis\": {\"algorithm_version\": 5, \"working_population\": 600000, \"gdp_per_capita\": \"50000\", \"unemployment_percent\": \"5.0\", \"infrastructure\": \"50\", \"satisfaction\": 60, \"stability\": 70, \"education\": 80, \"public_health\": 75, \"crime\": 8, \"trust\": 61}, \"amounts_in_millions\": {\"tax_revenue\": \"735.79875\", \"budget_total\": \"735.79875\", \"social_allocation\": \"0.00\", \"children_expected\": \"250.00\", \"seniors_expected\": \"250.00\"}}, \"categories\": [{\"code\": \"administration\", \"name\": \"administration\", \"is_reserve\": false}, {\"code\": \"infrastructure\", \"name\": \"infrastructure\", \"is_reserve\": false}, {\"code\": \"armed_forces\", \"name\": \"armed_forces\", \"is_reserve\": false}, {\"code\": \"social_policy\", \"name\": \"social_policy\", \"is_reserve\": false}, {\"code\": \"environment\", \"name\": \"environment\", \"is_reserve\": false}, {\"code\": \"healthcare\", \"name\": \"healthcare\", \"is_reserve\": false}, {\"code\": \"education\", \"name\": \"education\", \"is_reserve\": false}, {\"code\": \"research\", \"name\": \"Badania i rozwój\", \"is_reserve\": false}, {\"code\": \"security_services\", \"name\": \"security_services\", \"is_reserve\": false}, {\"code\": \"propaganda\", \"name\": \"propaganda\", \"is_reserve\": false}, {\"code\": \"reserve\", \"name\": \"reserve\", \"is_reserve\": true}], \"error\": null, \"guidance\": \"Stawki i udziały w procentach. Najpierw preview z planem i uzasadnieniem, potem approve z uzasadnieniem; ZEUS dobiera okres i token.\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 2362
+        }
+      }
+    },
+    {
+      "operation": "injected_invalid_plan",
+      "result": {
+        "status": 400,
+        "audit_id": 2,
+        "observation": {
+          "text": "{\"status\": 400, \"operation_id\": \"game_finance.preview:POST\", \"result\": {\"error\": \"Suma udziałów przekracza 100%.\", \"ok\": false, \"allocation_total_percent\": \"160\", \"over_limit_percent\": \"60\", \"allocation_hint\": \"Suma udziałów może wynosić najwyżej 100%. Nie musisz wpisywać wszystkich kategorii. Niewykorzystaną część ZEUS doda do rezerwy; o priorytetach decydujesz sam.\", \"correction\": \"Popraw decyzję zgodnie z błędem. Dla budżetu użyj preview, sprawdź dochody i wydatki, potem approve z rationale. Nie zgaduj tokenów ani okresu.\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 533
+        }
+      }
+    },
+    {
+      "operation": "repeated_invalid_plan",
+      "result": {
+        "status": 409,
+        "audit_id": 3,
+        "observation": {
+          "text": "{\"status\": 409, \"operation_id\": \"game_finance.preview:POST\", \"result\": {\"error\": \"Powtórzona odrzucona decyzja bez zmiany danych lub zaobserwowanego stanu. Popraw parametry albo odczytaj zmieniony stan. Poprzedni błąd: Suma udziałów przekracza 100%.\", \"allocation_total_percent\": \"160\", \"over_limit_percent\": \"60\", \"allocation_hint\": \"Suma udziałów może wynosić najwyżej 100%. Nie musisz wpisywać wszystkich kategorii. Niewykorzystaną część ZEUS doda do rezerwy; o priorytetach decydujesz sam.\", \"correction\": \"Popraw decyzję zgodnie z błędem. Dla budżetu użyj preview, sprawdź dochody i wydatki, potem approve z rationale. Nie zgaduj tokenów ani okresu.\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 657
+        }
+      }
+    },
+    {
+      "decision": {
+        "operation_id": "game_finance.preview:POST",
+        "path": {},
+        "data": {
+          "benefits_millions": {
+            "children": 100.0,
+            "seniors": 100.0
+          },
+          "pit_rate": 5.0,
+          "allocation_weights": {
+            "social_policy": 40,
+            "education": 20,
+            "research": 15,
+            "security_services": 10,
+            "reserve": 15
+          },
+          "rationale": "Wypłacamy 200 mln (100 mln dzieciom, 100 mln seniorom), co stanowi 27% budżetu. Priorytety: socjalne (40%), edukacja (20%), badania (15%), ochrona (10%). Pozostałe 15% w rezerwie. Stawka podatkowa 5% zapewnia dochód 735.8 mln, co pokrywa wydatki i pozostawia nadwyżkę. Strategia: minimalne świadczenia w stosunku do oczekiwań (250 mln każdy) w celu utrzymania stabilności i wzrostu gospodarczego."
+        }
+      },
+      "memory": "Plan poprawiony: suma wag 100%. Świadczenia 200 mln (100 mln dzieciom, 100 mln seniorom). Dochód 735.8 mln. Oczekiwania 500 mln - niedobór 300 mln, ale akceptowalny dla stabilności.",
+      "result": {
+        "status": 200,
+        "audit_id": 4,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.preview:POST\", \"result\": {\"plan\": {\"approved\": false, \"year\": 2990, \"period\": 1, \"has_previous\": false, \"pit_rate\": \"5.00\", \"cit_rate\": \"0.00\", \"shares\": {\"administration\": \"0.00\", \"armed_forces\": \"0.00\", \"education\": \"20.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"infrastructure\": \"0.00\", \"propaganda\": \"0.00\", \"research\": \"15.00\", \"reserve\": \"15.00\", \"security_services\": \"10.00\", \"social_policy\": \"40.00\"}, \"tax_total\": \"735798750.00\", \"budget_total\": \"735798750.00\", \"opening_reserve\": \"0.00\", \"closing_reserve\": \"110369812.50\", \"allocations\": {\"administration\": \"0.00\", \"armed_forces\": \"0.00\", \"education\": \"147159750.00\", \"environment\": \"0.00\", \"healthcare\": \"0.00\", \"infrastructure\": \"0.00\", \"propaganda\": \"0.00\", \"research\": \"110369812.50\", \"reserve\": \"110369812.50\", \"security_services\": \"73579875.00\", \"social_policy\": \"294319500.00\"}, \"benefits\": {\"carry_in\": \"0\", \"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}}, \"tax_penalty\": 0, \"revenue_basis\": {\"algorithm_version\": 5, \"crime\": 8, \"education\": 80, \"gdp_per_capita\": \"50000\", \"infrastructure\": \"50\", \"public_health\": 75, \"satisfaction\": 60, \"stability\": 70, \"trust\": 61, \"unemployment_percent\": \"5.0\", \"working_population\": 600000}, \"amounts_in_millions\": {\"tax_revenue\": \"735.79875\", \"budget_total\": \"735.79875\", \"social_allocation\": \"294.3195\", \"children_expected\": \"250.00\", \"seniors_expected\": \"250.00\"}}, \"units\": \"Stawki i udziały w procentach: 5 = 5%, 0.05 = 0.05%.\", \"next\": \"Oceń dochody, oczekiwania świadczeń, inwestycje i PAGA. Popraw plan przez preview albo zatwierdź przez approve z rationale.\", \"planned_benefit_payments\": {\"children\": \"100000000.0\", \"seniors\": \"100000000.0\"}, \"benefit_affordability\": {\"available\": \"294319500.00\", \"planned_payments\": \"200000000.0\", \"minimum_social_share_percent_for_these_payments\": \"27.19\", \"options\": \"Przy niedoborze sam wybierz: zwiększ social_policy do wskazanego udziału kosztem innych sektorów, przelicz inny podatek albo zmniejsz wypłaty. ZEUS nie wybiera priorytetów za gracza.\"}, \"amounts_in_millions\": {\"tax_revenue\": \"735.79875\", \"budget_total\": \"735.79875\", \"social_available\": \"294.3195\", \"benefits_expected\": \"500.00\", \"benefits_planned\": \"200.0\", \"unfunded_payments\": \"0\"}, \"social_expectations_check\": {\"expected\": \"500000000.00\", \"allocated\": \"294319500.00\", \"planned_paid\": \"200000000.0\", \"unfunded_planned_payments\": \"0\", \"gap\": \"300000000.00\", \"meaning\": \"Przydział środków nie jest wypłatą świadczeń. Porównanie oczekiwań z zaplanowanymi wypłatami; niedobór wymaga świadomego uzasadnienia, nie jest nową regułą gry.\"}, \"baseline\": {\"pit_rate\": \"5.00\", \"tax_total\": \"735798750.00\", \"budget_total\": \"735798750.00\", \"benefits\": {\"carry_in\": \"0\", \"expected\": {\"children\": \"250000000.00\", \"seniors\": \"250000000.00\"}}}, \"change_in_tax_revenue\": \"0.00\", \"change_in_tax_revenue_percent\": \"0\"}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 2898
+        }
+      }
+    },
+    {
+      "decision": {
+        "operation_id": "game_finance.approve:POST",
+        "path": {},
+        "data": {
+          "rationale": "Plan zatwierdzony. Dochody 735.8 mln pokryją budżet 735.8 mln. Oczekiwane świadczenia (500 mln) przekraczają dostępne środki (294.3 mln), więc wypłacamy 200 mln (100 mln dzieciom, 100 mln seniorom). To świadoma strategia accept_social_shortfall=true, gdzie pokrytych jest 40% potrzeb, a 60% pozostaje niezrealizowane, co jest uzasadnione ograniczoną dostępnością funduszy. Nie wprowadzamy zmian w podatkach ani strukturze priorytetów, aby zachować stabilność i wzrost gospodarczy (PAGA).",
+          "accept_social_shortfall": true,
+          "accept_revenue_decline": false
+        }
+      },
+      "memory": null,
+      "result": {
+        "status": 200,
+        "audit_id": 5,
+        "observation": {
+          "text": "{\"status\": 200, \"operation_id\": \"game_finance.approve:POST\", \"result\": {\"already_approved\": false, \"budget_id\": 1, \"ok\": true}}",
+          "offset": 0,
+          "next_offset": null,
+          "total_characters": 127
+        }
+      }
+    }
+  ],
+  "budgets": 1,
+  "assessments": 1,
+  "saved": {
+    "id": 1,
+    "pit_rate": "5.00",
+    "year": 2990,
+    "period": 1,
+    "benefit_payments": {
+      "children": "100000000.00",
+      "seniors": "100000000.00"
+    }
+  },
+  "source_unchanged": true
+}

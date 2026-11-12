@@ -1,0 +1,19 @@
+.environment-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.environment-metrics .game-panel-heading .zeus-section-icon { width: 46.2px; height: 46.2px; flex-basis: 46.2px; }
+.environment-value { font-size: 28px; color: var(--navy); }
+.environment-warning { color: #805600; }
+.environment-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.environment-tabs button, .environment-map-reset { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; color: #193453; background: white; cursor: pointer; font: inherit; }
+.environment-tabs button[aria-selected="true"] { background: #193453; color: white; }
+.environment-tabs button:focus-visible, .environment-map-reset:focus-visible { outline: 3px solid #c9a44c; outline-offset: 2px; }
+.environment-map-reset:disabled { opacity: .5; cursor: default; }
+#environment-map { height: clamp(340px, 60vh, 650px); background: #e8edf4; isolation: isolate; }
+#environment-map .environment-map-reset { margin: 0; font-size: 12px; }
+.environment-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 14px; font-size: 13px; }
+.environment-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.environment-legend i { width: 16px; height: 16px; border: 1px solid #94a3b8; }
+.environment-table-scroll { overflow-x: auto; }
+.environment-table { width: 100%; border-collapse: collapse; }
+.environment-table th, .environment-table td { padding: 10px; text-align: left; border-bottom: 1px solid #d8e0e9; }
+.environment-table th { color: var(--navy); }
+@media (max-width: 650px) { .environment-metrics { grid-template-columns: 1fr; gap: 0; } }

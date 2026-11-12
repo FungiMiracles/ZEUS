@@ -1,0 +1,27 @@
+.game-army-panel { max-width: 1100px; margin-inline: auto; }
+.game-army-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; color: #0b1f3a; }
+.game-army-resource { min-width: 0; padding: 16px; border: 1px solid #d8e0e9; border-radius: 8px; background: #f5f8fc; }
+.game-army-resource dt { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.game-army-resource dt span { min-width: 0; overflow-wrap: anywhere; }
+.game-army-resource .zeus-section-icon { width: 46.2px; height: 46.2px; flex-basis: 46.2px; margin-inline-end: 0; }
+.game-army-resource dd { margin: 12px 0 0; font-size: 22px; font-weight: 700; overflow-wrap: anywhere; }
+@media (max-width: 800px) {
+    .game-army-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+    .game-army-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.game-army-active { margin-top:10px; font-size:14px; color:#244984; }
+
+.game-army-parameters{margin-top:12px;padding-top:10px;border-top:1px solid #d6ddcf;font-size:13px;line-height:1.7;color:inherit}.game-army-parameters-note{margin:0 0 16px;font-size:13px}
+
+/* Szkolenie sił zbrojnych (11 Nov 2026) */
+.game-army-training { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+.game-army-train-button { margin-left: auto; padding: 6px 14px; border: 1px solid #2c5f8a; border-radius: 6px; background: #2c73d2; color: #fff; font-weight: 600; cursor: pointer; }
+#army-training-dialog { width: min(480px, calc(100vw - 32px)); padding: 22px; box-sizing: border-box; border: 1px solid #c8d4e0; border-radius: 8px; }
+.army-training-stepper { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.army-training-stepper button { width: 38px; height: 38px; font-size: 20px; cursor: pointer; }
+#army-training-count { width: 90px; padding: 8px; text-align: center; }
+.army-training-error { color: #b3261e; font-weight: 600; }
+.army-training-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }

@@ -4,107 +4,232 @@
 {% block content %}
 
 <style>
-    .login-container {
-        max-width: 450px;
-        margin: 60px auto;
-        background: #ffffff;
-        padding: 30px 35px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-        font-family: 'Segoe UI', Tahoma, sans-serif;
+    .login-page {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        background:
+            radial-gradient(circle at top left, rgba(93, 125, 206, 0.25), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(72, 187, 120, 0.18), transparent 30%),
+            linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
     }
 
-    .login-container h2 {
+    .login-card {
+        width: 100%;
+        max-width: 440px;
+        padding: 38px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow:
+            0 20px 60px rgba(15, 23, 42, 0.12),
+            0 8px 24px rgba(15, 23, 42, 0.08);
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .login-header {
         text-align: center;
-        color: #2c3e50;
-        font-size: 1.6em;
+        margin-bottom: 28px;
+    }
+
+    .login-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        background: linear-gradient(135deg, #5d7dce, #7c3aed);
+        color: white;
+        box-shadow: 0 10px 24px rgba(93, 125, 206, 0.35);
+    }
+
+    .login-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
         font-weight: 700;
+        color: #0f172a;
+    }
+
+    .login-header p {
+        margin: 10px 0 0;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .form-group {
         margin-bottom: 20px;
     }
 
-    .login-container label {
-        font-weight: 600;
-        color: #34495e;
+    .form-group label {
         display: block;
-        margin-bottom: 6px;
-        font-size: 0.95em;
+        margin-bottom: 8px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #334155;
     }
 
-    .login-container input[type="password"] {
+    .password-input {
         width: 100%;
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #bdc3c7;
-        font-size: 1em;
-        margin-bottom: 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid #dbe2ea;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        color: #0f172a;
+        transition: all 0.25s ease;
+        box-sizing: border-box;
     }
 
-    .login-container button {
+    .password-input::placeholder {
+        color: #94a3b8;
+    }
+
+    .password-input:focus {
+        outline: none;
+        border-color: #5d7dce;
+        box-shadow: 0 0 0 4px rgba(93, 125, 206, 0.15);
+        background: white;
+    }
+
+    .login-button {
         width: 100%;
-        padding: 10px;
-        background-color: #5d7dce;
+        padding: 14px;
         border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #5d7dce 0%, #4f46e5 100%);
         color: white;
-        font-weight: 600;
-        font-size: 1em;
-        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 700;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: all 0.25s ease;
+        box-shadow: 0 10px 20px rgba(93, 125, 206, 0.25);
     }
 
-    .login-container button:hover {
-        background-color: #3d5bb8;
+    .login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(93, 125, 206, 0.32);
     }
 
-    .login-container .back-link {
-        display: block;
-        text-align: center;
-        margin-top: 15px;
+    .login-button:active {
+        transform: translateY(0);
+    }
+
+    .flash-message {
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+    }
+
+    .flash-error {
+        background: rgba(254, 242, 242, 0.95);
+        color: #991b1b;
+        border-color: rgba(248, 113, 113, 0.2);
+    }
+
+    .flash-success {
+        background: rgba(240, 253, 244, 0.95);
+        color: #166534;
+        border-color: rgba(74, 222, 128, 0.2);
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-top: 18px;
         text-decoration: none;
-        color: #34495e;
+        color: #475569;
         font-weight: 600;
-        transition: color 0.3s;
+        font-size: 0.95rem;
+        transition: color 0.2s ease;
     }
 
-    .login-container .back-link:hover {
-        color: #5d7dce;
+    .back-link:hover {
+        color: #4f46e5;
     }
 
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .login-page {
+            padding: 16px;
+        }
+
+        .login-card {
+            padding: 28px 22px;
+            border-radius: 20px;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 
+<div class="login-page">
+    <div class="login-card">
 
-<div class="login-container">
-
-    <h2>Panel administratora</h2>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-        <div style="
-            padding: 10px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            {% if category == 'error' %}
-                background-color: #f8d7da; color:#721c24;
-            {% elif category == 'success' %}
-                background-color: #d4edda; color:#155724;
-            {% endif %}
-        ">
-            {{ message }}
+        <div class="login-header">
+            <div class="login-icon">🔐</div>
+            <h2>Panel administratora</h2>
+            <p>Dostęp wyłącznie dla uprawnionych administratorów</p>
         </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
 
-    <form method="POST">
-        <label for="password">Hasło administratora:</label>
-        <input type="password" id="password" name="password" placeholder="Wpisz hasło..." required>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {% if category == 'error' %}flash-error{% elif category == 'success' %}flash-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-        <button type="submit">Zaloguj</button>
-    </form>
+        <form method="POST">
+            <div class="form-group">
+                <label for="password">Hasło administratora</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="password-input"
+                    placeholder="Wpisz swoje hasło..."
+                    required
+                    autofocus
+                >
+            </div>
 
-    <a href="{{ url_for('home_page') }}" class="back-link">Wróć na stronę główną</a>
+            <button type="submit" class="login-button">
+                Zaloguj się
+            </button>
+        </form>
 
+        <a href="{{ url_for('home_page') }}" class="back-link">
+            ← Wróć na stronę główną
+        </a>
+
+    </div>
 </div>
 
 {% endblock %}

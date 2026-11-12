@@ -3,6 +3,10 @@
 
 {% block content %}
 
+<script>
+const USER_ROLE = "{{ session.rola }}";
+</script>
+
 <style>
 /* ============================================================
    ZEUS — SOJUSZE I BLOKI
@@ -68,19 +72,27 @@
     display: block;
 }
 
-.btn-main {
-    padding: 10px 22px;
-    border-radius: 8px;
-    font-weight: 700;
+.btn-zeus {
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.95em;
+
+    padding: 6px 10px;
+    border-radius: 6px;
+
+    color: #fff;
+    text-decoration: none;
+
     border: none;
     cursor: pointer;
-    background-color: #5d7dce;
-    color: white;
+
+    display: inline-block;
+
+    transition: background 0.2s ease;
 }
 
-.btn-main:hover {
-    background-color: #315eb8;
-}
+.btn-search { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-search:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
 
 /* ===================== LISTA RELACJI ===================== */
 
@@ -121,6 +133,21 @@
 .rel-orange{ background: #ffe5c2; color: #8a4b00; }
 .rel-red   { background: #f8d7da; color: #721c24; }
 
+.soj-actions {
+    text-align: right;
+}
+
+.soj-card {
+    grid-template-columns: 1fr 1fr 1fr auto;
+}
+
+.btn-edit { background-color: #2c73d2; text-decoration: none !important; color: #ffffff;}
+.btn-edit:hover { background-color: #1f5bb0; text-decoration: none !important; color: #ffffff;}
+
+.btn-edit:active {
+    transform: scale(0.97);
+}
+
 /* ===================== MOBILE ===================== */
 
 @media (max-width: 768px) {
@@ -131,6 +158,11 @@
 
     .soj-card {
         grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .soj-actions {
+        margin-top: 8px;
         text-align: center;
     }
 }
@@ -201,7 +233,7 @@
 
         </div>
        <div style="text-align:center; margin-top:18px;">
-          <button id="sojSearchBtn" class="btn-main" style="background:#2c73d2;">
+          <button id="sojSearchBtn" class="btn-zeus btn-search" style="background:#2c73d2;">
               Filtruj
           </button>
       </div>
@@ -216,6 +248,8 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
+    const USER_ROLE = "{{ session.rola }}";
 
     const urlParams = new URLSearchParams(window.location.search);
 
@@ -291,11 +325,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 panstwoSelect.disabled = false;
 
-                // 🔥 ustawienie państwa po fetchu
                 if (initialPanstwo) {
                     panstwoSelect.value = initialPanstwo;
 
-                    // 🔥 klik dopiero po ustawieniu
                     setTimeout(() => {
                         searchBtn.click();
                     }, 0);
@@ -356,10 +388,38 @@ document.addEventListener("DOMContentLoaded", () => {
                         class: "rel-grey"
                     };
 
+                    // 🔥 LOGIKA PRZYCISKU (poza HTML!)
+                    let editBtn = "";
+
+                    if (USER_ROLE === "wszechmocny") {
+                        editBtn = `
+                            <a href="/dyplomacja/edit/${panstwoSelect.value}/${r.panstwo_id}" 
+                               class="btn-zeus btn-edit">
+                               Modyfikuj
+                            </a>
+                        `;
+                    } else {
+                        editBtn = `
+                            <a href="#" class="btn-zeus btn-edit"
+                               onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
+                               Modyfikuj
+                            </a>
+                        `;
+                    }
+
+                    // 🔥 HTML bez logiki
                     card.innerHTML = `
                         <div class="soj-country">${r.panstwo_nazwa}</div>
-                        <div class="soj-badge ${rel.class}">${rel.label}</div>
-                        <div class="soj-badge ${stanObj.class}">${stanObj.label}</div>
+
+                        <div class="soj-badge ${rel.class}">
+                            ${rel.label}
+                        </div>
+
+                        <div class="soj-badge ${stanObj.class}">
+                            ${stanObj.label}
+                        </div>
+
+                        ${editBtn}
                     `;
 
                     sojList.appendChild(card);
@@ -372,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =========================
-    // START (URL CONTEXT)
+    // START
     // =========================
     if (initialKontynent) {
         kontynentSelect.value = initialKontynent;

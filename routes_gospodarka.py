@@ -38,18 +38,9 @@ def init_gospodarka_routes(app):
                 "wzrost_pkb", "bezrobocie",
                 "sektor_uslugi_pct", "sektor_przemysl_pct", "sektor_rolnictwo_pct",
                 "eksport_wartosc", "import_wartosc",
-                "ropa_wydobycie", "gaz_wydobycie", "wegiel_wydobycie",
-                "uran_wydobycie", "zloto_wydobycie",
-                "kerbit_wydobycie", "natsyt_wydobycie", "cemium_wydobycie",
-                "technologie_wartosc_prod", "uzbrojenie_wartosc_prod",
-                "budownictwo_wartosc_prod", "przemysl_ciezki_wartosc_prod",
-                "przemysl_lekki_wartosc_prod", "produkcja_zywnosci_wartosc_prod",
-                "uslugi_finansowe_wartosc_prod", "przemysl_farmaceut_wartosc_prod",
-                "przemysl_samochodowy_wartosc_prod", "przemysl_rozrywkowy_wartosc_prod",
                 "dlug_pct_pkb",
-                "energia_nieodnawialne_pct", "energia_odnawialne_pct", "energia_atomowa_pct",
-                "indeks_stabilnosci_gosp", "indeks_korupcji_gosp",
-                "indeks_innowacji_gosp", "indeks_rozwoju_ludzkiego",
+                "energia_nieodnawialne_pct", "energia_odnawialne_pct", "energia_atomowa_pct", 
+                "indeks_korupcji_gosp", "indeks_innowacji_gosp",
             ]
 
             # przypisywanie wartości
@@ -86,20 +77,12 @@ def init_gospodarka_routes(app):
             "sektor_uslugi_pct", "sektor_przemysl_pct", "sektor_rolnictwo_pct",
             "dlug_pct_pkb",
             "energia_nieodnawialne_pct", "energia_odnawialne_pct", "energia_atomowa_pct",
-            "indeks_stabilnosci_gosp", "indeks_korupcji_gosp",
-            "indeks_innowacji_gosp", "indeks_rozwoju_ludzkiego",
+            "indeks_korupcji_gosp",
+            "indeks_innowacji_gosp",
         ]
 
         int_fields = [
             "eksport_wartosc", "import_wartosc",
-            "ropa_wydobycie", "gaz_wydobycie", "wegiel_wydobycie",
-            "uran_wydobycie", "zloto_wydobycie", "kerbit_wydobycie",
-            "natsyt_wydobycie", "cemium_wydobycie",
-            "technologie_wartosc_prod", "uzbrojenie_wartosc_prod",
-            "budownictwo_wartosc_prod", "przemysl_ciezki_wartosc_prod",
-            "przemysl_lekki_wartosc_prod", "produkcja_zywnosci_wartosc_prod",
-            "uslugi_finansowe_wartosc_prod", "przemysl_farmaceut_wartosc_prod",
-            "przemysl_samochodowy_wartosc_prod", "przemysl_rozrywkowy_wartosc_prod"
         ]
 
         if request.method == "POST":
@@ -149,12 +132,19 @@ def init_gospodarka_routes(app):
             # (nie przerywamy, bo chcemy zebrać wszystkie błędy)
             
             # ---------- WALIDACJA: Struktura = 100% ----------
-            su = parsed.get("sektor_uslugi_pct") or 0
-            sp = parsed.get("sektor_przemysl_pct") or 0
-            sr = parsed.get("sektor_rolnictwo_pct") or 0
-            # porównanie z tolerancją float
-            if round(su + sp + sr, 6) != 100.0:
-                errors["struktura"].append("Wartości w tej sekcji musza sumować się do 100%")
+            su = parsed.get("sektor_uslugi_pct")
+            sp = parsed.get("sektor_przemysl_pct")
+            sr = parsed.get("sektor_rolnictwo_pct")
+
+            if any(v is not None for v in [su, sp, sr]):
+                if None in [su, sp, sr]:
+                    errors["struktura"].append(
+                        "Jeśli edytujesz strukturę gospodarki, wszystkie trzy pola muszą być uzupełnione."
+                    )
+                elif round(su + sp + sr, 6) != 100.0:
+                    errors["struktura"].append(
+                        "Wartości w tej sekcji muszą sumować się do 100%."
+                    )
 
             # ---------- WALIDACJA: Produkcja sum <= panstwo.PKB ----------
             suma_produkcji = sum([
@@ -189,7 +179,6 @@ def init_gospodarka_routes(app):
                         f"{format_num(przekroczenie)}."
                     )
 
-
             # ---------- WALIDACJA: pola budżetowe i energetyczne 0..100 ----------
             budzet_pola = [
                 
@@ -207,8 +196,8 @@ def init_gospodarka_routes(app):
 
             # ---------- WALIDACJA: indeksy rozwojowe 0..100 ----------
             indeksy_pola = [
-                "indeks_stabilnosci_gosp", "indeks_korupcji_gosp",
-                "indeks_innowacji_gosp", "indeks_rozwoju_ludzkiego"
+                "indeks_korupcji_gosp",
+                "indeks_innowacji_gosp"
             ]
             for f in indeksy_pola:
                 v = parsed.get(f)
@@ -268,8 +257,6 @@ def init_gospodarka_routes(app):
 
         return render_template("gospodarka_edit.html", panstwo=panstwo, g=g, errors={}, form_data=form_data)
 
-
-    
     ### LISTA PAŃSTW Z DANYMI GOSPODARCZYMI + FILTR ###
 
     @app.route("/gospodarka_list")
@@ -383,35 +370,13 @@ def init_gospodarka_routes(app):
             "eksport_wartosc": safe(g.eksport_wartosc) if g else 0,
             "import_wartosc": safe(g.import_wartosc) if g else 0,
 
-            "ropa_wydobycie": safe(g.ropa_wydobycie) if g else 0,
-            "gaz_wydobycie": safe(g.gaz_wydobycie) if g else 0,
-            "wegiel_wydobycie": safe(g.wegiel_wydobycie) if g else 0,
-            "uran_wydobycie": safe(g.uran_wydobycie) if g else 0,
-            "zloto_wydobycie": safe(g.zloto_wydobycie) if g else 0,
-            "kerbit_wydobycie": safe(g.kerbit_wydobycie) if g else 0,
-            "natsyt_wydobycie": safe(g.natsyt_wydobycie) if g else 0,
-            "cemium_wydobycie": safe(g.cemium_wydobycie) if g else 0,
-
-            "technologie_wartosc_prod": safe(g.technologie_wartosc_prod) if g else 0,
-            "uzbrojenie_wartosc_prod": safe(g.uzbrojenie_wartosc_prod) if g else 0,
-            "budownictwo_wartosc_prod": safe(g.budownictwo_wartosc_prod) if g else 0,
-            "przemysl_ciezki_wartosc_prod": safe(g.przemysl_ciezki_wartosc_prod) if g else 0,
-            "przemysl_lekki_wartosc_prod": safe(g.przemysl_lekki_wartosc_prod) if g else 0,
-            "produkcja_zywnosci_wartosc_prod": safe(g.produkcja_zywnosci_wartosc_prod) if g else 0,
-            "uslugi_finansowe_wartosc_prod": safe(g.uslugi_finansowe_wartosc_prod) if g else 0,
-            "przemysl_farmaceut_wartosc_prod": safe(g.przemysl_farmaceut_wartosc_prod) if g else 0,
-            "przemysl_samochodowy_wartosc_prod": safe(g.przemysl_samochodowy_wartosc_prod) if g else 0,
-            "przemysl_rozrywkowy_wartosc_prod": safe(g.przemysl_rozrywkowy_wartosc_prod) if g else 0,
-
             "dlug_pct_pkb": safe(g.dlug_pct_pkb) if g else 0,
             "energia_nieodnawialne_pct": safe(g.energia_nieodnawialne_pct) if g else 0,
             "energia_odnawialne_pct": safe(g.energia_odnawialne_pct) if g else 0,
             "energia_atomowa_pct": safe(g.energia_atomowa_pct) if g else 0,
-
-            "indeks_stabilnosci_gosp": safe(g.indeks_stabilnosci_gosp) if g else 0,
+            
             "indeks_korupcji_gosp": safe(g.indeks_korupcji_gosp) if g else 0,
             "indeks_innowacji_gosp": safe(g.indeks_innowacji_gosp) if g else 0,
-            "indeks_rozwoju_ludzkiego": safe(g.indeks_rozwoju_ludzkiego) if g else 0
         }
 
         # listy wskaźników, gdzie "niżej = lepiej"
@@ -429,6 +394,12 @@ def init_gospodarka_routes(app):
             "nazwa": pan.panstwo_nazwa,
             "kontynent": pan.kontynent_rel.kontynent_nazwa if pan.kontynent_rel else None,
             "populacja": safe(pan.panstwo_populacja),
+            "pkb_nominalne": safe(pan.panstwo_PKB),
+            "pkb_per_capita": (
+                int(pan.panstwo_PKB / pan.panstwo_populacja)
+                if pan.panstwo_PKB and pan.panstwo_populacja
+                else 0
+            ),
             "gospodarka": gospodarka,
             "reverse_fields": reverse_fields
         })

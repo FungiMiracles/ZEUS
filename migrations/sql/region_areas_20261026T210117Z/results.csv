@@ -1,0 +1,631 @@
+region_id,region_nazwa,old_area_km2,new_area_km2
+1,Prangia,,75015
+2,Sartynia,,69301
+3,Kojiwia,,49018
+4,Farlegon,,110797
+5,Istronia,,69804
+6,Lipardia,,68783
+7,Harmilia,,46891
+8,Donia i Kajpimia,,67794
+9,Region Stołeczny Saint Adams,,34224
+10,Istronia Południowa,,45409
+11,Duskalia,,7132
+12,Ané,,8949
+13,Borgelia,,2473
+14,Waltia,,7102
+15,Nordenia Północna,,379593
+16,Nordenia Południowa,,318558
+17,Roseau,,28683
+18,Lermasa,,101980
+19,Wintia,,46718
+20,Pumaryntia,,30460
+21,Sewa,,97358
+22,Chartelle,,84639
+23,Fechellette,,93237
+24,Ciciriki,,28491
+25,Lipiciri,,35751
+26,Hiri,,20798
+27,Cirici,,41489
+28,Riridi,,22105
+29,Ricicini,,26110
+30,Kirici,,16473
+31,Nordhott,,93916
+32,Elkejhott,,68939
+33,Minrejkhott,,80463
+34,Danshott,,75027
+35,Mieskjehott,,80403
+36,Jekahott,,24607
+37,Marengahott,,140305
+38,Rejkiehott,,137695
+39,Gallahott,,62803
+40,Seikehott,,59063
+41,Malmenghott,,63367
+42,Tulhott,,79915
+43,Assnadanhott,,116671
+44,Anghott,,69230
+45,Helgelhott,,60069
+46,Saalak,,11983
+47,Taaeirak,,7194
+48,Kunrak,,11188
+49,Geerak,,9495
+50,Baalrak,,9750
+51,Intrak,,6739
+52,Hellinkerie,,15945
+53,Forterie,,5928
+54,Daelinkerie,,16844
+55,Finnstendrie,,25435
+56,Precco,,3035
+57,Nust-Halicja,,29355
+58,Salimacja,,48230
+59,Środkowa Tyava,,26404
+60,Prenstia,,21843
+61,Gegeltia,,39003
+62,Felitargia,,30599
+63,Gerima,,19460
+64,Etos-Ouesd,,14572
+65,Etos-Sentre,,17232
+66,Ville-Arachos,,4895
+67,Etos-Este,,19255
+68,Ergahuttungerhang,,150581
+69,Sendhang,,157486
+70,Hunttungerhang,,222440
+71,Zenttungerhang,,168505
+72,Usttungerhang,,268584
+73,Szanteragia,,152475
+74,Tarmigrand,,194338
+75,Zentgurdij,,76701
+76,Hejmilk,,142398
+77,Jerzmigirev,,129035
+78,Tung-Zent-Ferynburh,,11893
+79,Pochrzenisne,,204601
+80,Ungran Tungavi,,106474
+81,Ungrania,,135783
+82,Gevdranheet,,72138
+84,Niunsteergen,,85205
+85,Parenkusteeg,,175061
+86,Aangerundeeg,,85732
+87,Dernhasteeg,,86557
+88,Ulenkregvisteeg,,79494
+89,Hraagnstergf,,55398
+90,Itraa,,59416
+91,Fensiege,,20257
+92,Pireeunde,,61259
+93,Luutejkreenge,,3261
+94,Montetunga,,327000
+95,Sanx,,93769
+96,Lantanie-Seud,,46735
+97,Sanx-Este,,126124
+98,Roche-Zapelie,,92098
+99,Videsse,,89815
+100,Nadparie,,23807
+101,Vargens-Estelle,,99069
+102,Este,,98197
+103,Sentrell,,68430
+104,Mayenne-Ouesd,,110668
+105,Mayenne-Este,,132108
+106,Region 1,,2382
+107,Region 2,,18584
+108,Region 3,,38949
+109,Region 4,,34383
+110,Region 5,,18338
+111,Region 6,,17763
+112,Region 7,,23447
+113,Region 8,,30457
+114,Region 9,,20549
+115,Region 10,,39031
+117,Ulmeje Północne,,119592
+118,Wandiny,,85494
+119,Port Koin,,2981
+120,Lemki,,58767
+121,Nadmorze,,51609
+122,Wyspy Bantyjskie,,131136
+123,Ulmeje Południowe,,52839
+124,Husty Wschodnie,,291993
+125,Almechy,,96771
+126,Farsaty,,124228
+127,Husty Południowe,,295578
+128,Darpy,,93558
+129,Piryki,,70930
+130,Majdarki,,118399
+131,Jeryki,,133508
+132,Północna Pardania,,253495
+133,Trestania,,8288
+134,Gubacja,,91705
+135,Środkowa Pardania,,209307
+136,Medicja,,70462
+137,Hagorszczyzna,,52136
+138,Lubmacja,,63433
+139,Południowa Pardania,,162261
+140,Terebencja,,31216
+141,Esterdewia,,66498
+142,Sudecja,,70400
+143,Torminicja,,78403
+144,Senkedonia,,13186
+146,Pireja i Kurabalia,,7419
+147,Huldepia,,126680
+148,Karsygóry,,122769
+149,Verda,,6598
+150,Matygóry,,186113
+151,Północny Kurbar,,96153
+152,Glemnacja,,49344
+153,Nadmorze Feldyckie,,117734
+154,Lejgóry,,119885
+155,Galita,,35837
+156,Brzegi Południowe,,53173
+157,Tanegóry,,79449
+158,Nencja,,27072
+159,Veshitu,,97124
+161,Koloq,,16260
+162,Shavia,,2353
+163,Garmika,,13684
+164,Gasza,,6432
+165,Pir,,6695
+166,Skopulacja,,35593
+167,Helsafacja,,14850
+168,Atutunga,,67976
+169,Musc,,14408
+170,Lupa,,21142
+171,Kervel,,14892
+172,Mirsancja,,13675
+173,Północny Rej,,22190
+174,Południowy Rej,,21676
+175,Durk,,2496
+176,Turebia,,27484
+177,Ellenkis,,8520
+178,Mallas,,18805
+179,Tere,,4006
+180,Lindora,,6639
+181,Kuara,,3683
+182,Jolianda,,5970
+183,Zachodnia Tasturcja,,442013
+184,Górna Motrasyncja,,273769
+185,Pola Jal,,98208
+186,Pola Heljan,,114018
+187,Der,,34168
+188,Daha,,152394
+189,Pola Entens,,156153
+190,Pola Elgar,,129418
+191,Suwaj,,96683
+192,Mas Halos,,93306
+193,Mas Otto,,60269
+194,Południowe Mas Otto,,69222
+195,Kunima,,21513
+196,Ehers,,20567
+197,Almifaha,,58741
+198,Gahar,,39003
+199,Yolmil,,40670
+200,Norkilnha,,41705
+201,Ussup,,21719
+202,Essediviral,,45954
+203,Parreil,,17962
+204,Lennisal,,24556
+205,Tuaf,,25029
+206,Remichen,,23251
+207,Entensjaon,,195354
+208,Garvimahjaon,,86442
+209,Valisjaon,,85659
+210,Kermasjaon,,156164
+211,Gerbisjaon,,89313
+212,Munsjaon,,53896
+213,Hutisjaon,,228247
+214,Sarmisjaon,,125421
+215,Zeyesjaon,,187887
+216,Asjaon,,24587
+217,Wersjaon,,243882
+218,Kulisjaon,,156684
+219,Patnasjaon,,84634
+220,Zervisjaon,,109582
+221,Fermisjaon,,243322
+222,Aio Tull’Hizz,,7036
+223,Kuhuhaas,,124095
+224,Kuns-Sarb,,80736
+225,Kaailan,,69719
+226,Lapilapi,,81007
+227,Ehaas,,127105
+228,Centhaas,,114339
+229,Sextes,,134516
+230,Tenis,,28266
+231,Perns,,17089
+232,Alening,,15726
+233,Pallandir,,61525
+234,Fielsbergs,,116624
+235,Montara,,406662
+236,Vincerbergs,,58195
+237,Olemars,,234381
+238,Idahel,,607344
+239,Amaserning,,625650
+240,Wschodnie Sesmefen,,554827
+241,Hilemont,,210467
+242,Alligard,,98667
+243,Delindastejfa,,283056
+244,Goraj,,147675
+245,De Liin,,5772
+246,Kuszmirka,,273514
+247,Gimiszka,,298990
+248,Holn,,53922
+249,Essunt,,15073
+250,Kajchon,,26161
+251,Parqis,,31818
+252,Mecheleon,,43427
+253,Celmicja,,18459
+254,Farkicja,,10404
+255,Oellole,,18692
+256,Havaz,,10914
+257,Tussing,,12983
+258,Pollo,,10201
+259,Renins,,17877
+260,Szymalia,,158138
+261,Lajnertia,,202156
+262,Hansu,,83560
+263,Milasatia,,119106
+264,Prowincja Autonomiczna Kujawa,,58851
+265,Sutyria,,217534
+266,Prowincja Autonomiczna Kermpa,,125276
+267,Malchibangia,,371346
+268,Deuretia,,273734
+269,Helam,,512524
+270,Terkibia,,254333
+271,Juperia,,415280
+272,Miasto Autonomiczne Jep Vaal,,8039
+273,Region Stołeczny Ruinn,,42345
+274,Halpagia,,128721
+275,Supredecja,,266535
+276,Beitu,,136817
+277,Wschodnie Tontem,,136052
+278,Zachodnie Tontem,,155922
+279,Goenlaand,,234657
+280,Baskurs,,177842
+281,Zachodni Baskurs,,180510
+282,Walmia,,254710
+283,Wielki Pendulam,,195638
+284,Bachmiz,,192004
+285,Hajszburgia,,16559
+286,Mały Pendulam,,63235
+287,Exelgiz,,215436
+288,Hulajen,,161137
+289,Wschodni Baskurs,,131046
+290,Malozera,,135881
+291,Hendelg,,181169
+292,Panas,,119153
+293,Lemnas,,112738
+294,Doebas,,174313
+295,Cembas,,172736
+296,Uioemas,,106813
+297,Limabas,,101675
+298,Holembas,,222228
+299,Solebas,,38997
+300,Saiembas,,289795
+301,Ebas,,73340
+302,Hesbas,,57597
+303,Hergalia,,151972
+304,Fergenthar,,163365
+305,Lipsa Jaghamir,,152163
+306,Bavar-Havir,,220865
+307,Assassa,,77980
+308,Bantol,,47113
+309,Vaghmiz,,201612
+310,Gaal-Sem-Tzur,,176302
+311,Puurvahfiz,,151543
+312,Gelemvikar,,131251
+313,Hargham-Etet,,159379
+314,Lenghend-Afha,,80427
+315,Hul,,37423
+316,Huur-Etet,,87901
+317,Jomsoghargar,,138928
+318,Kungiv,,8736
+319,Helef,,42322
+320,Andalceur,,33436
+321,Gerrmviz,,28348
+322,Sudsert,,417722
+323,Suelgia,,57461
+324,Igvo,,34576
+325,Parrmis,,151126
+326,Kuvel,,53655
+327,Sungvar,,349612
+328,Milai,,18367
+329,Lincei,,10516
+330,Sedey’a,,10197
+331,Bon’emm,,6678
+332,Sesn,,3721
+333,Jel,,7346
+334,Boni,,3867
+335,Josom Zachodni,,314485
+336,Hurtaba,,4399
+337,Josom Wschodni,,138679
+338,Południowa Elgia,,349633
+339,Temut Josomski,,196039
+340,Mimpataj,,156532
+341,Hemilastaj,,154636
+342,Lisaj,,52583
+343,Kedsaj,,61380
+344,Tenstataj,,228550
+345,Bartamaj,,54780
+346,Bulwaria,,242817
+347,Tiebiria,,597363
+348,Nanpert,,205451
+349,Północna Alwacja,,201172
+350,Południowa Alwacja,,193456
+351,Port Victoria,,16286
+352,Kalda,,384244
+353,Róg Wschodu,,359287
+354,Elreba,,240319
+355,Ketzimil,,52733
+356,Prihaz,,15957
+357,Heltminik,,28691
+358,Golmebia,,142534
+359,Yellemer,,135462
+360,Humstaka,,179646
+361,Hilske-Mintave,,188662
+362,Vuulimals,,184139
+363,Persmarpal,,269166
+364,Saint-Teren,,43166
+365,Uulper,,316484
+366,Yrge Halbaar,,82974
+367,Halbartuus,,38142
+368,Alba-Gathi,,39363
+369,Mirabal,,10041
+370,Bunst Halbaar,,24633
+371,Aantiz,,16224
+372,Zansitiz,,14940
+373,Halmalt,,24492
+374,Kumalt,,25416
+375,Gumalt,,29816
+376,Viralt,,43525
+377,Romzydia,,197218
+378,Lepia,,142724
+379,Hulerba,,90650
+380,Paraj,,201978
+381,Guskamia,,226618
+382,Hamsingvera,,627352
+383,Huellemgavera,,281673
+384,Atagamba,,108476
+385,Hettvera,,41957
+386,Lazcai,,23882
+387,Milinvera,,96434
+388,Tejmara,,33276
+389,Kulo,,43107
+390,Kekoga,,100290
+391,Fermuliga,,144609
+392,Galsamuba,,90725
+393,Kurghvaza,,144054
+394,Lemajga,,141003
+395,Hulmigasa,,215157
+396,Belgama,,105297
+397,Jiigmult,,48131
+398,Umult,,29060
+399,Telmult,,32746
+400,Anravamult,,27428
+401,Okręg Ohima,,217302
+402,Okręg Kandana,,18527
+403,Okręg Maha,,129673
+404,Okręg Petore,,82436
+405,Okręg Furhana,,38767
+406,Okręg Lapara,,59319
+407,Okręg Kulua,,52375
+408,Okręg Toshibi,,32271
+409,Okręg Milash,,16800
+410,Okręg Limi,,6941
+411,Okręg Lusa,,19297
+412,Serhenia,,14353
+413,Południowa Partycja,,139873
+414,Północna Partycja,,100325
+415,Gulmiwia,,24203
+416,Eljankia,,83533
+417,Eliankia Wschodnia,,217618
+418,Helania,,9506
+419,Mermalgia,,7451
+420,Górna Owicja,,22317
+421,Dolna Owicja,,22575
+422,Okolocja,,123483
+423,Molkobia,,8694
+424,Tunka,,6151
+425,Puha,,3879
+426,Kersja,,5715
+427,Tarfacja,,91649
+428,Selimancja,,139212
+429,Warmiltia,,27490
+430,Golgedijar,,553225
+431,Lahms Yarkkiva,,771638
+432,Zachodnia Halpija,,232630
+433,Almakis,,817813
+434,Menreni,,26244
+435,Wschodnia Halpija,,439023
+436,Hortymacja,,897541
+437,Kurtybacja,,469260
+438,Walrimia,,142035
+439,Pilmarkia,,70818
+440,Onstkeria,,103219
+441,Hulbata,,32586
+442,Lejramia,,74537
+443,Jevmira,,75168
+444,Północna Sambarta,,574866
+445,Senkurta,,3987
+446,Nadsima,,19964
+447,Kurvimis,,93769
+448,Bilopte,,9822
+449,Nadliupes,,52657
+450,Alwiredy,,496507
+451,Tulimandia,,101295
+452,Farhelia,,191721
+453,Zachodnie Merkatydy,,143726
+454,Wschodnie Merkatydy,,169515
+455,Tusermicja,,70476
+456,Hulstaming,,96887
+457,Delbuyi,,35461
+458,Momaka,,34968
+459,Henksa,,38647
+460,Gertybia,,145290
+461,Ansandia,,97458
+462,Husmicja,,198072
+463,Almacja,,72913
+464,Archiwilja,,17867
+465,Kustonia,,115531
+466,Regelia,,86755
+467,Admirza,,35850
+468,Wyspa Centralna,,76601
+469,Wyspa Zachodnia,,8456
+470,Archipelag Zachodni,,9106
+471,Archipelag Wschodni,,4174
+472,Frel i Mioho,,1869
+473,Wyspy Północne,,1897
+474,Zankimer,,93087
+475,Lanzigmat,,67114
+476,Mulgezt,,61760
+477,Nazmaster,,70453
+478,Tuyasa,,18082
+479,Holpaza,,106139
+480,Sewerga,,30768
+481,Miasto Ivo,,796
+482,Iwonia,,6440
+483,Miasto Tanwa,,978
+484,Ksania,,6671
+485,Euturema,,12322
+486,Balta,,9058
+487,Sabeus,,11361
+488,Abnemia,,19789
+489,Goelania,,8816
+490,Ledia,,12523
+491,Północ,,6341
+492,Ceuma,,11298
+493,Zawiria,,19250
+494,Ikkelsunia,,21887
+495,Nissabaria,,18731
+496,Mutra Wschodnia,,32862
+497,Fulgermania,,29729
+498,Perkelia,,24327
+499,Miasto Ban-Ikkel,,2804
+500,Aszton,,5008
+501,Wieszmir Północny,,25942
+502,Wieszmir Południowy,,34533
+503,Świrmaj,,6741
+504,Tuszkalasicja,,29187
+505,Kosliwinia,,22602
+506,Kekertucja,,28032
+507,Halświm,,28803
+508,Derkmus,,23024
+509,Nadcerdwie,,40859
+510,Miasto Civin,,6766
+511,Erekus,,15571
+512,Solgonia,,15593
+513,Państwo Nad Mucicią,,60375
+514,Gurgalicja,,61026
+515,Gurżwalia,,34618
+516,Hurgin,,5885
+517,Malkana,,25186
+518,Perkozja,,40881
+519,Wschodnia Kekertucja,,32828
+520,Nadtegże,,28579
+521,Sulweria,,32996
+522,Adjou,,27190
+523,Lubartynia,,44584
+524,Palczmargia,,41068
+525,Vil Anne,,4917
+526,Grevishna-Sukhava,,18775
+527,Daolomet,,14829
+528,Turtestap,,11120
+529,Suvimerg,,17184
+530,Czobel,,16635
+531,Terbar,,29261
+532,Hers,,6772
+533,Tusa,,12672
+534,Eiala,,29561
+535,Husz,,30590
+536,Halla,,26155
+537,Yrviel,,24922
+538,Frama,,13108
+539,Estun,,16692
+540,San Ter,,52735
+541,San Rey,,18673
+542,Leyferth,,33518
+543,Halix i Północ,,30207
+544,Goenehar,,17332
+545,Turbenhar,,11845
+546,Okkohar,,9549
+547,Muhar,,8937
+548,Ehar,,10295
+549,Ferhar,,24281
+550,Kaskurlaal,,13619
+551,Saturlaal,,2150
+552,Busankulla,,3129
+553,Tierikulla,,3670
+554,Fukulla,,3383
+555,Sonkulla,,2814
+556,Arakulla,,3651
+557,Killakulla,,5294
+558,Mittakulla,,3759
+559,Region Rentia,,4924
+560,Sek,,4488
+561,Hut,,4167
+562,Farhan Północny,,21585
+563,Fassa,,12110
+564,Annah,,10357
+565,Rassah,,12143
+566,Cervat,,6918
+567,Mahanat,,10260
+568,Taleon,,12718
+569,Lepeon,,9007
+570,Aeon,,10683
+571,Guseon,,7672
+572,Hangfurth,,22405
+573,Usthurg,,18101
+574,Kelitehurg,,3895
+575,Poleava,,36903
+576,Sernix,,29532
+577,Murtaka,,22746
+578,Tieltama,,11247
+579,Region Nemius,,116712
+580,Region Urchabis,,88925
+581,Region Ekletius,,626563
+582,Region Euchus,,459993
+583,Region Zanalia,,459800
+584,Region Maurycja,,169620
+585,Region Daljamicja,,425120
+586,Region Riwalia,,84558
+587,Region Lankitiawa,,215840
+588,Region Nabassimi,,16115
+589,Region Hulta,,36307
+590,Vaefa,,10859
+591,Mirga,,16058
+592,Moera,,12788
+593,Retelpe,,105361
+594,Gallimsarde,,114982
+595,Wschodni Test,,62503
+596,Południowy Test,,19581
+597,Lerta,,11943
+598,Erx-Att,,19703
+599,Xengad Miasto,,4448
+600,Raelis,,461267
+601,Borealis,,85494
+602,Bolinis,,35102
+603,Centremis,,24307
+604,Terebasis,,25986
+605,Hatergis,,29176
+606,Jallis,,13523
+607,Merstis,,12410
+608,Zachodnia Burgundia,,167331
+609,Ville-Soventa,,3938
+615,Damahott,,5658
+621,Kazimghran,,165353
+626,Kajhott,,44053
+627,Region Osatio,,20599
+628,Region Piris i Kafert,,2328
+629,Region Wyspy Wężowe,,11141
+630,Region Republika Zontyjska,,54549
+631,Region Darhut,,26527
+632,Tish,,5934
+635,Lapisjaon,,59528
+642,Ilae-Elgestre,,5303
+643,Wyspy Suntyjskie,,108869
+644,Suklania,,8736
+647,Południowe Perkatydy,,37782
+648,Wschodnie Perkatydy,,25276
+649,Północne Perkatydy,,19485
+650,Terytorium Zamorskie Girpi,,3847
+651,Terytorium Zamorskie Kuniny,,1522
+652,Terytorium Zamorskie Wysp Kocich,,4913
+653,Wyspy Królicze,,14626
+654,Region Kalepary,,10482
+655,Terytorium Zamorskie Tansuny,,17054
+656,Terytorium Zamorskie Wysp Uśmiechu,,4522
+657,Wyspa Świętej Faltyrii,,1253
+658,Archipelag Celioparów,,4242

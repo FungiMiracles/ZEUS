@@ -1,4 +1,3 @@
-
 {% extends "base_layout.html" %}
 {% block title %}Dodaj dane wojskowe{% endblock %}
 
@@ -120,9 +119,9 @@
     }
 
     /* PRZYCISKI */
-    .submit-btn {
+    .btn-save {
         padding: 12px 28px;
-        background: #5d7dce;
+        background: #27ae60;
         color: white;
         border: none;
         border-radius: 8px;
@@ -131,13 +130,13 @@
         transition: 0.25s;
     }
 
-    .submit-btn:hover {
-        background: #3f5fb5;
+    .btn-save:hover {
+        background: #1e8749;
     }
 
     .cancel-btn {
         padding: 12px 28px;
-        background: #c0392b;
+        background: #c73424;
         color: white;
         border-radius: 8px;
         text-decoration: none;
@@ -147,7 +146,9 @@
     }
 
     .cancel-btn:hover {
-        background: #962d22;
+        background: #96271b;
+        color: white;
+        text-decoration: none !important;
     }
 
 </style>
@@ -215,14 +216,22 @@
                 <tr><td>Lotniskowce</td><td><input type="number" min="0" name="lotniskowce_ilosc" required value="0"></td></tr>
                 <tr><td>Okręty podwodne</td><td><input type="number" min="0" name="okrety_podwodne_ilosc" required value="0"></td></tr>
                 <tr><td>Drony bojowe</td><td><input type="number" min="0" name="drony_ilosc" required value="0"></td></tr>
-                <tr><td>Broń atomowa</td><td><input type="number" min="0" name="bron_atomowa_ilosc" required value="0"></td></tr>
+                <tr><td>Rakiety krótkiego zasięgu</td><td><input type="number" min="0" name="rakiety_krotkiego_zasiegu" required value="{{ form_data.get('rakiety_krotkiego_zasiegu', 0) }}"></td></tr>
+<tr><td>Rakiety średniego zasięgu</td><td><input type="number" min="0" name="rakiety_sredniego_zasiegu" required value="{{ form_data.get('rakiety_sredniego_zasiegu', 0) }}"></td></tr>
+<tr><td>Rakiety dalekiego zasięgu</td><td><input type="number" min="0" name="rakiety_dalekiego_zasiegu" required value="{{ form_data.get('rakiety_dalekiego_zasiegu', 0) }}"></td></tr>
+<tr><td>Broń atomowa</td><td><input type="number" min="0" name="bron_atomowa_ilosc" required value="0"></td></tr>
+
+                <!-- WYSZKOLENIE (0–1000) -->
+                <tr><td>Poziom wyszkolenia wojsk lądowych</td><td><input type="number" min="0" max="1000" name="wyszkolenie_ladowe" required value="{{ form_data.get('wyszkolenie_ladowe', 100) }}"></td></tr>
+                <tr><td>Poziom wyszkolenia marynarki wojennej</td><td><input type="number" min="0" max="1000" name="wyszkolenie_morskie" required value="{{ form_data.get('wyszkolenie_morskie', 100) }}"></td></tr>
+                <tr><td>Poziom wyszkolenia sił powietrznych</td><td><input type="number" min="0" max="1000" name="wyszkolenie_powietrzne" required value="{{ form_data.get('wyszkolenie_powietrzne', 100) }}"></td></tr>
 
             </tbody>
         </table>
 
         <div style="text-align:center; margin-top:25px;">
-            <button class="submit-btn">Zatwierdź</button>
-            <a href="{{ url_for('sily_zbrojne') }}" class="cancel-btn">Anuluj</a>
+            <button class="btn-zeus btn-save">Zapisz</button>
+            <a href="{{ url_for('sily_zbrojne') }}" class="btn-zeus cancel-btn">Anuluj</a>
         </div>
 
     </form>
