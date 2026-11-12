@@ -13,4 +13,4 @@ def budget_overview(session,country_id):
     budget=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==country_id,StateBudget.game_year==year,StateBudget.period==period))
     if budget is None:return {'year':year,'period':period,'items':[]}
     balances=sector_balances(session,budget)
-    return {'year':year,'period':period,'items':[{'code':code,'label':LABELS[code],'remaining':balances[code]['remaining']} for code in CODES]}
+    return {'year':year,'period':period,'items':[{'code':code,'label':LABELS[code],'remaining':balances[code]['remaining'],'allocated':balances[code]['allocated'],'spent':balances[code]['spent']} for code in CODES]}

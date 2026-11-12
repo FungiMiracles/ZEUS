@@ -203,7 +203,7 @@ def create_app():
     @app.context_processor
     def game_budget_navigation():
         from flask import request,session
-        if not request.path.startswith('/game/'):return {}
+        if not (request.path.startswith('/game/') or request.path=='/game'):return {}
         user_id=session.get('game_user_id')
         if type(user_id) is not int:return {}
         from sqlalchemy import select
@@ -211,6 +211,24 @@ def create_app():
         from game.budget_overview import budget_overview
         country_id=db.session.scalar(select(GamePlayerCountry.panstwo_id).where(GamePlayerCountry.user_id==user_id))
         return {'game_budget_overview':budget_overview(db.session,country_id)} if country_id else {}
+
+    @app.context_processor
+    def game_sidebar():
+        # 13 Nov 2026: stały lewy pasek gry — magazyn (odczyt) i wykres budżetu na każdym ekranie gry.
+        from flask import request,session
+        if not request.path.startswith('/game/') and request.path!='/game':return {}
+        user_id=session.get('game_user_id')
+        if type(user_id) is not int:return {}
+        try:
+            from sqlalchemy import select
+            from game.models import GamePlayerCountry
+            from game.sidebar import warehouse_items
+            country_id=db.session.scalar(select(GamePlayerCountry.panstwo_id).where(GamePlayerCountry.user_id==user_id))
+            from game.sidebar import budget_pie
+            return {'game_sidebar_warehouse':warehouse_items(db.session,country_id),'game_budget_pie':budget_pie} if country_id else {}
+        except Exception:
+            app.logger.exception('Pasek boczny gry: magazyn')
+            return {}
 
     @app.context_processor
     def inject_entenda_clock():

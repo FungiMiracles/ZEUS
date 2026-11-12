@@ -1,3 +1,5 @@
+from decimal import Decimal
+import unittest
 """Wojsko gracza: odczyt jego kraju, brak danych i kontrola dostępu."""
 from flask import template_rendered
 from game_features_support import FeatureTestCase
@@ -42,6 +44,7 @@ class GameArmyTests(FeatureTestCase):
             if field != 'procent_PKB':
                 self.assertIn(label, html)
         # 12 Nov 2026: karty w grupach tematycznych, budżet w grupie budżetowej (nie między jednostkami)
+        self.assertIn('class="game-sidebar"',html);self.assertIn('Średni poziom infrastruktury',html)   # stały lewy pasek (13 Nov 2026)
         order=[html.index(text) for text in ('Budżet i zaopatrzenie','Budżet sił zbrojnych','Wojska lądowe','Czołgi','Marynarka wojenna','Lotniskowce','Siły powietrzne','Myśliwce','Rakiety i broń strategiczna','Broń atomowa')]
         self.assertEqual(order,sorted(order))
 
@@ -61,3 +64,17 @@ class GameArmyTests(FeatureTestCase):
         with self.client.session_transaction() as browser:
             browser.clear()
         self.assertEqual(self.client.get('/game/sily-zbrojne').status_code, 302)
+
+
+class SidebarTests(unittest.TestCase):
+    """13 Nov 2026: wycinki wykresu budżetu proporcjonalne do przydziału sektora."""
+    def test_budget_pie_segments(self):
+        from game.sidebar import budget_pie
+        items=[{'code':'administration','label':'Administracja','allocated':Decimal(300),'remaining':Decimal(100),'spent':Decimal(200)},
+               {'code':'armed_forces','label':'Siły zbrojne','allocated':Decimal(100),'remaining':Decimal(100),'spent':Decimal(0)},
+               {'code':'research','label':'Badania','allocated':Decimal(0),'remaining':Decimal(0),'spent':Decimal(0)}]
+        segments=budget_pie(items)
+        self.assertEqual([s['code'] for s in segments],['administration','armed_forces'])   # sektor bez przydziału pominięty
+        self.assertEqual([s['share'] for s in segments],[75.0,25.0])
+        self.assertTrue(all(s['path'].startswith('M') and s['path'].endswith('Z') for s in segments))
+        self.assertEqual(budget_pie([{'code':'x','label':'x','allocated':0,'remaining':0}]),[])
