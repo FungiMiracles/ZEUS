@@ -54,24 +54,42 @@ def port_limit(port_id):
     return port_export_limit(level or 0)
 
 
+POLICY_COOLDOWN_DAYS=180   # 12 Nov 2026: ustawienia portów zmieniane najwyżej raz na pół roku gry
+
+
+def recent_policy(ctx,action,days=POLICY_COOLDOWN_DAYS):
+    """Czy państwo wykonało to ustawienie w ostatnich `days` dniach gry (także w przebiegu z kilkoma działaniami)."""
+    if getattr(ctx,'_policy_history',None) is None:
+        from datetime import timedelta
+        from game.paga2.memory import executed_actions
+        with Session(db.engine) as session:
+            ctx._policy_history=executed_actions(session,ctx.country_id,since=ctx.now-timedelta(days=days) if ctx.now else None)
+    return any(a==action for a,_,_ in ctx._policy_history)
+
+
 def policy_options(ctx,screen):
+    """Opłata portowa i dostęp do portów to decyzje administracyjne: wykonywane poza limitem działań (payload.required),
+    gdy obecne ustawienie odbiega od docelowego — wcześniej zawsze przegrywały z działaniami strategicznymi (12 Nov 2026)."""
     options=[];t=ctx.traits
     if not screen.get('ownPorts'):return options
     current=float(screen.get('ownTariff') or 0)
     target=round(clip(3+15*t.get('isolationism',50)/100+10*(100-t.get('trade_propensity',50))/100-5*t.get('solidarity',50)/100+(5 if ctx.situation.get('level')=='war' else 0),0,30))
-    if abs(current-target)>=2:
+    if abs(current-target)>=2 and not recent_policy(ctx,'PORT_TARIFF'):
         options.append(Option(key='trade:tariff',domain='trade',action='PORT_TARIFF',label=f'Opłata portowa {current:g}% → {target}%',
                               effects={'trade':.4 if target<current else -.2,'financial_stability':.3 if target>current else 0},
                               traits={'isolationism':.6 if target>current else -.6,'trade_propensity':-.5 if target>current else .5},base=3.0,
-                              notes=['Docelowa opłata wynika z izolacjonizmu, skłonności do handlu, solidarności i sytuacji bezpieczeństwa.'],payload={'action':'tariff','rate':str(target)}))
+                              notes=['Docelowa opłata wynika z izolacjonizmu, skłonności do handlu, solidarności i sytuacji bezpieczeństwa.'],payload={'action':'tariff','rate':str(target),'group':'trade:tariff','required':True}))
     access=screen.get('portAccess') or {};countries={int(k) for k in (screen.get('countries') or {})}
     desired=sorted((unfriendly(ctx)&countries)-{ctx.country_id})
     block_foreign='isolationist' in ctx.categories and t.get('isolationism',50)>=85
-    if set(desired)!=set(access.get('blocked_countries') or []) or block_foreign!=bool(access.get('block_foreign')):
+    changed=set(desired)!=set(access.get('blocked_countries') or []) or block_foreign!=bool(access.get('block_foreign'))
+    # Blokada państw w stanie wojny działa od razu; pozostałe zmiany dostępu — najwyżej raz na pół roku.
+    urgent=bool(set(ctx.situation.get('at_war',[]))&(set(desired)-set(access.get('blocked_countries') or [])))
+    if changed and (urgent or not recent_policy(ctx,'PORT_ACCESS')):
         options.append(Option(key='trade:port_access',domain='trade',action='PORT_ACCESS',label=f'Dostęp do portów: blokada {len(desired)} państw'+(' i wszystkich obcych' if block_foreign else ''),
                               effects={'defensive_army':.3,'trade':-.2*len(desired)/max(1,len(countries))},traits={'isolationism':.5,'revenge':.3},base=4.0,
                               notes=['Blokowane: państwa w stanie wojny, wrogie (przy izolacjonizmie/prowokacyjności/rewanżyzmie) i historycznie nieprzyjazne (przy rewanżyzmie).'],
-                              payload={'action':'port_access','block_foreign':block_foreign,'blocked_countries':desired}))
+                              payload={'action':'port_access','block_foreign':block_foreign,'blocked_countries':desired,'group':'trade:port_access','required':True}))
     return options
 
 
@@ -168,7 +186,7 @@ def propose(ctx):
 
 
 def execute(ctx,option):
-    body={k:v for k,v in option.payload.items() if k!='group'}
+    body={k:v for k,v in option.payload.items() if k not in ('group','required')}
     status,data=ctx.call(PATH,json={**body,'request_id':request_id(ctx,option)})
     if status<400:ctx._holdings=None
     return result(status,data)

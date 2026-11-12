@@ -47,14 +47,24 @@ class PricingTests(unittest.TestCase):
 class TradeTests(unittest.TestCase):
     def test_tariff_and_port_blockade_follow_character_and_relations(self):
         ctx=EconomyCtx(screens={'trade':trade_screen()},traits={'isolationism':90,'trade_propensity':10,'revenge':80},relationships={3:{'status':'historical_hostile'}})
-        ctx.situation.update(at_war=[4],hostile=[2],allies=[2])
+        ctx.situation.update(at_war=[4],hostile=[2],allies=[2]);ctx._policy_history=[]
         options={o.action:o for o in trade.policy_options(ctx,trade_screen())}
         self.assertGreater(int(options['PORT_TARIFF'].payload['rate']),10)
         self.assertEqual(options['PORT_ACCESS'].payload['blocked_countries'],[3,4])  # sojusznika 2 nie wolno blokować
-        open_ctx=EconomyCtx(traits={'isolationism':0,'trade_propensity':100,'solidarity':100})
+        open_ctx=EconomyCtx(traits={'isolationism':0,'trade_propensity':100,'solidarity':100});open_ctx._policy_history=[]
         rate=int(trade.policy_options(open_ctx,trade_screen(ownTariff='20'))[0].payload['rate'])
         self.assertLess(rate,20)
         self.assertEqual(trade.policy_options(open_ctx,trade_screen(ownPorts=False)),[])
+
+    def test_port_policy_is_required_and_has_half_year_cooldown(self):
+        ctx=EconomyCtx(traits={'isolationism':90,'trade_propensity':10});ctx._policy_history=[]
+        ctx.situation.update(at_war=[4],hostile=[],allies=[])
+        options={o.action:o for o in trade.policy_options(ctx,trade_screen())}
+        self.assertTrue(options['PORT_TARIFF'].payload['required']);self.assertTrue(options['PORT_ACCESS'].payload['required'])
+        ctx._policy_history=[('PORT_TARIFF',None,None),('PORT_ACCESS',None,None)]
+        options={o.action:o for o in trade.policy_options(ctx,trade_screen())}
+        self.assertNotIn('PORT_TARIFF',options)                       # zmiana stawki najwyżej raz na 180 dni
+        self.assertIn('PORT_ACCESS',options)                          # nowa wojna: blokada portów od razu
 
     def test_surplus_offer_hidden_from_enemies_and_never_the_army(self):
         ctx=EconomyCtx(screens={'trade':trade_screen()},traits={'trade_propensity':100})
