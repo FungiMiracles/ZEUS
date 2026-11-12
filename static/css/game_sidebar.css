@@ -54,3 +54,20 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
 }
 /* Nagłówki paska: białe i pogrubione (silniejszy selektor niż ogólne reguły h2 motywu) */
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-block h2{margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+/* 13 Nov 2026: powiadomienia i wiadomości prywatne obok flagi */
+.game-sidebar .sidebar-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid #ffffff26}
+.game-sidebar .sidebar-head .sidebar-flag{padding-bottom:0;border-bottom:0}
+.game-sidebar .sidebar-tools{display:flex;flex-direction:column;gap:10px}
+.game-sidebar .sidebar-tools:empty{display:none}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-mail-toggle,
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications>summary{position:relative;display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;min-width:0;min-height:0;padding:0;margin:0;
+  border:2px solid #ffffff73;border-radius:9px;background:#ffffff14;color:#fff;box-shadow:none;cursor:pointer;transition:border-color .12s,background .12s}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-mail-toggle:hover,
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications>summary:hover,
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-mail-toggle:focus-visible,
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications>summary:focus-visible,
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications[open]>summary{border-color:#fff;background:#ffffff26;outline:none}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .zeus-section-icon{width:30px;height:30px;flex:0 0 30px;margin:0;padding:3px;box-sizing:border-box;background:#fff;border:0;border-radius:6px;opacity:1}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-badge{position:absolute;top:-7px;right:-7px;border:2px solid #1E3A5F}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications{position:static}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{position:fixed;right:auto;z-index:2500;width:min(400px,calc(100vw - 360px));max-height:75vh}

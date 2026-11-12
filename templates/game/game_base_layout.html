@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-2') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-4') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -98,9 +98,13 @@
 {# 13 Nov 2026: stały lewy pasek gry — flaga, budżet sektorów, wskaźniki państwa, magazyn #}
 {% if game_country and game_country.id %}
 <aside class="game-sidebar" aria-label="Podsumowanie państwa {{ game_country.nazwa }}" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
-  <div class="sidebar-flag">
-    {% if game_country.flaga %}<img src="{{ game_country.flaga }}" alt="Flaga państwa {{ game_country.nazwa }}">{% endif %}
-    <strong>{{ game_country.nazwa }}</strong>
+  <div class="sidebar-head">
+    <div class="sidebar-flag">
+      {% if game_country.flaga %}<img src="{{ game_country.flaga }}" alt="Flaga państwa {{ game_country.nazwa }}">{% endif %}
+      <strong>{{ game_country.nazwa }}</strong>
+    </div>
+    {# Powiadomienia (u góry) i wiadomości prywatne (na dole) — przenoszone tu skryptem z górnego paska na komputerze #}
+    <div class="sidebar-tools" id="sidebar-tools"></div>
   </div>
   {% if game_budget_overview is defined and game_budget_pie is defined %}
   <section class="sidebar-block" aria-labelledby="sidebar-budget-title">
@@ -368,7 +372,7 @@
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
 <script src="{{ url_for('static', filename='js/game_notifications.js', v='20261112-unread-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_ui.js', v='20261025-4') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261113-sidebar-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261113-sidebar-4') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_communication.js', v='20261112-mail-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
 {% block extra_js %}{% endblock %}
