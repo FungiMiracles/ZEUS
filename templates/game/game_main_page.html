@@ -54,7 +54,7 @@
     {% endif %}
 
 {% endif %}
-<div class="game-dashboard{% if warehouse_items %} has-warehouse{% endif %}">
+<div class="game-dashboard">
 
     <section class="game-panel" aria-labelledby="game-map-title">
         <div class="game-panel-heading game-map-heading">
@@ -80,31 +80,8 @@
 
     </section>
 
-    {% if warehouse_items %}
-    {# 12 Nov 2026: magazyn jako półki ze skrzyniami, na prawo od mapy państwa #}
-    <section class="game-panel warehouse-panel" aria-labelledby="warehouse-title" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
-        <div class="game-panel-heading"><span id="warehouse-title">Magazyn</span></div>
-        <div class="warehouse-shelves">
-        {% for item in warehouse_items %}
-            <div class="warehouse-crate{% if not item.quantity %} is-empty{% endif %}{% if item.depletion_date %} is-warning{% endif %}" tabindex="0"
-                 aria-label="{{ item.label }}: {{ item.quantity|spacenum }}{% if item.depletion_date %}, wysokie wykorzystanie, wyczerpanie {{ item.depletion_date }}{% endif %}">
-                <span class="crate-box" aria-hidden="true"></span>
-                <img class="crate-icon" src="{{ item.icon }}" alt="">
-                <span class="crate-badge">{{ item.quantity|spacenum }}</span>
-                <span class="crate-tooltip" role="tooltip">
-                    <strong>{{ item.label }}</strong>
-                    <span>Dostępne: {{ item.quantity|spacenum }}</span>
-                    {% if item.depletion_date %}<span class="crate-alert">Wysokie wykorzystanie — wyczerpanie: <time>{{ item.depletion_date }}</time></span>
-                    {% else %}<span class="crate-ok">Brak zagrożenia wyczerpaniem.</span>{% endif %}
-                    <small>Prognoza według bieżącego wydobycia, produkcji i zużycia (kalendarz Entendy).</small>
-                </span>
-            </div>
-        {% endfor %}
-        </div>
-    </section>
-    {% endif %}
 
-    <section class="game-panel game-dashboard-manage">
+    <section class="game-panel">
         <div class="game-panel-heading">Panel zarządzania państwem</div>
 
         <div class="game-panel-body">
@@ -129,7 +106,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static',filename='js/game_warehouse.js',v='20261112-crates-1') }}" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>

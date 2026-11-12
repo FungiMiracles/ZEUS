@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-2') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-4') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-5') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -93,18 +93,52 @@
       </a>
   {% endblock %}
   </div>
+  <div class="game-clock-group game-nav-clock">    <div class="game-clock" id="game-entenda-clock" data-entenda="{{ ENTENDA_DATETIME | default('', true) }}" data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER|default(12) }}" {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %} aria-label="Aktualny czas Entendy">{{ ENTENDA_DATE | default('—', true) }} CE</div><span class="game-time-info"><button type="button" aria-label="Prędkość czasu w Entendzie" aria-describedby="game-time-tooltip">i</button><span id="game-time-tooltip" class="game-time-tooltip" role="tooltip">{{ entenda_time_description|default('Czas w Entendzie płynie 12 razy szybciej: 1 doba Entendy to 2 godziny rzeczywiste.') }}</span></span></div>
   <div class="game-rail-footer"><span>Zarządzasz państwem</span><strong>{{ game_country.nazwa if game_country else 'ENTENDA' }}</strong></div>
 </nav>
+{# 13 Nov 2026: pasek wiadomości Entendy bezpośrednio pod menu #}
+<div class="game-news-bar">
+  <div class="game-news" aria-label="Wydarzenia Entendy">
+    <div class="game-news-track">
+        {% if latest_events %}
+            {% for event in latest_events %}
+                <span class="game-news-item">
+                    <span class="game-news-date">
+                        [{{ event.data_entenda.strftime('%Y-%m-%d')
+                            if event.data_entenda else 'Entenda' }}]
+                    </span>
+                    {{ event.opis_wygenerowany or 'Brak opisu zdarzenia' }}
+                </span>
+            {% endfor %}
+        {% else %}
+            <span class="game-news-item">
+                Brak aktualnych wydarzeń.
+            </span>
+        {% endif %}
+    </div>
+</div>
+</div>
 {# 13 Nov 2026: stały lewy pasek gry — flaga, budżet sektorów, wskaźniki państwa, magazyn #}
 {% if game_country and game_country.id %}
 <aside class="game-sidebar" aria-label="Podsumowanie państwa {{ game_country.nazwa }}" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
   <div class="sidebar-head">
+    <div class="sidebar-user">
+      <span>Zalogowany gracz</span>
+      <strong>{{ game_user.username if game_user else 'Gracz' }}</strong>
+      <form method="post" action="{{ game_logout_url }}" class="sidebar-logout-form">
+        <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+        <button class="sidebar-logout" type="submit">Wyloguj</button>
+      </form>
+    </div>
     <div class="sidebar-flag">
       {% if game_country.flaga %}<img src="{{ game_country.flaga }}" alt="Flaga państwa {{ game_country.nazwa }}">{% endif %}
-      <strong>{{ game_country.nazwa }}</strong>
     </div>
     {# Powiadomienia (u góry) i wiadomości prywatne (na dole) — przenoszone tu skryptem z górnego paska na komputerze #}
     <div class="sidebar-tools" id="sidebar-tools"></div>
+  </div>
+  <div class="sidebar-country">
+    <strong>{{ game_country.nazwa }}</strong>
+    {% if ENV_NAME | default('') == 'UAT' %}<span class="sidebar-uat">Jesteś na środowisku testowym - UAT</span>{% endif %}
   </div>
   {% if game_budget_overview is defined and game_budget_pie is defined %}
   <section class="sidebar-block" aria-labelledby="sidebar-budget-title">
@@ -177,25 +211,6 @@
     </div>
     </div>
   </div>
-  <div class="game-news" aria-label="Wydarzenia Entendy">
-    <div class="game-news-track">
-        {% if latest_events %}
-            {% for event in latest_events %}
-                <span class="game-news-item">
-                    <span class="game-news-date">
-                        [{{ event.data_entenda.strftime('%Y-%m-%d')
-                            if event.data_entenda else 'Entenda' }}]
-                    </span>
-                    {{ event.opis_wygenerowany or 'Brak opisu zdarzenia' }}
-                </span>
-            {% endfor %}
-        {% else %}
-            <span class="game-news-item">
-                Brak aktualnych wydarzeń.
-            </span>
-        {% endif %}
-    </div>
-</div>
   <div class="game-tools">
     <button type="button" class="game-mail-toggle" id="game-mail-toggle"
             aria-label="Prywatne wiadomości" aria-haspopup="dialog" aria-controls="game-mail-dialog">
@@ -215,7 +230,6 @@
         <button type="button" id="game-notification-more" hidden>Pokaż starsze</button>
       </div>
     </details>
-    <div class="game-clock-group">    <div class="game-clock" id="game-entenda-clock" data-entenda="{{ ENTENDA_DATETIME | default('', true) }}" data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER|default(12) }}" {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %} aria-label="Aktualny czas Entendy">{{ ENTENDA_DATE | default('—', true) }} CE</div><span class="game-time-info"><button type="button" aria-label="Prędkość czasu w Entendzie" aria-describedby="game-time-tooltip">i</button><span id="game-time-tooltip" class="game-time-tooltip" role="tooltip">{{ entenda_time_description|default('Czas w Entendzie płynie 12 razy szybciej: 1 doba Entendy to 2 godziny rzeczywiste.') }}</span></span></div>
     {# Formularz POST wymaga tokenu CSRF dostarczonego przez backend. #}
   </div>
 </header>
@@ -226,8 +240,7 @@
   <script>if(window.matchMedia('(max-width:900px)').matches)document.querySelector('.game-budget-overview').open=false;</script>
   {% endif %}
 
-<div class="game-world-stats">Entenda: <strong>{{ E_WORLD_POP | default('—', true) }}</strong> ludzi • <strong>{{ E_WORLD_COUNTRIES | default('—', true) }}</strong> państw • <strong>{{ E_WORLD_REGIONS | default('—', true) }}</strong> regionów • <strong>{{ E_WORLD_CITIES | default('—', true) }}</strong> miast</div>
-{% if ENV_NAME | default('') == 'UAT' %}<div class="game-uat">JESTEŚ NA ŚRODOWISKU TESTOWYM</div>{% endif %}
+{% if ENV_NAME | default('') == 'UAT' %}<div class="game-uat">JESTEŚ NA ŚRODOWISKU TESTOWYM - UAT</div>{% endif %}
 {% if game_country %}
 <section class="game-country-summary"
          aria-label="Zarządzane państwo">
