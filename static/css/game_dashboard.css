@@ -15,7 +15,7 @@
 .warehouse-crate{position:relative;display:flex;align-items:center;justify-content:center;height:82px;padding:4px 6px 0;outline:none;
   border-bottom:9px solid #8a5f33;box-shadow:0 5px 0 -1px #5e3f20,0 9px 7px -4px #3b28154d;cursor:default}
 .warehouse-crate .crate-box{position:absolute;left:50%;bottom:2px;width:68px;height:68px;transform:translateX(-50%);
-  background:linear-gradient(160deg,#c9955a,#9c6a37 60%,#7f532a);-webkit-mask:var(--crate-shape) center/contain no-repeat;mask:var(--crate-shape) center/contain no-repeat;
+  background:linear-gradient(160deg,#a8743f,#7d5129 60%,#5f3c1d);-webkit-mask:var(--crate-shape) center/contain no-repeat;mask:var(--crate-shape) center/contain no-repeat;
   transition:transform .15s,filter .15s}
 .warehouse-crate .crate-icon{position:absolute;z-index:1;left:50%;bottom:20px;transform:translateX(-50%);width:32px;height:32px;margin:0;padding:3px;box-sizing:border-box;object-fit:contain;
   background:#fffaf0;border:1px solid #6b4824;border-radius:5px;box-shadow:0 1px 3px #0004}
