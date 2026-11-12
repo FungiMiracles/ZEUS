@@ -25,3 +25,25 @@
 #army-training-count { width: 90px; padding: 8px; text-align: center; }
 .army-training-error { color: #b3261e; font-weight: 600; }
 .army-training-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+/* 12 Nov 2026: zwarte karty sił zbrojnych w stylu gry — ikona i nazwa po lewej, liczba po prawej, szczegóły drobnym drukiem */
+body.game-app.game-navy.game-civic .game-army-panel .game-army-grid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;row-gap:0;
+  padding:9px 11px;border:1px solid #d6ddcf;border-top:3px solid #4f7a4a;border-radius:7px;background:linear-gradient(180deg,#fff,#f6f9f3);
+  box-shadow:0 1px 4px #26382e12;transition:box-shadow .15s,border-color .15s}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource:hover{box-shadow:0 4px 10px #26382e1f;border-color:#b9c9b1}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource dt{gap:8px;font-size:12.5px;font-weight:600;line-height:1.25;color:#2a3b2e}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource .zeus-section-icon{width:34px;height:34px;flex:0 0 34px;padding:3px;box-sizing:border-box;border:1px solid #d3dfca;border-radius:6px;background:#fff}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource dd{margin:0;font:700 18px/1.2 Consolas,monospace;color:#1f3a24;text-align:right;white-space:nowrap}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-resource>div{grid-column:1/-1}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-parameters{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:7px;padding-top:6px;border-top:1px dashed #d3ddcd;font-size:11.5px;line-height:1.45;color:#4f6352}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-parameters strong{color:#2a3b2e}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-active{margin-top:5px;font-size:11.5px;color:#4f6352}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-active strong{color:#2f5a2b}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-training{margin-top:6px;padding-top:6px;border-top:1px dashed #d3ddcd;font-size:11.5px;gap:6px;color:#4f6352}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-train-button{min-height:0;padding:3px 10px;font-size:11.5px;font-weight:600;line-height:1.4;border:1px solid #2f4b2c;border-radius:5px;background:#3c5e38;color:#fff;box-shadow:none}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-train-button:hover{background:#2f4b2c}
+/* Amunicja przeciwrakietowa (nad siatką): jeden wiersz */
+body.game-app.game-navy.game-civic .game-army-panel .game-panel-body>.game-army-resource{display:flex;align-items:center;gap:8px;max-width:520px;margin-bottom:12px;font-size:12.5px}
+body.game-app.game-navy.game-civic .game-army-panel .game-panel-body>.game-army-resource strong{margin-left:auto;font:700 16px Consolas,monospace;color:#1f3a24}
+body.game-app.game-navy.game-civic .game-army-panel .game-army-parameters-note{margin:0 0 10px;font-size:12px;color:#4f6352}
