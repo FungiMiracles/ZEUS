@@ -28,5 +28,5 @@ for(const crate of bar.querySelectorAll('.warehouse-crate')){
   crate.addEventListener('mouseenter',()=>show(crate,build));crate.addEventListener('focus',()=>show(crate,build));
   crate.addEventListener('mouseleave',hide);crate.addEventListener('blur',hide);}
 bar.addEventListener('scroll',hide,{passive:true});
-function fit(){for(const badge of bar.querySelectorAll('.crate-badge')){badge.style.fontSize='10px';const width=badge.getBoundingClientRect().width;if(badge.scrollWidth>width&&width>0)badge.style.fontSize=Math.max(7,10*width/badge.scrollWidth)+'px';}}
+function fit(){for(const badge of bar.querySelectorAll('.crate-badge')){badge.style.fontSize='20px';const width=badge.getBoundingClientRect().width;if(badge.scrollWidth>width&&width>0)badge.style.fontSize=Math.max(11,20*width/badge.scrollWidth)+'px';}}
 if(window.ResizeObserver)new ResizeObserver(fit).observe(bar);fit();})();

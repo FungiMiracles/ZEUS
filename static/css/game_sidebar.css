@@ -126,3 +126,5 @@ html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notif
 html body.game-app.game-navy.game-civic .game-news-bar :is(.game-news,.game-news-track,.game-news-item,.game-news-date){background:transparent;box-shadow:none;border:0}
 html body.game-app.game-navy.game-civic .game-news-bar :is(.game-news-item,.game-news-item *){color:#fff}
 html body.game-app.game-navy.game-civic .game-news-bar .game-news-date{font-weight:700;opacity:.85}
+/* 13 Nov 2026 (4): plakietki z liczbami na skrzyniach dwukrotnie większe */
+.game-sidebar .warehouse-crate .crate-badge{right:1px;bottom:1px;max-width:calc(100% - 2px);padding:1px 8px;border-radius:12px;font-size:20px;line-height:1.35}
