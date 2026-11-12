@@ -40,6 +40,7 @@ def country_summary(country):
     return {
         "id": country.PANSTWO_ID,
         "nazwa": country.panstwo_nazwa,
+        "pelna_nazwa": getattr(country, "panstwo_pelna_nazwa", None) or country.panstwo_nazwa,
         "territories": list(db.session.scalars(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID.in_(controlled_ids(db.session, country.PANSTWO_ID)), Panstwo.PANSTWO_ID != country.PANSTWO_ID).order_by(Panstwo.panstwo_nazwa))),
         "skrot": country.panstwo_kod or "",
         "flaga": url_for("static", filename="flags/" + (country.panstwo_nazwa or "").replace(" ", "_") + ".jpg"),

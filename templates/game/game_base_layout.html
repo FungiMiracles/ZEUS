@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-2') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-5') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-6') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -121,15 +121,15 @@
 {# 13 Nov 2026: stały lewy pasek gry — flaga, budżet sektorów, wskaźniki państwa, magazyn #}
 {% if game_country and game_country.id %}
 <aside class="game-sidebar" aria-label="Podsumowanie państwa {{ game_country.nazwa }}" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
+  <div class="sidebar-user">
+    <span>Zalogowany gracz:</span>
+    <strong>{{ game_user.username if game_user else 'Gracz' }}</strong>
+    <form method="post" action="{{ game_logout_url }}" class="sidebar-logout-form">
+      <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+      <button class="sidebar-logout" type="submit">Wyloguj</button>
+    </form>
+  </div>
   <div class="sidebar-head">
-    <div class="sidebar-user">
-      <span>Zalogowany gracz</span>
-      <strong>{{ game_user.username if game_user else 'Gracz' }}</strong>
-      <form method="post" action="{{ game_logout_url }}" class="sidebar-logout-form">
-        <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
-        <button class="sidebar-logout" type="submit">Wyloguj</button>
-      </form>
-    </div>
     <div class="sidebar-flag">
       {% if game_country.flaga %}<img src="{{ game_country.flaga }}" alt="Flaga państwa {{ game_country.nazwa }}">{% endif %}
     </div>
@@ -137,7 +137,7 @@
     <div class="sidebar-tools" id="sidebar-tools"></div>
   </div>
   <div class="sidebar-country">
-    <strong>{{ game_country.nazwa }}</strong>
+    <strong>{{ game_country.pelna_nazwa or game_country.nazwa }}</strong>
     {% if ENV_NAME | default('') == 'UAT' %}<span class="sidebar-uat">Jesteś na środowisku testowym - UAT</span>{% endif %}
   </div>
   {% if game_budget_overview is defined and game_budget_pie is defined %}
@@ -160,7 +160,7 @@
       <div><dt>Populacja</dt><dd>{{ game_country.populacja|spacenum if game_country.populacja is not none else '—' }}</dd></div>
       <div><dt>PKB</dt><dd>{{ game_country.pkb|game_money if game_country.pkb is not none else '—' }}</dd></div>
       <div><dt>PKB per capita</dt><dd>{{ game_country.pkb_per_capita|game_money if game_country.pkb_per_capita is not none else '—' }}</dd></div>
-      <div><dt>Średni poziom infrastruktury</dt><dd>{{ (game_country.infrastruktura ~ ' / 100') if game_country.infrastruktura is not none else '—' }}</dd></div>
+      <div><dt>Infrastruktura</dt><dd>{{ (game_country.infrastruktura ~ ' / 100') if game_country.infrastruktura is not none else '—' }}</dd></div>
     </dl>
   </section>
   {% if game_sidebar_warehouse %}
