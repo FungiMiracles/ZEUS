@@ -5,3 +5,35 @@
 .game-map-status { margin: 0; padding: 12px 16px; color: #63748b; font-size: 13px; }
 .leaflet-tooltip.game-region-tooltip, .leaflet-tooltip.game-city-tooltip { width: max-content; max-width: min(300px, 75vw); white-space: normal; overflow-wrap: anywhere; border: 1px solid #5d7dce; border-radius: 6px; color: #0b1f3a; font-weight: 600; }
 @media (max-width: 960px) { .game-dashboard { grid-template-columns: minmax(0, 1fr); } }
+
+/* 12 Nov 2026: magazyn na prawo od mapy — skrzynie na półkach */
+.game-app .game-dashboard.has-warehouse,.game-app.game-navy .game-dashboard.has-warehouse{grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr)}
+.game-app .game-dashboard.has-warehouse>.game-dashboard-manage{grid-column:1/-1}
+.warehouse-panel{display:flex;flex-direction:column;min-width:0}
+.warehouse-shelves{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));column-gap:0;row-gap:16px;padding:14px 12px 18px;
+  background:linear-gradient(180deg,#efe6d6,#e4d6bd);border-top:1px solid #d6c4a3}
+.warehouse-crate{position:relative;display:flex;align-items:center;justify-content:center;height:82px;padding:4px 6px 0;outline:none;
+  border-bottom:9px solid #8a5f33;box-shadow:0 5px 0 -1px #5e3f20,0 9px 7px -4px #3b28154d;cursor:default}
+.warehouse-crate .crate-box{position:absolute;left:50%;bottom:2px;width:68px;height:68px;transform:translateX(-50%);
+  background:linear-gradient(160deg,#c9955a,#9c6a37 60%,#7f532a);-webkit-mask:var(--crate-shape) center/contain no-repeat;mask:var(--crate-shape) center/contain no-repeat;
+  transition:transform .15s,filter .15s}
+.warehouse-crate .crate-icon{position:relative;z-index:1;width:32px;height:32px;margin-bottom:6px;padding:3px;box-sizing:border-box;object-fit:contain;
+  background:#fffaf0;border:1px solid #6b4824;border-radius:5px;box-shadow:0 1px 3px #0004}
+.warehouse-crate .crate-badge{position:absolute;z-index:2;right:4px;bottom:4px;max-width:calc(100% - 8px);box-sizing:border-box;padding:1px 6px;border-radius:9px;
+  background:rgba(0,0,0,.75);color:#fff;font:700 11px/1.45 Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.warehouse-crate.is-empty .crate-box{filter:grayscale(.8) brightness(1.15);opacity:.55}
+.warehouse-crate.is-empty .crate-icon{opacity:.5}
+.warehouse-crate.is-warning .crate-badge{background:rgba(150,20,20,.75)}
+.warehouse-crate:hover .crate-box,.warehouse-crate:focus-visible .crate-box{transform:translateX(-50%) translateY(-3px)}
+.warehouse-crate:focus-visible{box-shadow:0 5px 0 -1px #5e3f20,0 0 0 2px #285bb4}
+.warehouse-crate .crate-tooltip{position:absolute;z-index:20;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:max-content;max-width:230px;
+  display:none;flex-direction:column;gap:3px;padding:8px 10px;border-radius:6px;background:#1f2a22;color:#eef3ec;font-size:12px;line-height:1.4;
+  box-shadow:0 6px 16px #0006;text-align:left;pointer-events:none}
+.warehouse-crate .crate-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1f2a22}
+.warehouse-crate:hover .crate-tooltip,.warehouse-crate:focus .crate-tooltip{display:flex}
+.warehouse-crate .crate-tooltip strong{font-size:13px;color:#fff}
+.warehouse-crate .crate-tooltip .crate-alert{color:#ffb3a8;font-weight:600}
+.warehouse-crate .crate-tooltip .crate-ok{color:#b9e3b0}
+.warehouse-crate .crate-tooltip small{color:#a9b8aa;font-size:10.5px}
+@media(max-width:1200px){.game-app .game-dashboard.has-warehouse,.game-app.game-navy .game-dashboard.has-warehouse{grid-template-columns:minmax(0,1fr)}}
+.game-app .game-panel.warehouse-panel{overflow:visible}
