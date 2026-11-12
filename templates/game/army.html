@@ -3,15 +3,34 @@
 {% from "macros/icons.html" import icon %}
 {% block title %}Siły zbrojne — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_army.css', v='20261112-compact-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_army.css', v='20261112-groups-1') }}">
 {% endblock %}
 {% block content %}
 <section class="game-panel game-army-panel">
     <h2 class="game-panel-heading">Informacje o siłach zbrojnych</h2>
-    <div class="game-panel-body"><p class="game-army-parameters-note">Prędkości uzbrojenia i jednostek podano według czasu Entendy.</p><div class="game-army-resource">{{ icon('ammo') }} Amunicja przeciwrakietowa własnej produkcji: <strong>{{ interceptor_ammunition|spacenum }}</strong></div>
+    <div class="game-panel-body"><p class="game-army-parameters-note">Prędkości uzbrojenia i jednostek podano według czasu Entendy.</p>
         {% if army %}
-        <dl class="game-army-grid" aria-label="Siły zbrojne państwa {{ game_country.nazwa }}">
-            {% for field, label, icon_key in army_fields %}
+        {% set labels = {} %}{% for field, label, icon_key in army_fields %}{% set _ = labels.update({field: (label, icon_key)}) %}{% endfor %}
+        {# 12 Nov 2026: karty pogrupowane tematycznie #}
+        {% set groups = [
+            ('Budżet i zaopatrzenie', ['procent_PKB', 'ammunition']),
+            ('Wojska lądowe', ['wojska_ladowe_ilosc', 'czolgi_ilosc', 'wozy_opancerzone_ilosc', 'wyrzutnie_rakiet_ilosc', 'liczba_baz_ladowych']),
+            ('Marynarka wojenna', ['wojska_morskie_ilosc', 'okrety_wojenne_ilosc', 'okrety_podwodne_ilosc', 'lotniskowce_ilosc', 'liczba_baz_morskich']),
+            ('Siły powietrzne', ['wojska_powietrzne_ilosc', 'mysliwce_ilosc', 'drony_ilosc', 'liczba_baz_powietrznych']),
+            ('Rakiety i broń strategiczna', ['rakiety_krotkiego_zasiegu', 'rakiety_sredniego_zasiegu', 'rakiety_dalekiego_zasiegu', 'bron_atomowa_ilosc'])
+        ] %}
+        {% for title, fields in groups %}
+        <section class="game-army-group" aria-labelledby="army-group-{{ loop.index }}">
+        <h3 class="game-army-group-title" id="army-group-{{ loop.index }}">{{ title }}</h3>
+        <dl class="game-army-grid">
+            {% for field in fields %}
+            {% if field == 'ammunition' %}
+            <div class="game-army-resource">
+                <dt>{{ icon('ammo') }}<span>Amunicja przeciwrakietowa własnej produkcji</span></dt>
+                <dd>{{ interceptor_ammunition|spacenum }}</dd>
+            </div>
+            {% elif field in labels %}
+            {% set label, icon_key = labels[field] %}
             <div class="game-army-resource">
                 <dt>{% if icon_key %}{{ icon(icon_key) }}{% endif %}<span>{{ 'Budżet sił zbrojnych na bieżące półrocze' if field == 'procent_PKB' else label }}</span></dt>
                 <dd>{% if field == 'procent_PKB' %}{{ military_budget_total|game_money }}{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</dd>
@@ -28,8 +47,11 @@
                     <button type="button" class="game-army-train-button" data-train="{{ branch }}">Wyszkol</button></div>
                 {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
         </dl>
+        </section>
+        {% endfor %}
         {% else %}
         <p role="status">Brak danych wojskowych dla Twojego państwa.</p>
         {% endif %}

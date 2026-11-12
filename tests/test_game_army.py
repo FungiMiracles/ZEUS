@@ -41,6 +41,9 @@ class GameArmyTests(FeatureTestCase):
         for field, label, icon_key in module.army_fields:
             if field != 'procent_PKB':
                 self.assertIn(label, html)
+        # 12 Nov 2026: karty w grupach tematycznych, budżet w grupie budżetowej (nie między jednostkami)
+        order=[html.index(text) for text in ('Budżet i zaopatrzenie','Budżet sił zbrojnych','Wojska lądowe','Czołgi','Marynarka wojenna','Lotniskowce','Siły powietrzne','Myśliwce','Rakiety i broń strategiczna','Broń atomowa')]
+        self.assertEqual(order,sorted(order))
 
     def test_missing_data(self):
         self.login(3)
