@@ -52,3 +52,5 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
   html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar){display:block}
   .game-sidebar{display:none}
 }
+/* Nagłówki paska: białe i pogrubione (silniejszy selektor niż ogólne reguły h2 motywu) */
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-block h2{margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff}
