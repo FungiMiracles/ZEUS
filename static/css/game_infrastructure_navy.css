@@ -1,8 +1,8 @@
 /* 13 Nov 2026: ekran Infrastruktura i energetyka w nowej stylistyce (granat #1E3A5F, tło #F0F4FA, białe karty). */
 html body.game-app.game-navy.game-civic.infrastructure-room{--inf-navy:#1E3A5F;--inf-navy-light:#2b4f7c;--inf-line:#d3dce9;--inf-soft:#eef3fa;--inf-text:#24324a;--inf-muted:#4d5f78;background:#F0F4FA;color:var(--inf-text)}
-html body.game-app.game-navy.game-civic.infrastructure-room :is(h1,h2,h3){color:var(--inf-navy)}
-html body.game-app.game-navy.game-civic.infrastructure-room :is(p,label,dt,li){color:var(--inf-muted)}
-html body.game-app.game-navy.game-civic.infrastructure-room a{color:var(--inf-navy-light)}
+html body.game-app.game-navy.game-civic.infrastructure-room .game-main :is(h1,h2,h3){color:var(--inf-navy)}
+html body.game-app.game-navy.game-civic.infrastructure-room .game-main :is(p,label,dt,li){color:var(--inf-muted)}
+html body.game-app.game-navy.game-civic.infrastructure-room .game-main a{color:var(--inf-navy-light)}
 /* Karty i nagłówki */
 html body.game-app.game-navy.game-civic.infrastructure-room .game-panel{background:#fff;color:var(--inf-text);border:1px solid var(--inf-line);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14;overflow:hidden}
 html body.game-app.game-navy.game-civic.infrastructure-room .game-panel-heading{display:flex;align-items:center;gap:8px;margin:0;padding:11px 16px;background:linear-gradient(180deg,var(--inf-navy-light),var(--inf-navy));color:#fff;border:0;text-align:left;font-size:13.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
@@ -24,7 +24,7 @@ html body.game-app.game-navy.game-civic.infrastructure-room .civic-tabs button i
 /* Mapa infrastruktury */
 html body.game-app.game-navy.game-civic.infrastructure-room #infrastructure-map{background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%)}
 /* Panel szczegółów, formularze, przyciski */
-html body.game-app.game-navy.game-civic.infrastructure-room :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){background:#fff;color:var(--inf-text);-webkit-text-fill-color:var(--inf-text);border:1px solid #b9c7da;border-radius:6px}
+html body.game-app.game-navy.game-civic.infrastructure-room :is(.game-main,dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){background:#fff;color:var(--inf-text);-webkit-text-fill-color:var(--inf-text);border:1px solid #b9c7da;border-radius:6px}
 html body.game-app.game-navy.game-civic.infrastructure-room :is(input,select,textarea):focus-visible{outline:2px solid var(--inf-navy);outline-offset:1px}
 html body.game-app.game-navy.game-civic.infrastructure-room :is(.infrastructure-details button,.industry-build-card button,.industry-card button,.industry-object-actions>button,#expand-confirm,#road-build,.game-panel-body>button){background:var(--inf-navy);color:#fff;border:1px solid var(--inf-navy);border-radius:7px;font-weight:700;box-shadow:none}
 html body.game-app.game-navy.game-civic.infrastructure-room :is(.infrastructure-details button,.industry-build-card button,.industry-card button,.industry-object-actions>button,#expand-confirm,#road-build,.game-panel-body>button):hover:not(:disabled){background:var(--inf-navy-light)}
@@ -67,3 +67,5 @@ html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filte
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters #industry-mine-filters-all{padding:4px 10px;border-style:dashed;color:#fff}
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-cancel{background:#fff;color:var(--inf-navy);border:1px solid var(--inf-navy);border-radius:7px;font-weight:700}
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-placement{background:var(--inf-soft);border:1px solid var(--inf-line);border-left:3px solid #E8B65C;border-radius:7px;padding:8px 12px;color:var(--inf-text)}
+
+html body.game-app.game-navy.game-civic.infrastructure-room .game-main :is(.war-panel-bar h2,.game-panel-heading,.game-panel-heading *){color:#fff}

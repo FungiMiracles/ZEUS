@@ -2,7 +2,7 @@
 {% from 'macros/icons.html' import icon %}
 {% block title %}Badania i rozwój — {{ game_country.nazwa }}{% endblock %}
 {% block body_class %}research-room{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_research_navy.css',v='20261113-research-1') }}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_research_navy.css',v='20261113-research-2') }}">{% endblock %}
 {% block content %}
 <section class="game-panel research-summary"><h2 class="game-panel-heading">Budżet badań i rozwoju</h2><div class="game-panel-body"><p>{{ icon('development_point') }} Dostępne punkty rozwoju: <strong>{{ research_state.points|spacenum }}</strong></p><form id="research-purchase"><label>Liczba punktów <input name="count" aria-describedby="research-purchase-cost research-purchase-warning" type="number" min="1" max="1000000" value="1" step="1" required></label><span id="research-purchase-cost">400 MLN ROI</span><button type="submit">Kup</button></form><p id="research-purchase-warning" role="status" aria-live="polite" hidden>Brak wystarczających środków</p><p>Punkty nie wygasają po zakończeniu półrocza. 1 punkt kosztuje 400 MLN ROI.</p></div></section>
 <section class="game-panel research-network-panel"><h2 class="game-panel-heading">Sieć technologii</h2><p>Najedź na technologię, aby zobaczyć opis. Kliknij, aby zainwestować punkty rozwoju.</p><div class="technology-viewport"><div class="technology-tree technology-radial">

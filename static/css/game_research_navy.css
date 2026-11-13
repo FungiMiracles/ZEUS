@@ -23,3 +23,19 @@ html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip .r
 html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip .research-tooltip-completed{color:#b9e3b0}
 html body.game-app.game-navy.game-civic.research-room #research-dialog{border:1px solid #d3dce9;border-top:4px solid #1E3A5F;border-radius:10px}
 html body.game-app.game-navy.game-civic.research-room #research-dialog h2{color:#1E3A5F}
+/* 13 Nov 2026 (2): podpowiedź nad siecią technologii i okno inwestowania w nowej stylistyce */
+html body.game-app.game-navy.game-civic.research-room .research-network-panel>p{display:flex;align-items:center;gap:8px;margin:0;padding:9px 18px;background:#eef3fa;border-bottom:1px solid #d3dce9;color:#4d5f78;font-size:12.5px;font-style:normal;text-align:left;line-height:1.4}
+html body.game-app.game-navy.game-civic.research-room .research-network-panel>p::before{content:'i';flex:0 0 18px;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:#1E3A5F;color:#fff;font-size:11px;font-weight:800;font-family:Georgia,serif}
+html body.game-app.game-navy.game-civic.research-room #research-dialog{width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:0;background:#fff;color:#24324a;border:1px solid #d3dce9;border-radius:10px;box-shadow:0 18px 50px #0b1d3366;overflow:hidden}
+html body.game-app.game-navy.game-civic.research-room #research-dialog form{margin:0;padding:0 16px 14px}
+html body.game-app.game-navy.game-civic.research-room #research-dialog h2{margin:0 -16px 12px;padding:12px 16px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F);color:#fff;font-size:15px;font-weight:800;letter-spacing:.03em}
+html body.game-app.game-navy.game-civic.research-room #research-dialog p{margin:8px 0;color:#4d5f78;font-size:13px;line-height:1.45}
+html body.game-app.game-navy.game-civic.research-room #research-dialog #research-node-status{padding:8px 10px;background:#eef3fa;border:1px solid #d3dce9;border-left:3px solid #1E3A5F;border-radius:7px;color:#24324a;font-weight:600}
+html body.game-app.game-navy.game-civic.research-room #research-dialog .research-point-value{color:#1E3A5F;font-weight:700}
+html body.game-app.game-navy.game-civic.research-room #research-dialog .infrastructure-stepper{display:flex;align-items:center;gap:6px;margin:12px 0}
+html body.game-app.game-navy.game-civic.research-room #research-dialog .infrastructure-stepper button{min-height:0;width:38px;height:38px;padding:0;background:#fff;color:#1E3A5F;border:1.5px solid #1E3A5F;border-radius:7px;font-size:18px;font-weight:800;box-shadow:none}
+html body.game-app.game-navy.game-civic.research-room #research-dialog .infrastructure-stepper button:hover{background:#eef3fa}
+html body.game-app.game-navy.game-civic.research-room #research-dialog #research-count{flex:1;min-width:0;height:38px;box-sizing:border-box;padding:6px 10px;background:#fff;color:#1E3A5F;-webkit-text-fill-color:#1E3A5F;border:1px solid #b9c7da;border-radius:7px;font:700 16px Consolas,monospace;text-align:center}
+html body.game-app.game-navy.game-civic.research-room #research-dialog .research-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #e3e9f2}
+html body.game-app.game-navy.game-civic.research-room #research-dialog #research-invest-confirm:disabled{background:#c9d3e0;border-color:#b8c4d4;color:#5f6b7b}
+html body.game-app.game-navy.game-civic.research-room #research-dialog #research-dialog-error{color:#b3261e;font-weight:600}
