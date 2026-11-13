@@ -4,6 +4,12 @@
     if (!element) return;
     const config = JSON.parse(element.textContent), own = id => Number(config.regions[id]?.countryId) === config.countryId;
     const warTheme=config.mode==='war';
+    // 13 Nov 2026: mapa obrony w kolorystyce mapy świata (moduł „Świat”): granatowy ocean, zielony ląd, białe miasta.
+    const DEF={enemy:'#d98b7a',land:'#c9d3c2',own:'#9fbf8f',border:'#667C63',regionBorder:'#7d9178',hover:'#D5E5C6',selected:'#1E3A5F',city:'#FFFFFF',cityBorder:'#22301f',ally:'#d6e6a6',permit:'#e6d27a',frozen:'#c9c39a'};
+    const mobileLayout=()=>window.matchMedia('(max-width:900px)').matches;
+    let regionLayerRef=null,highlightedRegion=null;
+    const repaintRegions=()=>{if(regionLayerRef)regionLayerRef.eachLayer(layer=>{regionLayerRef.resetStyle(layer);if(String(layer.feature?.properties?.region_id)===highlightedRegion)layer.bringToFront();});};
+    const smoothScroll=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
     const regionBounds=new Map();
     let focusedObject=null,framedRegion=null,activeObjectMarker=null;
     const mapFilterKinds=['air','naval','land','nuclear','defenses','mines','factories','power','radars','cities'];
@@ -52,8 +58,13 @@
     if (config.mode === 'defense') {
         document.getElementById('military-upkeep').textContent = number(config.upkeep) + ' ROI';
     }
+    // 13 Nov 2026: ikona jednostki obok pól garnizonu w oknach budowy / reorganizacji bazy.
+    const fieldIcon=name=>config.resources?.[name]?.icon||config.vesselIcons?.[name]||null;
     function input(label, name, value, max) {
-        const row = make('label', label), node = make('input'); node.name = name; node.type = 'number'; node.min = '0'; node.step = '1'; node.value = value;
+        const row = make('label', null, 'military-field'), node = make('input');
+        const icon=fieldIcon(name);
+        if(icon){const img=make('img',null,'military-field-icon');img.src=icon;img.alt='';img.width=26;img.height=26;row.append(img);row.classList.add('has-icon');}
+        row.append(make('span',label,'military-field-label')); node.name = name; node.type = 'number'; node.min = '0'; node.step = '1'; node.value = value;
         if (max != null) node.max = max;
         node.required = true; row.append(node); fields.append(row); return node;
     }
@@ -110,7 +121,17 @@
             sessionStorage.setItem('military-pending-location-'+config.countryId,String(result.base_id));sessionStorage.setItem('military-selected',id);location.reload();
         });
     }
+    // Telefon: po wyborze regionu na mapie przewiń do panelu zarządzania (powrót przyciskiem „↑ Mapa”).
+    function markRegion(id){highlightedRegion=id?String(id):null;repaintRegions();}
+    function revealManagement(){
+        if(!mobileLayout())return;
+        const target=document.querySelector('.military-sidebar');
+        if(target)setTimeout(()=>target.scrollIntoView({behavior:smoothScroll(),block:'start'}),120);
+    }
+    const backToMap=document.getElementById('military-back-to-map');
+    if(backToMap)backToMap.addEventListener('click',()=>document.querySelector('.war-map-panel')?.scrollIntoView({behavior:smoothScroll(),block:'start'}));
     function selectRegion(id) {
+        if(config.mode==='defense'){highlightedRegion=id?String(id):null;repaintRegions();}
         focusedObject=id?{kind:'region',id:String(id)}:null;
         framedRegion=id?String(id):null;
         showRegion(String(id));
@@ -377,7 +398,7 @@
         }
         cancelLocation();
     };
-    selector.addEventListener('change', () => config.mode==='defense'?selectRegion(selector.value):showRegion(selector.value));
+    selector.addEventListener('change', () => {if(config.mode==='defense')selectRegion(selector.value);else{showRegion(selector.value);markRegion(selector.value);}});
     document.getElementById('military-dialog-cancel').onclick = () => dialog.close();
     form.onsubmit = async event => {
         event.preventDefault(); const confirm = document.getElementById('military-dialog-confirm'); confirm.disabled = true;
@@ -609,18 +630,18 @@
         const [regions,countries,cities] = results.map(result => result.status === 'fulfilled' ? result.value : empty);
         regionGeometry=regions;window.GameLandWar?.setRegions(regions,coordinates);
         if (config.mode === 'defense') L.geoJSON(countries,{coordsToLatLng:coordinates,filter:feature => !config.controlledCountryIds.includes(Number(feature.properties?.panstwo_id)),
-            style:{color:'#354e66',weight:1,fillColor:'#273b50',fillOpacity:.6},onEachFeature:(feature,layer) => {
-                const label = make('span',config.countries[String(feature.properties?.panstwo_id)] || 'Państwo'); layer.bindTooltip(label,{sticky:true});
+            style:{color:DEF.border,weight:1.2,fillColor:DEF.land,fillOpacity:1},onEachFeature:(feature,layer) => {
+                const label = make('span',config.countries[String(feature.properties?.panstwo_id)] || 'Państwo'); layer.bindTooltip(label,{sticky:true,className:'military-world-tooltip'});
             }}).addTo(map);
         if (config.mode === 'defense' && Object.keys(config.allyRegions||{}).length) {
             // 12 Nov 2026: regiony sojuszników (jasnozielone) i regiony z pozwoleniem na bazę (żółtawe).
-            const allyFill=r=>r.permit==='ACTIVE'?'#e6d27a':r.permit==='FROZEN'?'#c9c39a':'#a8e6a1';
+            const allyFill=r=>r.permit==='ACTIVE'?DEF.permit:r.permit==='FROZEN'?DEF.frozen:DEF.ally;
             const allyLayer=L.geoJSON(regions,{coordsToLatLng:coordinates,filter:feature=>!!config.allyRegions[String(feature.properties?.region_id)],
-                style:feature=>({color:'#2f5d3a',weight:1,fillColor:allyFill(config.allyRegions[String(feature.properties.region_id)]),fillOpacity:.8}),
+                style:feature=>({color:DEF.border,weight:1,fillColor:allyFill(config.allyRegions[String(feature.properties.region_id)]),fillOpacity:1}),
                 onEachFeature:(feature,layer)=>{
                     const id=String(feature.properties.region_id), r=config.allyRegions[id];
                     layer.bindTooltip(make('span',`${r.name} — ${config.countries[String(r.countryId)]||'sojusznik'}`),{sticky:true});
-                    layer.on({mouseover:()=>layer.setStyle({weight:3,fillOpacity:.95}),mouseout:()=>allyLayer.resetStyle(layer),click:event=>{
+                    layer.on({mouseover:()=>layer.setStyle({weight:2,fillColor:DEF.hover}),mouseout:()=>allyLayer.resetStyle(layer),click:event=>{
                         if(locating||sailing||redirecting)return;
                         const box=make('div',null,'military-base-tooltip');box.append(make('strong',r.name),make('p',`Terytorium sojusznika: ${config.countries[String(r.countryId)]||''}`));
                         if(r.permit==='ACTIVE'){box.append(make('p','Masz pozwolenie na budowę bazy. Utrzymanie bazy za granicą jest 2× droższe.'));button('Zbuduj bazę',()=>{map.closePopup();deployDialog(id);},box,config.baseIcon);}
@@ -636,19 +657,36 @@
                     }});
                 }}).addTo(map);
         }
-        const regionLayer = L.geoJSON(regions,{
+        const regionLayer = regionLayerRef = L.geoJSON(regions,{
             coordsToLatLng:coordinates,filter:feature => config.mode === 'war' ? !!config.regions[String(feature.properties?.region_id)] : metropolitan.has(String(feature.properties?.region_id)),
-            style:feature => ({color:'#152e46',weight:warTheme?1.3:1,fillColor:own(String(feature.properties.region_id))?('#366b95'):config.enemyIds.includes(config.regions[String(feature.properties.region_id)]?.countryId)?(warTheme?'#a46054':'#d99292'):('#506b80'),fillOpacity:.9}),
+            // 13 Nov 2026: obie mapy (obrona i panel wojenny) w kolorystyce mapy świata; przeciwnik — stonowana czerwień.
+            style:feature => {const id=String(feature.properties.region_id);
+                if(highlightedRegion===id)return {color:DEF.selected,weight:2.5,fillColor:DEF.hover,fillOpacity:1};
+                const fill=own(id)?DEF.own:warTheme&&config.enemyIds.includes(config.regions[id]?.countryId)?DEF.enemy:warTheme?DEF.land:DEF.own;
+                return {color:DEF.regionBorder,weight:warTheme?.6:.8,fillColor:fill,fillOpacity:1};},
             onEachFeature:(feature,layer) => {
                 const id = String(feature.properties.region_id), region = config.regions[id];
                 if(config.mode==='defense'){const existing=regionBounds.get(id);regionBounds.set(id,existing?existing.extend(layer.getBounds()):L.latLngBounds(layer.getBounds()));}
-                layer.bindTooltip(()=>window.GameLandWar?window.GameLandWar.regionTooltip(id,region):make('span',region.name),{sticky:true});
-                layer.on({mouseover:()=>layer.setStyle({color:'#87d2ef',weight:3,fillOpacity:1}),mouseout:()=>regionLayer.resetStyle(layer),click:()=>{if(!locating&&!sailing){if(config.mode==='defense')selectRegion(id);else showRegion(id);}}});
+                layer.bindTooltip(()=>window.GameLandWar?window.GameLandWar.regionTooltip(id,region):make('span',region.name),{sticky:true,className:'military-world-tooltip'});
+                layer.on({mouseover:()=>layer.setStyle({fillColor:DEF.hover}),mouseout:()=>regionLayer.resetStyle(layer),click:()=>{if(!locating&&!sailing){if(config.mode==='defense')selectRegion(id);else{showRegion(id);markRegion(id);}revealManagement();}}});
             }
         }).addTo(map);
+        {
+            // Granice państw grubszą linią (obrona: tylko własne) i siatka południków jak na mapie świata.
+            map.createPane('defenseBorders');map.getPane('defenseBorders').style.zIndex='405';map.getPane('defenseBorders').style.pointerEvents='none';
+            L.geoJSON(countries,{pane:'defenseBorders',coordsToLatLng:coordinates,interactive:false,filter:feature=>warTheme||config.controlledCountryIds.includes(Number(feature.properties?.panstwo_id)),style:{color:DEF.border,weight:warTheme?1.8:2.2,fill:false}}).addTo(map);
+            const area=regionLayer.getBounds();
+            if(area.isValid()){
+                map.createPane('defenseGrid');map.getPane('defenseGrid').style.zIndex='350';map.getPane('defenseGrid').style.pointerEvents='none';
+                const h=area.getNorth()-area.getSouth(),w=area.getEast()-area.getWest(),pad=Math.max(h,w)*1.5,step=Math.max(h,w)/(warTheme?14:8)||1;
+                const s0=area.getSouth()-pad,n0=area.getNorth()+pad,w0=area.getWest()-pad,e0=area.getEast()+pad,grid={pane:'defenseGrid',color:'#ffffff',weight:.6,opacity:.16,interactive:false,dashArray:'3 5'};
+                for(let y=Math.floor(s0/step)*step;y<=n0;y+=step)L.polyline([[y,w0],[y,e0]],grid).addTo(map);
+                for(let x=Math.floor(w0/step)*step;x<=e0;x+=step)L.polyline([[s0,x],[n0,x]],grid).addTo(map);
+            }
+        }
         map.createPane('militaryCities'); map.getPane('militaryCities').style.zIndex = '450'; applyCityFilter();
         L.geoJSON(cities,{coordsToLatLng:coordinates,filter:feature => !!config.cities[String(feature.properties?.miasto_id)] && (config.mode === 'war' || config.cities[String(feature.properties.miasto_id)].countryId !== config.countryId || metropolitan.has(config.cities[String(feature.properties.miasto_id)].regionId)),
-            pointToLayer:(feature,latlng)=>L.circleMarker(latlng,{pane:'militaryCities',radius:warTheme?4.5:4,color:'#b8e7fa',weight:1,fillColor:'#102d49',fillOpacity:1}),
+            pointToLayer:(feature,latlng)=>L.circleMarker(latlng,{pane:'militaryCities',radius:warTheme?3.5:4,color:DEF.cityBorder,weight:1.2,fillColor:DEF.city,fillOpacity:1}),
             onEachFeature:(feature,layer)=>{const city=config.cities[String(feature.properties.miasto_id)];if(window.GameLandWar)window.GameLandWar.bindCity(layer,String(feature.properties.miasto_id),city);else bindObjectTooltip(layer,make('span',city.name));layer.on('click',()=>{if(!locating&&!sailing&&config.regions[city.regionId]&&(config.mode==='war'||own(city.regionId))){if(config.mode==='defense'){focusedObject={kind:'city',id:String(feature.properties.miasto_id)};framedRegion=null;}showRegion(city.regionId,String(feature.properties.miasto_id));highlightSelection(config.mode==='defense');}});}
         }).addTo(map);
         const myCountryButton=document.getElementById('war-map-country');

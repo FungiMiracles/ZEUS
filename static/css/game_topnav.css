@@ -41,3 +41,14 @@ html body.game-app.game-navy.game-civic .module-funds .industry-budget-card{flex
 html body.game-app.game-navy.game-civic .module-funds .industry-budget-card span{color:#4d5f78;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
 html body.game-app.game-navy.game-civic .module-funds .industry-budget-card strong{color:#1E3A5F;font:700 17px Consolas,monospace;white-space:nowrap}
 html body.game-app.game-navy.game-civic .module-funds .industry-budget-card+.industry-budget-card{border-left-color:#E8B65C}
+/* 13 Nov 2026: na desktopie (>900px) przyciski menu zawsze w jednym wierszu — bez zawijania niezależnie od szerokości okna;
+   gdy się nie mieszczą, pasek przycisków przewija się poziomo. Widok mobilny (≤900px, „☰ Menu”) bez zmian. */
+@media(min-width:901px){
+  html body.game-app.game-navy.game-civic .game-navigation{flex-wrap:nowrap;min-width:0}
+  html body.game-app.game-navy.game-civic .game-navigation>:not(.game-nav-links){flex-shrink:0}
+  html body.game-app.game-navy.game-civic .game-nav-links{flex-wrap:nowrap;flex:1 1 0;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+    scrollbar-width:thin;scrollbar-color:#ffffff59 transparent;padding-bottom:2px}
+  html body.game-app.game-navy.game-civic .game-nav-links::-webkit-scrollbar{height:6px}
+  html body.game-app.game-navy.game-civic .game-nav-links::-webkit-scrollbar-thumb{background:#ffffff59;border-radius:3px}
+  html body.game-app.game-navy.game-civic .game-nav-links>a,html body.game-app.game-navy.game-civic .game-nav-links>button{flex:0 0 auto;white-space:nowrap}
+}

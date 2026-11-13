@@ -64,7 +64,8 @@
     function styleCity(cityId){
         const entry=cityLayers.get(cityId);if(!entry?.marker.setStyle)return;
         const occupied=occupation('city',cityId);
-        entry.marker.setStyle(occupied?{color:'#ffd0d0',fillColor:'#c62828'}:{color:'#b8e7fa',fillColor:'#102d49'});
+        // 13 Nov 2026: na ekranach obrony i panelu wojennego miasta jak na mapie świata (białe z ciemną obwódką).
+        entry.marker.setStyle(occupied?{color:'#ffd0d0',fillColor:'#c62828'}:{color:'#22301f',fillColor:'#FFFFFF'});
     }
     function defenseModal(cityId,city){
         // Only land bases in the city's own region can send its defenders.
