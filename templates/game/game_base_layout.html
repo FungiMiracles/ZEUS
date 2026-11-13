@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-2') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-9') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-10') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -39,9 +39,7 @@
     <a href="{{ game_home_url | default('/game', true) }}" {% if game_active_page | default('main') == 'main' %}aria-current="page"{% endif %}>{% if game_country and game_country.flaga %}<img class="game-nav-country-flag" src="{{ game_country.flaga }}" alt="" width="23">{% endif %}Panel państwa</a>
     {# Moduły dodajemy tu po utworzeniu ich tras i kontroli uprawnień. #}
     {% block game_nav_items %}
-      <button type="button" class="game-nav-placeholder" disabled>
-        {{ icon('world') }} Świat
-    </button>
+      <a href="/game/swiat" {% if game_active_page | default('main') == 'world' %}aria-current="page"{% endif %}>{{ icon('world') }} Świat</a>
       {% if config.get('GAME_FINANCE_ENABLED', false) %}
     <a href="{{ url_for('game_finance.page') }}"
     class="game-nav-placeholder"

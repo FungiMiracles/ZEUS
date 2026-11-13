@@ -30,6 +30,7 @@ from game.army import army_bp
 from game.infrastructure import infrastructure_bp
 from game.military import military_bp
 from game.intelligence import intelligence_bp
+from game.world import world_bp
 from game.commerce import trade_bp
 from game.loans import loans_bp
 from game.public_panels import public_panels_bp
@@ -168,6 +169,7 @@ def create_app():
     app.register_blueprint(infrastructure_bp)
     app.register_blueprint(military_bp)
     app.register_blueprint(intelligence_bp)
+    app.register_blueprint(world_bp)
     app.register_blueprint(trade_bp)
     app.register_blueprint(loans_bp)
     from game.industry_models import PowerPlant,IndustryClock,IndustryMovement
@@ -280,7 +282,7 @@ def create_app():
         if request.endpoint is None:
             return
         
-        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages"}:
+        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world"}:
             return
 
         # Blueprint sam sprawdza sesję gracza i token CSRF.

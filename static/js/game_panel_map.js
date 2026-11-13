@@ -39,6 +39,7 @@ document.getElementById('panel-filters-all')?.addEventListener('click', () => { 
 // ---- obiekty ----
 map.createPane('panelRoads'); map.getPane('panelRoads').style.zIndex = '420';
 map.createPane('panelObjects'); map.getPane('panelObjects').style.zIndex = '620';
+map.createPane('panelDefenses'); map.getPane('panelDefenses').style.zIndex = '630';
 for (const item of config.objects || []) {
   const layer = layers[item.kind]; if (!layer) continue;
   if (item.path) {
@@ -46,10 +47,13 @@ for (const item of config.objects || []) {
       .bindTooltip(make('span', item.name), { sticky: true, className: 'panel-map-tooltip' }).addTo(layer);
     continue;
   }
-  const symbol = make('div', null, 'panel-map-object'); const img = make('img'); img.src = item.icon; img.alt = ''; symbol.append(img);
-  if (item.health != null && item.health < 100) { const bar = make('i', null, 'panel-map-health'); bar.style.width = Math.max(0, Math.min(100, item.health)) + '%'; symbol.append(bar); }
-  const tip = make('div'); tip.append(make('strong', item.name)); if (item.health != null) tip.append(make('span', `Życie: ${Math.round(item.health)}/100`));
-  L.marker([item.position[1], item.position[0]], { pane: 'panelObjects', icon: L.divIcon({ html: symbol, className: 'panel-map-marker', iconSize: [28, 28], iconAnchor: [14, 14] }) })
+  // Obrona przeciwrakietowa stoi w tym samym punkcie co broniony obiekt — mniejsza plakietka w jego prawym górnym rogu.
+  const defense = item.kind === 'defenses';
+  const symbol = make('div', null, 'panel-map-object' + (defense ? ' is-defense' : '')); const img = make('img'); img.src = item.icon; img.alt = ''; symbol.append(img);
+  if (!defense && item.health != null && item.health < 100) { const bar = make('i', null, 'panel-map-health'); bar.style.width = Math.max(0, Math.min(100, item.health)) + '%'; symbol.append(bar); }
+  const tip = make('div'); tip.append(make('strong', item.name)); if (item.health != null) tip.append(make('div', `Życie: ${Math.round(item.health)}/100`));
+  const size = defense ? [17, 17] : [28, 28], anchor = defense ? [-6, 24] : [14, 14];
+  L.marker([item.position[1], item.position[0]], { pane: defense ? 'panelDefenses' : 'panelObjects', icon: L.divIcon({ html: symbol, className: 'panel-map-marker', iconSize: size, iconAnchor: anchor }) })
     .bindTooltip(tip, { direction: 'top', offset: [0, -14], className: 'panel-map-tooltip' }).addTo(layer);
 }
 
@@ -65,7 +69,7 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
     onEachFeature: (feature, layer) => {
       const id = String(feature.properties.region_id), info = (config.regions || {})[id] || {};
       const tip = make('div'); tip.append(make('strong', config.regionNames[id] || `Region #${id}`),
-        make('span', `Populacja: ${number(info.population)}`), make('span', `Średnia infrastruktura: ${info.infrastructure == null ? 'brak danych' : String(info.infrastructure).replace('.', ',') + ' / 100'}`));
+        make('div', `Populacja: ${number(info.population)}`), make('div', `Średnia infrastruktura: ${info.infrastructure == null ? 'brak danych' : String(info.infrastructure).replace('.', ',') + ' / 100'}`));
       layer.bindTooltip(tip, { sticky: true, direction: 'auto', offset: L.point(16, 0), className: 'panel-map-tooltip' });
       layer.on('mouseover', () => { if (selected !== layer) layer.setStyle({ fillColor: COLORS.hover, weight: 2.2 }); });
       layer.on('mouseout', () => { if (selected !== layer) layer.setStyle({ ...baseStyle }); });
@@ -98,7 +102,7 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
       onEachFeature: (feature, layer) => {
         const city = config.cities[String(feature.properties.miasto_id)];
         const tip = make('div', null, 'panel-city-tip'), icon = make('img'); icon.src = config.cityIcon; icon.alt = '';
-        const text = make('div'); text.append(make('strong', city.stolica ? `${city.nazwa} — stolica` : city.nazwa), make('span', `Populacja: ${number(city.populacja)}`));
+        const text = make('div'); text.append(make('strong', city.stolica ? `${city.nazwa} — stolica` : city.nazwa), make('div', `Populacja: ${number(city.populacja)}`));
         tip.append(icon, text);
         layer.bindTooltip(tip, { direction: 'auto', offset: L.point(12, 0), className: 'panel-map-tooltip' });
         layer.on('mouseover', () => layer.setRadius(city.stolica ? 9 : 6.5));

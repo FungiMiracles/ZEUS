@@ -11,7 +11,7 @@ MAP_FILTERS=[
                ('nuclear','Silosy atomowe','SILOS ATOMOWY.svg'),('defenses','Obrona przeciwrakietowa','OBRONA PRZECIWRAKIETOWA.svg'),
                ('radars','Radary','RADAR.svg'),('vessels','Okręty na morzu','OKRĘT WOJENNY.svg')]),
     ('Gospodarka',[('mines','Kopalnie','KOPALNIA.svg'),('factories','Fabryki','FABRYKA.svg'),('power','Elektrownie','ELEKTROWNIA WĘGLOWA.svg')]),
-    ('Infrastruktura',[('roads','Drogi','DROGA.svg'),('cities','Miasta','MIASTO.svg')]),
+    ('Infrastruktura',[('cities','Miasta','MIASTO.svg')]),
 ]
 VESSEL_ICONS={'warships':'OKRĘT WOJENNY.svg','submarines':'SUBMARINE.svg','carriers':'LOTNISKOWIEC.svg'}
 VESSEL_LABELS={'warships':'Okręt wojenny','submarines':'Okręt podwodny','carriers':'Lotniskowiec'}
@@ -71,12 +71,6 @@ def map_objects(country_id,icon_url):
         add('factories',f'{FACTORIES[f.kind]["label"]} #{f.id} · poziom {f.level}',[f.map_x,f.map_y],'FABRYKA.svg',f.health)
     for p in db.session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country_id,PowerPlant.removed_at.is_(None))):
         add('power',f'{POWER_PLANTS[p.kind]["label"]} #{p.id} · poziom {p.level}',[p.map_x,p.map_y],POWER_PLANTS[p.kind].get('icon') or 'ELEKTROWNIA WĘGLOWA.svg',round(p.health*100/3))
-    try:
-        from game.civic_models import Road
-        for road in db.session.scalars(select(Road).where(Road.panstwo_id==country_id)):
-            path=road.path or [[road.start_x,road.start_y],[road.end_x,road.end_y]]
-            items.append({'kind':'roads','name':('Autostrada' if road.kind=='motorway' else 'Droga')+f' #{road.id} · {float(road.distance_km):.0f} km','path':path})
-    except Exception:pass
     return items
 
 

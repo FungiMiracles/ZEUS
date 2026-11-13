@@ -1,0 +1,31 @@
+{% extends 'game/game_base_layout.html' %}
+{% block title %}Świat — {{ game_country.nazwa }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261113-world-1') }}">
+{% endblock %}
+{% block content %}
+<section class="world-map-card" aria-labelledby="world-map-title">
+  <div class="world-map-bar">
+    <h2 id="world-map-title">Mapa świata Entendy</h2>
+    <div class="world-view-switch" role="radiogroup" aria-label="Widok mapy">
+      <label><input type="radio" name="world-view" value="political" checked><span>Polityczna</span></label>
+      <label><input type="radio" name="world-view" value="regional"><span>Regionalna</span></label>
+    </div>
+    <button type="button" id="world-map-reset" class="world-map-reset">Cały świat ⤢</button>
+  </div>
+  <div class="world-map-legend" aria-label="Legenda">
+    <span><i class="legend-city legend-big"></i> Miasto &gt; 5 mln</span>
+    <span><i class="legend-city legend-mid"></i> 1–5 mln</span>
+    <span><i class="legend-city legend-small"></i> &lt; 1 mln</span>
+    <span class="legend-regional"><i class="legend-occupied"></i> Region okupowany</span>
+  </div>
+  <div id="world-map" aria-label="Mapa świata"></div>
+  <p id="world-map-status" class="world-map-status" role="status" hidden></p>
+</section>
+<script type="application/json" id="world-config">{{ world_config | tojson }}</script>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261113-world-1') }}" defer></script>
+{% endblock %}
