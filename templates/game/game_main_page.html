@@ -9,7 +9,7 @@
 <link rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_dashboard.css', v='20261112-crates-3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_dashboard.css', v='20261113-panel-1') }}">
 
 {% if config.get('GAME_FINANCE_ENABLED', false) %}
 <link rel="stylesheet"
@@ -54,257 +54,69 @@
     {% endif %}
 
 {% endif %}
-<div class="game-dashboard">
-
-    <section class="game-panel" aria-labelledby="game-map-title">
-        <div class="game-panel-heading game-map-heading">
-            <span id="game-map-title">Mapa państwa</span>
-
-            <button type="button"
-                    id="game-map-reset"
-                    class="game-map-reset"
-                    disabled>
-                Pokaż moje państwo
-            </button>
-        </div>
-
-        <div id="game-country-map"
-             aria-label="Interaktywna mapa świata">
-        </div>
-
-        <p id="game-map-status"
-        class="game-map-status"
-        role="status"
-        hidden>
-        </p>
-
-    </section>
-
-
-    <section class="game-panel">
-        <div class="game-panel-heading">Panel zarządzania państwem</div>
-
-        <div class="game-panel-body">
-            <h2>Witaj, {{ game_user.username }}!</h2>
-
-            <p>
-                Zarządzasz państwem
-                <strong>{{ game_country.nazwa }}</strong>.
-            </p>
-
-            <p>
-                Najedź na region swojego państwa, aby zobaczyć jego nazwę.
-                Mapę możesz przesuwać i przybliżać.
-            </p>
-            {% if config.get('ENV_NAME') == 'UAT' %}
-            <p><a class="game-account-delete-link" href="{{ url_for('game_account.remove') }}">Usuń konto</a></p>
-            {% endif %}
-        </div>
-    </section>
-
+{# 13 Nov 2026: kontenery informacyjne pod paskiem wiadomości #}
+{% set dash = game_panel.dashboard %}
+<div class="panel-cards">
+  <section class="panel-card panel-card-alerts" aria-labelledby="card-alerts">
+    <h2 id="card-alerts">Alerty</h2>
+    {% if dash.alerts %}<ul class="panel-alerts">{% for alert in dash.alerts %}<li class="panel-alert panel-alert-{{ alert.kind }}"><span class="panel-alert-mark" aria-hidden="true">{{ '⚔' if alert.kind == 'war' else '!' }}</span><span><strong>{{ alert.text }}</strong>{% if alert.date %}<time>{{ alert.date }}</time>{% endif %}</span></li>{% endfor %}</ul>
+    {% elif dash.alerts is none %}<p class="panel-card-empty">Dane chwilowo niedostępne.</p>
+    {% else %}<p class="panel-card-empty">Brak ataków i wypowiedzeń wojny.</p>{% endif %}
+  </section>
+  <section class="panel-card" aria-labelledby="card-energy">
+    <h2 id="card-energy">Energetyka</h2>
+    {% if dash.energy %}<dl class="panel-metrics">
+      <div><dt>Dzienna produkcja energii</dt><dd>{{ '%.0f'|format(dash.energy.production) }}</dd></div>
+      <div><dt>Dzienne zużycie energii</dt><dd class="{{ 'is-bad' if not dash.energy.sufficient else '' }}">{{ '%.0f'|format(dash.energy.consumption) }}</dd></div>
+    </dl>{% else %}<p class="panel-card-empty">Dane chwilowo niedostępne.</p>{% endif %}
+  </section>
+  <section class="panel-card" aria-labelledby="card-world">
+    <h2 id="card-world">Sytuacja międzynarodowa</h2>
+    {% if dash.international %}<dl class="panel-metrics">
+      <div><dt>Aktywne sojusze</dt><dd>{{ dash.international.alliances }}</dd></div>
+      <div><dt>Aktywne wojny</dt><dd class="{{ 'is-bad' if dash.international.wars else '' }}">{{ dash.international.wars }}</dd></div>
+      <div><dt>Okupowane regiony</dt><dd>{{ dash.international.occupied }}</dd></div>
+    </dl>{% else %}<p class="panel-card-empty">Dane chwilowo niedostępne.</p>{% endif %}
+  </section>
+  <section class="panel-card" aria-labelledby="card-industry">
+    <h2 id="card-industry">Produkcja przemysłowa</h2>
+    {% if dash.industry %}<dl class="panel-metrics">
+      <div><dt>Aktywne fabryki</dt><dd>{{ dash.industry.factories }}</dd></div>
+      <div><dt>Aktywne kopalnie</dt><dd>{{ dash.industry.mines }}</dd></div>
+    </dl>{% else %}<p class="panel-card-empty">Dane chwilowo niedostępne.</p>{% endif %}
+  </section>
 </div>
+
+<section class="panel-map-card" aria-labelledby="game-map-title">
+  <div class="panel-map-bar">
+    <h2 id="game-map-title">Mapa państwa</h2>
+    <button type="button" id="game-map-reset" class="panel-map-reset" disabled>Pokaż moje państwo</button>
+  </div>
+  <div class="panel-map-filters" role="group" aria-label="Obiekty na mapie">
+    <button type="button" class="panel-filter-all" id="panel-filters-all">Odznacz wszystkie</button>
+    {% for group, items in game_panel.filters %}
+    <div class="panel-filter-group"><span>{{ group }}</span>
+      {% for code, label, icon_url in items %}<button type="button" data-panel-filter="{{ code }}" aria-pressed="true"><img src="{{ icon_url }}" alt="">{{ label }}</button>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div id="game-country-map" aria-label="Mapa państwa z obiektami"></div>
+  <p id="game-map-status" class="game-map-status" role="status" hidden></p>
+</section>
+<script type="application/json" id="panel-map-config">{{ {
+  'countryId': game_country.id, 'regionNames': game_region_names, 'cities': game_city_data,
+  'regions': game_panel.regions, 'objects': game_panel.objects,
+  'regionsUrl': url_for('static', filename='maps/entenda_regiony.geojson'),
+  'citiesUrl': url_for('static', filename='maps/entenda_miasta.geojson'),
+  'countriesUrl': url_for('region_sovereignty.country_boundaries'),
+  'cityIcon': url_for('static', filename='icons/MIASTO.svg')
+} | tojson }}</script>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
-(() => {
-    const countryId = {{ game_country.id | tojson }};
-    const regionNames = {{ game_region_names | tojson }};
-    const status = document.getElementById("game-map-status");
-    const resetButton = document.getElementById("game-map-reset");
-    const cityData = {{ game_city_data | tojson }};
-
-    if (countryId === null) {
-        status.textContent = "Do konta nie przypisano państwa.";
-        status.hidden = false;
-        return;
-    }
-
-    if (!window.L) {
-        status.textContent = "Nie udało się załadować biblioteki mapy.";
-        status.hidden = false;
-        return;
-    }
-
-    const map = L.map("game-country-map", {
-        crs: L.CRS.Simple,
-        minZoom: -10,
-        maxZoom: 8,
-        zoomSnap: 0.25,
-        zoomDelta: 0.5,
-        attributionControl: false
-    });
-
-    // Zgodnie z mapą używaną podczas rejestracji.
-    const coordinates = coords => L.latLng(coords[1], coords[0]);
-
-
-    async function loadGeoJSON(url) {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Błąd pobierania mapy: ${response.status}`);
-        }
-        return response.json();
-    }
-
-    const regionStyle = {
-        color: "#244984",
-        weight: 1.5,
-        fillColor: "#779ce4",
-        fillOpacity: 0.85
-    };
-
-    Promise.all([
-        loadGeoJSON(
-            {{ url_for('static',
-                       filename='maps/entenda_regiony.geojson') | tojson }}
-        )
-    ]).then(([regions]) => {
-        const regionLayer = L.geoJSON(regions, {
-            coordsToLatLng: coordinates,
-            filter: feature => Object.prototype.hasOwnProperty.call(regionNames, String(feature.properties?.region_id)),
-            style: regionStyle,
-
-            onEachFeature: (feature, layer) => {
-                const regionId = String(feature.properties.region_id);
-                const label = document.createElement("span");
-
-                // textContent bezpiecznie wyświetla nazwę z bazy danych.
-                label.textContent =
-                    regionNames[regionId] || `Region #${regionId}`;
-
-                layer.bindTooltip(label, {
-                    sticky: true,
-                    direction: "auto",
-                    offset: L.point(18, 0),
-                    className: "game-region-tooltip",
-                    opacity: 1
-                });
-
-                layer.on("mouseover", () => {
-                    layer.setStyle({
-                        fillColor: "#f2c94c",
-                        fillOpacity: 0.95,
-                        weight: 3
-                    });
-                });
-
-                layer.on("mouseout", () => {
-                    regionLayer.resetStyle(layer);
-                });
-            }
-        }).addTo(map);
-
-        function focusCountry() {
-            map.invalidateSize();
-
-            const bounds = regionLayer.getBounds();
-
-            if (bounds.isValid()) {
-                map.fitBounds(bounds, {
-                    padding: [35, 35],
-                    maxZoom: 5,
-                    animate: false
-                });
-                return true;
-            }
-
-            return false;
-        }
-
-        const hasCountryGeometry = focusCountry();
-
-        resetButton.disabled = !hasCountryGeometry;
-        resetButton.addEventListener("click", focusCountry);
-
-        if (!hasCountryGeometry) {
-            status.textContent =
-                "Brak geometrii zarządzanego państwa. Wyświetlono świat.";
-            status.hidden = false;
-        }
-
-        // Miasta nad warstwami państw i regionów.
-        map.createPane("gameCities");
-        map.getPane("gameCities").style.zIndex = "450";
-
-        loadGeoJSON(
-            {{ url_for('static',
-                    filename='maps/entenda_miasta.geojson') | tojson }}
-        ).then(cities => {
-            const cityLayer = L.geoJSON(cities, {
-                coordsToLatLng: coordinates,
-
-                // Pokazuj wyłącznie miasta zarządzanego państwa.
-                filter: feature => Object.prototype.hasOwnProperty.call(
-                    cityData,
-                    String(feature.properties.miasto_id)
-                ),
-
-                pointToLayer: (feature, latlng) => {
-                    const city = cityData[String(feature.properties.miasto_id)];
-
-                    return L.circleMarker(latlng, {
-                        pane: "gameCities",
-                        radius: city.stolica ? 7 : 4,
-                        color: city.stolica ? "#795000" : "#ffffff",
-                        weight: 2,
-                        fillColor: city.stolica ? "#f2c94c" : "#173b75",
-                        fillOpacity: 1
-                    });
-                },
-
-                onEachFeature: (feature, layer) => {
-                    const city = cityData[String(feature.properties.miasto_id)];
-                    const tooltip = document.createElement("div");
-                    const title = document.createElement("strong");
-                    const population = document.createElement("div");
-
-                    title.textContent = city.stolica
-                        ? `${city.nazwa} — stolica`
-                        : city.nazwa;
-
-                    population.textContent = city.populacja == null
-                        ? "Populacja: brak danych"
-                        : `Populacja: ${Number(city.populacja).toLocaleString("pl-PL")}`;
-
-                    tooltip.append(title, population);
-
-                    layer.bindTooltip(tooltip, {
-                        direction: "auto",
-                        offset: L.point(12, 0),
-                        className: "game-city-tooltip",
-                        opacity: 1
-                    });
-
-                    layer.on("mouseover", () => {
-                        layer.setRadius(city.stolica ? 9 : 6);
-                    });
-
-                    layer.on("mouseout", () => {
-                        layer.setRadius(city.stolica ? 7 : 4);
-                    });
-                }
-            });
-
-            cityLayer.addTo(map);
-        }).catch(error => {
-            console.error("Błąd wczytywania miast:", error);
-            status.textContent =
-                "Mapa została wczytana, ale nie udało się wyświetlić miast.";
-            status.hidden = false;
-        });
-        if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById("game-country-map"));
-    }).catch(error => {
-        console.error("Błąd mapy panelu gry:", error);
-
-        status.textContent =
-            "Nie udało się wczytać mapy. Odśwież stronę, aby spróbować ponownie.";
-        status.hidden = false;
-    });
-})();
-</script>
+<script src="{{ url_for('static', filename='js/game_panel_map.js', v='20261113-panel-1') }}" defer></script>
 {% if config.get('GAME_FINANCE_ENABLED', false) %}
 <script src="{{ url_for(
     'static',

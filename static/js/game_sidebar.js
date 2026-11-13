@@ -1,6 +1,9 @@
 (()=>{'use strict';
 // 13 Nov 2026: tooltipy lewego paska (wycinki budżetu, skrzynie magazynu) i dopasowanie plakietek z liczbami.
 const bar=document.querySelector('.game-sidebar');if(!bar)return;
+// 13 Nov 2026: wysokość przyklejonego menu → pasek boczny zaczyna się pod nim
+(()=>{const nav=document.querySelector('.game-navigation');if(!nav)return;const set=()=>document.documentElement.style.setProperty('--game-nav-height',nav.getBoundingClientRect().height+'px');
+  set();if(window.ResizeObserver)new ResizeObserver(set).observe(nav);window.addEventListener('resize',set);})();
 // 13 Nov 2026: powiadomienia i wiadomości prywatne obok flagi na pasku (komputer); na telefonie wracają do górnego paska.
 (()=>{const slot=document.getElementById('sidebar-tools'),tools=document.querySelector('.game-tools');
   const notes=document.getElementById('game-notifications'),mail=document.getElementById('game-mail-toggle');
@@ -9,7 +12,8 @@ const bar=document.querySelector('.game-sidebar');if(!bar)return;
   function place(){if(desktop.matches){slot.append(notes,mail);}else{tools.prepend(mail,notes);}}
   place();desktop.addEventListener?desktop.addEventListener('change',place):desktop.addListener(place);
   notes.addEventListener('toggle',()=>{const menu=notes.querySelector('.game-notification-dropdown');if(!menu||!slot.contains(notes))return;
-    if(notes.open){const rect=notes.getBoundingClientRect();menu.style.top=Math.max(8,rect.top)+'px';menu.style.left=(bar.getBoundingClientRect().right+10)+'px';}
+    if(notes.open){const icon=notes.querySelector('summary').getBoundingClientRect();menu.style.top=Math.max(8,icon.top)+'px';menu.style.left=(icon.right+10)+'px';
+      menu.style.maxHeight=Math.max(200,window.innerHeight-icon.top-16)+'px';}
     else{menu.style.top='';menu.style.left='';}});})();
 const tip=document.createElement('div');tip.className='sidebar-floating-tip';tip.hidden=true;tip.setAttribute('role','tooltip');document.body.append(tip);
 function show(target,build){tip.replaceChildren();build(tip);tip.hidden=false;const rect=target.getBoundingClientRect(),box=tip.getBoundingClientRect();

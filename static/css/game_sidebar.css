@@ -130,3 +130,26 @@ html body.game-app.game-navy.game-civic .game-news-bar .game-news-date{font-weig
 .game-sidebar .warehouse-crate .crate-badge{right:1px;bottom:1px;max-width:calc(100% - 2px);padding:1px 8px;border-radius:12px;font-size:20px;line-height:1.35}
 /* 13 Nov 2026 (5): plakietki o 25% mniejsze (20 → 15 px) */
 .game-sidebar .warehouse-crate .crate-badge{padding:1px 6px;border-radius:9px;font-size:15px}
+/* 13 Nov 2026 (6): menu przyklejone u góry; pasek boczny pod nim */
+@media(min-width:901px){
+  html body.game-app.game-navy.game-civic .game-navigation{position:sticky;top:0}
+  .game-sidebar{top:var(--game-nav-height,0px);height:calc(100dvh - var(--game-nav-height,0px))}
+}
+/* Lista powiadomień: w dół, na prawo od ikony, w kolorach granatu */
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{background:#1E3A5F;color:#eef3fa;border:1px solid #4d6f98;border-radius:8px;box-shadow:0 10px 26px #0b1d3366;padding:10px}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown>strong{color:#fff;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown :is(p,#game-notification-status){color:#c9d7e8}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item{background:#24466f;color:#eef3fa;border:1px solid #3b5f8c;border-radius:6px}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item:hover{background:#2b5282;border-color:#fff}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.unread{background:#2d5585;border-left:3px solid #ffcf6b}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item :is(small,time,span){color:#c9d7e8}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.notification-war{background:#5a1f24;border-color:#b3261e;color:#ffe0e0}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.notification-construction{background:#5a4417;border-color:#c08a2c;color:#fff1d6}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-new{background:#ffcf6b;color:#1E3A5F}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools :is(.game-notification-read-all,#game-notification-more){background:#fff;color:#1E3A5F;border:1px solid #fff}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools button.game-notification-mark.game-notification-mark{background:#1E3A5F;color:#fff;border-color:#ffffff99}
+/* Usuń konto (UAT) obok Wyloguj — ten sam styl, czerwony */
+.game-sidebar .sidebar-account-actions{display:flex;align-items:center;gap:5px;margin-left:auto;flex:0 0 auto}
+.game-sidebar .sidebar-account-actions .sidebar-logout-form{margin:0}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-delete{display:inline-block;padding:3px 10px;font-size:11px;font-weight:700;line-height:1.4;border:1px solid #d9534f;border-radius:5px;background:#b3261e;color:#fff;text-decoration:none}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-delete:hover{background:#d0352b;border-color:#fff}

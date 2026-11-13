@@ -142,19 +142,20 @@ def init_game_auth_routes(app):
         if current_app.config.get("GAME_FINANCE_ENABLED", False):
             finance_context = build_panel_finance_context(user.id)
 
-        warehouse_items=[]
+        panel={'regions':{},'objects':[],'dashboard':{},'filters':[]}
         if country:
-            from game.commerce import settle_own,goods_catalog
-            from game.trade_goods import trade_warehouse
-            settle_own(country.PANSTWO_ID)
-            catalog=goods_catalog();warehouse=trade_warehouse(db.session,country.PANSTWO_ID)
-            keys=['wegiel_kamienny','ropa_naftowa','zloto','srebro','kamien','natsyt','kerbit','cemium','uran','zelazo','chip_simple','chip_kerbit','chip_natsyt','chip_cemium_i','chip_cemium_ii']
-            from game.warehouse_forecast import depletion_dates
-            forecasts=depletion_dates(db.session,country.PANSTWO_ID,warehouse)
-            warehouse_items=[{**catalog[key],'quantity':warehouse[key]['available'],'depletion_date':forecasts.get(key)} for key in keys]
+            from game.commerce import settle_own
+            settle_own(country.PANSTWO_ID)   # rozliczenie produkcji i dostaw przy wejściu do panelu
             db.session.commit()
+            # 13 Nov 2026: mapa z obiektami i kontenery informacyjne panelu państwa
+            from game import main_panel
+            icon=lambda name:url_for('static',filename='icons/'+name)
+            panel={'regions':main_panel.region_info(country.PANSTWO_ID),'objects':main_panel.map_objects(country.PANSTWO_ID,icon),
+                   'dashboard':main_panel.dashboard(country.PANSTWO_ID),
+                   'filters':[(group,[(code,label,icon(file)) for code,label,file in items]) for group,items in main_panel.MAP_FILTERS]}
+            db.session.rollback()
         return render_template(
-            "game/game_main_page.html",warehouse_items=warehouse_items,
+            "game/game_main_page.html",
             game_user=user,
             game_country=country_data,
             game_home_url=url_for("game_main_page"),
@@ -162,6 +163,7 @@ def init_game_auth_routes(app):
             game_events=[],
             game_region_names=region_names,
             game_city_data=city_data,
+            game_panel=panel,
             **finance_context,
         )
 

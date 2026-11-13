@@ -38,3 +38,49 @@
 /* 12 Nov 2026: ikona na środku skrzyni (środek skrzyni: 2 px + 68/2 od dołu) i podąża za uniesieniem skrzyni */
 .warehouse-crate .crate-icon{transition:transform .15s}
 .warehouse-crate:hover .crate-icon,.warehouse-crate:focus-visible .crate-icon{transform:translateX(-50%) translateY(-3px)}
+
+/* 13 Nov 2026: panel państwa — kontenery informacyjne i mapa w nowym stylu (granat #1E3A5F) */
+.panel-cards{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr));gap:14px;margin:0 0 16px}
+.panel-card{min-width:0;padding:12px 14px;border:1px solid #d3dce9;border-top:3px solid #1E3A5F;border-radius:8px;background:#fff;box-shadow:0 2px 8px #1e3a5f14}
+.panel-card h2{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1E3A5F}
+.panel-card-alerts{border-top-color:#b3261e}
+.panel-card-alerts h2{color:#b3261e}
+.panel-card-empty{margin:0;font-size:12.5px;color:#5d6f86}
+.panel-alerts{display:grid;gap:6px;margin:0;padding:0;list-style:none;max-height:150px;overflow-y:auto}
+.panel-alert{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.35;color:#24324a}
+.panel-alert strong{display:block;font-weight:600}
+.panel-alert time{display:block;font-size:10.5px;color:#6b7c93}
+.panel-alert-mark{flex:0 0 20px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#b3261e;color:#fff;font-size:11px;font-weight:800}
+.panel-alert-war .panel-alert-mark{background:#1E3A5F}
+.panel-metrics{display:grid;gap:6px;margin:0}
+.panel-metrics div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px dashed #dbe3ee}
+.panel-metrics div:last-child{border-bottom:0}
+.panel-metrics dt{font-size:12px;color:#4d5f78}
+.panel-metrics dd{margin:0;font:700 18px/1.2 Consolas,monospace;color:#1E3A5F}
+.panel-metrics dd.is-bad{color:#b3261e}
+.panel-map-card{border:1px solid #d3dce9;border-radius:10px;background:#fff;box-shadow:0 2px 10px #1e3a5f1a;overflow:hidden}
+.panel-map-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F);color:#fff}
+.panel-map-bar h2{margin:0;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+html body.game-app .panel-map-bar .panel-map-reset{min-height:0;padding:5px 12px;border:2px solid #ffffff99;border-radius:6px;background:transparent;color:#fff;font-size:12.5px;font-weight:700;box-shadow:none}
+html body.game-app .panel-map-bar .panel-map-reset:hover:not(:disabled){border-color:#fff;background:#ffffff1f}
+.panel-map-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:9px 14px;background:#e9eff8;border-bottom:1px solid #d3dce9}
+.panel-filter-group{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.panel-filter-group>span{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#1E3A5F;margin-right:2px}
+html body.game-app .panel-map-filters button{display:inline-flex;align-items:center;gap:5px;min-height:0;padding:4px 9px;border:1px solid #b9c7da;border-radius:14px;background:#fff;color:#1E3A5F;font-size:11.5px;font-weight:600;box-shadow:none;cursor:pointer}
+html body.game-app .panel-map-filters button img{width:17px;height:17px;object-fit:contain}
+html body.game-app .panel-map-filters button[aria-pressed=true]{background:#1E3A5F;border-color:#1E3A5F;color:#fff}
+html body.game-app .panel-map-filters button[aria-pressed=true] img{background:#fff;border-radius:3px}
+html body.game-app .panel-map-filters .panel-filter-all{background:transparent;border-style:dashed}
+#game-country-map{height:clamp(420px,70dvh,780px);background:radial-gradient(ellipse at 50% 40%,#1b3a5c,#0b1d33 75%)}
+html body.game-app.game-navy :is(#game-country-map){background:radial-gradient(ellipse at 50% 40%,#1b3a5c,#0b1d33 75%)}
+.panel-map-marker{background:transparent;border:0}
+.panel-map-object{position:relative;width:28px;height:28px;box-sizing:border-box;padding:3px;border:1.5px solid #1E3A5F;border-radius:7px;background:#fff;box-shadow:0 2px 5px #0006}
+.panel-map-object img{display:block;width:100%;height:100%;object-fit:contain}
+.panel-map-health{position:absolute;left:2px;bottom:-5px;height:3px;border-radius:2px;background:#d9665b}
+.leaflet-tooltip.panel-map-tooltip{display:flex;flex-direction:column;gap:2px;width:max-content;max-width:260px;padding:7px 10px;border:1px solid #1E3A5F;border-radius:6px;background:#fff;color:#1d2b40;font-size:12px;line-height:1.4;box-shadow:0 4px 12px #0b1d3340;white-space:normal}
+.leaflet-tooltip.panel-map-tooltip strong{color:#1E3A5F;font-size:13px}
+.panel-city-tip{display:flex;align-items:center;gap:8px}
+.panel-city-tip img{width:28px;height:28px;object-fit:contain}
+.panel-city-tip div{display:flex;flex-direction:column}
+@media(max-width:1100px){.panel-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.panel-cards{grid-template-columns:1fr}}
