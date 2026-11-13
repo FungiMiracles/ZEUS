@@ -113,6 +113,13 @@ def create_app():
 
     app.jinja_env.filters["spacenum"] = spacenum
 
+    @app.template_global("period_label")
+    def period_label_global(year, period):
+        # 13 Nov 2026: „II półrocze 3001” albo „IV kwartał 3001”
+        from game.finance_service import period_label
+        try:return period_label(int(year), int(period))
+        except Exception:return f"{period}. okres {year}"
+
     @app.template_filter("game_money")
     def game_money(value):
         from game.money_display import format_money

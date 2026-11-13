@@ -93,8 +93,13 @@ def garrison_for(kind,forces,level=1):
 
 
 def upkeep(garrison):
+    """Utrzymanie w bieżącym okresie budżetowym (stawki półroczne; w kwartale połowa — 13 Nov 2026)."""
     from game.military_service import UPKEEP_RATES
-    return float(sum(n*UPKEEP_RATES[r] for r,n in garrison.items() if r!='warheads'))
+    try:
+        from game.finance_service import current_period_months
+        scale=current_period_months()/6
+    except Exception:scale=1.0
+    return float(sum(n*UPKEEP_RATES[r] for r,n in garrison.items() if r!='warheads'))*scale
 
 
 def base_site(ctx,kind,threats):

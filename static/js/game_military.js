@@ -416,7 +416,7 @@
                 const row=make('div',`${info.label}: ${number(count)}`,'military-resource-label');row.prepend(image(info.icon));tooltip.append(row);
             }
             if(!Object.keys(base.garrison).length)tooltip.append(make('p',base.intelligenceOnly?'Garnizon — brak danych wywiadowczych.':'Brak garnizonu.'));
-            if(base.upkeep!=null&&base.countryId===config.countryId)tooltip.append(make('p',`Utrzymanie: ${number(Number(base.upkeep))} ROI / półrocze${base.abroad?' (baza za granicą — 2×)':''}`));
+            if(base.upkeep!=null&&base.countryId===config.countryId)tooltip.append(make('p',`Utrzymanie: ${number(Number(base.upkeep))} ROI / okres budżetowy${base.abroad?' (baza za granicą — 2×)':''}`));
             tooltip.append(healthBar(base.health));
             window.GameLandWar?.baseTooltip(base,tooltip);
             const symbol=make('div',null,'military-base-symbol');symbol.append(image(baseIcon(base)));window.GameLandWar?.baseSymbol(base,symbol);

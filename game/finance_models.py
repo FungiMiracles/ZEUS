@@ -115,28 +115,14 @@ class StateFinancialPeriod(db.Model):
             "game_year BETWEEN 1 AND 9998",
             name="ck_gsfp_year",
         ),
+        # 13 Nov 2026: półrocza (1–2) do 1 października 3001, potem kwartały (1–4); granice okresów liczy
+        # game.finance_service.period_bounds — w bazie tylko spójność dat.
         CheckConstraint(
-            "period IN (1, 2)",
+            "period IN (1, 2, 3, 4)",
             name="ck_gsfp_period",
         ),
         CheckConstraint(
-            """
-            starts_at_game =
-                CASE period
-                    WHEN 1 THEN
-                        CAST(CONCAT(game_year, '-01-01 00:00:00') AS DATETIME)
-                    ELSE
-                        CAST(CONCAT(game_year, '-07-01 00:00:00') AS DATETIME)
-                END
-            AND
-            ends_at_game =
-                CASE period
-                    WHEN 1 THEN
-                        CAST(CONCAT(game_year, '-07-01 00:00:00') AS DATETIME)
-                    ELSE
-                        CAST(CONCAT(game_year + 1, '-01-01 00:00:00') AS DATETIME)
-                END
-            """,
+            "ends_at_game > starts_at_game",
             name="ck_gsfp_dates",
         ),
         CheckConstraint(

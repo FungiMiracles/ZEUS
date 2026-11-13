@@ -145,7 +145,7 @@
   </div>
   {% if game_budget_overview is defined and game_budget_pie is defined %}
   <section class="sidebar-block" aria-labelledby="sidebar-budget-title">
-    <h2 id="sidebar-budget-title">Budżet · {{ game_budget_overview.period }}. półrocze {{ game_budget_overview.year }}</h2>
+    <h2 id="sidebar-budget-title">Budżet · {{ period_label(game_budget_overview.year, game_budget_overview.period) if period_label is defined else game_budget_overview.period ~ '. okres ' ~ game_budget_overview.year }}</h2>
     {% set segments = game_budget_pie(game_budget_overview['items']) %}
     {% if segments %}
     <div class="sidebar-pie">
@@ -155,7 +155,7 @@
       </svg>
       <div class="sidebar-pie-center"><span>Do wydania</span><strong>{{ game_budget_overview['items']|sum(attribute='remaining')|game_money }}</strong></div>
     </div>
-    {% else %}<p class="sidebar-empty">Brak zatwierdzonego planu na bieżące półrocze.</p>{% endif %}
+    {% else %}<p class="sidebar-empty">Brak zatwierdzonego planu na bieżący okres budżetowy.</p>{% endif %}
   </section>
   {% endif %}
   <section class="sidebar-block" aria-label="Wskaźniki państwa">
@@ -237,7 +237,7 @@
   </div>
 </header>
   {% if game_budget_overview is defined %}
-  <details class="game-budget-overview" open><summary>Budżet do wydania · {{ game_budget_overview.period }}. półrocze {{ game_budget_overview.year }}</summary>
+  <details class="game-budget-overview" open><summary>Budżet do wydania · {{ period_label(game_budget_overview.year, game_budget_overview.period) if period_label is defined else game_budget_overview.period ~ '. okres ' ~ game_budget_overview.year }}</summary>
     {% if game_budget_overview['items'] %}<dl>{% for item in game_budget_overview['items'] %}<div data-budget-sector="{{ item.code }}"><dt>{{ item.label }}</dt><dd>{{ item.remaining|game_money }}</dd></div>{% endfor %}</dl>{% else %}<p>Brak zatwierdzonego planu na bieżące półrocze.</p>{% endif %}
   </details>
   <script>if(window.matchMedia('(max-width:900px)').matches)document.querySelector('.game-budget-overview').open=false;</script>

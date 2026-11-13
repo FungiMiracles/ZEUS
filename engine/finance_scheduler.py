@@ -53,8 +53,9 @@ def database_now(session):
 
 
 def next_period(key):
-    year, half = key
-    return (year, 2) if half == 1 else (year + 1, 1)
+    # 13 Nov 2026: półrocza do 1 października 3001, potem kwartały (game.finance_service.next_period_key)
+    from game.finance_service import next_period_key
+    return next_period_key(key)
 
 
 def period_keys(first, last):

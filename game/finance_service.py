@@ -60,10 +60,21 @@ def game_now():
     return get_current_entenda_datetime()
 
 
+# 13 Nov 2026: od 1 października 3001 budżet ustala się kwartalnie (1 stycznia, 1 kwietnia, 1 lipca, 1 października).
+# Wcześniej obowiązywały półrocza; II półrocze 3001 kończy się 1 października 3001. Numer okresu:
+# półrocza 1–2 (do 3001), kwartały 1–4 (IV kwartał 3001 = (3001, 4), od 3002 kwartały 1–4) — kolejność krotek zachowana.
+QUARTER_START = datetime(3001, 10, 1)
+
+
+def is_quarterly(year, period):
+    return year > QUARTER_START.year or (year == QUARTER_START.year and period == 4)
+
+
 def period_key(moment):
     if not 1 <= moment.year <= 9998:
         raise FinanceError("Rok gry poza obsługiwanym zakresem.")
-
+    if moment >= QUARTER_START:
+        return moment.year, (moment.month - 1) // 3 + 1
     return moment.year, 1 if moment.month <= 6 else 2
 
 
@@ -72,15 +83,47 @@ def period_bounds(year, period):
         isinstance(year, bool)
         or not isinstance(year, int)
         or not 1 <= year <= 9998
-        or period not in (1, 2)
         or isinstance(period, bool)
+        or period not in (1, 2, 3, 4)
     ):
-        raise FinanceError("Nieprawidłowy rok lub półrocze.")
-
+        raise FinanceError("Nieprawidłowy rok lub okres budżetowy.")
+    if is_quarterly(year, period):
+        start = datetime(year, 3 * (period - 1) + 1, 1)
+        end = datetime(year + 1, 1, 1) if period == 4 else datetime(year, 3 * period + 1, 1)
+        return start, end
+    if period not in (1, 2) or year > QUARTER_START.year:
+        raise FinanceError("Nieprawidłowy rok lub okres budżetowy.")
     if period == 1:
         return datetime(year, 1, 1), datetime(year, 7, 1)
+    end = datetime(year + 1, 1, 1)
+    return datetime(year, 7, 1), min(end, QUARTER_START) if year == QUARTER_START.year else end
 
-    return datetime(year, 7, 1), datetime(year + 1, 1, 1)
+
+def period_months(year, period):
+    """Nominalna długość okresu: kwartał 3 miesiące, półrocze 6 (podstawa przeliczania kwot rocznych)."""
+    return 3 if is_quarterly(year, period) else 6
+
+
+def period_share(year, period):
+    return Decimal(period_months(year, period)) / Decimal(12)
+
+
+def current_period_months(moment=None):
+    return period_months(*period_key(moment or game_now()))
+
+
+def next_period_key(key):
+    year, period = key
+    if is_quarterly(year, period):
+        return (year + 1, 1) if period == 4 else (year, period + 1)
+    if period == 1:
+        return (year, 2)
+    return (year, 4) if year == QUARTER_START.year else (year + 1, 1)
+
+
+def period_label(year, period):
+    roman = {1: "I", 2: "II", 3: "III", 4: "IV"}[period]
+    return f"{roman} kwartał {year}" if is_quarterly(year, period) else f"{roman} półrocze {year}"
 
 
 def decimal_value(value, label):
@@ -160,7 +203,7 @@ def _general_tax_basis(session,country_id):
     return capture_basis(session,country_id)
 
 
-def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None):
+def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5")):
     """Czyste obliczenia. Funkcja nie korzysta z bazy."""
 
     with localcontext() as context:
@@ -202,9 +245,9 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
             penalty=tax_penalty(revenue_basis,pit_rate)
             annual_cit=ZERO
 
-        # Każda transza stanowi 50% rocznych wpływów.
-        half_year_pit = money(annual_pit / 2, "Półroczny PIT")
-        half_year_cit = money(annual_cit / 2, "Półroczny CIT")
+        # Transza okresu: półrocze 50%, kwartał 25% rocznych wpływów (pola zachowują nazwy half_year_*).
+        half_year_pit = money(annual_pit * share, "PIT okresu")
+        half_year_cit = money(annual_cit * share, "CIT okresu")
 
         tax_total = money(half_year_pit + half_year_cit)
         budget_total = money(reserve + tax_total, "Dostępne środki")
@@ -520,6 +563,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             plan["cit_rate"],
             plan["shares"],
             revenue_basis=_general_tax_basis(session,country.PANSTWO_ID),
+            share=period_share(year, period),
         )
 
         from game.social_benefits import expectations,carryover
@@ -730,6 +774,7 @@ def approve_in_transaction(
         plan["cit_rate"],
         plan["shares"],
         revenue_basis=_general_tax_basis(session,country.PANSTWO_ID),
+            share=period_share(year, period),
     )
 
     financial_period = _get_period(

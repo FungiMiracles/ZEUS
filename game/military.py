@@ -178,7 +178,8 @@ def base_data(base,own=None):
     from game.military_service import UPKEEP_RATES
     own=own if own is not None else own_region_ids(db.session,base.panstwo_id)
     abroad=base.region_id is not None and base.region_id not in own
-    upkeep=sum(n*UPKEEP_RATES[r] for r,n in (base.garrison or {}).items() if r!='warheads')*(ABROAD_UPKEEP if abroad else 1)
+    from game.finance_service import current_period_months
+    upkeep=sum(n*UPKEEP_RATES[r] for r,n in (base.garrison or {}).items() if r!='warheads')*(ABROAD_UPKEEP if abroad else 1)*current_period_months()/6
     return {'abroad':abroad,'upkeep':str(upkeep),'id':base.id,'name':base.name,'operational':base.operational,'busyVessels':{kind:busy_vessels(db.session,base.id,kind) for kind in ('warships','submarines')} if base.kind=='naval' else {},'countryId':base.panstwo_id,'regionId':str(base.region_id),'kind':base.kind,
         'label':BASES[base.kind][0],'level':base.level,'garrison':base.garrison,'capacity':CAPACITIES[base.kind][base.level-1],
         'upgradeCost':str(UPGRADE_COSTS.get(base.level+1,0)*(2 if base.kind=='nuclear' else 1)),'position':[base.map_x,base.map_y] if base.map_x is not None and base.map_y is not None else None,

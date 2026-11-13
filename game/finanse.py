@@ -104,12 +104,12 @@ def _repeat_flag(data):
 
 
 def _notice_data(notification, financial_period):
-    half_label = "I" if financial_period.period == 1 else "II"
+    from game.finance_service import period_label
+    label = period_label(financial_period.game_year, financial_period.period)
 
     message = (
         "Z powodu przerwy w działaniu systemu ZEUS nie przeprowadzono "
-        f"rozliczenia budżetu za {half_label} półrocze "
-        f"{financial_period.game_year} roku. "
+        f"rozliczenia budżetu za {label}. "
         "Okres został pominięty. Nie naliczono za niego wpływów "
         "podatkowych ani nowych wydatków. Zachowano dotychczasową "
         "rezerwę budżetową."

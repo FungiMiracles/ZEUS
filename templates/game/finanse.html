@@ -34,8 +34,7 @@
                     {% for row in finance_history %}
                     <tr>
                         <th scope="row">
-                            {{ row.year }} /
-                            {{ 'I' if row.period == 1 else 'II' }}
+                            {{ period_label(row.year, row.period) if period_label is defined else row.year ~ ' / ' ~ row.period }}
                         </th>
 
                         <td>

@@ -42,8 +42,7 @@
             <p>
                 <strong>{{ game_country.nazwa }}</strong>
                 {% if state %}
-                    · {{ state.year }} rok
-                    · {{ 'I' if state.period == 1 else 'II' }} półrocze
+                    · {{ period_label(state.year, state.period) if period_label is defined else state.year ~ ' rok' }}
                 {% endif %}
             </p>
         </div>
@@ -199,7 +198,7 @@
 
             <p class="finance-help">
                 Niewykorzystany udział oraz końcówki groszowe pozostają
-                w rezerwie. Rezerwa przechodzi na kolejne półrocze.
+                w rezerwie. Rezerwa przechodzi na kolejny okres budżetowy.
             </p>
         </section>
 

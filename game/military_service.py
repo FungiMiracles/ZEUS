@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, lazyload
 from extensions import db
 from models import Panstwo, Miasto, Region, Wojsko, Stosunki, DictStosunkiStan
 from game.finance_models import StateBudget, StateBudgetAllocation
-from game.finance_service import FinanceError, _country_for_user, game_now, period_key
+from game.finance_service import FinanceError, _country_for_user, game_now, period_key, period_months
 from game.military_models import MilitaryBase, MilitaryExpense, MilitaryMaintenance, MissileDefenseExpense
 
 BASES = {'land':('Baza lądowa','liczba_baz_ladowych','wojska_ladowe_ilosc'),
@@ -148,7 +148,8 @@ def change_defense(user_id, action, data):
             if kind=='nuclear':
                 if count>100:raise FinanceError('Możesz zbudować najwyżej 100 silosów jednocześnie.')
                 budget,total,available=military_budget(session,country.PANSTWO_ID)
-                if budget is None or available<count*25500000000:raise FinanceError('Za mało środków na budowę silosu i jego utrzymanie w bieżącym półroczu.')
+                silo_upkeep=Decimal(500000000)*period_months(*period_key(game_now()))/6
+                if budget is None or available<count*(25000000000+silo_upkeep):raise FinanceError('Za mało środków na budowę silosu i jego utrzymanie w bieżącym okresie budżetowym.')
             if field and count > (getattr(army,field) or 0) - active.get(field,0):
                 raise FinanceError('Brak dostępnych baz tego rodzaju.')
             garrison={}
@@ -163,7 +164,8 @@ def change_defense(user_id, action, data):
                     if not garrison.get('warheads'):raise FinanceError('Dodaj co najmniej jedną głowicę.')
                 elif not garrison.get('soldiers') or not any(n for resource,n in garrison.items() if resource!='soldiers'):
                     raise FinanceError('Dodaj żołnierzy oraz co najmniej jedną jednostkę sprzętu.')
-                additional=sum(n*UPKEEP_RATES[resource] for resource,n in garrison.items() if resource!='warheads')*(ABROAD_UPKEEP if abroad else 1)+(25500000000 if kind=='nuclear' else 0)
+                scale=Decimal(period_months(*period_key(game_now())))/6
+                additional=sum(n*UPKEEP_RATES[resource] for resource,n in garrison.items() if resource!='warheads')*(ABROAD_UPKEEP if abroad else 1)*scale+(25000000000+500000000*scale if kind=='nuclear' else 0)
                 budget,total,available=military_budget(session,country.PANSTWO_ID)
                 if budget is None or available<additional:raise FinanceError('Za mało środków na utworzenie i utrzymanie garnizonu.')
             for _ in range(count):
@@ -282,6 +284,8 @@ def reconcile_maintenance(session,country_id,now=None):
     from game.military_models import MilitaryVessel
     from game.military_navy import settle_vessels
     moment=now or game_now();year,period=period_key(moment)
+    # 13 Nov 2026: stawki utrzymania są półroczne — w kwartale połowa (roczny koszt bez zmian)
+    scale=Decimal(period_months(year,period))/6
     session.scalar(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID==country_id).with_for_update())
     bases=list(session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id==country_id).order_by(MilitaryBase.id).with_for_update()))
     settle_vessels(session,moment,country_id)
@@ -306,17 +310,17 @@ def reconcile_maintenance(session,country_id,now=None):
     fixed=0
     for base in bases:
         if base.kind!='nuclear':continue
-        enabled=affordable-fixed>=500000000
+        enabled=affordable-fixed>=500000000*scale
         if base.operational and not enabled:notify(f'Silos {base.name or "#"+str(base.id)} został czasowo wyłączony: brak środków na utrzymanie.')
         base.operational=enabled
-        if enabled:fixed+=500000000
+        if enabled:fixed+=500000000*scale
     affordable-=fixed
     from game.base_permits import own_region_ids,ABROAD_UPKEEP
     own=own_region_ids(session,country_id)
     factor={base.id:(ABROAD_UPKEEP if base.region_id is not None and base.region_id not in own else 1) for base in bases}   # baza za granicą: 2× utrzymanie
-    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]) for base in bases for resource,count in base.garrison.items() if resource!='warheads']
-    items.extend((-v.id,v.kind,1,UPKEEP_RATES[v.kind]) for v in orphans)
-    if heads:items.append((0,'warheads',heads,UPKEEP_RATES['warheads']))
+    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]*scale) for base in bases for resource,count in base.garrison.items() if resource!='warheads']
+    items.extend((-v.id,v.kind,1,UPKEEP_RATES[v.kind]*scale) for v in orphans)
+    if heads:items.append((0,'warheads',heads,UPKEEP_RATES['warheads']*scale))
     cost=sum(count*rate for _,_,count,rate in items)
     if cost>affordable:
         ratio=affordable/Decimal(cost);reduced={};remainders=[];used=0

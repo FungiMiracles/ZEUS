@@ -40,7 +40,7 @@ class BenefitSettlement(db.Model):
 
 
 @precise
-def expectations(session,country_id):
+def expectations(session,country_id,year=None,period=None):
     from game.population_structure import structure_data
     from game.finance_service import economy,money
     data=structure_data(session,country_id)
@@ -49,7 +49,11 @@ def expectations(session,country_id):
     population=basis['population']
     if population is None or basis['gdp'] is None:return None
     per_capita=Decimal(basis['gdp'])/Decimal(population) if population else Decimal(0)
-    return {g['key']:money(Decimal(g['count'] or 0)*per_capita*Decimal('.025')) for g in data['groups'] if g['key'] in KINDS}
+    # 13 Nov 2026: 2,5% PKB per capita na osobę w półroczu; w kwartale połowa (roczne świadczenia bez zmian)
+    from game.finance_service import period_key,period_months,game_now
+    if year is None or period is None:year,period=period_key(game_now())
+    rate=Decimal('.025')*Decimal(period_months(year,period))/6
+    return {g['key']:money(Decimal(g['count'] or 0)*per_capita*rate) for g in data['groups'] if g['key'] in KINDS}
 
 
 @precise
@@ -71,7 +75,7 @@ def record_payments(session,budget,previous,allocation,raw,repeat):
     from game.finance_service import FinanceError,money,decimal_value
     if raw is not None and (not isinstance(raw,dict) or set(raw)-set(KINDS)):
         raise FinanceError('Nieprawidłowe kwoty świadczeń.')
-    expected=expectations(session,budget.panstwo_id)
+    expected=expectations(session,budget.panstwo_id,budget.game_year,budget.period)
     if expected is None:
         if raw and any(decimal_value(v,'Świadczenie') for v in raw.values()):raise FinanceError('Uzupełnij strukturę wieku ludności przed wypłatą świadczeń.')
         carry=carryover(session,previous)
@@ -96,7 +100,7 @@ def record_missed_period(session,country_id,year,half):
     from game.finance_models import StateBudget
     active=session.execute(select(StateBudget.game_year,StateBudget.period).join(BenefitPayment,StateBudget.id==BenefitPayment.budget_id).where(StateBudget.panstwo_id==country_id).order_by(StateBudget.game_year,StateBudget.period).limit(1)).first()
     if active is None or (year,half)<tuple(active) or session.get(MissedBenefitPeriod,(country_id,year,half)):return
-    expected=expectations(session,country_id)
+    expected=expectations(session,country_id,year,half)
     if expected is not None:session.add(MissedBenefitPeriod(panstwo_id=country_id,game_year=year,period=half,expected={k:str(v) for k,v in expected.items()}))
 
 
