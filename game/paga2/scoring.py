@@ -123,6 +123,8 @@ def check_resources(option,ctx):
         available=ctx.available(option.sector)
         if option.cost>available:return f'Za mało środków w sektorze {option.sector}: potrzeba {option.cost:,.0f} ROI, dostępne {available:,.0f} ROI.'.replace(',',' ')
         start=ctx.sector_start(option.sector)
+        minimal=bool(option.payload.get('minimal_purchase'))   # 13 Nov 2026: najmniejszy możliwy zakup (1 punkt) nie podlega limitom rozwagi
+        if minimal:return None
         if option.cost>ctx.limits['per_action']*start+1e-6:
             return f'Nierozważny wydatek: {100*option.cost/max(1,start):.0f}% środków sektora (limit jednej akcji {100*ctx.limits["per_action"]:.0f}%).'
         if ctx.spent.get(option.sector,0)+option.cost>ctx.limits['per_run']*start+1e-6:

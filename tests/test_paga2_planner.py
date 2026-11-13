@@ -208,3 +208,16 @@ class PlannerEngineTests(Paga2Fixture,unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class MinimalPurchaseTests(unittest.TestCase):
+    """13 Nov 2026: przy małym budżecie badań PAGA2 kupuje choć 1 punkt (bez blokady rozwagi)."""
+    def test_one_point_when_prudence_limit_allows_none(self):
+        from types import SimpleNamespace as NS
+        from game.paga2.scoring import check_resources
+        ctx=NS(limits={'per_action':.5,'per_run':.8},sector_start=lambda s:1.1e9,available=lambda s:1.1e9,spent={},traits={})
+        row=NS(id=7,goal='mine:srebro',priority=None)
+        item={'key':'buy:method','kind':'buy_points','label':'Zakup 17 pkt','params':{'node':'method','count':17},'cost':17*4e8,'sector':'research'}
+        option=planner.step_option(ctx,row,item,None)
+        self.assertEqual(option.payload['count'],1);self.assertTrue(option.payload.get('minimal_purchase'))
+        self.assertIsNone(check_resources(option,ctx))

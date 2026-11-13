@@ -226,9 +226,13 @@ def step_option(ctx,plan_row,item,weight_key):
     if kind=='buy_points':
         # Zakup w granicach rozwagi finansowej: tylu punktów, ile pozwala limit jednej akcji w sektorze badań.
         affordable=int(.6*ctx.limits['per_action']*ctx.sector_start('research')//POINT_PRICE)
+        # 13 Nov 2026: co najmniej 1 punkt, jeśli sektor badań ma na niego środki — mały budżet nie blokuje rozwoju na zawsze
+        if affordable<1 and ctx.sector_start('research')>=POINT_PRICE:affordable=1
         count=min(params['count'],affordable)
         if count<1:option.cost=float(POINT_PRICE);option.notes.append('Budżet badań nie wystarcza nawet na 1 punkt w granicach rozwagi.')
-        else:option.cost=float(count*POINT_PRICE);option.payload['count']=count
+        else:
+            option.cost=float(count*POINT_PRICE);option.payload['count']=count
+            if count==1 and int(.6*ctx.limits['per_action']*ctx.sector_start('research')//POINT_PRICE)<1:option.payload['minimal_purchase']=True
         if count<params['count']:option.notes.append(f'Zakup częściowy: {count} z {params["count"]} pkt (limit wydatku jednej akcji).')
     return option
 
@@ -273,6 +277,13 @@ def propose(ctx):
                                       base=-2.0-min(6.0,cost/3e10),  # rozpoczęcie zobowiązuje do kosztów kolejnych etapów
                                       notes=[f'Etapy: {len(evaluation.steps)}; szacowany koszt pozostałych etapów: {cost/1e9:.1f} MLD ROI.']+[s['label'] for s in evaluation.steps][:8],
                                       payload={'goal':goal,'priority':info['priority'],'steps':evaluation.steps,'group':'plan:new'}))
+    # 13 Nov 2026: plan rozwoju zawsze aktywny — bez aktywnego planu rozpoczęcie najlepszego jest decyzją wymaganą,
+    # a jeden etap najstarszego aktywnego planu na przebieg wykonuje się poza limitem działań (rozwój nie przegrywa z obroną).
+    starts=[o for o in options if o.action=='PLAN_START']
+    if starts and not active:
+        for option in starts:option.payload['required']=True
+    steps=[o for o in options if o.action!='PLAN_START']
+    if steps:steps[0].payload['required']=True
     return options
 
 

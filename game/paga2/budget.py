@@ -37,9 +37,49 @@ def dec(value,default='0'):
     except (InvalidOperation,ValueError):return Decimal(default)
 
 
+def needs_factors(ctx):
+    """13 Nov 2026: mnożniki wag sektorów z potrzeb państwa:
+    - badania: aktywne plany czekają na zakup punktów / inwestycję w technologię,
+    - wykorzystanie poprzedniego budżetu: sektor wydany w małym stopniu dostaje mniej, wyczerpany — więcej,
+    - wojsko: mniej, gdy państwo ma już wystarczająco baz i sprzętu (bazy ≥ 50% miejsc albo sprzęt poza bazami w nadmiarze)."""
+    if getattr(ctx,'_needs',None) is not None:return ctx._needs
+    factors={}
+    try:
+        from sqlalchemy import select
+        from sqlalchemy.orm import Session
+        from extensions import db
+        from game.paga2.models import Paga2Plan,table_ready
+        from game.finance_models import StateBudget
+        from game.budget_transfers import sector_balances
+        with Session(db.engine) as session:
+            waiting=0
+            if table_ready(session,Paga2Plan):
+                for plan in session.scalars(select(Paga2Plan).where(Paga2Plan.country_id==ctx.country_id,Paga2Plan.status=='ACTIVE')):
+                    waiting+=sum(1 for s in plan.steps or [] if s.get('kind') in ('buy_points','invest') and s.get('status')!='done')
+            if waiting:factors['research']=min(3.0,1.6+.35*waiting)
+            previous=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==ctx.country_id).order_by(StateBudget.game_year.desc(),StateBudget.period.desc()).limit(1))
+            if previous is not None:
+                for sector,row in sector_balances(session,previous).items():
+                    allocated=float(row['allocated'] or 0)
+                    if sector=='reserve' or allocated<=0:continue
+                    used=float(row['spent'] or 0)/allocated
+                    factors[sector]=factors.get(sector,1.0)*(0.55+0.9*min(1.0,used))   # 0% wydane → ×0,55; 100% → ×1,45
+        from game.paga2.defense import _forces
+        forces=_forces(ctx)
+        slots=sum(v for k,v in (forces.slots or {}).items() if v and k!='nuclear');existing=sum(1 for b in forces.bases if b.kind!='nuclear')
+        spare=sum(int(v or 0) for k,v in (forces.free or {}).items() if k in ('tanks','fighters','warships','armored','launchers'))
+        if existing and (existing>=.5*(existing+slots) or spare>200) and ctx.situation.get('level')!='war':
+            factors['armed_forces']=factors.get('armed_forces',1.0)*.6
+    except Exception:
+        pass
+    ctx._needs=factors
+    return factors
+
+
 def sector_weights(ctx):
-    """Względne wagi sektorów (łącznie z rezerwą) wynikające z profilu i sytuacji państwa."""
+    """Względne wagi sektorów (łącznie z rezerwą) wynikające z profilu, sytuacji i potrzeb państwa."""
     weights=priority_weights(ctx.priorities);t=ctx.traits;level=ctx.situation.get('level','peace')
+    needs=needs_factors(ctx)
     result={}
     for sector,base in BASE.items():
         value=base*(1+2.5*sum(w*PRIORITY_SECTORS.get(p,{}).get(sector,0) for p,w in weights.items()))
@@ -47,6 +87,7 @@ def sector_weights(ctx):
             if sector in mapping:value*=1+mapping[sector]*(t.get(trait,50)-50)/100
         value*=1+sum(CATEGORY_SECTORS.get(c,{}).get(sector,0) for c in ctx.categories)
         value*=SITUATION_SECTORS.get(level,{}).get(sector,1)
+        value*=needs.get(sector,1.0)
         result[sector]=max(.1,value)
     return result
 

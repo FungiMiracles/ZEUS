@@ -112,10 +112,30 @@ def base_site(ctx,kind,threats):
     return site(h,_km(ctx),seed=f'{ctx.request_key}:base:{kind}',regions=regions,coastal=kind=='naval')
 
 
+UPKEEP_CAP=.5   # 13 Nov 2026: utrzymanie wszystkich baz najwyżej 50% budżetu sił zbrojnych
+
+
+def total_upkeep(forces):
+    return sum(upkeep(b.garrison or {}) for b in forces.bases if b.health>0)
+
+
+def upkeep_room(forces):
+    """Ile utrzymania można jeszcze dodać w granicy UPKEEP_CAP budżetu wojska (bez budżetu — brak limitu)."""
+    if not forces.has_budget or forces.budget_total<=0:return float('inf')
+    return UPKEEP_CAP*forces.budget_total-total_upkeep(forces)
+
+
+def crowding(forces,kind=None):
+    """Kara za liczbę istniejących baz: priorytet nowej bazy maleje wraz z liczbą baz (danego rodzaju i łącznie)."""
+    same=sum(1 for b in forces.bases if kind is None or b.kind==kind);total=len(forces.bases)
+    return min(30.0,.6*same+.25*total)
+
+
 def base_options(ctx,forces,threats):
     from game.military_service import CAPACITIES,UPGRADE_COSTS
     options=[];t=ctx.traits;bonus=threat_bonus(ctx)
     peace=ctx.situation.get('level')=='peace';share=.3+.7*t.get('militarism',50)/100
+    room=upkeep_room(forces)
     for kind in ('land','air','naval','nuclear'):
         slots=forces.slots.get(kind)
         if kind!='nuclear' and not slots:continue
@@ -126,12 +146,14 @@ def base_options(ctx,forces,threats):
         if kind=='nuclear' and not forces.free.get('warheads'):continue
         garrison=garrison_for(kind,forces)
         if garrison is None:continue
+        if kind!='nuclear' and upkeep(garrison)>room:continue   # limit utrzymania baz (50% budżetu wojska)
         cost=upkeep(garrison)+(25.5e9 if kind=='nuclear' else 0)
         effects={'defensive_army':1.0,'offensive_army':.5 if kind!='nuclear' else .8,'conquest':.3 if kind=='land' else 0}
         options.append(Option(key=f'base:deploy:{kind}',domain='defense',action='BASE_DEPLOY',label=f'{KIND_LABELS[kind]}: rozmieszczenie z garnizonem',cost=cost,sector='armed_forces',
                               effects=effects,traits={'militarism':.8,'provocation':.4 if kind=='nuclear' else 0,'agreeableness':-.3 if kind=='nuclear' else 0},
-                              categories={'imperialist':.5,'hegemonic':.4,'isolationist':.3},base=4.0+bonus,
-                              notes=[f'Garnizon: {garrison}. Koszt utrzymania w półroczu: {upkeep(garrison)/1e9:.2f} MLD.'],
+                              categories={'imperialist':.5,'hegemonic':.4,'isolationist':.3},base=4.0+bonus-crowding(forces,kind),
+                              notes=[f'Garnizon: {garrison}. Koszt utrzymania w okresie: {upkeep(garrison)/1e9:.2f} MLD.',
+                                     f'Istniejące bazy: {len(forces.bases)} (kara za liczebność {crowding(forces,kind):.1f}).'],
                               payload={'kind':kind,'garrison':garrison,'group':'base:deploy'}))
     for base in forces.bases:
         if base.health<=0:
@@ -147,7 +169,7 @@ def base_options(ctx,forces,threats):
             extra=forces.free_soldiers.get(base.kind,0) if resource=='soldiers' else forces.free.get(resource,0)
             wanted[resource]=int(min(limit,garrison.get(resource,0)+extra))
         added={r:wanted[r]-garrison.get(r,0) for r in wanted if wanted[r]>garrison.get(r,0)}
-        if added and base.kind!='nuclear':
+        if added and base.kind!='nuclear' and upkeep(added)<=room:
             near=threats.get(base.region_id)
             options.append(Option(key=f'base:garrison:{base.id}',domain='defense',action='BASE_REINFORCE',label=f'Uzupełnienie garnizonu bazy #{base.id} ({KIND_LABELS[base.kind]})',
                                   cost=upkeep(added),sector='armed_forces',effects={'defensive_army':.8,'offensive_army':.3},traits={'militarism':.5},
