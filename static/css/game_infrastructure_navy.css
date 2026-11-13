@@ -54,3 +54,16 @@ html body.game-app.game-navy.game-civic.infrastructure-room details.game-panel>s
 html body.game-app.game-navy.game-civic.infrastructure-room #infrastructure-expand-dialog{background:#fff;color:var(--inf-text);border:1px solid var(--inf-line);border-top:4px solid var(--inf-navy);border-radius:10px;box-shadow:0 20px 60px #0b1d3355}
 html body.game-app.game-navy.game-civic.infrastructure-room .infrastructure-modal-title{color:var(--inf-navy)}
 html body.game-app.game-navy.game-civic.infrastructure-room .infrastructure-stepper button{background:#fff;color:var(--inf-navy);border:1px solid var(--inf-navy);border-radius:6px}
+/* 13 Nov 2026 (2): mapa obiektów w zakładkach, filtry kopalń, kontenery środków */
+html body.game-app.game-navy.game-civic.infrastructure-room #factory-map{background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%);border:1px solid var(--inf-line);border-radius:8px}
+html body.game-app.game-navy.game-civic.infrastructure-room .infrastructure-map-reset{min-height:0;padding:5px 12px;border:2px solid #fff;border-radius:6px;background:var(--inf-navy);color:#fff;font-size:12px;font-weight:700;box-shadow:0 2px 6px #0006}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;margin:10px 0;background:var(--inf-navy);border:0;border-radius:8px}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters[hidden]{display:none}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:4px 10px 4px 5px;border:1.5px solid #ffffff55;border-radius:16px;background:transparent;color:#d6e2f0;font-size:11.5px;font-weight:600;letter-spacing:0;box-shadow:none}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button img{width:18px;height:18px;padding:1px;box-sizing:border-box;background:#ffffffcc;border-radius:50%;object-fit:contain;opacity:.6}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button:hover{border-color:#fff;color:#fff}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button[aria-pressed=true]{background:#ffffff26;border-color:#fff;color:#fff}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button[aria-pressed=true] img{background:#fff;opacity:1}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters #industry-mine-filters-all{padding:4px 10px;border-style:dashed;color:#fff}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-cancel{background:#fff;color:var(--inf-navy);border:1px solid var(--inf-navy);border-radius:7px;font-weight:700}
+html body.game-app.game-navy.game-civic.infrastructure-room #industry-placement{background:var(--inf-soft);border:1px solid var(--inf-line);border-left:3px solid #E8B65C;border-radius:7px;padding:8px 12px;color:var(--inf-text)}

@@ -34,3 +34,10 @@ html body.game-app.game-navy.game-civic .game-mobile-toggle{display:none}
 html body.game-app.game-navy.game-civic{--shell-bg:#F0F4FA;background:#F0F4FA}
 html body.game-app.game-navy.game-civic .game-workspace,html body.game-app.game-navy.game-civic .game-main{background:#F0F4FA}
 html body.game-app.game-navy.game-civic :is(.game-topbar,.game-country-summary,.game-world-stats){background:#F0F4FA;border-color:#d3dce9}
+/* 13 Nov 2026: kontenery „Dostępne środki” i „Rezerwa budżetowa” na ekranach modułów — nowa stylistyka */
+html body.game-app.game-navy.game-civic .module-funds{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 16px}
+html body.game-app.game-navy.game-civic .module-funds .industry-budget-card{flex:1 1 260px;display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:11px 16px;
+  background:#fff;border:1px solid #d3dce9;border-left:4px solid #1E3A5F;border-radius:8px;box-shadow:0 2px 8px #1e3a5f12;font-size:12px}
+html body.game-app.game-navy.game-civic .module-funds .industry-budget-card span{color:#4d5f78;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
+html body.game-app.game-navy.game-civic .module-funds .industry-budget-card strong{color:#1E3A5F;font:700 17px Consolas,monospace;white-space:nowrap}
+html body.game-app.game-navy.game-civic .module-funds .industry-budget-card+.industry-budget-card{border-left-color:#E8B65C}

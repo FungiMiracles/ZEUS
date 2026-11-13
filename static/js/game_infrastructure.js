@@ -173,7 +173,8 @@
         const regionsLayer = L.geoJSON(regions, {
             coordsToLatLng: coords => L.latLng(coords[1], coords[0]),
             filter: feature => metropolitanIds.has(String(feature.properties?.region_id)),
-            style: {color: '#789570', weight: 1.5, fillColor: '#bfd3af', fillOpacity: 0.7},
+            // 13 Nov 2026: paleta mapy panelu państwa (regiony #B8C9B0, granice #667C63, najechany #D5E5C6, wybrany #E8B65C)
+            style: {color: '#667C63', weight: 1.5, fillColor: '#B8C9B0', fillOpacity: 1},
             onEachFeature: (feature, layer) => {
                 const id = String(feature.properties.region_id);
                 const label = document.createElement('span'); label.textContent = config.regions[id].name;
@@ -184,9 +185,13 @@
                     if (anchor && (!constructionAnchors.has(id) || anchor.score > constructionAnchors.get(id).score)) constructionAnchors.set(id, anchor);
                 }
                 layer.on({
-                    click: () => selectRegion(id),
-                    mouseover: () => layer.setStyle({color: '#577b48', fillColor: '#d6e5c9', fillOpacity: 0.9, weight: 3}),
-                    mouseout: () => regionsLayer.resetStyle(layer)
+                    click: () => {
+                        if (window.__infraSelected && window.__infraSelected !== layer) regionsLayer.resetStyle(window.__infraSelected);
+                        window.__infraSelected = layer; layer.setStyle({fillColor: '#E8B65C', weight: 2.4});
+                        selectRegion(id);
+                    },
+                    mouseover: () => { if (window.__infraSelected !== layer) layer.setStyle({fillColor: '#D5E5C6', weight: 2.2}); },
+                    mouseout: () => { if (window.__infraSelected !== layer) regionsLayer.resetStyle(layer); }
                 });
             }
         }).addTo(map);
@@ -196,8 +201,8 @@
             coordsToLatLng: coords => L.latLng(coords[1], coords[0]),
             filter: feature => metropolitanIds.has(config.cities[String(feature.properties?.miasto_id)]?.regionId),
             pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-                pane: 'infrastructureCities', radius: 5, color: '#ffffff', weight: 1.5,
-                fillColor: '#25485e', fillOpacity: 1
+                pane: 'infrastructureCities', radius: 4.5, color: '#22301f', weight: 1.6,
+                fillColor: '#FFFFFF', fillOpacity: 1
             }),
             onEachFeature: (feature, layer) => {
                 const city = config.cities[String(feature.properties.miasto_id)];
