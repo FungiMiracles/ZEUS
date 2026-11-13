@@ -1,10 +1,12 @@
 {% extends "game/game_base_layout.html" %}
 
 {% block title %}Finanse państwa — ZEUS{% endblock %}
+{% block body_class %}finance-room{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
       href="{{ url_for('static', filename='css/game_finanse.css', v='20261025-8') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261113-fin-1') }}">
 {% endblock %}
 
 {% block content %}

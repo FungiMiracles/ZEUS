@@ -25,3 +25,10 @@ html body.game-app.game-navy :is(#world-map){background:radial-gradient(ellipse 
 .world-tip img.is-flag{width:44px;height:29px;object-fit:cover;border:1px solid #1E3A5F;border-radius:2px}
 .world-tip div{display:flex;flex-direction:column}
 .world-tip strong{color:#1E3A5F;font-size:13px}
+/* 13 Nov 2026 (2): jaśniejszy ocean, statki towarowe */
+#world-map,html body.game-app.game-navy :is(#world-map){background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%)}
+.world-ship-marker{background:transparent;border:0}
+.world-ship{position:relative;width:26px;height:26px;box-sizing:border-box;padding:3px;border:1.5px solid #1E3A5F;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0006}
+.world-ship img:first-child{display:block;width:100%;height:100%;object-fit:contain}
+.world-ship-flag{position:absolute;right:-8px;top:-6px;width:16px;height:11px;object-fit:cover;border:1px solid #fff}
+.legend-ship{display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;border:1.5px solid #1E3A5F}

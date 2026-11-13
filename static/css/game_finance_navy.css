@@ -1,0 +1,35 @@
+/* 13 Nov 2026: ekran budżetu w nowej stylistyce (granat #1E3A5F, tło #F0F4FA, białe karty). */
+html body.game-app.game-navy.game-civic.finance-room{--fin-navy:#1E3A5F;--fin-navy-light:#2b4f7c;--fin-line:#d3dce9;--fin-soft:#eef3fa;--fin-text:#24324a;--fin-muted:#4d5f78}
+html body.finance-room :is(.finance-editor,.finance-section,.finance-history,.loan-panel,.game-panel){background:#fff;color:var(--fin-text);border:1px solid var(--fin-line);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14}
+html body.game-app.game-navy.game-civic.finance-room .finance-editor{border-top:4px solid var(--fin-navy);padding:0;overflow:hidden}
+html body.game-app.game-navy.game-civic.finance-room .finance-heading{margin:0;padding:16px 20px;background:linear-gradient(180deg,var(--fin-navy-light),var(--fin-navy));color:#fff;border:0}
+html body.game-app.game-navy.game-civic.finance-room .finance-heading :is(h2,h1){color:#fff;font-weight:800;letter-spacing:.03em}
+html body.game-app.game-navy.game-civic.finance-room .finance-heading p{color:#c9d7e8}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-badge,.finance-state-badge){background:#ffffff1f;color:#fff;border:1px solid #ffffff73;border-radius:12px;font-weight:700}
+html body.game-app.game-navy.game-civic.finance-room .finance-editor>:not(.finance-heading){margin-left:18px;margin-right:18px}
+html body.game-app.game-navy.game-civic.finance-room .finance-section{padding:16px 18px;margin:16px 0;border-top:3px solid var(--fin-navy)}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-section h3,.finance-basis-tax h3,.finance-icon-heading,.loan-panel h2){color:var(--fin-navy);font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.finance-room .finance-icon-heading img{background:#fff;border:1px solid var(--fin-line);border-radius:6px;padding:2px}
+html body.game-app.game-navy.game-civic.finance-room .game-panel-heading{background:linear-gradient(180deg,var(--fin-navy-light),var(--fin-navy));color:#fff;border:0;text-align:left;font-size:14px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:12px 18px}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-help,.finance-heading+p,.finance-tax-fields label){color:var(--fin-muted)}
+html body.game-app.game-navy.game-civic.finance-room .finance-metrics>div{background:var(--fin-soft);color:var(--fin-text);border:1px solid var(--fin-line);border-left:3px solid var(--fin-navy);border-radius:7px}
+html body.game-app.game-navy.game-civic.finance-room .finance-metrics dt{color:var(--fin-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+html body.game-app.game-navy.game-civic.finance-room .finance-metrics dd{color:var(--fin-navy);font-family:Consolas,monospace;font-weight:700}
+html body.game-app.game-navy.game-civic.finance-room :is(table,td,th,.finance-table td,.finance-table th){border-color:var(--fin-line)}
+html body.game-app.game-navy.game-civic.finance-room :is(thead,.finance-table thead){background:var(--fin-navy);color:#fff}
+html body.game-app.game-navy.game-civic.finance-room .finance-table thead th{color:#fff;font-weight:700;letter-spacing:.03em}
+html body.game-app.game-navy.game-civic.finance-room .finance-table{border:1px solid var(--fin-line);border-radius:8px;overflow:hidden;background:#fff}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-table tbody td,.finance-table tbody th){color:var(--fin-text)}
+html body.game-app.game-navy.game-civic.finance-room .finance-table tbody tr:nth-child(even){background:#f7f9fd}
+html body.game-app.game-navy.game-civic.finance-room :is(tbody tr:hover,.finance-table tbody tr:hover){background:#e9f0fa}
+html body.game-app.game-navy.game-civic.finance-room :is(input:not([type=checkbox]):not([type=radio]),select){border:1px solid #b9c7da;border-radius:6px;background:#fff;color:var(--fin-text)}
+html body.game-app.game-navy.game-civic.finance-room :is(input,select):focus-visible{outline:2px solid var(--fin-navy);outline-offset:1px;border-color:var(--fin-navy)}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-primary,.loan-panel button[type=submit]){background:var(--fin-navy);color:#fff;border:1px solid var(--fin-navy);border-radius:7px;font-weight:700;box-shadow:none}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-primary,.loan-panel button[type=submit]):hover{background:var(--fin-navy-light)}
+html body.game-app.game-navy.game-civic.finance-room .finance-secondary{background:#fff;color:var(--fin-navy);border:1px solid var(--fin-navy);border-radius:7px;font-weight:700;box-shadow:none}
+html body.game-app.game-navy.game-civic.finance-room .finance-secondary:hover{background:var(--fin-soft)}
+html body.game-app.game-navy.game-civic.finance-room :is(.finance-notice,.finance-message){background:var(--fin-soft);color:var(--fin-text);border:1px solid var(--fin-line);border-left:3px solid var(--fin-navy);border-radius:7px}
+html body.game-app.game-navy.game-civic.finance-room .finance-allocation-editor>summary{color:var(--fin-navy);font-weight:700;cursor:pointer}
+html body.game-app.game-navy.game-civic.finance-room .finance-budget-bar{border:1px solid var(--fin-line);border-radius:7px;overflow:hidden}
+html body.game-app.game-navy.game-civic.finance-room .finance-budget-tooltip{background:var(--fin-navy);color:#fff;border:1px solid #4d6f98;border-radius:6px}
+html body.game-app.game-navy.game-civic.finance-room .loan-panel{padding:18px;border-top:3px solid var(--fin-navy)}

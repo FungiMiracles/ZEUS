@@ -42,10 +42,25 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
       const id = String(feature.properties.region_id), r = config.regions[id], occupied = config.occupied[id];
       const owner = config.countries[String(r.countryId)];
       const lines = [`Populacja: ${mln(r.population)}`]; if (owner) lines.push(`Państwo: ${owner.name}`); if (occupied) lines.push(`Okupowany przez: ${occupied.occupier || 'nieznane państwo'}`);
-      layer.bindTooltip(iconTip(config.regionIcon, r.name, lines), tipOptions);
+      layer.bindTooltip(iconTip(owner ? owner.flag : config.regionIcon, r.name, lines, !!owner), tipOptions);
       layer.on('mouseover', () => layer.setStyle({ fillColor: C.hover })); layer.on('mouseout', () => regionLayer.resetStyle(layer));
     } }).addTo(regional);
   L.geoJSON(countries, { pane: 'worldBorders', coordsToLatLng: coordinates, interactive: false, style: { color: C.border, weight: 2, fill: false } }).addTo(regional);
+  // --- widok kontynentów: państwa w kolorze kontynentu, granice państw ledwie widoczne ---
+  const CONTINENT_COLORS = ['#B8C9B0', '#c9b98f', '#a9bcc9', '#c7a9a2', '#b3a9c9', '#a9c9b8', '#c9c2a9'];
+  const continentIds = Object.keys(config.continents || {}).sort();
+  const continentColor = id => CONTINENT_COLORS[Math.max(0, continentIds.indexOf(String(id))) % CONTINENT_COLORS.length];
+  const continentOf = feature => (config.countries[String(feature.properties?.panstwo_id)] || {}).continentId;
+  const continentStyle = feature => ({ color: continentColor(continentOf(feature)), weight: 1, fillColor: continentColor(continentOf(feature)), fillOpacity: 1 });
+  const continentLayer = L.geoJSON(countries, { pane: 'worldCountries', coordsToLatLng: coordinates, style: continentStyle,
+    onEachFeature: (feature, layer) => {
+      const id = continentOf(feature), c = (config.continents || {})[id]; if (!c) return;
+      const tip = make('div', null, 'world-tip'); const text = make('div');
+      text.append(make('strong', c.name), make('div', `Populacja: ${mln(c.population)}`), make('div', `Liczba państw: ${c.countries}`), make('div', `Łączne PKB: ${c.gdp}`)); tip.append(text);
+      layer.bindTooltip(tip, tipOptions);
+      layer.on('mouseover', () => continentLayer.eachLayer(other => { if (continentOf(other.feature) === id) other.setStyle({ fillColor: C.hover, color: C.hover }); }));
+      layer.on('mouseout', () => continentLayer.eachLayer(other => { if (continentOf(other.feature) === id) continentLayer.resetStyle(other); }));
+    } });
   // --- siatka równoleżników i południków ---
   const bounds = political.getBounds().isValid() ? political.getBounds() : regionLayer.getBounds();
   if (bounds.isValid()) {
@@ -56,7 +71,8 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     for (let x = Math.floor(w0 / step) * step; x <= e0; x += step) L.polyline([[s0, x], [n0, x]], grid).addTo(map);
   }
   // --- przełącznik widoku ---
-  function setView(view) { if (view === 'regional') { political.remove(); regional.addTo(map); } else { regional.remove(); political.addTo(map); }
+  const views = { political, regional, continents: continentLayer };
+  function setView(view) { if (!views[view]) view = 'political'; for (const [name, layer] of Object.entries(views)) { if (name === view) layer.addTo(map); else layer.remove(); }
     document.querySelector('.legend-regional').hidden = view !== 'regional'; try { localStorage.setItem('world-view', view); } catch {} }
   let saved = 'political'; try { saved = localStorage.getItem('world-view') || 'political'; } catch {}
   for (const radio of document.querySelectorAll('[name="world-view"]')) { radio.checked = radio.value === saved; radio.addEventListener('change', () => setView(radio.value)); }
@@ -76,6 +92,20 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
         layer.bindTooltip(iconTip(config.cityIcon, city.name, [`Populacja: ${mln(city.population)}`, `Rodzaj: ${city.type || 'brak danych'}`, `Portowe: ${city.port ? 'tak' : 'nie'}`]), { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' });
       } }).addTo(map);
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
+  // --- płynące statki towarowe ---
+  map.createPane('worldShips'); map.getPane('worldShips').style.zIndex = '640';
+  const anchor = Date.parse(config.gameNow), realAnchor = performance.now(), gameTime = () => anchor + (performance.now() - realAnchor) * (config.timeMultiplier || 1);
+  const ships = [];
+  for (const ship of config.ships || []) {
+    L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(map);
+    const symbol = make('div', null, 'world-ship'); const img = make('img'); img.src = config.shipIcon; img.alt = ''; symbol.append(img);
+    if (ship.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = ship.flag; flag.alt = ''; symbol.append(flag); }
+    const point = window.GameTradeNavigation?.position(ship, gameTime()); if (!point) continue;
+    const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
+      .bindTooltip(iconTip(config.shipIcon, 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `Przypłynie: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+    ships.push([ship, marker]);
+  }
+  if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);
   if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById('world-map'));
 }).catch(error => { console.error('Ekran Świat:', error); say('Nie udało się wczytać mapy świata. Odśwież stronę.'); });
 })();

@@ -3,8 +3,11 @@ from flask import Blueprint,redirect,url_for,render_template,current_app
 from sqlalchemy import select,func
 from extensions import db
 from game.forum import player
+from game.finance_service import game_now
+from engine.clock import get_time_multiplier
 from game.country_summary import country_summary
 from game.governance import controller_id
+from game.commerce_models import TradeShipment
 
 world_bp=Blueprint('game_world',__name__,url_prefix='/game/swiat')
 
@@ -41,7 +44,28 @@ def world_data():
     cities={str(m.miasto_id):{'name':m.miasto_nazwa,'population':m.miasto_populacja,'type':city_types.get(m.miasto_typ_id),'port':m.czy_portowe=='TAK',
                               'capital':m.miasto_typ_id==1}
             for m in db.session.scalars(select(Miasto).where(Miasto.czy_na_mapie=='TAK'))}
-    return {'countries':countries,'regions':regions,'occupied':occupied,'cities':cities}
+    # Kontynenty: państwa wg kontynentu i łączne wskaźniki (13 Nov 2026)
+    from models import DictKontynent
+    names=dict(db.session.execute(select(DictKontynent.kontynent_id,DictKontynent.kontynent_nazwa)).all())
+    continents={}
+    for c in db.session.scalars(select(Panstwo)):
+        if c.kontynent_id is None or getattr(c,'status','aktywne')!='aktywne':continue   # tylko istniejące państwa
+        item=continents.setdefault(str(c.kontynent_id),{'name':names.get(c.kontynent_id),'countries':0,'population':0,'gdp':0})
+        item['countries']+=1;item['population']+=int(c.panstwo_populacja or 0);item['gdp']+=c.panstwo_PKB or 0
+        countries[str(c.PANSTWO_ID)]['continentId']=str(c.kontynent_id)
+    for item in continents.values():item['gdp']=money(item['gdp'])
+    # Płynące statki towarowe (wszystkie aktywne rejsy)
+    ships=[]
+    try:
+        from game.trade_navigation import active_shipments
+        for ship in db.session.scalars(active_shipments(db.session).order_by(TradeShipment.id)):
+            ships.append({'id':ship.id,'seller':(countries.get(str(ship.seller_id)) or {}).get('name'),'buyer':(countries.get(str(ship.buyer_id)) or {}).get('name'),
+                          'route':ship.route or [[ship.source_x,ship.source_y],[ship.target_x,ship.target_y]],'source':[ship.source_x,ship.source_y],'target':[ship.target_x,ship.target_y],
+                          'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z','health':ship.health,
+                          'flag':(countries.get(str(ship.origin_country_id or ship.seller_id)) or {}).get('flag')})
+    except Exception:
+        current_app.logger.exception('Ekran Świat: statki')
+    return {'countries':countries,'regions':regions,'occupied':occupied,'cities':cities,'continents':continents,'ships':ships}
 
 
 @world_bp.get('')
@@ -52,7 +76,8 @@ def page():
             'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
             'countriesUrl':url_for('region_sovereignty.country_boundaries'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
-            'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg')}
+            'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
+            'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
                              game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config)
     db.session.rollback()
