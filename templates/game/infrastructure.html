@@ -1,6 +1,7 @@
 {% extends "game/game_base_layout.html" %}
 {% block body_class %}infrastructure-room{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_room.css', v='20261110-2') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261113-infra-1') }}">{% endblock %}
 {% block title %}Infrastruktura i energetyka — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
