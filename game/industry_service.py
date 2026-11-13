@@ -23,7 +23,9 @@ def month_after(moment):
 def ready_at(moment,duration):return month_after(moment) if duration=='month' else moment+timedelta(days=duration)
 def researched(session,country,key):
     row=session.get(ResearchAccount,country)
-    return bool(row and row.nodes.get(key,0)>=TECHNOLOGIES[key]['cost']) if key in TECHNOLOGIES else False
+    if row is None or key not in TECHNOLOGIES:return False
+    from game.research_timing import developed
+    return developed(row.nodes,getattr(row,'timers',None),key,game_now())   # 13 Nov 2026: także po zakończeniu czasu rozwoju
 
 def require_technologies(session,country,keys):
     missing=[TECHNOLOGIES[key]['label'] for key in keys if not researched(session,country,key)]

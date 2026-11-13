@@ -96,6 +96,9 @@ def research(plan,node,h,points):
     rule=TECHNOLOGIES.get(node)
     if rule is None:plan.impossible=f'Technologia {node} jest niedostępna w grze.';return False
     if h.developed(node):plan.add(step(f'tech:{node}','research',f'Technologia: {rule["label"]}','done'));return True
+    if getattr(h,'researching',None) and h.researching(node):
+        # 13 Nov 2026: punkty zainwestowane, trwa czas rozwoju — czekamy (bez ponownej inwestycji)
+        plan.add(step(f'tech:{node}','research',f'Technologia: {rule["label"]} — w trakcie rozwoju','blocked',reason='Trwa rozwój technologii.'));return False
     # Cała ścieżka od korzenia drzewa: technologie nadrzędne najpierw, potomne jako kolejne etapy.
     parent_ready=research(plan,rule['parent'],h,points) if rule['parent'] else True
     if plan.impossible:return False

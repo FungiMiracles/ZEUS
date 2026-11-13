@@ -1,6 +1,8 @@
 {% extends 'game/game_base_layout.html' %}
 {% from 'macros/icons.html' import icon %}
 {% block title %}Badania i rozwój — {{ game_country.nazwa }}{% endblock %}
+{% block body_class %}research-room{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_research_navy.css',v='20261113-research-1') }}">{% endblock %}
 {% block content %}
 <section class="game-panel research-summary"><h2 class="game-panel-heading">Budżet badań i rozwoju</h2><div class="game-panel-body"><p>{{ icon('development_point') }} Dostępne punkty rozwoju: <strong>{{ research_state.points|spacenum }}</strong></p><form id="research-purchase"><label>Liczba punktów <input name="count" aria-describedby="research-purchase-cost research-purchase-warning" type="number" min="1" max="1000000" value="1" step="1" required></label><span id="research-purchase-cost">400 MLN ROI</span><button type="submit">Kup</button></form><p id="research-purchase-warning" role="status" aria-live="polite" hidden>Brak wystarczających środków</p><p>Punkty nie wygasają po zakończeniu półrocza. 1 punkt kosztuje 400 MLN ROI.</p></div></section>
 <section class="game-panel research-network-panel"><h2 class="game-panel-heading">Sieć technologii</h2><p>Najedź na technologię, aby zobaczyć opis. Kliknij, aby zainwestować punkty rozwoju.</p><div class="technology-viewport"><div class="technology-tree technology-radial">
@@ -9,5 +11,5 @@
 </div></div></section>
 <dialog popover="auto" id="research-dialog" aria-labelledby="research-dialog-title"><form id="research-investment"><h2 id="research-dialog-title"></h2><p id="research-description"></p><p id="research-node-status"></p><div class="infrastructure-stepper"><button id="research-minus" type="button" aria-label="Zmniejsz liczbę punktów">−</button><input type="number" id="research-count" min="1" step="1" required value="1"><button id="research-plus" type="button" aria-label="Zwiększ liczbę punktów">+</button></div><p>{{ icon('development_point') }} Inwestujesz punkty już zakupione. Zatwierdzonych inwestycji nie można wycofać.</p><div class="research-modal-actions"><button type="submit" id="research-invest-confirm">Zainwestuj punkty</button><button type="button" id="research-close">Anuluj</button></div><p id="research-dialog-error" role="alert"></p></form></dialog>
 <div id="research-hover-tooltip" role="tooltip" hidden></div>
-<p id="research-status" role="status"></p><script id="research-state" type="application/json">{{ research_state|tojson }}</script><script src="{{ url_for('static',filename='js/game_research.js',v='20261108-ui28') }}" defer></script>
+<p id="research-status" role="status"></p><script id="research-state" type="application/json">{{ research_state|tojson }}</script><script src="{{ url_for('static',filename='js/game_research.js',v='20261113-research-1') }}" defer></script>
 {% endblock %}

@@ -18,12 +18,19 @@ from game.industry_catalog import TECHNOLOGIES
 LEVELS={key:[rule['cost']] for key,rule in TECHNOLOGIES.items()}
 
 
-def node_state(points,node):
+def node_state(points,node,timers=None,now=None):
     level=0;rest=points
     for cost in LEVELS[node]:
         if rest<cost:break
         level+=1;rest-=cost
-    return {'invested':points,'level':level,'progress':rest,'required':LEVELS[node][level] if level<len(LEVELS[node]) else 0,'maximum':level==len(LEVELS[node])}
+    state={'invested':points,'level':level,'progress':rest,'required':LEVELS[node][level] if level<len(LEVELS[node]) else 0,'maximum':level==len(LEVELS[node]),
+           'researching':False,'funded':level==len(LEVELS[node])}
+    # 13 Nov 2026: komplet punktów, ale trwa czas rozwoju — technologia jeszcze nieopracowana
+    from game.research_timing import researching,timing
+    if level>=1 and researching({node:points},timers,node,now or game_now()):
+        state.update(level=0,maximum=False,researching=True,**timing(timers,node))
+    elif level>=1:state.update(timing(timers,node))
+    return state
 
 
 def account_for(session,country_id):
@@ -78,11 +85,15 @@ def change_research(user_id,data):
                 return
             nodes=dict(account.nodes)
             parent=TECHNOLOGIES[node]['parent']
-            if parent and node_state(nodes.get(parent,0),parent)['level']<1:raise FinanceError('Najpierw opracuj technologię: '+TECHNOLOGIES[parent]['label']+'.')
-            current=nodes.get(node,0);state=node_state(current,node)
+            now=game_now();timers=dict(account.timers or {})
+            if parent and node_state(nodes.get(parent,0),parent,timers,now)['level']<1:raise FinanceError('Najpierw opracuj technologię: '+TECHNOLOGIES[parent]['label']+'.')
+            current=nodes.get(node,0);state=node_state(current,node,timers,now)
+            if state['researching']:raise FinanceError('Technologia jest w trakcie rozwoju.')
             if count>account.points:raise FinanceError('Za mało punktów rozwoju.')
             if state['maximum'] or count>state['required']-state['progress']:raise FinanceError('Możesz uzupełnić punkty do najbliższego poziomu.')
             nodes[node]=current+count;account.nodes=nodes;account.points-=count
+            from game.research_timing import funded,start
+            if funded(nodes,node):account.timers=start(timers,node,now)   # rozpoczęcie czasu rozwoju
             session.add(ResearchInvestment(panstwo_id=country,node=node,points=count,request_id=key))
         elif action=='factory':
             raise FinanceError('Budowę fabryk przeniesiono do modułu Infrastruktura i energetyka.')

@@ -140,8 +140,14 @@ class ResearchTests(MilitaryFixture):
     def change_research(self,action,**extra):
         data={'action':action,'request_id':str(uuid4()),'expected_point_price':400000000,**extra};change_research(1,data);db.session.expire_all();return data
 
+    def finish_research(self):
+        # 13 Nov 2026: technologie mają czas rozwoju — tu symulujemy jego upływ (pole timers opróżnione = rozwój zakończony)
+        account=db.session.get(ResearchAccount,1);account.timers={};db.session.commit()
+
     def unlock(self):
-        self.change_research('buy',count=120);self.change_research('invest',node='method',count=25);self.change_research('invest',node='arms_industry',count=25);self.change_research('invest',node='interceptor_ammo',count=20)
+        self.change_research('buy',count=120)
+        for node,count in (('method',25),('arms_industry',25),('interceptor_ammo',20)):
+            self.change_research('invest',node=node,count=count);self.finish_research()
 
     def test_buy_partial_investment_level_prices_and_idempotence(self):
         data=self.change_research('buy',count=40);change_research(1,data)

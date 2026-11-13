@@ -61,9 +61,17 @@ class IndustryTests(CommerceFixture):
         with self.assertRaises(FinanceError):invest('mine_iron',1)
         invest('method',24)
         with self.assertRaises(FinanceError):invest('mining_industry',1)
-        invest('method',1);invest('mining_industry',25);invest('mine_iron',75)
-        self.refresh();self.assertEqual(node_state(db.session.get(ResearchAccount,1).nodes['mine_iron'],'mine_iron')['level'],1)
-        with self.assertRaises(FinanceError):invest('method',1)
+        # 13 Nov 2026: po skompletowaniu punktów technologia rozwija się przez określoną liczbę dni Entendy
+        moment=[NOW]
+        with patch('game.research_service.game_now',side_effect=lambda:moment[0]):
+            invest('method',1)
+            with self.assertRaisesRegex(FinanceError,'Metoda badawcza'):invest('mining_industry',1)   # metoda jeszcze w rozwoju (1 dzień)
+            moment[0]=NOW+timedelta(days=1);invest('mining_industry',25)
+            moment[0]=NOW+timedelta(days=3);invest('mine_iron',75)
+            self.refresh();account=db.session.get(ResearchAccount,1)
+            self.assertTrue(node_state(account.nodes['mine_iron'],'mine_iron',account.timers,moment[0])['researching'])
+            self.assertEqual(node_state(account.nodes['mine_iron'],'mine_iron',account.timers,NOW+timedelta(days=10))['level'],1)   # żelazo: 7 dni
+            with self.assertRaises(FinanceError):invest('method',1)
 
     def test_factories_can_build_each_specified_level_and_charge_exact_cost(self):
         db.session.get(Region,1).region_polozenie_id=2;db.session.commit()

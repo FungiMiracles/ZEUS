@@ -22,9 +22,9 @@ def state_data(session,country):
     budget=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==country,StateBudget.game_year==year,StateBudget.period==period))
     balances=sector_balances(session,budget) if budget else {}
     return {'points':row.points if row else 0,'ammunition':row.ammunition if row else 0,
-        'nodes':{**{key:node_state((row.nodes if row else {}).get(key,0),key) for key in TECHNOLOGIES},**{key:dict(invested=0,level=0,progress=0,required=0,maximum=False) for key in PLANNED_TECHNOLOGIES}},
+        'nodes':{**{key:node_state((row.nodes if row else {}).get(key,0),key,getattr(row,'timers',None) if row else None,game_now()) for key in TECHNOLOGIES},**{key:dict(invested=0,level=0,progress=0,required=0,maximum=False) for key in PLANNED_TECHNOLOGIES}},
         'budget':str(balances.get('research',{}).get('remaining',0)),'infrastructureBudget':str(balances.get('infrastructure',{}).get('remaining',0)),
-        'year':year,'period':period,'pointPrice':POINT_PRICE,'factoryPrice':FACTORY_PRICE, 'technologies':RESEARCH_TECHNOLOGIES,
+        'year':year,'period':period,'gameNow':game_now().isoformat(),'timeMultiplier':__import__('engine.clock',fromlist=['get_time_multiplier']).get_time_multiplier(),'durations':__import__('game.research_timing',fromlist=['DURATION_DAYS']).DURATION_DAYS,'pointPrice':POINT_PRICE,'factoryPrice':FACTORY_PRICE, 'technologies':RESEARCH_TECHNOLOGIES,
         'factories':[{'id':f.id,'regionId':str(f.region_id),'position':[f.map_x,f.map_y],'level':f.level,'dailyProduction':__import__('game.industry_catalog',fromlist=['FACTORIES']).FACTORIES[f.kind]['levels'][f.level-1]['quantity'] if f.health>0 and not f.paused else 0,'health':f.health} for f in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None)))]}
 
 

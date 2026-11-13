@@ -1,0 +1,25 @@
+/* 13 Nov 2026: ekran Badania i rozwój w nowej stylistyce (granat #1E3A5F) + seledynowy pierścień czasu rozwoju */
+html body.game-app.game-navy.game-civic.research-room :is(.research-summary,.research-network-panel){background:#fff;border:1px solid #d3dce9;border-radius:10px;box-shadow:0 2px 10px #1e3a5f14;overflow:hidden}
+html body.game-app.game-navy.game-civic.research-room :is(.research-summary,.research-network-panel) .game-panel-heading{margin:0;padding:12px 18px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F);color:#fff;border:0;text-align:left;font-size:14px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.research-room .research-network-panel>p{margin:10px 18px 0;color:#4d5f78}
+html body.game-app.game-navy.game-civic.research-room .research-summary :is(p,label){color:#4d5f78}
+html body.game-app.game-navy.game-civic.research-room .research-summary strong{color:#1E3A5F}
+html body.game-app.game-navy.game-civic.research-room .research-summary input{border:1px solid #b9c7da;border-radius:6px}
+html body.game-app.game-navy.game-civic.research-room :is(.research-summary button[type=submit],#research-invest-confirm){background:#1E3A5F;color:#fff;border:1px solid #1E3A5F;border-radius:7px;font-weight:700;box-shadow:none}
+html body.game-app.game-navy.game-civic.research-room :is(.research-summary button[type=submit],#research-invest-confirm):hover{background:#2b4f7c}
+html body.game-app.game-navy.game-civic.research-room #research-close{background:#fff;color:#1E3A5F;border:1px solid #1E3A5F;border-radius:7px;font-weight:700}
+html body.game-app.game-navy.game-civic.research-room .technology-viewport{background:radial-gradient(ellipse at 50% 50%,#eef3fa,#dfe7f2 80%);border-radius:0 0 10px 10px}
+html body.game-app.game-navy.game-civic.research-room .research-links path{stroke:#7d93b2}
+html body.game-app.game-navy.game-civic.research-room .research-links marker path{fill:#7d93b2;stroke:none}
+/* Bąble: biały środek, pierścień punktów w granacie */
+html body.game-app.game-navy.game-civic.research-room .research-node{background:radial-gradient(circle at center,#fff 64%,transparent 65%),conic-gradient(#1E3A5F var(--research-progress,0deg),#cfd9e7 0);box-shadow:0 2px 6px #1e3a5f33}
+html body.game-app.game-navy.game-civic.research-room .technology-radial .research-node.technology-complete{background:radial-gradient(circle at center,#fff 64%,transparent 65%),conic-gradient(#1E3A5F 360deg,#1E3A5F 0);box-shadow:0 0 8px 3px #2b4f7c55,0 0 0 1px #1E3A5F}
+/* W trakcie rozwoju: seledynowy pasek postępu czasu, proporcjonalny do upływu czasu rozwoju */
+html body.game-app.game-navy.game-civic.research-room .technology-radial .research-node.technology-researching{background:radial-gradient(circle at center,#fff 62%,transparent 63%),conic-gradient(#6EE7C8 var(--research-time,0deg),#cfd9e7 0);box-shadow:0 0 9px 3px #6ee7c866,0 0 0 1px #3fbf9f}
+html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip{background:#1E3A5F;color:#eef3fa;border:1px solid #4d6f98;border-radius:8px;box-shadow:0 8px 20px #0b1d3366}
+html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip :is(strong,.research-tooltip-heading strong){color:#fff}
+html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip .research-tooltip-icon{background:#fff;border-radius:6px}
+html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip .research-tooltip-researching{color:#6EE7C8}
+html body.game-app.game-navy.game-civic.research-room #research-hover-tooltip .research-tooltip-completed{color:#b9e3b0}
+html body.game-app.game-navy.game-civic.research-room #research-dialog{border:1px solid #d3dce9;border-top:4px solid #1E3A5F;border-radius:10px}
+html body.game-app.game-navy.game-civic.research-room #research-dialog h2{color:#1E3A5F}

@@ -222,7 +222,10 @@ def country_state(session,country_id):
     # technologie
     research=session.get(ResearchAccount,country_id)
     nodes=(research.nodes or {}) if research else {}
-    technologies=[{'code':code,'label':item['label'],'invested':int(nodes.get(code,0)),'cost':item['cost'],'developed':int(nodes.get(code,0))>=item['cost']} for code,item in TECHNOLOGIES.items() if nodes.get(code)]
+    from game.research_timing import developed as tech_developed
+    from game.finance_service import game_now
+    timers=(getattr(research,'timers',None) or {}) if research else {};moment=game_now()
+    technologies=[{'code':code,'label':item['label'],'invested':int(nodes.get(code,0)),'cost':item['cost'],'developed':tech_developed(nodes,timers,code,moment)} for code,item in TECHNOLOGIES.items() if nodes.get(code)]
     # relacje
     relation_names=dict(session.execute(select(DictStosunkiRelacja.relacja_id,DictStosunkiRelacja.relacja_nazwa)).all())
     state_names=dict(session.execute(select(DictStosunkiStan.stan_id,DictStosunkiStan.stan_nazwa)).all())

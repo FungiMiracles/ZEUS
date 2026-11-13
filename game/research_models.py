@@ -8,6 +8,7 @@ class ResearchAccount(db.Model):
     points=db.Column(db.BigInteger,nullable=False,default=0)
     ammunition=db.Column(db.BigInteger,nullable=False,default=0)
     nodes=db.Column(db.JSON,nullable=False,default=dict)
+    timers=db.Column(db.JSON)   # 13 Nov 2026: {technologia: {started, ready}} — czas rozwoju (game/research_timing)
     __table_args__=(db.CheckConstraint('points>=0 AND ammunition>=0',name='ck_research_balances'),{'mysql_engine':'InnoDB'})
 
 class ResearchExpense(db.Model):

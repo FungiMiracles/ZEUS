@@ -16,6 +16,7 @@ class Holdings:
         account=session.get(ResearchAccount,country_id)
         self.points=int(account.points) if account else 0
         self.nodes=dict(account.nodes or {}) if account else {}
+        self.timers=dict(getattr(account,'timers',None) or {}) if account else {}
         self.factories=[{'id':f.id,'kind':f.kind,'level':f.level,'region':f.region_id,'x':f.map_x,'y':f.map_y,'health':f.health}
                         for f in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country_id,AmmunitionFactory.removed_at.is_(None)))]
         self.mines=[{'id':m.id,'resource':m.resource,'level':m.level,'region':m.region_id,'x':m.map_x,'y':m.map_y,'ready':m.ready_at<=now,'ready_at':m.ready_at}
@@ -54,8 +55,13 @@ class Holdings:
 
     # ---- pytania planera ----
     def developed(self,node):
-        rule=TECHNOLOGIES.get(node)
-        return bool(rule) and int(self.nodes.get(node,0))>=rule['cost']
+        from game.research_timing import developed
+        return developed(self.nodes,self.timers,node,getattr(self,'now',None) or _now())
+
+    def researching(self,node):
+        """Komplet punktów, ale trwa czas rozwoju (13 Nov 2026)."""
+        from game.research_timing import researching
+        return researching(self.nodes,self.timers,node,getattr(self,'now',None) or _now())
 
     def missing_points(self,node):
         return max(0,TECHNOLOGIES[node]['cost']-int(self.nodes.get(node,0)))
@@ -73,3 +79,8 @@ class Holdings:
     def deposit_regions(self,resource):return self.deposits.get(resource,[])
     def objects_in(self,region):
         return sum(1 for group in (self.factories,self.mines,self.plants) for o in group if o['region']==region)
+
+
+def _now():
+    from game.finance_service import game_now
+    return game_now()
