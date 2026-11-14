@@ -24,6 +24,10 @@ class LandWarFixture(MilitaryFixture):
         super().setUp()
         from game.land_war_models import TrainingExpense,SovereigntyLoss
         for model in (LandArmy,Occupation,TrainingExpense,SovereigntyLoss):model.__table__.create(db.engine,checkfirst=True)
+        from sqlalchemy import text   # GDP history of annexations; INTEGER PRIMARY KEY autoincrements in SQLite (BigInteger does not)
+        with db.engine.begin() as connection:connection.execute(text('CREATE TABLE IF NOT EXISTS pkb_state_history (id INTEGER PRIMARY KEY, panstwo_id INTEGER NOT NULL, '
+            'data_entenda DATE NOT NULL, data_rzeczywista DATETIME NOT NULL, source VARCHAR(100) NOT NULL, event_id BIGINT, old_pkb BIGINT, new_pkb BIGINT, change_delta BIGINT, '
+            'CONSTRAINT uq_pkb_state_once UNIQUE (panstwo_id, data_entenda, source))'))
         self.now=NOW
         for target in ('game.land_war.game_now','game.military.game_now'):
             clock=patch(target,side_effect=lambda:self.now);clock.start();self.addCleanup(clock.stop)
@@ -202,6 +206,12 @@ class OccupationTests(LandWarFixture):
             change_defense(2,'rename',{'base_id':self.enemy.id,'name':'X'})
 
     def test_region_question_occupation_and_annexation_after_30_days(self):
+        from sqlalchemy import update
+        from models import PKBStateHistory
+        db.session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==2).values(panstwo_PKB=10000000,panstwo_populacja=10000))
+        db.session.execute(update(Region).where(Region.region_id==2).values(region_ludnosc_pozamiejska=1000,region_powierzchnia=30))
+        db.session.execute(update(Region).where(Region.region_id==3).values(region_ludnosc_pozamiejska=500,region_powierzchnia=70))
+        db.session.commit()
         row=self.conquer_region()
         self.assertEqual((row.status,row.region_id,row.occupier_id),('PENDING',2,1))
         self.assertTrue(any('Zdecyduj' in (n.system_text or '') for n in db.session.query(GameNotification).filter_by(user_id=1)))
@@ -215,6 +225,14 @@ class OccupationTests(LandWarFixture):
         self.assertEqual(db.session.get(Region,2).panstwo_id,1);self.assertEqual(db.session.get(Miasto,10).panstwo_id,1)
         base=db.session.get(MilitaryBase,self.enemy.id);self.assertEqual(base.panstwo_id,1);self.assertGreater(base.garrison['soldiers'],0)
         self.assertEqual(db.session.get(Occupation,row.id).status,'ANNEXED')
+        # GDP per capita of the owner (10 000 000 / 10 000 = 1 000) × region population (1 000 rural + 1 000 in Miasto B)
+        stats=lambda id:db.session.execute(select(Panstwo.panstwo_PKB,Panstwo.panstwo_populacja,Panstwo.panstwo_powierzchnia).where(Panstwo.PANSTWO_ID==id)).one()
+        winner,loser=stats(1),stats(2)
+        self.assertEqual((winner.panstwo_PKB,loser.panstwo_PKB),(1000000000000+2000000,8000000))
+        self.assertEqual((loser.panstwo_populacja,loser.panstwo_powierzchnia),(500,70),'the owner keeps only region 3')
+        self.assertEqual(winner.panstwo_populacja,sum(r.region_populacja for r in db.session.query(Region).filter_by(panstwo_id=1)))
+        history={(h.panstwo_id,h.change_delta) for h in db.session.query(PKBStateHistory).filter_by(source='ANEKSJA')}
+        self.assertEqual(history,{(1,2000000),(2,-2000000)})
 
     def test_declining_keeps_troops_without_occupation(self):
         row=self.conquer_region()
@@ -399,6 +417,19 @@ class SovereigntyTests(LandWarFixture):
         self.assertGreater(new.wojska_ladowe_ilosc,before+40000,'the defeated army joins the annexer')
         self.assertEqual(new.wyszkolenie_ladowe,300,'the annexer keeps its own training')
         self.assertTrue(any('utraciło suwerenność' in (n.system_text or '') for n in db.session.query(GameNotification)))
+
+    def test_capital_annexation_moves_the_whole_gdp(self):
+        from sqlalchemy import update
+        db.session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==2).values(panstwo_PKB=10000000,panstwo_populacja=10000));db.session.commit()
+        self.annex_capital()
+        stats=lambda id:db.session.execute(select(Panstwo.panstwo_PKB,Panstwo.panstwo_populacja,Panstwo.panstwo_powierzchnia).where(Panstwo.PANSTWO_ID==id)).one()
+        winner,loser=stats(1),stats(2)
+        self.assertEqual(winner.panstwo_PKB,1000000000000+10000000,'the annexer takes the whole GDP of an absorbed country')
+        self.assertEqual((loser.panstwo_PKB,loser.panstwo_populacja),(0,0))
+        self.assertEqual(winner.panstwo_populacja,sum(r.region_populacja for r in db.session.query(Region).filter_by(panstwo_id=1)))
+        from models import PKBStateHistory
+        history={(h.panstwo_id,h.old_pkb,h.new_pkb,h.change_delta) for h in db.session.query(PKBStateHistory).filter_by(source='ANEKSJA')}
+        self.assertEqual(history,{(1,1000000000000,1000010000000,10000000),(2,10000000,0,-10000000)})
 
     def test_lost_country_cannot_act_but_keeps_forum_and_messages(self):
         self.annex_capital()

@@ -154,6 +154,12 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     session.flush()
     session.expire_all()
     transferred['land_armies'] = _settle_war(session, defeated, annexer, moment)
+    # 14 Nov 2026: the whole remaining GDP follows the territory; population and area are recounted from regions and cities.
+    remaining = session.scalar(select(Panstwo.panstwo_PKB).where(Panstwo.PANSTWO_ID == defeated)) or 0
+    transferred['gdp'] = land_war.transfer_gdp(session, defeated, annexer, remaining, moment)
+    land_war.recount_country(session, annexer)
+    land_war.recount_country(session, defeated)
+    session.flush()
     session.add(SovereigntyLoss(panstwo_id=defeated, annexed_by=annexer, capital_region_id=capital_region_id,
                                 occupation_id=occupation_id, transferred=transferred, lost_at=moment))
     session.flush()

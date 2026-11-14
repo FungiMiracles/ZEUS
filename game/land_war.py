@@ -11,10 +11,10 @@ Zasady zatwierdzone przez administratora:
 Wszystkie zmiany stanu przechodzą przez zwykłe walidacje gracza (FinanceError) i blokady wierszy państw.
 """
 import math,secrets
-from datetime import timedelta
+from datetime import datetime,timedelta
 from decimal import Decimal
 from uuid import UUID
-from sqlalchemy import select,func,or_,and_
+from sqlalchemy import select,func,or_,and_,update
 from sqlalchemy.orm import Session,lazyload
 from extensions import db
 from game.finance_service import FinanceError,game_now
@@ -30,6 +30,7 @@ FIELDS={'soldiers':'wojska_ladowe_ilosc','armored':'wozy_opancerzone_ilosc','tan
 SPEED_FOOT=50
 SPEED_ARMORED=80
 ANNEX_DAYS=30
+GDP_SOURCE='ANEKSJA'
 TARGET_BASE_KINDS=('land','naval','air')
 LIVE=('MARCHING','DEFENDING','OCCUPYING')
 _random=secrets.SystemRandom()
@@ -647,12 +648,67 @@ def annex_region(user_id,data):
         return row.region_id
 
 
+def region_population(session,region_id):
+    rural=session.scalar(select(Region.region_ludnosc_pozamiejska).where(Region.region_id==region_id)) or 0
+    urban=session.scalar(select(func.sum(Miasto.miasto_populacja)).where(Miasto.region_id==region_id)) or 0
+    return int(rural)+int(urban)
+
+
+def recount_country(session,country_id):
+    """Population and area of a country from its regions and cities (as after a secession), 14 Nov 2026."""
+    rural=session.scalar(select(func.sum(Region.region_ludnosc_pozamiejska)).where(Region.panstwo_id==country_id)) or 0
+    urban=session.scalar(select(func.sum(Miasto.miasto_populacja)).where(Miasto.panstwo_id==country_id)) or 0
+    areas=list(session.scalars(select(Region.region_powierzchnia).where(Region.panstwo_id==country_id)))
+    area=sum(areas) if all(value is not None for value in areas) else None
+    session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==country_id)
+                    .values(panstwo_populacja=int(rural)+int(urban),panstwo_powierzchnia=area,panstwo_populacja_audit=datetime.now())
+                    .execution_options(synchronize_session=False))
+
+
+def transfer_gdp(session,source,target,amount,moment):
+    """Moves `amount` of GDP between countries and records both changes in the GDP history (source ANEKSJA)."""
+    from models import PKBStateHistory
+    amount=int(amount or 0)
+    if amount<=0 or source==target:return 0
+    values=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_PKB).where(Panstwo.PANSTWO_ID.in_([source,target]))).all())
+    amount=min(amount,int(values.get(source) or 0))
+    if amount<=0:return 0
+    day=moment.date()
+    for country_id,delta in ((source,-amount),(target,amount)):
+        old=int(values.get(country_id) or 0);new=old+delta
+        session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==country_id).values(panstwo_PKB=new).execution_options(synchronize_session=False))
+        # One history row per country, Entenda day and source (uq_pkb_state_once): later annexations of the day are added to it.
+        entry=session.scalar(select(PKBStateHistory).where(PKBStateHistory.panstwo_id==country_id,PKBStateHistory.data_entenda==day,
+                                                           PKBStateHistory.source==GDP_SOURCE).with_for_update())
+        if entry is None:
+            session.add(PKBStateHistory(panstwo_id=country_id,data_entenda=day,data_rzeczywista=datetime.now(),source=GDP_SOURCE,
+                                        old_pkb=old,new_pkb=new,change_delta=delta))
+            session.flush()
+        else:
+            entry.new_pkb=new;entry.change_delta=int(entry.change_delta or 0)+delta;entry.data_rzeczywista=datetime.now()
+    return amount
+
+
+def annexed_gdp(session,owner_id,region_id):
+    """GDP that follows an annexed region: the owner's GDP per capita × the region's population."""
+    gdp,population=session.execute(select(Panstwo.panstwo_PKB,Panstwo.panstwo_populacja).where(Panstwo.PANSTWO_ID==owner_id)).one()
+    if not gdp or not population:return 0
+    people=min(region_population(session,region_id),int(population))
+    return int((Decimal(int(gdp))*people/Decimal(int(population))).to_integral_value())
+
+
 def annex(session,row,own,now):
-    """Moves the region and its cities to the occupier; occupied bases change hands with the occupying armies as their garrison."""
+    """Moves the region and its cities to the occupier; occupied bases change hands with the occupying armies as their garrison.
+    14 Nov 2026: the region's share of GDP (owner's GDP per capita × region population) moves to the annexer and the population
+    and area of both countries are recounted."""
     from game.military_service import BASES
+    gdp=annexed_gdp(session,row.owner_id,row.region_id)
     region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==row.region_id).with_for_update())
     region.panstwo_id=own
     for city in session.scalars(select(Miasto).options(lazyload('*')).where(Miasto.region_id==row.region_id).with_for_update()):city.panstwo_id=own
+    session.flush()
+    transfer_gdp(session,row.owner_id,own,gdp,now)
+    recount_country(session,own);recount_country(session,row.owner_id)
     old_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==row.owner_id).with_for_update());new_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==own).with_for_update())
     for occupation in session.scalars(select(Occupation).where(Occupation.region_id==row.region_id,Occupation.status=='ACTIVE',Occupation.occupier_id==own,Occupation.kind.in_(['base','city']))):
         occupation.status='ANNEXED';occupation.ended_at=now
