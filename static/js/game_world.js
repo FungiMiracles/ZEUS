@@ -79,6 +79,39 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   setView(saved);
   const fit = () => { map.invalidateSize(); if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20], animate: false }); };
   fit(); document.getElementById('world-map-reset').addEventListener('click', fit);
+  // --- wody terytorialne (15 Nov 2026): filtr widoczny we wszystkich widokach, wczytywany przy pierwszym włączeniu ---
+  map.createPane('worldWaters'); map.getPane('worldWaters').style.zIndex = '395';
+  const watersToggle = document.getElementById('world-waters-toggle'), watersLegend = document.querySelector('.legend-waters');
+  let watersLayer = null, watersLoading = null;
+  const watersStyle = feature => {
+    const own = Number(feature.properties?.panstwo_id) === config.countryId;
+    return { color: own ? '#ffcf6b' : '#9fd8ff', weight: own ? 1.2 : .9, opacity: own ? .95 : .75, fillColor: own ? '#ffcf6b' : '#8fd3ff', fillOpacity: own ? .32 : .24 };
+  };
+  function loadWaters() {
+    if (!watersLoading) watersLoading = load(config.watersUrl).then(data => {
+      watersLayer = L.geoJSON(data, { pane: 'worldWaters', coordsToLatLng: coordinates, style: watersStyle,
+        onEachFeature: (feature, layer) => {
+          const c = config.countries[String(feature.properties?.panstwo_id)];
+          const lines = ['Wody terytorialne: 100 km od wybrzeża']; if (Number(feature.properties?.panstwo_id) === config.countryId) lines.push('Twoje państwo');
+          layer.bindTooltip(c ? iconTip(c.flag, c.name, lines, true) : make('span', 'Wody terytorialne'), tipOptions);
+          layer.on('mouseover', () => layer.setStyle({ fillOpacity: .45 })); layer.on('mouseout', () => watersLayer.resetStyle(layer));
+        } });
+      return watersLayer;
+    }).catch(error => { watersLoading = null; throw error; });
+    return watersLoading;
+  }
+  function setWaters(on) {
+    if (watersLegend) watersLegend.hidden = !on;
+    try { localStorage.setItem('world-waters', on ? '1' : '0'); } catch {}
+    if (!on) { if (watersLayer) watersLayer.remove(); return; }
+    loadWaters().then(layer => { if (watersToggle.checked) layer.addTo(map); })
+      .catch(() => { watersToggle.checked = false; if (watersLegend) watersLegend.hidden = true; say('Nie udało się wczytać wód terytorialnych.'); });
+  }
+  if (watersToggle && config.watersUrl) {
+    let showWaters = false; try { showWaters = localStorage.getItem('world-waters') === '1'; } catch {}
+    watersToggle.checked = showWaters; watersToggle.addEventListener('change', () => setWaters(watersToggle.checked));
+    if (showWaters) setWaters(true);
+  }
   // --- miasta ---
   load(config.citiesUrl).then(cities => {
     L.geoJSON(cities, { pane: 'worldCities', coordsToLatLng: coordinates, filter: f => !!config.cities[String(f.properties?.miasto_id)],

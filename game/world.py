@@ -96,10 +96,26 @@ def page():
             'vesselIcons':{kind:url_for('static',filename='icons/'+name) for kind,name in [('warships','OKRĘT WOJENNY.svg'),('submarines','SUBMARINE.svg'),('carriers','LOTNISKOWIEC.svg')]},
             'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
             'countriesUrl':url_for('region_sovereignty.country_boundaries'),
+            'watersUrl':url_for('game_world.territorial_waters'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
             'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
             'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
                              game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config)
     db.session.rollback()
+    return response
+
+
+@world_bp.get('/wody-terytorialne.geojson')
+def territorial_waters():
+    """15 Nov 2026: wody terytorialne państw (100 km od wybrzeża) do filtra mapy świata."""
+    from flask import jsonify
+    from game.finance_service import FinanceError
+    from game.territorial_waters import waters_geojson
+    user,_country=player()
+    if user is None:return jsonify(error='Zaloguj się do gry.'),401
+    try:data=waters_geojson(db.session)
+    except FinanceError as error:return jsonify(error=str(error)),409
+    finally:db.session.rollback()
+    response=jsonify(data);response.headers['Cache-Control']='private, max-age=60'
     return response

@@ -42,6 +42,11 @@ def run_flights_tick(app):
             from game.radar import detect
             with Session(db.engine) as session,session.begin():detect(session,game_now())
         except Exception as exc:app.logger.warning('Radary: wykrywanie przerwane: %s',f'{type(exc).__name__}: {exc}'[:300])
+        # Wody terytorialne: jedno powiadomienie przy każdym wejściu obcego okrętu (15 Nov 2026).
+        try:
+            from game.territorial_waters import detect_incursions
+            with Session(db.engine) as session,session.begin():detect_incursions(session,game_now())
+        except Exception as exc:app.logger.warning('Wody terytorialne: wykrywanie przerwane: %s',f'{type(exc).__name__}: {exc}'[:300])
         from sqlalchemy import select
         from game.military_models import MilitaryVessel
         from game.military_navy import settle_vessels
