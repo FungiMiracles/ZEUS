@@ -170,7 +170,7 @@ def entries(route, zones, skip_country=None):
     return sorted(found, key=lambda item: item[2])
 
 
-def detect_incursions(session, now=None):
+def detect_incursions(session, now=None, docked_lookback=None):
     """Jedno powiadomienie dla państwa wód przy każdym wejściu obcego okrętu (wywoływane przez harmonogram)."""
     from datetime import timedelta
     from game.finance_service import game_now, FinanceError
@@ -180,9 +180,10 @@ def detect_incursions(session, now=None):
     from game.military_navy import vessel_route
     from game.territorial_waters_models import TerritorialIncursion
     now = now or game_now()
+    docked_since = now - (docked_lookback or timedelta(days=2))   # rejsy zakończone w porcie tuż przed odczytem
     vessels = list(session.scalars(select(MilitaryVessel).where(MilitaryVessel.health > 0, MilitaryVessel.starts_at <= now,
                    (MilitaryVessel.status.in_(['sailing', 'returning', 'stationed'])) |
-                   ((MilitaryVessel.status == 'docked') & (MilitaryVessel.arrives_at >= now - timedelta(days=2))))))
+                   ((MilitaryVessel.status == 'docked') & (MilitaryVessel.arrives_at >= docked_since)))))
     if not vessels:
         return 0
     try:
@@ -190,6 +191,10 @@ def detect_incursions(session, now=None):
     except FinanceError:
         return 0                        # skala mapy nie jest skonfigurowana
     owners = controllers(session)
+    # Harmonogram działa w każdym workerze aplikacji: blokada wiersza skali mapy szereguje wykrywanie,
+    # więc drugi worker widzi wejścia zapisane przez pierwszy (bez powtórnych powiadomień).
+    from game.military_models import MapCalibration
+    session.execute(select(MapCalibration.id).where(MapCalibration.id == 1).with_for_update())
     done = set(session.execute(select(TerritorialIncursion.vessel_id, TerritorialIncursion.voyage_started_at, TerritorialIncursion.waters_country_id,
                                       TerritorialIncursion.entry_no).where(TerritorialIncursion.vessel_id.in_([v.id for v in vessels]))).tuples())
     created = 0

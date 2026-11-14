@@ -45,13 +45,13 @@ if __name__ == '__main__':
                 print('Utworzono game_territorial_incursions.')
             # Wejścia z rejsów rozpoczętych przed migracją (także datowane po bieżącym czasie gry — zegar UAT bywa cofany):
             # zapisane bez powiadomień, żeby gracze nie dostali zaległych komunikatów o starych rejsach.
-            from datetime import datetime
+            from datetime import datetime, timedelta
             from unittest.mock import patch
             from sqlalchemy.orm import Session
             from game import territorial_waters, land_war
             with Session(db.engine) as session, session.begin():
                 with patch.object(land_war, 'notify', lambda *args, **kwargs: None):
-                    count = territorial_waters.detect_incursions(session, datetime(9000, 1, 1))
+                    count = territorial_waters.detect_incursions(session, datetime(9000, 1, 1), docked_lookback=timedelta(days=365 * 6000))
             print(f'Oznaczono {count} wcześniejszych wejść jako zgłoszone (bez powiadomień).')
         else:
             print('Tabela game_territorial_incursions już istnieje.')
