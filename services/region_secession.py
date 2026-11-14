@@ -239,13 +239,33 @@ def rejoin(region_id, data, actor):
         return target_id
 
 
-def country_boundaries_data(country_data, region_data, owners):
-    """Apply recorded region ownership to a map response, without rewriting files."""
+def country_boundaries_data(country_data, region_data, owners, merged=None):
+    """Apply recorded region ownership to a map response, without rewriting files.
+
+    `owners` maps a region_id to its current country; `merged` maps a country that lost its sovereignty
+    to the country that took over its whole territory (14 Nov 2026: annexation)."""
     from shapely.geometry import shape, mapping
     from shapely import make_valid
     from shapely.ops import unary_union
+    merged = merged or {}
+    if merged:
+        def current(id):
+            seen = set()
+            while id in merged and id not in seen:
+                seen.add(id)
+                id = merged[id]
+            return id
+        features = []
+        for feature in country_data['features']:
+            id = feature.get('properties', {}).get('panstwo_id')
+            if id in merged:
+                feature = {**feature, 'properties': {**feature['properties'], 'panstwo_id': current(id)}}
+            features.append(feature)
+        country_data = {**country_data, 'features': features}
     if not owners:
-        return country_data
+        if not merged:
+            return country_data
+        owners = {}
     def land(geometry):
         if geometry.geom_type == 'Polygon':
             return [geometry]
@@ -255,16 +275,18 @@ def country_boundaries_data(country_data, region_data, owners):
         id = feature.get('properties', {}).get('region_id')
         if id in owners and feature.get('geometry'):
             moved.setdefault(id, []).extend(land(make_valid(shape(feature['geometry']))))
-    if not moved:
+    if not moved and not merged:
         return country_data
-    mask = unary_union([polygon for polygons in moved.values() for polygon in polygons])
+    mask = unary_union([polygon for polygons in moved.values() for polygon in polygons]) if moved else None
     groups, unchanged = {}, []
     for feature in country_data['features']:
         id = feature.get('properties', {}).get('panstwo_id')
         if id is None or not feature.get('geometry'):
             unchanged.append(feature)
             continue
-        geometry = make_valid(shape(feature['geometry'])).difference(mask)
+        geometry = make_valid(shape(feature['geometry']))
+        if mask is not None:
+            geometry = geometry.difference(mask)
         groups.setdefault(id, []).extend(land(geometry))
     for region_id, polygons in moved.items():
         groups.setdefault(owners[region_id], []).extend(polygons)

@@ -88,13 +88,27 @@ def country_boundaries():
     from flask import current_app, jsonify
     from models import Region
     from services.region_secession import country_boundaries_data
+    from sqlalchemy import column, inspect, table
+    # 14 Nov 2026: regions whose owner changed in the game (secession or armed annexation) are redrawn with their
+    # current owner; a country that lost its sovereignty is drawn as part of the annexer. Lightweight table
+    # constructs keep the WIKI map independent of the game models (the game tables may be absent in isolated setups).
+    present = set(inspect(db.engine).get_table_names())
+    changed = select(RegionSecession.region_id)
+    if 'game_occupations' in present:
+        occupations = table('game_occupations', column('region_id'), column('kind'), column('status'))
+        changed = changed.union(select(occupations.c.region_id)
+                                .where(occupations.c.kind == 'region', occupations.c.status == 'ANNEXED'))
     owners = dict(db.session.execute(select(Region.region_id, Region.panstwo_id)
-        .join(RegionSecession, RegionSecession.region_id == Region.region_id).distinct()).all())
+        .where(Region.region_id.in_(changed), Region.panstwo_id.is_not(None))).all())
+    merged = {}
+    if 'game_sovereignty_losses' in present:
+        losses = table('game_sovereignty_losses', column('panstwo_id'), column('annexed_by'))
+        merged = dict(db.session.execute(select(losses.c.panstwo_id, losses.c.annexed_by)).all())
     maps = Path(current_app.static_folder) / 'maps'
     country_data = json.loads((maps/'entenda_panstwa.geojson').read_text())
-    if owners:
-        region_data = json.loads((maps/'entenda_regiony.geojson').read_text())
-        country_data = country_boundaries_data(country_data, region_data, owners)
+    if owners or merged:
+        region_data = json.loads((maps/'entenda_regiony.geojson').read_text()) if owners else {'features': []}
+        country_data = country_boundaries_data(country_data, region_data, owners, merged)
     active_ids = set(db.session.scalars(select(Panstwo.PANSTWO_ID)))
     country_data['features'] = [feature for feature in country_data['features']
         if feature.get('properties', {}).get('panstwo_id') in active_ids]

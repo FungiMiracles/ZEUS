@@ -157,6 +157,38 @@ class RegionSecessionTests(unittest.TestCase):
         result=country_boundaries_data(base,regions,{11:1})
         self.assertEqual(shape(result['features'][0]['geometry']).area,100)
 
+    def test_world_map_merges_country_that_lost_sovereignty_into_annexer(self):
+        from services.region_secession import country_boundaries_data
+        from shapely.geometry import shape
+        square=lambda x0,x1:{'type':'Polygon','coordinates':[[[x0,0],[x1,0],[x1,10],[x0,10],[x0,0]]]}
+        base={'type':'FeatureCollection','features':[{'type':'Feature','properties':{'panstwo_id':1},'geometry':square(0,10)},
+                                                     {'type':'Feature','properties':{'panstwo_id':2},'geometry':square(10,20)}]}
+        result=country_boundaries_data(base,{'features':[]},{},{2:1})
+        self.assertEqual([(f['properties']['panstwo_id'],shape(f['geometry']).area) for f in result['features']],[(1,200)])
+        self.assertEqual(base['features'][1]['properties']['panstwo_id'],2)
+
+    def test_country_boundaries_route_redraws_annexed_region(self):
+        import json
+        from sqlalchemy import text
+        from shapely.geometry import shape
+        square=lambda x0,x1:{'type':'Polygon','coordinates':[[[x0,0],[x1,0],[x1,10],[x0,10],[x0,0]]]}
+        maps=Path(self.tmp.name)/'maps'
+        (maps/'entenda_panstwa.geojson').write_text(json.dumps({'type':'FeatureCollection','features':[
+            {'type':'Feature','properties':{'panstwo_id':1},'geometry':square(0,10)},{'type':'Feature','properties':{'panstwo_id':2},'geometry':square(10,20)}]}))
+        (maps/'entenda_regiony.geojson').write_text(json.dumps({'type':'FeatureCollection','features':[
+            {'type':'Feature','properties':{'region_id':11,'panstwo_id':1},'geometry':square(0,5)}]}))
+        areas=lambda:{f['properties']['panstwo_id']:shape(f['geometry']).area for f in self.client.get('/wiki/mapa/panstwa.geojson').get_json()['features']}
+        db.session.execute(text("CREATE TABLE game_occupations (id INTEGER PRIMARY KEY, kind TEXT, region_id INTEGER, status TEXT)"))
+        db.session.execute(text("CREATE TABLE game_sovereignty_losses (panstwo_id INTEGER PRIMARY KEY, annexed_by INTEGER)"))
+        db.session.get(Region,11).panstwo_id=2
+        db.session.execute(text("INSERT INTO game_occupations (kind, region_id, status) VALUES ('region', 11, 'ACTIVE')"))
+        db.session.commit()
+        self.assertEqual(areas(),{1:100,2:100})                    # occupation only: borders unchanged
+        db.session.execute(text("UPDATE game_occupations SET status='ANNEXED'")); db.session.commit()
+        self.assertEqual(areas(),{1:50,2:150})                     # annexed region is drawn as part of the annexer
+        db.session.execute(text("INSERT INTO game_sovereignty_losses VALUES (1, 2)")); db.session.commit()
+        self.assertEqual(areas(),{2:200})                          # loss of sovereignty: whole territory of the annexer
+
     def test_commit_failure_rolls_back_database_and_removes_new_assets(self):
         with patch('sqlalchemy.orm.session.SessionTransaction.commit',side_effect=RuntimeError('simulated commit failure')):
             with self.assertRaises(RuntimeError):secede(11,self.payload(),'Tester')
