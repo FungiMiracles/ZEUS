@@ -68,11 +68,32 @@ def world_data():
     return {'countries':countries,'regions':regions,'occupied':occupied,'cities':cities,'continents':continents,'ships':ships}
 
 
+def world_vessels(country):
+    """14 Nov 2026: okręty wojenne i lotniskowce wszystkich państw na mapie świata (z flagą), jak na panelu wojennym."""
+    if country is None:return []
+    try:
+        from game.military import visible_vessels
+        from game.military_service import enemies
+        from models import Panstwo
+        names=dict(db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all())
+        items=[]
+        for v in visible_vessels(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))):
+            name=names.get(v['countryId']) or ''
+            items.append({'id':v['id'],'kind':v['kind'],'name':v['name'],'status':v['status'],'health':v['health'],'own':v['countryId']==country.PANSTWO_ID,
+                          'country':name,'flag':url_for('static',filename='flags/'+name.replace(' ','_')+'.jpg'),
+                          'route':v['route'],'source':v['source'],'target':v['target'],'startsAt':v['startsAt'],'arrivesAt':v['arrivesAt']})
+        return items
+    except Exception:
+        current_app.logger.exception('Ekran Świat: okręty')
+        return []
+
+
 @world_bp.get('')
 def page():
     user,country=player()
     if user is None:return redirect(url_for('wejscie'))
-    config={**world_data(),'countryId':country.PANSTWO_ID if country else None,
+    config={**world_data(),'countryId':country.PANSTWO_ID if country else None,'vessels':world_vessels(country),
+            'vesselIcons':{kind:url_for('static',filename='icons/'+name) for kind,name in [('warships','OKRĘT WOJENNY.svg'),('submarines','SUBMARINE.svg'),('carriers','LOTNISKOWIEC.svg')]},
             'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
             'countriesUrl':url_for('region_sovereignty.country_boundaries'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),

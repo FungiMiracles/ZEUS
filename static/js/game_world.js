@@ -106,6 +106,24 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     ships.push([ship, marker]);
   }
   if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);
+  // --- okręty wojenne i lotniskowce wszystkich państw (14 Nov 2026) ---
+  const kinds = { warships: 'Okręt wojenny', carriers: 'Lotniskowiec', submarines: 'Okręt podwodny' };
+  const statuses = { sailing: 'w rejsie', returning: 'powrót do bazy', stationed: 'na pozycji' };
+  const vessels = [];
+  for (const vessel of config.vessels || []) {
+    const icon = (config.vesselIcons || {})[vessel.kind]; if (!icon) continue;
+    // 14 Nov 2026: trasa okrętu widoczna dopiero po najechaniu na okręt
+    const route = vessel.status !== 'stationed' && vessel.route && vessel.route.length > 1 ? L.polyline(vessel.route.map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1.5, opacity: .7, dashArray: '5 5', interactive: false }) : null;
+    const symbol = make('div', null, 'world-ship world-vessel'); const img = make('img'); img.src = icon; img.alt = ''; symbol.append(img);
+    if (vessel.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = vessel.flag; flag.alt = ''; symbol.append(flag); }
+    const point = window.GameTradeNavigation?.position(vessel, gameTime()); if (!point) continue;
+    const label = vessel.name || `${kinds[vessel.kind] || 'Okręt'} #${vessel.id}`;
+    const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
+      .bindTooltip(iconTip(icon, label, [`Państwo: ${vessel.country || 'brak danych'}${vessel.own ? ' (Twoje)' : ''}`, `Stan: ${statuses[vessel.status] || vessel.status}`, `Życie: ${vessel.health}/100`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+    if (route) marker.on('tooltipopen', () => route.addTo(map)).on('tooltipclose', () => route.remove());
+    vessels.push([vessel, marker]);
+  }
+  if (vessels.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [vessel, marker] of vessels) { const p = window.GameTradeNavigation.position(vessel, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);
   if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById('world-map'));
 }).catch(error => { console.error('Ekran Świat:', error); say('Nie udało się wczytać mapy świata. Odśwież stronę.'); });
 })();

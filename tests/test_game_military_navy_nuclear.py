@@ -93,13 +93,15 @@ class NavyNuclearTests(MilitaryFixture):
             with self.assertRaises(FinanceError):self.change('sail',base_id=base.id,vessel_kind='submarines',x=x,y=0)
 
     def test_silo_cost_capacity_upgrades_and_national_head_upkeep(self):
+        # 13 Nov 2026: utrzymanie liczone tylko od rakiet z głowicą nuklearną w silosie (650 mln ROI), dostępność z rzeczywistego licznika
+        from game.commerce_models import ResourceStock
         silo=self.base('nuclear')
         self.assertEqual(db.session.query(MilitaryExpense).one().amount,25000000000)
         self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,500000000)
-        army=db.session.query(Wojsko).one();army.bron_atomowa_ilosc=110;db.session.commit()
+        army=db.session.query(Wojsko).one();army.bron_atomowa_ilosc=5000   # pole tabeli nie daje głowic
+        db.session.add(ResourceStock(panstwo_id=1,resource='nuclear_missiles',quantity=110));db.session.commit()
         self.change('garrison',base_id=silo.id,garrison={'warheads':100})
-        # Includes the ten heads in reserve, without double charging loaded heads.
-        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,11500000000)
+        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,500000000+100*650000000)   # 10 w magazynie — bez kosztu
         with self.assertRaises(FinanceError):self.change('garrison',base_id=silo.id,garrison={'warheads':101})
         for level in range(2,8):
             self.change('upgrade',base_id=silo.id)
@@ -132,29 +134,31 @@ class NewFlightTests(FlightFixture):
         self.assertTrue(all('Ofiary: 50' in n.system_text and 'Zniszczenia infrastruktury: 0' in n.system_text for n in notices))
 
     def test_nuclear_uses_head_and_rocket_without_casualties(self):
+        # 13 Nov 2026: odpalenie zużywa tylko rakietę z głowicą nuklearną (bez rakiety konwencjonalnej); trafienie — wybuch jądrowy
+        from game.commerce_models import ResourceStock
         silo=self.base('nuclear');silo.map_x=0;silo.map_y=0;silo.garrison={'warheads':2}
-        db.session.query(Wojsko).one().bron_atomowa_ilosc=2;db.session.commit()
-        id=self.launch(silo,is_nuclear=True)
+        db.session.add(ResourceStock(panstwo_id=1,resource='nuclear_missiles',quantity=2));db.session.commit()
+        id=self.launch(silo,is_nuclear=True,missile_type='long')
         db.session.expire_all()
-        self.assertEqual(db.session.query(Wojsko).one().bron_atomowa_ilosc,1)
-        self.assertEqual(db.session.query(Wojsko).one().rakiety_krotkiego_zasiegu,19)
+        self.assertEqual(db.session.get(ResourceStock,(1,'nuclear_missiles')).quantity,1)
+        self.assertEqual(db.session.query(Wojsko).one().rakiety_krotkiego_zasiegu,20)
         self.assertEqual(db.session.get(MilitaryBase,silo.id).garrison['warheads'],1)
-        with patch('game.military_flights.roll_casualties',side_effect=AssertionError('nuclear must not damage')):
+        with patch('game.military_geography.city_point',return_value=[100,0]):
             complete_flights(db.session,NOW+timedelta(hours=1));db.session.commit()
-        self.assertEqual(db.session.get(Miasto,9001).miasto_populacja,1000)
-        self.assertEqual(db.session.get(MilitaryFlight,id).casualties,0)
+        self.assertEqual(db.session.get(Miasto,9001).miasto_populacja,0)
+        self.assertEqual(db.session.get(MilitaryFlight,id).casualties,1000)
 
     def test_nuclear_air_and_ship_require_loaded_silo(self):
+        # 13 Nov 2026: uderzenie atomowe tylko rakietą z silosu — bombowce i okręty nie przenoszą broni jądrowej
+        from game.commerce_models import ResourceStock
         silo=self.base('nuclear');silo.map_x=0;silo.map_y=0;silo.garrison={'warheads':2}
-        db.session.query(Wojsko).one().bron_atomowa_ilosc=2;db.session.commit()
-        jet=self.source('air');flight=self.launch(jet,is_nuclear=True,silo_id=silo.id)
-        self.assertTrue(db.session.get(MilitaryFlight,flight).is_nuclear)
-        self.assertEqual(db.session.get(MilitaryFlight,flight).impact_at,NOW+timedelta(seconds=400))
+        db.session.add(ResourceStock(panstwo_id=1,resource='nuclear_missiles',quantity=2));db.session.commit()
+        jet=self.source('air')
+        with self.assertRaisesRegex(FinanceError,'wyłącznie rakietą'):self.launch(jet,is_nuclear=True,silo_id=silo.id)
         db.session.get(Region,1).region_polozenie_id=2;db.session.commit()
         base=self.source('naval');self.change('sail',base_id=base.id,vessel_kind='warships',x=50,y=0)
         vessel=db.session.query(MilitaryVessel).one()
         with patch('game.military_flights.game_now',return_value=NOW+timedelta(minutes=30)):
-            flight=self.launch(base,is_nuclear=True,silo_id=silo.id,vessel_id=vessel.id)
-        self.assertEqual(db.session.get(MilitaryFlight,flight).source_x,50)
-        self.assertEqual(db.session.get(MilitaryFlight,flight).distance_km,50)
-        with self.assertRaises(FinanceError):self.launch(base,is_nuclear=True,silo_id=silo.id,vessel_id=vessel.id)
+            with self.assertRaisesRegex(FinanceError,'wyłącznie rakietą'):self.launch(base,is_nuclear=True,silo_id=silo.id,vessel_id=vessel.id)
+        self.assertEqual(db.session.get(ResourceStock,(1,'nuclear_missiles')).quantity,2)
+

@@ -1,6 +1,8 @@
 {% extends "game/game_base_layout.html" %}
 {% from "macros/army.html" import army_fields %}
 {% from "macros/icons.html" import icon %}
+{% block body_class %}army-room{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261113-screens-2') }}">{% endblock %}
 {% block title %}Siły zbrojne — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_army.css', v='20261112-groups-1') }}">
@@ -33,7 +35,7 @@
             {% set label, icon_key = labels[field] %}
             <div class="game-army-resource">
                 <dt>{% if icon_key %}{{ icon(icon_key) }}{% endif %}<span>{{ 'Budżet sił zbrojnych na bieżące półrocze' if field == 'procent_PKB' else label }}</span></dt>
-                <dd>{% if field == 'procent_PKB' %}{{ military_budget_total|game_money }}{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</dd>
+                <dd>{% if field == 'procent_PKB' %}{{ military_budget_total|game_money }}{% elif field == 'bron_atomowa_ilosc' %}{# 13 Nov 2026: rzeczywista liczba rakiet z głowicą nuklearną (magazyn + silosy) #}{{ '{:,}'.format(nuclear_total|default(0)).replace(',', ' ') }}{% elif field.startswith('liczba_baz') %}{# 13 Nov 2026: faktycznie postawione bazy państwa, nie wartość z tabeli „wojsko” #}{{ '{:,}'.format(active.get(field, 0)).replace(',', ' ') }}{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</dd>
                 {% if field in weapon_parameters %}
                 {% set parameters = weapon_parameters[field] %}
                 <div class="game-army-parameters">

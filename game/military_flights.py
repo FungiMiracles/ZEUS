@@ -72,6 +72,7 @@ def launch_flight(session,country_id,army,target,order,data):
     kind,resource=expected[order.kind]
     nuclear=data.get('is_nuclear',False)
     if not isinstance(nuclear,bool):raise FinanceError('Nieprawidłowy rodzaj głowicy.')
+    if nuclear and order.kind!='missile':raise FinanceError('Uderzenie atomowe jest możliwe wyłącznie rakietą z głowicą nuklearną odpaloną z silosu na terytorium kraju.')
     if nuclear and order.kind=='missile':kind,resource='nuclear','warheads'
     if vessel is None:
         available=base.garrison.get(resource,0)-(busy_fighters(session,base.id,now) if order.kind=='air' else 0)
@@ -120,6 +121,9 @@ def launch_flight(session,country_id,army,target,order,data):
         from game.military_navy import vessel_position
         source=vessel_position(vessel,now)
     low,high,speed=MISSILE_FLIGHT[order.payload['missile_type']]
+    if nuclear:
+        from game.nuclear import RANGE_KM,SPEED_KMH
+        low,high,speed=0,RANGE_KM,SPEED_KMH   # 13 Nov 2026: rakieta z głowicą nuklearną — 3000 km od silosu
     if target_vessel is not None:
         from game.military_navy import vessel_position,VESSEL_SPEED
         attack_speed=FIGHTER_SPEED if order.kind=='air' else speed
@@ -148,17 +152,19 @@ def launch_flight(session,country_id,army,target,order,data):
     count=order.payload['missiles']
     if count>MAX_SALVO:
         raise FinanceError(f'Jeden rozkaz może obejmować najwyżej {MAX_SALVO} rakiet.')
-    field=MISSILES[order.payload['missile_type']][0]
-    if count>(getattr(army,field) or 0):
-        raise FinanceError('Za mało rakiet wybranego rodzaju.')
-    setattr(army,field,(getattr(army,field) or 0)-count)
+    if not nuclear:   # rakieta atomowa nie zużywa dodatkowej rakiety konwencjonalnej (13 Nov 2026)
+        field=MISSILES[order.payload['missile_type']][0]
+        if count>(getattr(army,field) or 0):
+            raise FinanceError('Za mało rakiet wybranego rodzaju.')
+        setattr(army,field,(getattr(army,field) or 0)-count)
     if nuclear:
         silo_id=base.id if order.kind=='missile' else natural(data.get('silo_id'),'Silos atomowy',1)
         silo=session.scalar(select(MilitaryBase).where(MilitaryBase.id==silo_id,MilitaryBase.panstwo_id==country_id,MilitaryBase.kind=='nuclear').with_for_update())
-        if silo is None or not silo.operational or silo.health<=0 or silo.map_x is None or silo.garrison.get('warheads',0)<count or (army.bron_atomowa_ilosc or 0)<count:
-            raise FinanceError('Za mało głowic w sprawnym, rozmieszczonym silosie atomowym.')
+        from game.nuclear import total,change_total
+        if silo is None or not silo.operational or silo.health<=0 or silo.map_x is None or silo.garrison.get('warheads',0)<count or total(session,country_id)<count:
+            raise FinanceError('Za mało rakiet z głowicą nuklearną w sprawnym, rozmieszczonym silosie atomowym.')
         silo.garrison={**silo.garrison,'warheads':silo.garrison['warheads']-count}
-        army.bron_atomowa_ilosc-=count
+        change_total(session,country_id,-count)
     duration=max(1,distance/(FIGHTER_SPEED if order.kind=='air' else speed)*3600)
     impact=now+timedelta(seconds=duration)
     if target_shipment is not None and impact>=target_shipment.arrives_at:raise FinanceError('Statek dotrze do portu przed trafieniem.')
@@ -177,6 +183,10 @@ def launch_flight(session,country_id,army,target,order,data):
         fighter_arrives_at=now+timedelta(seconds=fighter_seconds) if order.kind=='air' else None,
         returns_at=max(impact,now+timedelta(seconds=fighter_seconds))+timedelta(seconds=fighter_seconds) if order.kind=='air' else None)
     session.add(flight);session.flush()
+    if nuclear and attacked_country!=country_id:
+        # 13 Nov 2026: odpalenie rakiety z głowicą nuklearną w kierunku innego państwa — powiadomienie do wszystkich państw
+        from game.nuclear import broadcast,country_name
+        broadcast(session,f'Uderzenie atomowe: {country_name(session,country_id)} wystrzeliło {count} szt. rakiet z głowicą nuklearną w kierunku państwa {country_name(session,attacked_country)} (cel: {target_name}).',exclude=(country_id,))
     return flight.id
 
 
@@ -222,7 +232,10 @@ def complete_flights(session,now,country_id=None,*,shipment_ids=None,factory_ids
             if flight.target_kind not in ('vessel','shipment'):
                 hits=intercept(session,flight,region_id,flight.target_kind,flight.target_radar_id or flight.target_power_id or flight.target_factory_id or flight.target_defense_id or flight.target_base_id or flight.target_mine_id or flight.city_id or region_id)
             flight.intercepted=flight.missiles-hits
-            if not flight.is_nuclear or flight.target_kind in ('factory','power'):damage=apply_structural_damage(session,flight,order,hits)
+            if flight.is_nuclear:
+                from game.nuclear import detonate
+                damage,casualties=detonate(session,flight,order,hits)   # 13 Nov 2026: skażenie 100 km, zniszczenia, skutki w regionie
+            else:damage=apply_structural_damage(session,flight,order,hits)
             if flight.city_id is not None and not flight.is_nuclear:
                 city=session.scalar(select(Miasto).options(lazyload('*')).where(Miasto.miasto_id==flight.city_id).with_for_update())
                 country=session.scalar(select(Panstwo).options(lazyload('*')).where(Panstwo.PANSTWO_ID==city.panstwo_id).with_for_update()) if city is not None else None
@@ -259,12 +272,21 @@ def notify_impact(session,flight):
     from game.models import GamePlayerCountry,utc_now
     from game.forum_models import GameNotification
     names=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID.in_([flight.panstwo_id,flight.target_country_id]))).all())
-    effect=f'Przechwycono: {flight.intercepted or 0} z {flight.missiles}. Pocisk atomowy nie powoduje jeszcze ofiar ani zniszczeń.' if flight.is_nuclear and flight.target_kind not in ('factory','power') else impact_summary(flight)
+    effect=nuclear_summary(flight) if flight.is_nuclear else impact_summary(flight)
     for country_id,prefix in [(flight.panstwo_id,f'Zakończono nasz atak na cel: {flight.target_name} ({names.get(flight.target_country_id,"państwo przeciwnika")}).'),
                               (flight.target_country_id,f'Państwo {names.get(flight.panstwo_id,"przeciwnika")} przeprowadziło atak na cel: {flight.target_name}.')]:
         owner=country_user_id(session,country_id)
         if owner is not None:
             session.add(GameNotification(user_id=owner,notification_type='SYSTEM',system_text=f'{prefix} Liczba pocisków: {flight.missiles}. {effect}',created_at=utc_now()))
+
+
+def nuclear_summary(flight):
+    damage=flight.damage or {}
+    if not damage.get('nuclear'):return f'Przechwycono: {flight.intercepted or 0} z {flight.missiles}. Rakieta nie dotarła do celu — brak skażenia.'
+    destroyed=damage.get('destroyed') or {}
+    lost=', '.join(f'{label}: {destroyed[key]}' for key,label in [('bases','bazy'),('factories','fabryki'),('power','elektrownie'),('mines','kopalnie'),('radars','radary'),('defenses','obrona przeciwrakietowa'),('vessels','okręty')] if destroyed.get(key))
+    return (f'Przechwycono: {flight.intercepted or 0} z {flight.missiles}. Wybuch jądrowy: skażenie w promieniu {damage.get("zoneRadiusKm",100)} km na 3 lata Entendy, '
+            f'zginęło {flight.casualties or 0:,} mieszkańców miast'.replace(',',' ')+(f'; zniszczone obiekty — {lost}' if lost else '')+'.')
 
 
 def apply_structural_damage(session,flight,order,hits):

@@ -13,6 +13,8 @@ from game.paga2 import pricing
 
 PATH='/game/handel/zmien'
 MIN_OFFER_VALUE=2e8
+REPRICE_DAYS=3          # 13 Nov 2026: niesprzedana oferta — obniżka ceny co 3 dni Entendy
+REPRICE_FACTOR=Decimal('0.90')
 LABELS={'wegiel_kamienny':'węgiel','ropa_naftowa':'ropa','zloto':'złoto','srebro':'srebro','kamien':'kamień','natsyt':'natsyt','kerbit':'kerbit','cemium':'cemium','zelazo':'żelazo','uran':'uran'}
 
 
@@ -34,14 +36,21 @@ def own_port(screen,country_id):
     return own[0] if own else None
 
 
+def port_rate(screen,port,country_id):
+    """14 Nov 2026: opłata, którą gra naliczy temu państwu w porcie — we własnym porcie 0 (trade_service.tariff);
+    ekran pokazuje stawkę portu dla innych państw, co dawało odrzucenia „Opłata portu wysyłki zmieniła się”."""
+    item=(screen.get('ports') or {}).get(str(port),{})
+    return '0' if item.get('countryId')==country_id else item.get('rate','0')
+
+
 def arrival_port(screen,country_id):
     """Port odbioru: własny (gra wymaga go, gdy państwo ma port) albo najtańszy dozwolony obcy."""
     ports=screen.get('ports') or {}
     own=own_port(screen,country_id)
-    if own:return own,ports[str(own)].get('rate','0')
+    if own:return own,port_rate(screen,own,country_id)
     allowed=[(float(p.get('rate') or 0),int(id)) for id,p in ports.items() if p.get('allowed') and not p.get('blocked')]
     if not allowed:return None,None
-    rate,port=min(allowed);return port,ports[str(port)].get('rate','0')
+    rate,port=min(allowed);return port,port_rate(screen,port,country_id)
 
 
 def port_limit(port_id):
@@ -102,7 +111,10 @@ def sell_options(ctx,screen,factors):
     share=.3+.5*t.get('trade_propensity',50)/100
     cargo={}
     peaceful=ctx.situation.get('level')=='peace' and t.get('militarism',50)<20 and 'defensive_army' not in ctx.priorities[:3]
+    # 13 Nov 2026: bez nowej oferty na towar, który państwo już wystawiło (zamiast tego obniżka ceny — reprice_options)
+    listed={code for offer in screen.get('offers') or [] if offer.get('own') for code in (offer.get('cargo') or {})}
     for code,row in warehouse.items():
+        if code in listed:continue
         surplus=int(row.get('available') or 0)-reserve.get(code,0)
         military=code.endswith('_missiles') or code in ('tanks','fighters','armored','drones','warships','submarines','carriers',pricing.AMMUNITION)
         if military:
@@ -129,12 +141,35 @@ def sell_options(ctx,screen,factors):
     from game.trade_prices import clamp
     price=clamp(best,cargo[best],Decimal(str(value*markup))).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
     excluded=sorted(unfriendly(ctx)-{ctx.country_id})
-    rate=(screen.get('ports') or {}).get(str(port),{}).get('rate','0')
+    rate=port_rate(screen,port,ctx.country_id)
     return [Option(key='trade:offer',domain='trade',action='TRADE_OFFER',label='Oferta sprzedaży: '+', '.join(f'{q} {LABELS.get(c,c)}' for c,q in cargo.items()),
                    effects={'trade':1.0,'financial_stability':.4},traits={'trade_propensity':1.0,'isolationism':-.6},base=2.0,
                    notes=[f'Nadwyżka ponad rezerwę operacyjną; cena {float(price)/1e9:.2f} MLD (wartość {value/1e9:.2f} MLD × {markup:.2f}, w granicach cen gry).',
                           f'Oferta ukryta przed {len(excluded)} państwami (wojna / wrogość).'],
                    payload={'action':'offer','cargo':cargo,'price':str(price),'port_id':port,'departure_rate':str(rate),'excluded':excluded,'group':'trade:offer'})]
+
+
+def reprice_options(ctx,screen):
+    """13 Nov 2026: własna oferta bez kupca od REPRICE_DAYS dni Entendy — obniżka ceny o 10% (nie poniżej minimum gry)."""
+    from datetime import datetime,timedelta
+    from game.trade_prices import clamp
+    options=[]
+    for offer in screen.get('offers') or []:
+        if not offer.get('own') or not offer.get('cargo'):continue
+        stamp=offer.get('priceChangedAt') or offer.get('createdAt')
+        if not stamp or ctx.now is None:continue
+        try:since=datetime.fromisoformat(stamp.rstrip('Z'))
+        except ValueError:continue
+        if ctx.now-since<timedelta(days=REPRICE_DAYS):continue
+        [(code,quantity)]=list(offer['cargo'].items())[:1]
+        current=Decimal(str(offer['price']))
+        price=clamp(code,quantity,current*REPRICE_FACTOR).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+        if price>=current:continue   # cena już na minimum gry — oferta poczeka na kupca albo wygaśnie po 14 dniach
+        options.append(Option(key=f'trade:reprice:{offer["id"]}',domain='trade',action='TRADE_REPRICE',label=f'Obniżka ceny oferty #{offer["id"]} ({quantity} {LABELS.get(code,code)})',
+                              effects={'trade':.8,'financial_stability':.2},traits={'trade_propensity':.8},base=2.5,
+                              notes=[f'Brak kupca od {REPRICE_DAYS}+ dni Entendy: {float(current)/1e9:.2f} → {float(price)/1e9:.2f} MLD.'],
+                              payload={'action':'reprice','offer_id':offer['id'],'price':str(price),'group':f'trade:reprice:{offer["id"]}'}))
+    return options
 
 
 def planned_acquisitions(ctx):
@@ -182,12 +217,13 @@ def propose(ctx):
     screen=trade_screen(ctx)
     if not screen:return []
     factors=pricing.market_factors(screen.get('offers'))
-    return policy_options(ctx,screen)+sell_options(ctx,screen,factors)+buy_options(ctx,screen,factors)
+    return policy_options(ctx,screen)+sell_options(ctx,screen,factors)+reprice_options(ctx,screen)+buy_options(ctx,screen,factors)
 
 
 def execute(ctx,option):
     body={k:v for k,v in option.payload.items() if k not in ('group','required')}
-    status,data=ctx.call(PATH,json={**body,'request_id':request_id(ctx,option)})
+    if option.action!='TRADE_REPRICE':body['request_id']=request_id(ctx,option)
+    status,data=ctx.call(PATH,json=body)
     if status<400:ctx._holdings=None
     return result(status,data)
 

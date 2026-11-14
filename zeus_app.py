@@ -284,6 +284,7 @@ def create_app():
             "game_login_submit",
             "game_main_page",
             "game_logout",
+            "game_admin_panel",  # 14 Nov 2026: trasa sama sprawdza sesję gracza, CSRF i hasło
         }
 
         if request.endpoint is None:

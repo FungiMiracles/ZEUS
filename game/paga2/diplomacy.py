@@ -12,6 +12,7 @@ from extensions import db
 from game.paga2.engine import Adapter,register
 from game.paga2.scoring import Option,clip
 from game.paga2.finance import result
+from game.paga2.war_losses import deterrence   # 13 Nov 2026: pokój po ciężkiej wojnie odstrasza od ponownej wrogości
 
 ACTION='/game/dyplomacja/akcje'
 DECIDE='/game/dyplomacja/propozycje/{id}/decyzja'
@@ -95,7 +96,7 @@ def relation_options(ctx,ids):
             for kind,label,bonus in (('PEACE','Propozycja pokoju',2.0),('CEASEFIRE','Propozycja zawieszenia broni',0.0)):
                 if recently(ctx,kind,other) or kind in pending:continue
                 options.append(Option(key=f'diplomacy:{kind.lower()}:{other}',domain='diplomacy',action=kind,label=f'{label}: państwo {other}',target=other,stance='friendly',
-                                      effects=terms['effects'],traits=terms['traits'],base=terms['base']+bonus,
+                                      effects=terms['effects'],traits=terms['traits'],base=terms['base']+bonus,notes=list(terms['notes']),
                                       payload={'kind':kind,'target_id':other,'group':f'diplomacy:{other}'}))
         if war:continue
         if rank<len(ORDER)-1 and other in proposals_possible and 'RELATION' not in pending and not recently(ctx,'RELATION_IMPROVE',other):
@@ -119,7 +120,7 @@ def relation_options(ctx,ids):
                 options.append(Option(key=f'diplomacy:worsen:{other}',domain='diplomacy',action='RELATION_WORSEN',label=f'Jednostronne pogorszenie relacji z państwem {other}: {current} → {worse}',
                                       target=other,stance='hostile',effects={'conquest':.4,'alliances':-.6 if current in PACTS else -.2,'trade':-.3},
                                       traits={'provocation':.9,'revenge':.5,'agreeableness':-.8,'isolationism':.3,'predictability':-.2},
-                                      categories={'imperialist':.5,'terrorist':.4},base=-8.0+4*min(3,attacked)+(p.get('threat',20)-50)/10+occupation_stance(ctx,other),
+                                      categories={'imperialist':.5,'terrorist':.4},base=-8.0+4*min(3,attacked)+(p.get('threat',20)-50)/10+occupation_stance(ctx,other)-min(6.0,deterrence(ctx,other)/2),
                                       payload={'kind':'RELATION','target_id':other,'relation_id':ids[worse],'group':f'diplomacy:{other}'}))
     return options
 
@@ -127,9 +128,14 @@ def relation_options(ctx,ids):
 def peace_terms(ctx,other):
     """Wspólna ocena pokoju z państwem (propozycja własna i przyjęcie cudzej): okupacja i straty skłaniają do pokoju."""
     t=ctx.traits;attacked=ctx.history(other)['hostile_from']
+    # 13 Nov 2026: zniszczone w tej wojnie bazy, fabryki, elektrownie i infrastruktura oraz zmęczenie wojną skłaniają do pokoju
+    from game.paga2.war_losses import peace_bonus
+    bonus,loss,days=peace_bonus(ctx,other)
+    notes=[f'Straty w tej wojnie: bazy {loss.get("bases",0)}, fabryki {loss.get("factories",0)}, elektrownie {loss.get("power",0)}, infrastruktura −{loss.get("infrastructure",0)} pkt; wojna trwa {days} dni Entendy.'] if loss else []
+    if loss.get('nuclear'):notes.append(f'Przeciwnik użył przeciw nam broni atomowej ({loss["nuclear"]} rakiet z głowicą nuklearną) — pokój jest pilną koniecznością.')
     return dict(effects={'welfare':.8,'financial_stability':.6,'defensive_army':.3,'conquest':-.8,'offensive_army':-.5},
                 traits={'agreeableness':1.0,'revenge':-.6,'loss_tolerance':-.6,'militarism':-.5,'strategic_patience':.3},
-                base=4.0*len(ctx.situation.get('occupied_regions',{}))+2*min(3,attacked)*(100-t.get('loss_tolerance',50))/100+weakness(ctx))
+                base=4.0*len(ctx.situation.get('occupied_regions',{}))+2*min(3,attacked)*(100-t.get('loss_tolerance',50))/100+weakness(ctx)+bonus,notes=notes)
 
 
 def weakness(ctx):
@@ -249,7 +255,8 @@ def proposal_options(ctx):
             reject=dict(effects={'alliances':-.3},traits={'isolationism':.6,'alliance_loyalty':-.4},base=-terms['base'],notes=terms['notes'])
         elif row.kind in ('PEACE','CEASEFIRE'):
             terms=peace_terms(ctx,other)
-            accept=dict(effects=terms['effects'],traits=terms['traits'],base=terms['base']+(2.0 if row.kind=='PEACE' else 0))
+            payload['peace']=True   # ocena zagrożenia jak przy pokoju (scoring.relationship_term)
+            accept=dict(effects=terms['effects'],traits=terms['traits'],base=terms['base']+(2.0 if row.kind=='PEACE' else 0),notes=list(terms['notes']))
             reject=dict(effects={k:-v for k,v in terms['effects'].items()},traits={k:-v for k,v in terms['traits'].items()},base=-terms['base'])
         else:
             proposal=normalized(names.get(row.proposed_relation_id,'') or '')

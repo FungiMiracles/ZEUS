@@ -28,3 +28,8 @@
 .paga2-state-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}.paga2-dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0}.paga2-dl dt{font-weight:600}.paga2-dl dd{margin:0;font-variant-numeric:tabular-nums}
 .paga2-state-grid .paga-monitor-table{margin:0}.paga2-state-grid td,.paga2-state-grid th{padding:6px 8px}
 @media(max-width:800px){.paga2-picker,.paga2-priorities,.paga2-state-grid{grid-template-columns:minmax(0,1fr)}.paga2-map{height:320px}.paga2-list select{min-height:180px}.paga-main-tabs button{flex:1 1 45%;border-radius:8px;border-bottom:1px solid #d5dfeb;margin-bottom:4px}}
+
+/* 14 Nov 2026: statystyki zdarzeń PAGA2 w Historii decyzji */
+.paga-stats-lists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.paga-stats-lists .paga-monitor-table{margin:4px 0 12px}
+.paga-stat[data-status=EXECUTED]{border-left:4px solid #2e7d42}.paga-stat[data-status=REJECTED]{border-left:4px solid #c0392b}.paga-stat[data-status=PASSIVE]{border-left:4px solid #8a99ad}.paga-stat[data-status=ERROR]{border-left:4px solid #e08e0b}
+@media(max-width:800px){.paga-stats-lists{grid-template-columns:minmax(0,1fr)}}

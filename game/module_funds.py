@@ -38,7 +38,9 @@ def module_funds(page):
                 else:
                     from game.budget_transfers import sector_balances
                     available=sector_balances(session,budget)[code]['remaining']
-            return {'label':LABELS.get(code),'available':str(available) if available is not None else None,'reserve':str(reserve),'approved':approved,'sector':code}
+            from game.money_display import format_billions
+            return {'label':LABELS.get(code),'available':str(available) if available is not None else None,'reserve':str(reserve),'approved':approved,'sector':code,
+                    'available_mld':format_billions(available) if available is not None else None,'reserve_mld':format_billions(reserve)}
     except Exception:
         return None
 

@@ -1,0 +1,112 @@
+/* 13 Nov 2026: ekrany „Wywiad wojskowy” i „Siły zbrojne” w nowej identyfikacji ZEUS ENTENDA
+   (granat #1E3A5F, tło #F0F4FA, białe karty) oraz układ wygodny na telefonie. Wczytywany jako ostatni arkusz. */
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room){--scr-navy:#1E3A5F;--scr-navy-light:#2b4f7c;--scr-line:#d3dce9;--scr-soft:#eef3fa;--scr-text:#24324a;--scr-muted:#4d5f78;--scr-gold:#E8B65C;background:#F0F4FA;color:var(--scr-text)}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main :is(h1,h2,h3){color:var(--scr-navy)}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main :is(p,label,li,dt){color:var(--scr-muted)}
+
+/* Karty z granatowym paskiem nagłówka */
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main .game-panel{background:#fff;color:var(--scr-text);border:1px solid var(--scr-line);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14;overflow:hidden}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main .game-panel>h2,
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main .game-panel>.game-panel-heading{display:flex;align-items:center;gap:10px;margin:0;padding:11px 16px;background:linear-gradient(180deg,var(--scr-navy-light),var(--scr-navy));color:#fff;border:0;text-align:left;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main .game-panel>h2 img{background:#fff;border-radius:50%}
+/* Przyciski i pola */
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main button:not(.game-army-train-button){min-height:40px;padding:8px 14px;background:var(--scr-navy);color:#fff;border:1px solid var(--scr-navy);border-radius:7px;font-weight:700;letter-spacing:0;box-shadow:none}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main button:hover:not(:disabled){background:var(--scr-navy-light);border-color:var(--scr-navy-light)}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) .game-main button:disabled{background:#e4e9f0;border-color:#c9d3e0;color:#5f6b7b;cursor:not-allowed}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) :is(.game-main,dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){min-height:42px;background:#fff;color:var(--scr-text);-webkit-text-fill-color:var(--scr-text);border:1px solid #b9c7da;border-radius:6px;box-shadow:none}
+html body.game-app.game-navy.game-civic:is(.intelligence-room,.army-room) :is(input,select,textarea,button):focus-visible{outline:2px solid var(--scr-navy);outline-offset:2px}
+
+/* ---------------- Wywiad wojskowy ---------------- */
+html body.game-app.game-navy.game-civic.intelligence-room .military-summary{display:block;margin:0 0 16px;background:transparent}
+html body.game-app.game-navy.game-civic.intelligence-room .military-summary .game-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 16px;padding:0 16px 14px;border-left:4px solid var(--scr-gold)}
+html body.game-app.game-navy.game-civic.intelligence-room .military-summary .game-panel>h2{grid-column:1/-1;margin:0 -16px 4px}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-counter{margin:0;color:var(--scr-text);font-weight:600}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-panel{padding:0;margin:0 0 16px}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-panel>:not(h2){margin-left:16px;margin-right:16px}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-panel>:last-child{margin-bottom:16px}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto auto;align-items:end;gap:10px 16px;padding-top:14px}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit label{margin:0;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit-cost{margin:0 0 10px;color:var(--scr-navy);font:700 14px Consolas,monospace;white-space:nowrap}
+html body.game-app.game-navy.game-civic.intelligence-room .military-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,370px);gap:16px;align-items:start;margin-bottom:16px}
+html body.game-app.game-navy.game-civic.intelligence-room .military-layout>.game-panel:first-child{padding:0}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-map{height:clamp(420px,calc(100dvh - var(--game-nav-height,0px) - 200px),760px);background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%)}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-map-status{margin:0;padding:8px 14px;color:var(--scr-muted)}
+html body.game-app.game-navy.game-civic.intelligence-room .leaflet-tooltip{padding:6px 9px;border:1px solid var(--scr-navy);border-radius:6px;background:#fff;color:#1d2b40;box-shadow:0 4px 12px #0b1d3340}
+html body.game-app.game-navy.game-civic.intelligence-room .leaflet-control-zoom a{background:#fff;color:var(--scr-navy)}
+html body.game-app.game-navy.game-civic.intelligence-room aside.intel-panel label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.intelligence-room aside.intel-panel #intel-mission>p:not(#intel-target){padding:9px 12px;background:var(--scr-soft);border:1px solid var(--scr-line);border-left:3px solid var(--scr-navy);border-radius:7px;font-size:12.5px;line-height:1.45;color:var(--scr-text)}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-target{color:var(--scr-navy);font-weight:700}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-send{width:100%}
+/* Agenci i misje: zwarte karty, lista zwinięta do najważniejszych */
+html body.game-app.game-navy.game-civic.intelligence-room #intel-agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding-top:14px}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-missions{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding-top:14px}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card{margin:0;padding:10px 12px;background:#fff;border:1px solid var(--scr-line);border-top:3px solid var(--scr-navy);border-radius:8px;box-shadow:0 2px 8px #1e3a5f12}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card :is(h3){margin:0 0 4px;font-size:14px;color:var(--scr-navy);overflow-wrap:anywhere}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card p{margin:3px 0;font-size:12.5px;line-height:1.4;color:var(--scr-muted)}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card button{min-height:32px;margin-top:6px;padding:4px 10px;font-size:12px}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card.is-busy{border-top-color:var(--scr-gold)}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card.is-captured{border-top-color:#a43426;opacity:.75}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card.is-success{border-top-color:#2e7146}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card.is-failed{border-top-color:#a43426}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-card progress{height:8px;accent-color:#2e7146}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-collapsed>.intel-extra{display:none}
+html body.game-app.game-navy.game-civic.intelligence-room .game-main button.intel-more{grid-column:1/-1;justify-self:center;background:#fff;color:var(--scr-navy);border:1px solid var(--scr-navy)}
+html body.game-app.game-navy.game-civic.intelligence-room .game-main button.intel-more:hover{background:var(--scr-soft);color:var(--scr-navy)}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-error{margin:0 0 10px;color:#a43426}
+/* Okna wywiadu */
+html body.game-app.game-navy.game-civic.intelligence-room dialog{background:#fff;color:var(--scr-text);border:1px solid var(--scr-line);border-top:4px solid var(--scr-navy);border-radius:10px;box-shadow:0 20px 60px #0b1d3355}
+html body.game-app.game-navy.game-civic.intelligence-room dialog::backdrop{background:#0b1d3399}
+
+/* ---------------- Siły zbrojne ---------------- */
+html body.game-app.game-navy.game-civic.army-room .game-army-panel{max-width:none}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-panel-body{padding:14px 16px 16px}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-parameters-note{color:var(--scr-muted)}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-group-title{color:var(--scr-navy)}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-group-title::after{background:var(--scr-line)}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+/* Karta: ikona i nazwa w pierwszym wierszu, liczba pod spodem — bez łamania słów w wąskich kolumnach */
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;row-gap:4px;padding:10px 12px;background:#fff;border:1px solid var(--scr-line);border-top:3px solid var(--scr-navy);border-radius:8px;box-shadow:0 2px 8px #1e3a5f12}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource:hover{border-color:#b9c7da;box-shadow:0 5px 14px #1e3a5f22}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource dt{color:var(--scr-text);font-size:12.5px;line-height:1.25}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource dt span{overflow-wrap:normal;word-break:normal;hyphens:auto}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource .zeus-section-icon{background:#fff;border:1px solid var(--scr-line);border-radius:7px}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource dd{text-align:left;color:var(--scr-navy);font:700 20px/1.2 Consolas,monospace;white-space:nowrap}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel :is(.game-army-active,.game-army-training,.game-army-parameters){color:var(--scr-muted);border-color:var(--scr-line)}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel :is(.game-army-active,.game-army-parameters,.game-army-training) strong{color:var(--scr-navy)}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-train-button{min-height:30px;padding:3px 12px;background:var(--scr-navy);border:1px solid var(--scr-navy);border-radius:6px;color:#fff;font-weight:700}
+html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-train-button:hover{background:var(--scr-navy-light)}
+html body.game-app.game-navy.game-civic.army-room #army-training-dialog{background:#fff;color:var(--scr-text);border:1px solid var(--scr-line);border-top:4px solid var(--scr-navy);border-radius:10px;box-shadow:0 20px 60px #0b1d3355}
+html body.game-app.game-navy.game-civic.army-room #army-training-dialog::backdrop{background:#0b1d3399}
+html body.game-app.game-navy.game-civic.army-room #army-training-dialog .army-training-stepper button{width:44px;height:44px;min-height:44px;padding:0;background:#fff;color:var(--scr-navy);border:1px solid var(--scr-navy)}
+html body.game-app.game-navy.game-civic.army-room #army-training-cancel{background:#fff;color:var(--scr-navy);border:1px solid var(--scr-navy);border-radius:7px;font-weight:700}
+
+/* ---------------- Telefon ---------------- */
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic.intelligence-room .military-layout{grid-template-columns:minmax(0,1fr)}
+  html body.game-app.game-navy.game-civic.intelligence-room #intel-map{height:clamp(300px,55dvh,520px)}
+  html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit-cost,html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit button{grid-column:1/-1}
+  html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit button{width:100%;min-height:44px}
+  html body.game-app.game-navy.game-civic.intelligence-room .game-main button{min-height:44px}
+  html body.game-app.game-navy.game-civic.intelligence-room .leaflet-control-zoom a{width:40px;height:40px;line-height:40px;font-size:20px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource dd{font-size:17px}
+}
+@media(max-width:480px){
+  html body.game-app.game-navy.game-civic.intelligence-room .military-summary .game-panel{grid-template-columns:minmax(0,1fr)}
+  html body.game-app.game-navy.game-civic.intelligence-room .military-summary .game-panel button{width:100%}
+  html body.game-app.game-navy.game-civic.intelligence-room #intel-recruit{grid-template-columns:minmax(0,1fr)}
+  html body.game-app.game-navy.game-civic.intelligence-room :is(#intel-agents,#intel-missions){grid-template-columns:minmax(0,1fr)}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-panel-body{padding:12px 10px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource{padding:8px 9px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource dt{font-size:11.5px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-resource .zeus-section-icon{width:28px;height:28px;flex-basis:28px}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-training{flex-direction:column;align-items:stretch}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-train-button{margin-left:0;min-height:40px}
+}
+/* Pola w etykietach formularzy: zwykły krój (etykieta — wersaliki) */
+html body.game-app.game-navy.game-civic.intelligence-room .game-main label :is(select,input){font-size:14px;font-weight:400;letter-spacing:0;text-transform:none}
+@media(max-width:480px){
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-training{flex-direction:row;flex-wrap:wrap;align-items:center}
+  html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-train-button{flex:1 1 100%}
+}

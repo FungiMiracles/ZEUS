@@ -174,8 +174,8 @@ def collect_report(session,mission):
             entries.append({'label':{'base':'Baza','city':'Miasto','region':'Region'}[defense.target_kind]+f' #{defense.target_id}',
                             'value':f'Poziom {defense.level}. Życie {defense.health}%. Skuteczność {data["efficiency"]}%. Pociski: {defense.ammunition}/{data["capacity"]}. Lokalizacja mapy: '+(', '.join(f'{value:.3f}' for value in data['position']) if data['position'] else 'brak danych')})
     elif mission.kind=='nuclear':
-        army=army_for_country(session,mission.target_country_id)
-        count=(army.bron_atomowa_ilosc or 0) if army else 0
+        from game.nuclear import total
+        count=total(session,mission.target_country_id)   # 13 Nov 2026: rzeczywista liczba rakiet z głowicą nuklearną
         loaded=sum(base.garrison.get('warheads',0) for base in session.scalars(select(MilitaryBase).where(MilitaryBase.region_id==region.region_id,MilitaryBase.kind=='nuclear',MilitaryBase.panstwo_id==mission.target_country_id)))
         entries.extend([{'label':'Zapas głowic jądrowych państwa','value':str(count)},{'label':'Głowice w silosach wybranego regionu','value':str(loaded)}])
     elif mission.kind=='resources':

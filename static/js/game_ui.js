@@ -17,12 +17,35 @@
         panel.style.left = Math.max(x + 12, Math.min(rect.right - box.width, x + width - box.width - 12)) + "px";
         panel.style.top = (useBelow ? Math.max(y + 12, rect.bottom + 8) : Math.max(y + 12, rect.top - box.height - 8)) + "px";
     }
+    // 13 Nov 2026: na lewym pasku (komputer) lista otwiera się na prawo od ikony, wyrównana do jej górnej krawędzi.
+    function placeBeside(anchor, panel) {
+        if (!panel || !panel.getClientRects().length) return false;
+        const viewport = window.visualViewport;
+        const width = viewport ? viewport.width : document.documentElement.clientWidth;
+        const height = viewport ? viewport.height : window.innerHeight;
+        const x = viewport ? viewport.offsetLeft : 0;
+        const y = viewport ? viewport.offsetTop : 0;
+        const rect = anchor.getBoundingClientRect();
+        const left = rect.right + 12;
+        const room = x + width - left - 12;
+        if (room < 280) return false;
+        panel.style.maxWidth = room + "px";
+        const top = Math.max(y + 8, Math.min(rect.top, y + height - 220));
+        panel.style.maxHeight = Math.max(200, y + height - top - 16) + "px";
+        panel.style.left = left + "px";
+        panel.style.top = top + "px";
+        return true;
+    }
     let financeAnchor = null;
     const notifications = document.getElementById("game-notifications");
     const info = document.querySelector(".game-roi-info");
     const timeInfo=document.querySelector(".game-time-info");
     function reposition() {
-        if (notifications?.open) place(notifications.querySelector("summary"), notifications.querySelector(".game-notification-dropdown"));
+        if (notifications?.open) {
+            const anchor = notifications.querySelector("summary"), panel = notifications.querySelector(".game-notification-dropdown");
+            const inSidebar = Boolean(notifications.closest(".game-sidebar")) && window.matchMedia("(min-width:901px)").matches;
+            if (!(inSidebar && placeBeside(anchor, panel))) place(anchor, panel);
+        }
         if(timeInfo)place(timeInfo.querySelector("button"),timeInfo.querySelector(".game-time-tooltip"));
         if (info) place(info.querySelector("button"), info.querySelector(".game-roi-tooltip"));
         if (financeAnchor?.isConnected) place(financeAnchor, financeAnchor.querySelector(".finance-budget-tooltip"));

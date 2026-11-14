@@ -224,7 +224,8 @@ class CombatTests(FlightFixture):
 
     def test_nuclear_is_intercepted_but_causes_no_damage(self):
         defense=self.protection(ammo=100);silo=self.base('nuclear');silo.map_x=0;silo.map_y=0;silo.garrison={'warheads':1}
-        db.session.query(Wojsko).one().bron_atomowa_ilosc=1;db.session.commit()
+        from game.commerce_models import ResourceStock   # 13 Nov 2026: rzeczywisty licznik rakiet z głowicą nuklearną
+        db.session.add(ResourceStock(panstwo_id=1,resource='nuclear_missiles',quantity=1));db.session.commit()
         base=self.target_base();id=self.launch(silo,city_id=None,target_base_id=base.id,is_nuclear=True)
         self.complete(intercept=0)
         self.assertEqual(db.session.get(MissileDefense,defense.id).ammunition,99)

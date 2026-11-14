@@ -1,4 +1,6 @@
 {% extends 'game/game_base_layout.html' %}
+{% block body_class %}intelligence-room{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261113-screens-2') }}">{% endblock %}
 {% block title %}Wywiad wojskowy — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -25,4 +27,4 @@
 <dialog id="intel-confirm" class="game-actions-dialog"><h2 class="intel-heading"><img class="intel-heading-icon" id="intel-confirm-icon" hidden src="{{ url_for('static',filename='icons/WYWIAD WOJSKOWY.svg') }}" alt=""><span id="intel-confirm-title"></span></h2><p id="intel-confirm-text"></p><label id="intel-agent-name-label" hidden>Imię i nazwisko<input id="intel-agent-name" maxlength="100" autocomplete="off"></label><p id="intel-confirm-error" role="alert"></p><div class="military-dialog-actions"><button id="intel-confirm-cancel" type="button">Anuluj</button><button id="intel-confirm-submit" type="button">Zatwierdź</button></div></dialog>
 <script id="intelligence-config" type="application/json">{{ intelligence_config|tojson }}</script>
 {% endblock %}
-{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261112-agents-3') }}" defer></script>{% endblock %}
+{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261113-screens-1') }}" defer></script>{% endblock %}

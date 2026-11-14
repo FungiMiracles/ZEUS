@@ -99,6 +99,16 @@ class TradeTests(unittest.TestCase):
         with patch('game.paga2.trade.planned_acquisitions',return_value={'zelazo'}):self.assertEqual([o.payload['offer_id'] for o in trade.buy_options(ctx,screen,{})],[1])
 
 
+class PortRateTests(unittest.TestCase):
+    def test_own_port_is_free_and_foreign_port_uses_its_tariff(self):
+        # 14 Nov 2026: gra nie pobiera opłaty we własnym porcie; ekran pokazuje stawkę dla innych państw.
+        from game.paga2.trade import port_rate,arrival_port
+        data=trade_screen(ports={'10':{'countryId':1,'rate':'7','allowed':True},'20':{'countryId':2,'rate':'5','allowed':True}})
+        self.assertEqual(port_rate(data,10,1),'0')
+        self.assertEqual(port_rate(data,20,1),'5')
+        self.assertEqual(arrival_port(data,1),(10,'0'))
+
+
 class IndustryTests(unittest.TestCase):
     def run_propose(self,factories=(),plants=(),mines=(),deposits=None,holdings=None,traits=None):
         ctx=EconomyCtx(holdings=holdings or FakeHoldings(),traits=traits,priorities=['environment','production','infrastructure'])

@@ -1,7 +1,8 @@
 """Rules transcribed from WYM0060–0071; unspecified parameters stay unset."""
 TECHNOLOGIES={}
-def tech(code,label,cost,parent,branch,icon='research'):
-    TECHNOLOGIES[code]=dict(label=label,cost=cost,parent=parent,branch=branch,icon=icon)
+def tech(code,label,cost,parent,branch,icon='research',requires=None):
+    # requires: wszystkie technologie wymagane do rozpoczęcia badań (domyślnie tylko rodzic w drzewie; 13 Nov 2026)
+    TECHNOLOGIES[code]=dict(label=label,cost=cost,parent=parent,branch=branch,icon=icon,requires=list(requires) if requires else ([parent] if parent else []))
 tech('method','Metoda badawcza',25,None,'method')
 for code,label,cost,parent,icon in [
 ('arms_industry','Krajowy przemysł zbrojeniowy',25,'method','army'),('short_missiles','Rakiety krótkiego zasięgu',100,'arms_industry','missile_launcher'),('interceptor_ammo','Amunicja przeciwrakietowa',20,'arms_industry','ammo'),('medium_missiles','Rakiety średniego zasięgu',200,'short_missiles','missile_launcher'),('long_missiles','Rakiety dalekiego zasięgu',350,'medium_missiles','missile_launcher'),('drones','Drony',40,'arms_industry','drone'),('fighters','Myśliwce',120,'drones','army'),('armored','Wozy opancerzone',65,'arms_industry','armored_vehicle'),('tanks','Czołgi',100,'armored','tank'),('warship','Okręt',120,'arms_industry','warship'),('submarine','Okręt podwodny',250,'warship','submarine'),('carrier','Lotniskowiec',400,'warship','aircraft_carrier')]:tech(code,label,cost,parent,'military',icon)
@@ -20,8 +21,11 @@ for code,label,cost in [('coal','Elektrownia węglowa',15),('nuclear','Elektrown
 tech('environment_tech','Technologie ochrony środowiska',30,'method','environment','environment')
 tech('air_filters','Filtr zanieczyszczeń',150,'environment_tech','environment','air_filter')
 tech('waste_filters','Filtr odpadów fabrycznych',120,'environment_tech','environment','waste_filter')
+# Rakieta z głowicą nuklearną (13 Nov 2026): 750 pkt; wymaga rakiet dalekiego zasięgu, wydobycia uranu i chipu cemium I.
+tech('nuclear_missiles','Rakieta z głowicą nuklearną',750,'long_missiles','military','nuclear_weapon',requires=('long_missiles','mine_uranium','chip_cemium_i'))
 # Descriptions displayed beneath research requirements and progress.
 TECHNOLOGY_DESCRIPTIONS={
+    'nuclear_missiles': 'Umożliwia budowę fabryki rakiet z głowicą nuklearną, produkcję rakiet atomowych, ich składowanie w silosach i odpalenie z terytorium kraju (zasięg 3000 km).',
     'arms_industry': 'Umożliwia produkowanie własnego uzbrojenia.',
     'method': 'Metoda badawcza umożliwia rozwój badań naukowych w kraju.',
     'energy_industry': 'Umożliwia produkowanie energii elektrycznej w kraju.',
@@ -76,17 +80,19 @@ factory('drones','Fabryka dronów',[recipe(4,['drones'],'drones',{'zelazo':3,'ch
 factory('missiles','Fabryka rakiet',[recipe(8,['short_missiles'],'short_missiles',{'zelazo':7,'ropa_naftowa':7,'chip_kerbit':1},13,1,1),recipe(16,['medium_missiles'],'medium_missiles',{'zelazo':10,'ropa_naftowa':14,'chip_kerbit':2},17,1,1),recipe(32,['long_missiles'],'long_missiles',{'zelazo':12,'ropa_naftowa':28,'chip_natsyt':2},21,1,1)])
 factory('armored','Fabryka wozów opancerzonych',[recipe(7,['armored'],'armored',{'zelazo':15,'ropa_naftowa':6},17,1,7)])
 factory('chips','Fabryka chipów',[recipe(8,['chip_simple'],'chip_simple',{'zelazo':1,'srebro':1,'zloto':1},28,10,1),recipe(16,['chip_kerbit'],'chip_kerbit',{'kerbit':2,'srebro':2,'zloto':2},29,6,1),recipe(32,['chip_natsyt'],'chip_natsyt',{'natsyt':2,'srebro':3,'zloto':3},30,4,1),recipe(48,['chip_cemium_i'],'chip_cemium_i',{'cemium':3,'zloto':5,'srebro':4},31,1,1),recipe(64,['chip_cemium_ii'],'chip_cemium_ii',{'cemium':4,'kerbit':1,'natsyt':1,'zloto':7,'srebro':5},35,1,1)])
+# Fabryka rakiet z głowicą nuklearną (13 Nov 2026): 37,4 mld ROI z budżetu sił zbrojnych, budowa 31 dni Entendy; produkuje
+# wyłącznie na zamówienie (game.nuclear) — 1 rakieta / 14 dni, na sztukę 7 uranu, 37 żelaza i 1 chip cemium I; bez poboru energii.
+factory('nuclear_missiles','Fabryka rakiet z głowicą nuklearną',[recipe(37.4,['nuclear_missiles'],'nuclear_missiles',{'uran':7,'zelazo':37,'chip_cemium_i':1},0,1,14)])
+FACTORIES['nuclear_missiles'].update(on_demand=True,build_days=31,budget_sector='armed_forces',icon='FABRYKA.svg')
 POWER_PLANTS={}
-for code,label,costs,production,fuel,amounts in [('coal','Elektrownia węglowa',[3100000000,4400000000,6800000000],[100,200,300],'wegiel_kamienny',[1,2,3]),('nuclear','Elektrownia atomowa',[25700000000,36300000000,53500000000],[1000,2000,3000],'uran',[1,2,3]),('wind','Elektrownia wiatrowa',[40000000,1200000000,1600000000],[10,20,30],None,[0,0,0]),('solar','Elektrownia słoneczna',[50000000,1000000000,1300000000],[12,24,36],None,[0,0,0])]:POWER_PLANTS[code]=dict(label=label,technology='power_'+code,costs=costs,production=production,fuel=fuel,amounts=amounts,icon=label.upper()+'.svg')
+for code,label,costs,production,fuel,amounts in [('coal','Elektrownia węglowa',[2300000000,4400000000,6800000000],[100,200,300],'wegiel_kamienny',[1,2,3]),('nuclear','Elektrownia atomowa',[25700000000,36300000000,53500000000],[1000,2000,3000],'uran',[1,2,3]),('wind','Elektrownia wiatrowa',[40000000,1200000000,1600000000],[10,20,30],None,[0,0,0]),('solar','Elektrownia słoneczna',[50000000,1000000000,1300000000],[12,24,36],None,[0,0,0])]:POWER_PLANTS[code]=dict(label=label,technology='power_'+code,costs=costs,production=production,fuel=fuel,amounts=amounts,icon=label.upper()+'.svg')
 
 # Icon identifiers share the existing static/icons mapping.
 for code,icon in {'mine_coal':'Węgiel kamienny','mine_oil':'Ropa naftowa','mine_surface':'Kamień','mine_kerbit':'Kerbit','mine_natsyt':'Natsyt','mine_cemium':'Cemium','mine_uranium':'Uran','mine_iron':'Żelazo','chip_simple':'chip_simple','chip_kerbit':'chip_kerbit','chip_natsyt':'chip_natsyt','chip_cemium_i':'chip_cemium_i','chip_cemium_ii':'chip_cemium_ii','power_coal':'power_coal','power_nuclear':'power_nuclear','power_wind':'power_wind','power_solar':'power_solar'}.items():
     TECHNOLOGIES[code]['icon']=icon
 
 # Visible future branches have no price and cannot receive research investments.
-PLANNED_TECHNOLOGIES={
-    'nuclear_missiles':dict(label='Rakiety z ładunkiem jądrowym',parent='long_missiles',branch='military',icon='missile_launcher',available=False,description='Umożlwia produkcję rakiet zdolnych przenosić ładunki atomowe.'),
-}
+PLANNED_TECHNOLOGIES={}   # 13 Nov 2026: „Rakieta z głowicą nuklearną” jest aktywną technologią (TECHNOLOGIES)
 RESEARCH_TECHNOLOGIES={**TECHNOLOGIES,**PLANNED_TECHNOLOGIES}
 
 # Air pollution of coal power plants (administrator rules, 10 Nov 2026): each coal plant without a filter adds

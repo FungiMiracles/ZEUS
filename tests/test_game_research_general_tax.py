@@ -138,7 +138,7 @@ class ResearchTests(MilitaryFixture):
             clock=patch(target,return_value=NOW);clock.start();self.addCleanup(clock.stop)
 
     def change_research(self,action,**extra):
-        data={'action':action,'request_id':str(uuid4()),'expected_point_price':400000000,**extra};change_research(1,data);db.session.expire_all();return data
+        data={'action':action,'request_id':str(uuid4()),'expected_point_price':150000000,**extra};change_research(1,data);db.session.expire_all();return data
 
     def finish_research(self):
         # 13 Nov 2026: technologie mają czas rozwoju — tu symulujemy jego upływ (pole timers opróżnione = rozwój zakończony)
@@ -152,7 +152,7 @@ class ResearchTests(MilitaryFixture):
     def test_buy_partial_investment_level_prices_and_idempotence(self):
         data=self.change_research('buy',count=40);change_research(1,data)
         self.assertEqual(db.session.get(ResearchAccount,1).points,40)
-        self.assertEqual(sector_balances(db.session,db.session.get(StateBudget,1))['research']['spent'],16000000000)
+        self.assertEqual(sector_balances(db.session,db.session.get(StateBudget,1))['research']['spent'],6000000000)   # 40 × 150 mln ROI
         data=self.change_research('invest',node='method',count=4);change_research(1,data)
         self.assertEqual(node_state(db.session.get(ResearchAccount,1).nodes['method'],'method')['progress'],4)
         self.change_research('invest',node='method',count=6);self.change_research('invest',node='method',count=15)
@@ -204,7 +204,7 @@ class ResearchTests(MilitaryFixture):
     def test_research_http_scope_csrf_and_repeat_purchase(self):
         from game.research import research_bp
         self.app.register_blueprint(research_bp)
-        data={'action':'buy','count':2,'expected_point_price':400000000,'request_id':str(uuid4())}
+        data={'action':'buy','count':2,'expected_point_price':150000000,'request_id':str(uuid4())}
         self.assertEqual(self.client.post('/game/badania/zmien',json=data).status_code,403)
         for _ in range(2):self.assertEqual(self.client.post('/game/badania/zmien',json=data,headers={'X-CSRF-Token':'token'}).status_code,200)
         state=self.client.get('/game/badania/stan');self.assertEqual(state.status_code,200);self.assertEqual(state.json['points'],2)

@@ -4,12 +4,13 @@ from sqlalchemy import select,func
 from game.forum_models import GameNotification
 from game.communication_models import PrivateMessage
 
-SECURITY=('war_declared','land_invasion','under_attack','military_loss','occupation','annexation','hybrid_detected')
-ORDER=SECURITY+('diplomatic_proposal','private_message','forum_message','intelligence_report','military_report','loan_event','social_unrest',
+SECURITY=('nuclear_strike','war_declared','land_invasion','under_attack','military_loss','occupation','annexation','hybrid_detected')
+ORDER=SECURITY+('nuclear_research','diplomatic_proposal','private_message','forum_message','intelligence_report','military_report','loan_event','social_unrest',
                 'energy_shortage','production_stopped','resource_event','trade_event','construction_completed','generated_event','system_notice')
-LAND=[(re.compile(r'^Wtargnięcie:'),'land_invasion'),(re.compile(r'jest okupowany przez'),'occupation'),(re.compile(r'został anektowany przez'),'annexation'),
+LAND=[(re.compile(r'^Uderzenie atomowe:'),'nuclear_strike'),(re.compile(r'^Badania atomowe:'),'nuclear_research'),
+      (re.compile(r'^Wtargnięcie:'),'land_invasion'),(re.compile(r'jest okupowany przez'),'occupation'),(re.compile(r'został anektowany przez'),'annexation'),
       (re.compile(r'^Okupacja regionu .* zakończona'),'military_report'),(re.compile(r'^Odbiliśmy|^Odzyskaliśmy'),'military_report')]
-LABELS={'war_declared':'wypowiedzenie wojny','land_invasion':'najazd wojsk lądowych','under_attack':'atak zbrojny','military_loss':'straty wojskowe',
+LABELS={'nuclear_strike':'uderzenie atomowe','nuclear_research':'badania nad bronią atomową','war_declared':'wypowiedzenie wojny','land_invasion':'najazd wojsk lądowych','under_attack':'atak zbrojny','military_loss':'straty wojskowe',
         'occupation':'okupacja regionu','annexation':'aneksja regionu','hybrid_detected':'działania hybrydowe','diplomatic_proposal':'propozycja dyplomatyczna',
         'private_message':'wiadomość prywatna','forum_message':'wpis na forum skierowany do państwa','generated_event':'wydarzenie z generatora zdarzeń'}
 
@@ -21,6 +22,7 @@ def classify(session,row):
         from game.diplomacy_models import DiplomaticAction
         action=session.get(DiplomaticAction,row.diplomatic_action_id) if row.diplomatic_action_id else None
         if action is None:return 'diplomatic_proposal',text
+        if action.sender_user_id==row.user_id:return 'system_notice',f'{action.target_country_name}: odpowiedź na naszą propozycję {action.kind} — {action.status}'   # 14 Nov 2026: odpowiedź na własną propozycję
         return ('war_declared' if action.kind=='WAR' else 'diplomatic_proposal'),f'{action.source_country_name}: {action.kind}'
     if row.notification_type=='GENERATED_EVENT':return 'generated_event',text
     if row.notification_type=='INFRASTRUCTURE_COMPLETED':return 'construction_completed',text

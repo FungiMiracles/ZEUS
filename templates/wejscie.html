@@ -558,12 +558,10 @@
 
             <div class="zeus-logo">
                 <img
-                    src="{{ url_for('static', filename='zeus_rozgrywka.png') }}"
-                    alt="ZEUS — moduł rozgrywki"
+                    src="{{ url_for('static', filename='entenda_logo.svg') }}"
+                    alt="Entenda — moduł rozgrywki"
                 >
             </div>
-
-            <h1>Moduł rozgrywki</h1>
 
             <p class="gate-description">
                 Zaloguj się do gry:
@@ -653,7 +651,7 @@
 
 </div>
 
-<style>.wiki-gate[hidden]{display:none!important}.login-container{grid-template-columns:minmax(0,1fr);max-width:530px}.login-container.admin-login-open{max-width:1050px;grid-template-columns:repeat(2,minmax(0,1fr))}.game-gate{order:0}.wiki-gate{order:1}#admin-login-toggle{display:block;margin:18px auto 0;padding:10px 14px;width:100%;border:1px solid #266337;border-radius:6px;background:#2e7d42;color:#fff;font-weight:700;cursor:pointer}#admin-login-toggle:hover{background:#246735}#admin-login-toggle:focus-visible{outline:3px solid #86bd92;outline-offset:3px}@media(max-width:760px){.login-container.admin-login-open{grid-template-columns:minmax(0,1fr)}}</style>
+<style>.wiki-gate[hidden]{display:none!important}.game-gate .zeus-logo img{display:block;width:100%;max-width:100%;height:auto;margin:0 auto}.login-container{grid-template-columns:minmax(0,1fr);max-width:530px}.login-container.admin-login-open{max-width:1050px;grid-template-columns:repeat(2,minmax(0,1fr))}.game-gate{order:0}.wiki-gate{order:1}#admin-login-toggle{display:block;margin:18px auto 0;padding:10px 14px;width:100%;border:1px solid #266337;border-radius:6px;background:#2e7d42;color:#fff;font-weight:700;cursor:pointer}#admin-login-toggle:hover{background:#246735}#admin-login-toggle:focus-visible{outline:3px solid #86bd92;outline-offset:3px}@media(max-width:760px){.login-container.admin-login-open{grid-template-columns:minmax(0,1fr)}}</style>
 <script>const adminToggle=document.getElementById('admin-login-toggle'),adminPanel=document.getElementById('wiki-login-panel');function showAdminLogin(){const open=adminPanel.hidden;adminPanel.hidden=!open;adminToggle.setAttribute('aria-expanded',String(open));document.querySelector('.login-container').classList.toggle('admin-login-open',open);if(open){adminPanel.scrollIntoView({block:'nearest'});document.getElementById('haslo').focus();}}adminToggle.addEventListener('click',showAdminLogin);{% if get_flashed_messages(category_filter=['error']) %}showAdminLogin();{% endif %}</script>
 <script>
 sessionStorage.removeItem("leadershipChecked");

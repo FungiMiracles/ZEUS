@@ -44,24 +44,38 @@
         updateProgress();
     }
     function render(){
-        {const funds=document.getElementById('module-funds-available');if(funds)funds.textContent=window.GameMoney?window.GameMoney.format(state.budgetAvailable):number(state.budgetAvailable)+' ROI';}
+        {const funds=document.getElementById('module-funds-available');if(funds){const full=funds.querySelector('.module-funds-full'),mld=funds.querySelector('.module-funds-mld');const text=window.GameMoney?window.GameMoney.format(state.budgetAvailable):number(state.budgetAvailable)+' ROI';if(full&&mld&&window.GameMoney){full.textContent=text;mld.firstChild.nodeValue=window.GameMoney.billions(state.budgetAvailable)+' ';}else funds.textContent=text;}}
         document.getElementById('intel-counter').textContent=`Poziom ${state.counterLevel}/7. Zmniejszenie szans obcych agentów o ${state.protection}% proporcjonalnie.`;
         const upgrade=document.getElementById('intel-counter-upgrade');upgrade.disabled=state.counterLevel>=7;upgrade.textContent=state.counterLevel>=7?'Maksymalny poziom':`Wzmocnij ochronę — ${number(state.counterCost)} ROI`;
         const selected=agent.value;agent.replaceChildren();const agentList=document.getElementById('intel-agents');agentList.replaceChildren();
-        for(const item of state.agents){const card=make('div');card.className='intel-card';card.append(agentName('h3',item.name),make('p',`Poziom ${item.level} · szansa ${item.chance}% · ${item.captured?'schwytany — niedostępny':item.busy?'na misji':'dostępny'}`));
+        for(const item of state.agents){const card=make('div');card.className='intel-card'+(item.captured?' is-captured':item.busy?' is-busy':'');card.append(agentName('h3',item.name),make('p',`Poziom ${item.level} · szansa ${item.chance}% · ${item.captured?'schwytany — niedostępny':item.busy?'na misji':'dostępny'}`));
             const rename=make('button','Zmień imię i nazwisko');rename.type='button';rename.onclick=()=>{ask('Imię i nazwisko agenta','Zmiana nazwy nie wpływa na poziom ani trwającą misję.',{action:'rename',agent_id:item.id});document.getElementById('intel-agent-name-label').hidden=false;const input=document.getElementById('intel-agent-name');input.value=item.name.startsWith('Agent #')?'':item.name;input.focus();};card.append(rename);
             const active=state.missions.find(m=>m.agentId===item.id&&!m.completed);if(active){card.append(make('p',`${active.country} · ${active.region}`),make('p',active.kind));appendMissionTime(card,active);}
             agentList.append(card);if(!item.busy&&!item.captured){const option=make('option',`${item.name} — poziom ${item.level} (${item.chance}%)`);option.value=item.id;agent.append(option);}}
         if([...agent.options].some(option=>option.value===selected))agent.value=selected;
         if(!state.agents.length)agentList.append(make('p','Nie zrekrutowano jeszcze agentów.'));
+        collapse(agentList,[...agentList.querySelectorAll(':scope>.intel-card')],8,'agents','agentów');
         document.getElementById('intel-send').disabled=!agent.options.length;
         const list=document.getElementById('intel-missions');list.replaceChildren();
-        for(const item of state.missions){const card=make('section');card.className='intel-card';card.append(make('h3',`${item.kind} — ${item.region}`),agentName('p',`${item.agentName} · ${item.country}`));
+        const missionOrder=[...state.missions.filter(m=>!m.completed),...state.missions.filter(m=>m.completed)];
+        for(const item of missionOrder){const card=make('section');card.className='intel-card'+(!item.completed?' is-busy':item.success?' is-success':' is-failed');card.append(make('h3',`${item.kind} — ${item.region}`),agentName('p',`${item.agentName} · ${item.country}`));
             if(item.completed){card.append(make('p',item.success?'Misja zakończona powodzeniem.':item.captured?'Misja nie powiodła się. Agent schwytany — nie wraca.':'Misja nie powiodła się. Agent jest dostępny.'));const button=make('button','Otwórz raport');button.type='button';button.onclick=()=>showReport(item.id);card.append(button);}
             else appendMissionTime(card,item);
             list.append(card);
         }
-        if(!state.missions.length)list.append(make('p','Brak misji.'));updateProgress();drawMissionMarkers();
+        if(!state.missions.length)list.append(make('p','Brak misji.'));
+        collapse(list,[...list.querySelectorAll(':scope>.intel-card')],state.missions.filter(m=>!m.completed).length+6,'missions','misji');
+        updateProgress();drawMissionMarkers();
+    }
+    // 13 Nov 2026: długie listy agentów i misji zwinięte do najważniejszych pozycji (wygodne przewijanie, także na telefonie)
+    const expanded={agents:false,missions:false};
+    function collapse(container,cards,limit,key,noun){
+        container.classList.toggle('intel-collapsed',!expanded[key]);
+        if(cards.length<=limit)return;
+        cards.slice(limit).forEach(card=>card.classList.add('intel-extra'));
+        const more=make('button',expanded[key]?`Zwiń listę ${noun}`:`Pokaż wszystkie (${cards.length}) — ukryto ${cards.length-limit}`);more.type='button';more.className='intel-more';more.setAttribute('aria-expanded',String(expanded[key]));
+        more.onclick=()=>{expanded[key]=!expanded[key];container.classList.toggle('intel-collapsed',!expanded[key]);more.textContent=expanded[key]?`Zwiń listę ${noun}`:`Pokaż wszystkie (${cards.length}) — ukryto ${cards.length-limit}`;more.setAttribute('aria-expanded',String(expanded[key]));};
+        container.append(more);
     }
     function appendMissionTime(card,item){card.append(make('p','Planowany koniec (Entenda): '+new Intl.DateTimeFormat('pl-PL',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(item.endsAt))));const bar=make('progress');bar.max=100;bar.dataset.starts=item.startsAt;bar.dataset.ends=item.endsAt;bar.setAttribute('aria-label','Postęp misji');const left=make('p');left.dataset.missionEnds=item.endsAt;card.append(bar,left);}
     function updateProgress(){const now=anchor+(performance.now()-realAnchor)*state.timeMultiplier;for(const bar of document.querySelectorAll('.intel-card progress,.intel-map-progress'))bar.value=Math.max(0,Math.min(100,(now-Date.parse(bar.dataset.starts))/(Date.parse(bar.dataset.ends)-Date.parse(bar.dataset.starts))*100));for(const text of document.querySelectorAll('[data-mission-ends]')){const minutes=Math.max(0,Math.ceil((Date.parse(text.dataset.missionEnds)-now)/60000));text.textContent=minutes?`Pozostało: ${Math.floor(minutes/1440)} dni ${Math.floor(minutes%1440/60)} godz. ${minutes%60} min Entendy`:'Misja kończy się — oczekiwanie na meldunek.';}}
@@ -72,8 +86,8 @@
     const map=L.map('intel-map',{crs:L.CRS.Simple,minZoom:-10,maxZoom:8,zoomSnap:.25,attributionControl:false});map.setView([0,0],0);
     fetch(config.regionsUrl).then(response=>{if(!response.ok)throw new Error();return response.json();}).then(data=>{
         const layer=L.geoJSON(data,{coordsToLatLng:point=>L.latLng(point[1],point[0]),filter:feature=>!!config.regions[String(feature.properties?.region_id)],
-            style:feature=>({color:'#fff',weight:1,fillColor:config.regions[String(feature.properties.region_id)].countryId===config.countryId?'#779ce4':'#b7c8dd',fillOpacity:.85}),
-            onEachFeature:(feature,item)=>{const id=String(feature.properties.region_id),info=config.regions[id];item.bindTooltip(make('span',info.name+' — '+(config.countries[String(info.countryId)]||'')),{sticky:true});item.on({mouseover:()=>item.setStyle({weight:3,color:'#244984'}),mouseout:()=>layer.resetStyle(item),click:()=>{if(info.countryId&&info.countryId!==config.countryId){region.value=id;updateTarget();}}});}}).addTo(map);
+            style:feature=>({color:'#7d9178',weight:.7,fillColor:config.regions[String(feature.properties.region_id)].countryId===config.countryId?'#9fbf8f':'#c9d3c2',fillOpacity:1}),   // 13 Nov 2026: kolorystyka mapy świata
+            onEachFeature:(feature,item)=>{const id=String(feature.properties.region_id),info=config.regions[id];item.bindTooltip(make('span',info.name+' — '+(config.countries[String(info.countryId)]||'')),{sticky:true});item.on({mouseover:()=>item.setStyle({weight:2,color:'#1E3A5F',fillColor:'#D5E5C6'}),mouseout:()=>layer.resetStyle(item),click:()=>{if(info.countryId&&info.countryId!==config.countryId){region.value=id;updateTarget();}}});}}).addTo(map);
         layer.eachLayer(item=>{const id=String(item.feature.properties.region_id),bounds=regionCenters.get('b'+id);regionCenters.set('b'+id,bounds?bounds.extend(item.getBounds()):L.latLngBounds(item.getBounds().getSouthWest(),item.getBounds().getNorthEast()));});
         for(const [key,bounds] of [...regionCenters])if(key.startsWith('b')){regionCenters.set(key.slice(1),bounds.getCenter());regionCenters.delete(key);}
         missionLayer=L.layerGroup().addTo(map);drawMissionMarkers();

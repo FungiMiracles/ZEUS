@@ -153,9 +153,59 @@ html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools button.game
 .game-sidebar .sidebar-account-actions .sidebar-logout-form{margin:0}
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-delete{display:inline-block;padding:3px 10px;font-size:11px;font-weight:700;line-height:1.4;border:1px solid #d9534f;border-radius:5px;background:#b3261e;color:#fff;text-decoration:none}
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-delete:hover{background:#d0352b;border-color:#fff}
+/* 14 Nov 2026: Panel administratora (przejście do ZEUS WIKI po haśle) */
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-admin{width:auto;min-height:0;margin:0;padding:3px 10px;font-family:inherit;font-size:11px;font-weight:700;line-height:1.4;letter-spacing:normal;text-transform:none;border:1px solid #ffffff99;border-radius:5px;background:transparent;color:#fff;box-shadow:none;cursor:pointer}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-admin:hover,html body.game-app.game-navy.game-civic .game-sidebar .sidebar-admin:focus-visible{background:#2b6597;border-color:#2b6597}
+.sidebar-admin-dialog form{display:grid;gap:10px}
+.sidebar-admin-dialog h2{margin:0}
+.sidebar-admin-dialog input[type=password]{box-sizing:border-box;width:100%;padding:10px 12px;font:inherit}
+.sidebar-admin-error{margin:0;color:#ffb2aa;font-weight:600}
+.sidebar-admin-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sidebar-admin-actions button{padding:9px 14px;font:inherit;font-weight:700;border-radius:6px;cursor:pointer}
 /* 13 Nov 2026 (7): gracz w pierwszym wierszu, przyciski konta w drugim (nie zasłaniają nazwy) */
 .game-sidebar .sidebar-user{flex-wrap:wrap;row-gap:6px}
 .game-sidebar .sidebar-user strong{flex:1 1 auto;min-width:0}
 .game-sidebar .sidebar-account-actions{flex:1 0 100%;justify-content:flex-end;margin-left:0}
 /* Widok na całą szerokość ekranu */
 html body.game-app.game-navy.game-civic .game-main{max-width:none;width:auto}
+/* 13 Nov 2026 (8): lista powiadomień nad mapami i kontenerami — pasek tworzy własny kontekst nakładania,
+   więc musi leżeć wyżej niż panele Leaflet (400–1000). Lista pozycjonowana przez game_ui.js na prawo od ikony. */
+html body.game-app.game-navy.game-civic .game-sidebar{z-index:1050}
+html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{width:400px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain}
+/* Zegar Entendy: w DOM przed przyciskiem menu (telefon), na komputerze nadal po prawej stronie menu */
+@media(min-width:901px){html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock{order:5}}
+/* Zakładka i tło szuflady — tylko telefon */
+html body.game-app .sidebar-drawer-tab,html body.game-app .sidebar-drawer-backdrop{position:fixed;display:none}
+@media(min-width:901px){html body.game-app.game-navy.game-civic :is(.sidebar-drawer-tab,.sidebar-drawer-backdrop){display:none}}
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic{--sidebar-drawer-w:min(322px,86vw)}
+  html body.game-app.game-navy.game-civic .game-sidebar{display:block;position:fixed;z-index:1200;top:0;bottom:auto;left:calc(-1 * var(--sidebar-drawer-w));width:var(--sidebar-drawer-w);height:100vh;height:100dvh;align-self:stretch;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+    padding-top:max(16px,env(safe-area-inset-top));box-shadow:none;visibility:hidden;transition:left .25s ease,box-shadow .25s,visibility 0s linear .25s}
+  html body.game-app.game-navy.game-civic .game-sidebar.is-open{left:0;visibility:visible;box-shadow:6px 0 24px #0b1d3366;transition:left .25s ease,box-shadow .25s,visibility 0s}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab{position:fixed;z-index:1190;top:50%;left:0;display:flex;align-items:center;justify-content:center;width:26px;height:64px;min-width:0;min-height:0;margin:0;padding:0;
+    transform:translateY(-50%);border:1px solid #0f2238;border-left:0;border-radius:0 9px 9px 0;background:#1E3A5F;color:#fff;box-shadow:2px 2px 8px #0b1d3366;cursor:pointer;transition:left .25s ease}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab span{display:block;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:9px solid #fff;margin-left:3px}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab[aria-expanded=true]{left:var(--sidebar-drawer-w)}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab[aria-expanded=true] span{border-left:0;border-right:9px solid #fff;margin:0 3px 0 0}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab:focus-visible{outline:2px solid #E8B65C;outline-offset:1px}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-tab.has-unread::after{content:'';position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#c62828;border:2px solid #fff}
+  html body.game-app.game-navy.game-civic .sidebar-drawer-backdrop:not([hidden]){display:block;position:fixed;inset:0;z-index:1150;background:#0b1d3373}
+  html body.sidebar-drawer-open{overflow:hidden}
+  /* Dane z paska nie powtarzają się w treści: górny pasek gracza, wskaźniki i budżet są w szufladzie */
+  html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar) :is(.game-topbar,.game-country-summary,.game-budget-overview),
+  html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar) .game-summary-toggle:not([hidden]){display:none}
+  /* Lista powiadomień w szufladzie: pod ikoną, na szerokość ekranu */
+  html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{width:calc(100vw - 24px);max-width:calc(100vw - 24px)}
+  /* Nagłówek: marka | pomniejszony zegar | MENU */
+  html body.game-app.game-navy.game-civic .game-navigation{grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px}
+  html body.game-app.game-navy.game-civic .game-navigation .game-rail-brand{grid-column:1;grid-row:1;min-width:0}
+  html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock{grid-column:2;grid-row:1;justify-self:end;align-self:center;margin:0;gap:4px}
+  html body.game-app.game-navy.game-civic .game-navigation .game-mobile-toggle{grid-column:3;grid-row:1}
+  html body.game-app.game-navy.game-civic .game-navigation .game-nav-links{grid-column:1/-1;grid-row:2}
+  html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock .game-clock{min-height:0;padding:3px 7px;border-width:1.5px;border-radius:6px;font-size:11px;line-height:1.3;white-space:nowrap}
+  html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock .game-time-info button{width:18px;height:18px;min-width:0;min-height:0;font-size:10px}
+}
+@media(max-width:480px){
+  html body.game-app.game-navy.game-civic .game-navigation .game-rail-brand>span:not(.game-rail-mark){display:none}
+  html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock .game-time-info{display:none}
+}

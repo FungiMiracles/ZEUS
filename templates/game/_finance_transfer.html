@@ -1,0 +1,19 @@
+{# 13 Nov 2026: przesunięcia między sektorami — lewa kolumna obok pożyczek (ekran Podatki i budżet). #}
+{% set state = finance_state or {} %}
+{% set approved = state.get('approved', false) %}
+    {% if approved and state.get('can_transfer') %}
+    <form data-finance-transfer class="finance-section finance-transfer-panel">
+        <h3 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/PRZESUNIĘCIE ŚRODKÓW.svg') }}" alt="" width="30" height="30">Przesuń środki między sektorami</h3>
+        <p class="finance-help">Możesz przesuwać wyłącznie niewydane środki w bieżącym półroczu. Suma budżetu pozostaje taka sama.</p>
+        <p class="finance-help{% if not state.get('sector_transfers_allowed', true) %} finance-warning{% endif %}" data-transfer-trust>Przesuwanie środków między sektorami wymaga zaufania do władzy powyżej {{ state.get('transfer_trust_threshold', 65) }}{% if state.get('public_trust') is not none %} (obecnie: {{ state.get('public_trust') }}){% endif %}.{% if not state.get('sector_transfers_allowed', true) %} Teraz możliwe są tylko wpłaty do rezerwy budżetowej i wypłaty z niej.{% endif %}</p>
+        <div class="finance-tax-fields">
+        <label>Z sektora<select name="source" required>{% for category in finance_categories %}<option value="{{ category.code }}">{{ category.name }}</option>{% endfor %}</select></label>
+        <label>Do sektora<select name="destination" required>{% for category in finance_categories %}<option value="{{ category.code }}" {% if loop.index == 2 %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
+        <label>Kwota (MLD)<input type="number" name="amount" min="1" step="1" required inputmode="numeric" data-money-input="MLD" title="Podaj pełne miliardy: 1 oznacza 1 miliard ROI."></label>
+        </div>
+        <p data-transfer-available class="finance-help"></p>
+        <button class="finance-button finance-primary" type="submit">Przesuń środki</button>
+        <p data-transfer-status role="status"></p>
+        <p class="finance-transfer-error" data-transfer-error role="alert" hidden></p>
+    </form>
+    {% endif %}

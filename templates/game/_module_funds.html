@@ -1,5 +1,6 @@
 {# Same container on every module screen (styled after the infrastructure budget card). #}
+{# 13 Nov 2026: na telefonie kwoty w jednej jednostce — MLD (span .module-funds-mld), na komputerze format automatyczny. #}
 <section class="module-funds" aria-label="Środki dostępne w module">
-{% if funds.sector %}<div class="industry-budget-card module-funds-card"><span>Dostępne środki — {{ funds.label }}</span><strong id="module-funds-available">{% if funds.approved %}{{ funds.available }} ROI{% else %}budżet niezatwierdzony{% endif %}</strong></div>{% endif %}
-<div class="industry-budget-card module-funds-card"><span>Rezerwa budżetowa</span><strong id="module-funds-reserve">{{ funds.reserve }} ROI</strong></div>
+{% if funds.sector %}<div class="industry-budget-card module-funds-card"><span>Dostępne środki — {{ funds.label }}</span><strong id="module-funds-available">{% if funds.approved %}<span class="module-funds-full">{{ funds.available }} ROI</span><span class="module-funds-mld" data-money-fixed>{{ funds.available_mld }} <small>MLD ROI</small></span>{% else %}budżet niezatwierdzony{% endif %}</strong></div>{% endif %}
+<div class="industry-budget-card module-funds-card"><span>Rezerwa budżetowa</span><strong id="module-funds-reserve"><span class="module-funds-full">{{ funds.reserve }} ROI</span><span class="module-funds-mld" data-money-fixed>{{ funds.reserve_mld }} <small>MLD ROI</small></span></strong></div>
 </section>

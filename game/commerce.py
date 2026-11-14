@@ -14,7 +14,7 @@ from game.military import csrf_valid
 from game.military_geography import city_point
 from game.military_flights import calibration
 from game.mining_service import warehouse,mine_data,mining_budget,build_mine,extract_country,RULES,NAMES
-from game.trade_service import create_offer,cancel_offer,buy_offer,set_tariff,set_port_access,port_allows,ports,tariff,deliver_shipments,SHIP_SPEED
+from game.trade_service import create_offer,cancel_offer,buy_offer,reprice_offer,set_tariff,set_port_access,port_allows,ports,tariff,deliver_shipments,SHIP_SPEED
 from game.commerce_models import Mine,TradeOffer,TradeShipment,PortTariff
 from game.trade_goods import AMMUNITION,AMMUNITION_LABEL,trade_warehouse
 from game.trade_diplomacy import ammunition_allowed,allied_country_ids
@@ -55,12 +55,16 @@ def trade_state(country_id):
     tariffs={row.panstwo_id:row.rate for row in db.session.scalars(select(PortTariff))}
     names=dict(db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all())
     cities={city.miasto_id:city for city in all_ports}
+    from game.trade_service import expire_offers,offer_expires_at
+    expire_offers(db.session)   # 13 Nov 2026: oferty niesprzedane przez 14 dni Entendy wracają do sprzedających
+    stamp=lambda value:value.isoformat()+'Z' if value else None
     offers=[]
     for offer in db.session.scalars(select(TradeOffer).where(TradeOffer.status=='open').order_by(TradeOffer.id.desc())):
         if country_id!=offer.panstwo_id and (country_id in offer.excluded or (AMMUNITION in offer.cargo and not ammunition_allowed(db.session,offer.panstwo_id,country_id))):continue
         city=cities.get(offer.port_id)
         offers.append({'id':offer.id,'sellerId':offer.panstwo_id,'seller':names.get(offer.panstwo_id,''),'flag':url_for('static',filename='flags/'+names.get(offer.panstwo_id,'').replace(' ','_')+'.jpg'),'cargo':offer.cargo,'price':str(offer.price),
             'portId':offer.port_id,'portName':city.miasto_nazwa if city else 'Port niedostępny','departureRate':str(offer.departure_rate),'own':offer.panstwo_id==country_id,
+            'createdAt':stamp(offer.created_game_at),'priceChangedAt':stamp(offer.price_changed_game_at),'expiresAt':stamp(offer_expires_at(offer)),
             'excluded':offer.excluded if offer.panstwo_id==country_id else [],'usable':city is not None and port_allows(db.session,city.panstwo_id,offer.panstwo_id)})
     active=list(db.session.scalars(select(TradeShipment).where(TradeShipment.delivered_at.is_(None),TradeShipment.sunk_at.is_(None),TradeShipment.health>0).order_by(TradeShipment.id)))
     recent=list(db.session.scalars(select(TradeShipment).where(or_(TradeShipment.seller_id==country_id,TradeShipment.buyer_id==country_id),or_(TradeShipment.delivered_at.is_not(None),TradeShipment.sunk_at.is_not(None))).order_by(TradeShipment.id.desc()).limit(20)))
@@ -111,7 +115,7 @@ def change():
     if not csrf_valid():return jsonify(error='Sesja formularza wygasła. Odśwież stronę.'),403
     data=request.get_json(silent=True)
     if not isinstance(data,dict):return jsonify(error='Nieprawidłowe dane formularza.'),400
-    functions={'offer':create_offer,'buy':buy_offer,'cancel':cancel_offer,'tariff':set_tariff,'port_access':set_port_access}
+    functions={'offer':create_offer,'buy':buy_offer,'cancel':cancel_offer,'reprice':reprice_offer,'tariff':set_tariff,'port_access':set_port_access}
     action=data.get('action')
     if not isinstance(action,str) or action not in functions:return jsonify(error='Nieprawidłowa operacja.'),400
     try:result=functions[action](user.id,data)

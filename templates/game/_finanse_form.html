@@ -105,9 +105,23 @@
 <section class="finance-section">            {% if finance_tax_policy %}<p>Podatek ogólny administratora dla kolejnych budżetów: {{ finance_tax_policy.pit_rate }}%.</p>{% endif %}
 
             <div class="finance-tax-fields">
-                <label>
-                    Podatek ogólny (%)
+                <div class="finance-tax-field">
+                    <span class="finance-tax-label">
+                        <label for="finance-pit-rate">Podatek ogólny (%)</label>
+                        {# 13 Nov 2026: objaśnienie naliczania w tooltipie (komputer i telefon) #}
+                        <span class="finance-info">
+                            <button type="button" class="finance-info-button" aria-label="Jak naliczany jest podatek ogólny" aria-describedby="finance-tax-tooltip" aria-expanded="false">i</button>
+                            <span class="finance-info-tooltip" id="finance-tax-tooltip" role="tooltip">
+            {% if state.revenue_basis %}{% if state.revenue_basis.get('algorithm_version', 4) >= 5 %}
+                                <span>Wpływy roczne: PKB per capita × ludność 18–64 × (1 − bezrobocie / 100) × stawka podatku / 100. Bonus: (stabilność + zadowolenie + edukacja + średnia infrastruktura + zdrowie publiczne − przestępczość) / 100 procent.</span>
+                                <span>Podatek powyżej 20% może obniżyć zadowolenie, stabilność i zaufanie do władzy. Kara jest naliczana przy zatwierdzeniu budżetu. {{ 'Naliczona' if approved else 'Przewidywana' }} kara dla każdego z trzech wskaźników: <strong data-value="tax_penalty">—</strong> pkt (do dolnej granicy 0).</span>
+            {% else %}<span>Podstawa roczna: ludność 18–64 × 10 000 ROI × stawka podatku + infrastruktura × 2 mld ROI + zadowolenie × 500 mln ROI + stabilność × 100 mln ROI + edukacja × 200 mln ROI. Stawka dotyczy składnika ludności.</span>{% endif %}{% else %}{% if approved %}<span>Plan historyczny zachowuje wpływy obliczone według zasad obowiązujących podczas zatwierdzenia.</span>{% endif %}{% endif %}
+                                <span>Transza bieżącego półrocza wynosi 50% rocznych wpływów.</span>
+                            </span>
+                        </span>
+                    </span>
                     <input type="number"
+                           id="finance-pit-rate"
                            name="pit_rate"
                            class="finance-rate"
                            min="0"
@@ -116,26 +130,54 @@
                            value="{{ state.pit_rate }}"
                            required
                            {% if approved or finance_tax_policy %}readonly{% endif %}>
-                </label>
+                </div>
             </div>
-
-
-
-            {% if state.revenue_basis %}{% if state.revenue_basis.get('algorithm_version', 4) >= 5 %}
-            <p class="finance-help">Wpływy roczne: PKB per capita × ludność 18–64 × (1 − bezrobocie / 100) × stawka podatku / 100. Bonus: (stabilność + zadowolenie + edukacja + średnia infrastruktura + zdrowie publiczne − przestępczość) / 100 procent.</p>
-            <p class="finance-help">Podatek powyżej 20% może obniżyć zadowolenie, stabilność i zaufanie do władzy. Kara jest naliczana przy zatwierdzeniu budżetu. {{ 'Naliczona' if approved else 'Przewidywana' }} kara dla każdego z trzech wskaźników: <strong data-value="tax_penalty">—</strong> pkt (do dolnej granicy 0).</p>
-            {% else %}<p class="finance-help">Podstawa roczna: ludność 18–64 × 10 000 ROI × stawka podatku + infrastruktura × 2 mld ROI + zadowolenie × 500 mln ROI + stabilność × 100 mln ROI + edukacja × 200 mln ROI. Stawka dotyczy składnika ludności.</p>{% endif %}{% else %}{% if approved %}<p class="finance-help">Plan historyczny zachowuje wpływy obliczone według zasad obowiązujących podczas zatwierdzenia.</p>{% endif %}{% endif %}
-            <p class="finance-help">
-                Transza bieżącego półrocza wynosi 50% rocznych wpływów.
-            </p>
 </section>
 
-        <section class="finance-section">
+        {# 13 Nov 2026: wykres kołowy (lewa kolumna) i podsumowanie planu (prawa kolumna); szczegóły podziału pod spodem #}
+        <div class="finance-split">
+        <section class="finance-section finance-chart-section">
             <h3>{{ 'Zatwierdzony podział i wykorzystanie środków' if approved else 'Podział dostępnych środków' }}</h3>
-            {% if approved %}<p class="finance-help">Wykres i udziały przedstawiają pierwotny plan. Aktualne kwoty znajdziesz w kolumnach „Po przesunięciach i wpływach” i „Pozostało”.</p>{% endif %}
+            {% if approved %}<p class="finance-help">Wykres i udziały przedstawiają bieżące środki sektorów — po przesunięciach, wpływach i korektach. Pierwotny plan znajdziesz w tabeli poniżej.</p>{% endif %}
 
             <div data-finance-budget-chart></div>
 
+            <p class="finance-help">
+                Niewykorzystany udział oraz końcówki groszowe pozostają
+                w rezerwie. Rezerwa przechodzi na kolejny okres budżetowy.
+            </p>
+        </section>
+
+
+        <section class="finance-section finance-summary-section">
+            <h3 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/PODSUMOWANIE.svg') }}" alt="">{{ 'Podsumowanie zatwierdzonego planu' if approved else 'Podsumowanie' }}</h3>
+
+            <dl class="finance-metrics">
+                <div>
+                    <dt>Nowa transza podatkowa</dt>
+                    <dd data-value="tax_total" data-money>—</dd>
+                </div>
+                <div>
+                    <dt>Środki dostępne do podziału</dt>
+                    <dd data-value="budget_total" data-money>—</dd>
+                </div>
+                <div>
+                    <dt>Przydziały wydatkowe</dt>
+                    <dd data-value="expenditure_total" data-money>—</dd>
+                </div>
+                <div>
+                    <dt>Rezerwa końcowa</dt>
+                    <dd data-value="closing_reserve" data-money>—</dd>
+                </div>
+            </dl>
+
+            <p class="finance-help"
+               data-finance-preview-status
+               role="status"></p>
+        </section>
+        </div>
+
+        <section class="finance-section finance-allocation-section">
             <details class="finance-allocation-editor">
             <summary>
                 {{ 'Szczegóły podziału' if approved else 'Ustal udziały wydatków' }}
@@ -195,38 +237,6 @@
             </div>
 
             </details>
-
-            <p class="finance-help">
-                Niewykorzystany udział oraz końcówki groszowe pozostają
-                w rezerwie. Rezerwa przechodzi na kolejny okres budżetowy.
-            </p>
-        </section>
-
-        <section class="finance-section">
-            <h3 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/PODSUMOWANIE.svg') }}" alt="">{{ 'Podsumowanie zatwierdzonego planu' if approved else 'Podsumowanie' }}</h3>
-
-            <dl class="finance-metrics">
-                <div>
-                    <dt>Nowa transza podatkowa</dt>
-                    <dd data-value="tax_total" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Środki dostępne do podziału</dt>
-                    <dd data-value="budget_total" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Przydziały wydatkowe</dt>
-                    <dd data-value="expenditure_total" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Rezerwa końcowa</dt>
-                    <dd data-value="closing_reserve" data-money>—</dd>
-                </div>
-            </dl>
-
-            <p class="finance-help"
-               data-finance-preview-status
-               role="status"></p>
         </section>
 
         {% if not approved %}
@@ -257,22 +267,6 @@
         </p>
         {% endif %}
     </form>
-    {% if approved and state.get('can_transfer') %}
-    <form data-finance-transfer class="finance-section">
-        <h3 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/PRZESUNIĘCIE ŚRODKÓW.svg') }}" alt="" width="30" height="30">Przesuń środki między sektorami</h3>
-        <p class="finance-help">Możesz przesuwać wyłącznie niewydane środki w bieżącym półroczu. Suma budżetu pozostaje taka sama.</p>
-        <p class="finance-help{% if not state.get('sector_transfers_allowed', true) %} finance-warning{% endif %}" data-transfer-trust>Przesuwanie środków między sektorami wymaga zaufania do władzy powyżej {{ state.get('transfer_trust_threshold', 65) }}{% if state.get('public_trust') is not none %} (obecnie: {{ state.get('public_trust') }}){% endif %}.{% if not state.get('sector_transfers_allowed', true) %} Teraz możliwe są tylko wpłaty do rezerwy budżetowej i wypłaty z niej.{% endif %}</p>
-        <div class="finance-tax-fields">
-        <label>Z sektora<select name="source" required>{% for category in finance_categories %}<option value="{{ category.code }}">{{ category.name }}</option>{% endfor %}</select></label>
-        <label>Do sektora<select name="destination" required>{% for category in finance_categories %}<option value="{{ category.code }}" {% if loop.index == 2 %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
-        <label>Kwota (MLD)<input type="number" name="amount" min="1" step="1" required inputmode="numeric" data-money-input="MLD" title="Podaj pełne miliardy: 1 oznacza 1 miliard ROI."></label>
-        </div>
-        <p data-transfer-available class="finance-help"></p>
-        <button class="finance-button finance-primary" type="submit">Przesuń środki</button>
-        <p data-transfer-status role="status"></p>
-        <p class="finance-transfer-error" data-transfer-error role="alert" hidden></p>
-    </form>
-    {% endif %}
     {% else %}
     <button type="button"
             class="finance-button finance-secondary"

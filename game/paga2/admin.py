@@ -144,6 +144,30 @@ def decision_summary(row,names):
             'score':row.score,'randomized':row.randomized,'gameAt':stamp(row.game_at),'createdAt':stamp(row.created_at),'error':row.error}
 
 
+def decision_stats(session,filters):
+    """14 Nov 2026: statystyki zdarzeń PAGA2 w zakładce Historia decyzji (filtry państwa, obszaru i trybu; status — w podziale)."""
+    conditions=[]
+    if filters.get('country'):conditions.append(Paga2Decision.country_id==filters['country'])
+    if filters.get('domain'):conditions.append(Paga2Decision.domain==filters['domain'])
+    if filters.get('mode'):conditions.append(Paga2Decision.mode==filters['mode'])
+    count=lambda *extra:session.scalar(select(func.count(Paga2Decision.id)).where(*conditions,*extra)) or 0
+    by_status=dict(session.execute(select(Paga2Decision.status,func.count(Paga2Decision.id)).where(*conditions).group_by(Paga2Decision.status)).all())
+    since=utc_now().replace(tzinfo=None)-timedelta(hours=24)
+    # Odrzucenia liczone na poziomie pojedynczych prób (decyzja może mieć kilka akcji, np. „VESSEL_SAIL+VESSEL_SAIL”).
+    attempts={}
+    for (options,) in session.execute(select(Paga2Decision.options).where(*conditions,Paga2Decision.status=='REJECTED')).yield_per(200):
+        for option in options or []:
+            if str(option.get('blocked') or '').startswith('Gra odrzuciła'):
+                key=(option.get('domain'),option.get('action'));attempts[key]=attempts.get(key,0)+1
+    rejected=[(domain,action,n) for (domain,action),n in sorted(attempts.items(),key=lambda item:-item[1])[:5]]
+    domains=session.execute(select(Paga2Decision.domain,func.count(Paga2Decision.id)).where(*conditions).group_by(Paga2Decision.domain).order_by(func.count(Paga2Decision.id).desc())).all()
+    return {'total':sum(by_status.values()),'byStatus':{key:int(by_status.get(key,0)) for key in STATUSES},
+            'last24h':count(Paga2Decision.created_at>=since),'randomized':count(Paga2Decision.randomized.is_(True)),
+            'countries':session.scalar(select(func.count(func.distinct(Paga2Decision.country_id))).where(*conditions)) or 0,
+            'topRejected':[{'domain':domain,'action':action,'count':int(n)} for domain,action,n in rejected],
+            'domains':[{'domain':domain,'count':int(n)} for domain,n in domains]}
+
+
 def decisions(session,filters,page):
     query=select(Paga2Decision)
     if filters.get('country'):query=query.where(Paga2Decision.country_id==filters['country'])
@@ -156,7 +180,7 @@ def decisions(session,filters,page):
     countries=[{'id':id,'name':names.get(id)} for id in session.scalars(select(Paga2Decision.country_id).distinct())]
     countries.sort(key=lambda item:item['name'] or '')
     return {'page':page,'hasMore':len(rows)>PAGE,'items':[decision_summary(row,names) for row in rows[:PAGE]],
-            'countries':countries,'domains':DOMAINS,'statuses':STATUSES,'modes':MODES}
+            'countries':countries,'domains':DOMAINS,'statuses':STATUSES,'modes':MODES,'stats':decision_stats(session,filters)}
 
 
 def decision_detail(session,decision_id):

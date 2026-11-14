@@ -33,3 +33,14 @@ html body.game-app.game-navy.game-civic.finance-room .finance-allocation-editor>
 html body.game-app.game-navy.game-civic.finance-room .finance-budget-bar{border:1px solid var(--fin-line);border-radius:7px;overflow:hidden}
 html body.game-app.game-navy.game-civic.finance-room .finance-budget-tooltip{background:var(--fin-navy);color:#fff;border:1px solid #4d6f98;border-radius:6px}
 html body.game-app.game-navy.game-civic.finance-room .loan-panel{padding:18px;border-top:3px solid var(--fin-navy)}
+/* 13 Nov 2026 (2): sekcje w kolumnach — bez bocznych marginesów edytora, równa wysokość kart */
+html body.game-app.game-navy.game-civic.finance-room .finance-split>.finance-section{margin:0;height:100%;box-sizing:border-box}
+html body.game-app.game-navy.game-civic.finance-room .finance-editor>.finance-split{margin-top:16px;margin-bottom:16px}
+html body.game-app.game-navy.game-civic.finance-room .finance-split-bottom>.loan-panel{margin:0}
+html body.game-app.game-navy.game-civic.finance-room .loan-history-open{margin-top:12px}
+/* Historia pożyczek — okno w nowym stylu (silniejsze selektory niż ogólne reguły dialog/h2/button motywu) */
+html body.game-app.game-navy.game-civic #loan-history-dialog{padding:0;background:#fff;color:var(--fin-text,#24324a);border:1px solid #d3dce9;border-top:4px solid #1E3A5F;border-radius:10px}
+html body.game-app.game-navy.game-civic #loan-history-dialog .loan-history-heading{margin:0;background:linear-gradient(180deg,#2b4f7c,#1E3A5F)}
+html body.game-app.game-navy.game-civic #loan-history-dialog .loan-history-heading h2{margin:0;color:#fff;font-size:14px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic #loan-history-dialog #loan-history-close{width:32px;height:32px;min-width:0;min-height:0;padding:0;border:1.5px solid #ffffff99;border-radius:6px;background:transparent;color:#fff;box-shadow:none}
+html body.game-app.game-navy.game-civic #loan-history-dialog #loan-history-close:hover,html body.game-app.game-navy.game-civic #loan-history-dialog #loan-history-close:focus-visible{border-color:#fff;background:#ffffff26}

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="{{ url_for('static',filename='js/game_industry_view.js',v='20261108-ui20') }}"></script>
-<script src="{{ url_for('static',filename='js/game_money.js',v='20261025-2') }}"></script>
+<script src="{{ url_for('static',filename='js/game_money.js',v='20261113-mld-1') }}"></script>
 <meta name="theme-color" content="#f3f3ed">
 <title>{% block title %}ENTENDA GAME — ZEUS{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
@@ -23,10 +23,12 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_navy.css',v='20261025-7') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261113-nav-4') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261113-sidebar-10') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261114-nav-6') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261114-sidebar-14') }}">
 {# 13 Nov 2026: arkusze ekranów w nowej stylistyce — wczytywane na końcu #}
 {% block late_css %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_mobile.css', v='20261113-mobile-2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_mail_navy.css', v='20261113-mail-1') }}">
 </head>
 <body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -34,7 +36,8 @@
 {% include '_sovereignty_banner.html' %}
 <div class="game-shell">
 <nav class="game-navigation" aria-label="Nawigacja gracza">
-  <a class="game-rail-brand" href="{{ game_home_url | default('/game',true) }}"><span class="game-rail-mark" aria-hidden="true">E</span><span>ENTENDA<small>STRATEGIA · PAŃSTWO · ŚWIAT</small></span></a>
+  <a class="game-rail-brand" href="{{ game_home_url | default('/game',true) }}"><img class="game-rail-logo" src="{{ url_for('static', filename='entenda_logo.svg') }}" alt="Entenda" width="167" height="46"></a>
+  <div class="game-clock-group game-nav-clock">    <div class="game-clock" id="game-entenda-clock" data-entenda="{{ ENTENDA_DATETIME | default('', true) }}" data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER|default(12) }}" {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %} aria-label="Aktualny czas Entendy">{{ ENTENDA_DATE | default('—', true) }} CE</div><span class="game-time-info"><button type="button" aria-label="Prędkość czasu w Entendzie" aria-describedby="game-time-tooltip">i</button><span id="game-time-tooltip" class="game-time-tooltip" role="tooltip">{{ entenda_time_description|default('Czas w Entendzie płynie 12 razy szybciej: 1 doba Entendy to 2 godziny rzeczywiste.') }}</span></span></div>
   <button type="button" class="game-mobile-toggle" id="game-nav-toggle" aria-expanded="false" aria-controls="game-nav-links">☰ Menu</button>
   <div class="game-nav-links" id="game-nav-links" tabindex="0">
     <span class="game-rail-section">ZARZĄDZANIE PAŃSTWEM</span>
@@ -90,10 +93,11 @@
       <a href="{{ url_for('game_forum.page') }}"
          {% if game_active_page | default('main') == 'forum' %}aria-current="page"{% endif %}>
           {{ icon('forum') }} Forum międzynarodowe
+          {%- set forum_new = forum_new_count() if forum_new_count is defined and game_active_page|default('main') != 'forum' else 0 %}
+          {%- if forum_new %}<span class="game-nav-badge" aria-label="Nowe wpisy: {{ forum_new }}">{{ '99+' if forum_new > 99 else forum_new }}</span>{% endif %}
       </a>
   {% endblock %}
   </div>
-  <div class="game-clock-group game-nav-clock">    <div class="game-clock" id="game-entenda-clock" data-entenda="{{ ENTENDA_DATETIME | default('', true) }}" data-time-multiplier="{{ ENTENDA_TIME_MULTIPLIER|default(12) }}" {% if ENV_NAME == 'UAT' %}data-clock-state-url="/wiki/zegar"{% endif %} aria-label="Aktualny czas Entendy">{{ ENTENDA_DATE | default('—', true) }} CE</div><span class="game-time-info"><button type="button" aria-label="Prędkość czasu w Entendzie" aria-describedby="game-time-tooltip">i</button><span id="game-time-tooltip" class="game-time-tooltip" role="tooltip">{{ entenda_time_description|default('Czas w Entendzie płynie 12 razy szybciej: 1 doba Entendy to 2 godziny rzeczywiste.') }}</span></span></div>
   <div class="game-rail-footer"><span>Zarządzasz państwem</span><strong>{{ game_country.nazwa if game_country else 'ENTENDA' }}</strong></div>
 </nav>
 {# 13 Nov 2026: pasek wiadomości Entendy bezpośrednio pod menu #}
@@ -120,12 +124,27 @@
 </div>
 {# 13 Nov 2026: stały lewy pasek gry — flaga, budżet sektorów, wskaźniki państwa, magazyn #}
 {% if game_country and game_country.id %}
-<aside class="game-sidebar" aria-label="Podsumowanie państwa {{ game_country.nazwa }}" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
+<dialog id="sidebar-admin-dialog" class="game-actions-dialog sidebar-admin-dialog" aria-labelledby="sidebar-admin-title">
+  <form id="sidebar-admin-form" method="post" action="/game/panel-administratora">
+    <h2 id="sidebar-admin-title">Panel administratora</h2>
+    <p>Podaj hasło administratora, aby przejść do ZEUS WIKI.</p>
+    <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
+    <label for="sidebar-admin-password">Hasło dostępu</label>
+    <input type="password" id="sidebar-admin-password" name="haslo" autocomplete="current-password" required>
+    <p class="sidebar-admin-error" id="sidebar-admin-error" role="alert" hidden></p>
+    <div class="sidebar-admin-actions">
+      <button type="button" id="sidebar-admin-cancel">Anuluj</button>
+      <button type="submit" id="sidebar-admin-submit">Przejdź do ZEUS WIKI</button>
+    </div>
+  </form>
+</dialog>
+<aside class="game-sidebar" id="game-sidebar" aria-label="Podsumowanie państwa {{ game_country.nazwa }}" style="--crate-shape:url('{{ url_for('static',filename='icons/SKRZYNIA.svg') }}')">
   <div class="sidebar-user">
     <span>Zalogowany gracz:</span>
     <strong>{{ game_user.username if game_user else 'Gracz' }}</strong>
     <div class="sidebar-account-actions">
       {% if ENV_NAME | default('') == 'UAT' %}<a class="sidebar-delete" href="{{ url_for('game_account.remove') }}">Usuń konto</a>{% endif %}
+      <button type="button" class="sidebar-admin" id="sidebar-admin-open" aria-haspopup="dialog">Panel administratora</button>
       <form method="post" action="{{ game_logout_url }}" class="sidebar-logout-form">
         <input type="hidden" name="csrf_token" value="{{ game_csrf_token }}">
         <button class="sidebar-logout" type="submit">Wyloguj</button>
@@ -188,6 +207,9 @@
   </section>
   {% endif %}
 </aside>
+{# 13 Nov 2026: telefon — zakładka ze strzałką wysuwa pasek z lewej strony #}
+<button type="button" class="sidebar-drawer-tab" id="sidebar-drawer-tab" aria-controls="game-sidebar" aria-expanded="false" aria-label="Pokaż pasek państwa"><span aria-hidden="true"></span></button>
+<div class="sidebar-drawer-backdrop" id="sidebar-drawer-backdrop" hidden></div>
 {% endif %}
 <div class="game-workspace">
 <header class="game-topbar">
@@ -245,7 +267,8 @@
 
 {% if ENV_NAME | default('') == 'UAT' %}<div class="game-uat">JESTEŚ NA ŚRODOWISKU TESTOWYM - UAT</div>{% endif %}
 {% if game_country %}
-<section class="game-country-summary"
+<button type="button" class="game-summary-toggle" id="game-summary-toggle" aria-expanded="false" aria-controls="game-country-summary" hidden>{{ game_country.nazwa }} · Wskaźniki państwa</button>
+<section class="game-country-summary" id="game-country-summary"
          aria-label="Zarządzane państwo">
 
     <div class="game-summary-identity">
@@ -370,6 +393,18 @@
 </div></div>
 <script>
 (() => {
+  const summaryToggle = document.getElementById('game-summary-toggle');
+  const summary = document.getElementById('game-country-summary');
+  if (summaryToggle && summary) {
+    const mobile = window.matchMedia('(max-width:900px)');
+    const updateSummary = () => { summaryToggle.hidden = !mobile.matches; };
+    summaryToggle.addEventListener('click', () => {
+      const expanded = summary.classList.toggle('is-open');
+      summaryToggle.setAttribute('aria-expanded', String(expanded));
+    });
+    updateSummary();
+    mobile.addEventListener('change', updateSummary);
+  }
   const navToggle = document.getElementById('game-nav-toggle');
   const navLinks = document.getElementById('game-nav-links');
   navToggle.addEventListener('click', () => {
@@ -387,9 +422,11 @@
 </script>
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
 <script src="{{ url_for('static', filename='js/game_notifications.js', v='20261112-unread-2') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_ui.js', v='20261025-4') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261113-sidebar-9') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_ui.js', v='20261113-notes-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261114-sidebar-11') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>
+{# 13 Nov 2026: strefy skażenia atomowego na wszystkich mapach gry (L.Map.addInitHook) #}
+<script src="{{ url_for('static', filename='js/game_nuclear_zones.js', v='20261113-nuclear-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_communication.js', v='20261112-mail-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
 {% block extra_js %}{% endblock %}

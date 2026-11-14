@@ -74,6 +74,12 @@ class GameUser(db.Model):
         nullable=True
     )
 
+    # 14 Nov 2026: ostatnie otwarcie forum — plakietka liczby nowych wpisów w menu zamiast powiadomień.
+    forum_seen_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
     country_assignment = db.relationship(
         "GamePlayerCountry",
         back_populates="user",

@@ -5,14 +5,18 @@
 
 {% block extra_css %}
 <link rel="stylesheet"
-      href="{{ url_for('static', filename='css/game_finanse.css', v='20261025-8') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261113-fin-1') }}">
+      href="{{ url_for('static', filename='css/game_finanse.css', v='20261113-pie-7') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261113-fin-2') }}">
 {% endblock %}
 
 {% block content %}
 
 {% include "game/_finanse_form.html" %}
+{# 13 Nov 2026: dwie równe kolumny — przesunięcia między sektorami (lewa) i pożyczki (prawa) #}
+<div class="finance-split finance-split-bottom">
+{% include "game/_finance_transfer.html" %}
 {% include "game/_loans.html" %}
+</div>
 
 <section class="game-panel finance-history">
     <div class="game-panel-heading">Historia okresów budżetowych</div>
@@ -106,10 +110,10 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static',filename='js/game_loans.js',v='20261108-ui17') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_loans.js',v='20261113-history-2') }}" defer></script>
 <script src="{{ url_for(
     'static',
     filename='js/game_finanse.js', benefit_version='20261106',
-    v='20261110-trust-1'
+    v='20261113-pie-7'
 ) }}" defer></script>
 {% endblock %}

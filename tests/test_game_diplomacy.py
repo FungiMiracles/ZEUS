@@ -167,6 +167,27 @@ class DiplomacyTests(unittest.TestCase):
         self.assertEqual(self.relation().stan_id, 2)
         self.assertEqual(self.count(AudytStosunki), 2)
 
+    def test_sender_is_notified_when_player_answers_any_proposal(self):
+        # 14 Nov 2026: odpowiedź gracza (przyjęcie lub odrzucenie) trafia do panelu powiadomień nadawcy.
+        from game.forum_models import GameNotification
+        from game.diplomacy import notification_text
+        self.hostile()
+        self.create('WAR')
+        self.create('PEACE')
+        peace = self.action()
+        self.login(2)
+        self.assertEqual(self.decide(peace.id, 'reject').status_code, 200)
+        notice = db.session.scalar(select(GameNotification).where(GameNotification.user_id == 1, GameNotification.diplomatic_action_id == peace.id))
+        self.assertIsNotNone(notice)
+        db.session.refresh(peace)
+        self.assertIn('odrzuciło Twoją propozycję zawarcia pokoju', notification_text(peace, 1))
+        self.login(1)
+        self.create('CEASEFIRE')
+        ceasefire = self.action()
+        self.login(2)
+        self.assertEqual(self.decide(ceasefire.id).status_code, 200)
+        self.assertIsNotNone(db.session.scalar(select(GameNotification).where(GameNotification.user_id == 1, GameNotification.diplomatic_action_id == ceasefire.id)))
+
     def test_relation_proposal_and_stale_proposal(self):
         self.assertEqual(self.create('RELATION', relation_id=6).status_code, 400)
         self.assertEqual(self.create('RELATION', relation_id=999).status_code, 400)

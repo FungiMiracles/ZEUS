@@ -1,11 +1,11 @@
 {% extends 'game/game_base_layout.html' %}
 {% block body_class %}{% if mode == 'war' %}military-war{% else %}military-defense{% endif %}{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}">{% if mode == 'defense' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_room.css', v='20261106-game0003-2') }}">{% endif %}{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_navy.css', v='20261113-war-3') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_navy.css', v='20261113-bases-1') }}">{% endblock %}
 {% block title %}{{ 'Panel wojenny' if mode == 'war' else 'Obrona państwa' }} — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_military.css', v='20261112-carriers-2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_military.css', v='20261114-blast-1') }}">
 {% endblock %}
 {% block game_page_actions %}{% if mode == 'war' %}<a href="/game/obrona-panstwa">Zarządzaj bazami ↗</a>{% else %}<a href="/game/sily-zbrojne">Przegląd sił zbrojnych ↗</a>{% endif %}{% endblock %}
 {% block content %}
@@ -44,9 +44,9 @@ window.addEventListener('unhandledrejection',e=>show(String(e.reason&&e.reason.s
 window.addEventListener('load',()=>{if(!window.L)show('nie wczytano biblioteki Leaflet (unpkg.com) · '+navigator.userAgent);});})();</script>
 <script src="{{ url_for('static',filename='js/game_trade_navigation.js',v='20261025-1') }}" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/game_military_flight_math.js', v='20261025-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_military_flight_math.js', v='20261114-heading-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui4') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_land_war.js', v='20261113-war-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_radar.js', v='20261111-radar-3') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_military.js', v='20261113-war-2') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_military.js', v='20261114-hover-1') }}" defer></script>
 {% endblock %}

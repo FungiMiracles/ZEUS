@@ -16,7 +16,7 @@ BASES = {'land':('Baza lądowa','liczba_baz_ladowych','wojska_ladowe_ilosc'),
          'naval':('Baza morska','liczba_baz_morskich','wojska_morskie_ilosc'),
          'nuclear':('Silos atomowy',None,None)}
 RESOURCES = {
-    'warheads':('Głowice atomowe','bron_atomowa_ilosc','SILOS ATOMOWY.svg'),
+    'warheads':('Rakiety z głowicą nuklearną','bron_atomowa_ilosc','BROŃ ATOMOWA.svg'),   # 13 Nov 2026: liczba z game.nuclear.total (owned)
     'soldiers':('Żołnierze',None,'CZŁOWIEK.svg'), 'tanks':('Czołgi','czolgi_ilosc','CZOŁG.svg'),
     'launchers':('Wyrzutnie rakiet','wyrzutnie_rakiet_ilosc','WYRZUTNIA RAKIET.svg'),
     'armored':('Wozy opancerzone','wozy_opancerzone_ilosc','WÓZ OPANCERZONY.svg'),
@@ -33,8 +33,49 @@ CAPACITIES = {
     'naval': [dict(zip(('soldiers','warships','submarines'), row)) for row in
               [(10000,1,0),(20000,1,1),(30000,3,2),(40000,5,4),(50000,10,8),(60000,20,12),(75000,40,20)]],
 }
+# 13 Nov 2026: budowa bazy zużywa surowce z magazynu (gracze i PAGA2). Liczba baz nie jest już ograniczona
+# polami liczba_baz_* tabeli „wojsko”. Rezygnacja z nowej bazy zwraca 100% surowców, likwidacja — 50% (w dół).
+BASE_MATERIALS = {'land':{'kamien':21,'zelazo':16}, 'naval':{'kamien':28,'zelazo':18}, 'air':{'kamien':20,'zelazo':12}}
+MATERIAL_LABELS = {'kamien':'kamień','zelazo':'żelazo'}
+LIQUIDATION_REFUND = Decimal('0.5')
+
+
+def buildable_bases(session,country_id):
+    """Liczba baz każdego rodzaju, które można zbudować z surowców w magazynie (silos: bez surowców → None)."""
+    from game.industry_service import available
+    stock={code:available(session,country_id,code) for code in MATERIAL_LABELS}
+    return {kind:(min(stock[code]//need for code,need in BASE_MATERIALS[kind].items()) if kind in BASE_MATERIALS else None) for kind in BASES}
+
+
+def _pay_materials(session,country_id,kind,count):
+    from game.industry_service import available,consume
+    needs=BASE_MATERIALS.get(kind)
+    if not needs:return {}
+    missing=[f'{MATERIAL_LABELS[code]} (potrzeba {need*count}, w magazynie {available(session,country_id,code)})' for code,need in needs.items() if available(session,country_id,code)<need*count]
+    if missing:raise FinanceError('Za mało surowców w magazynie: '+', '.join(missing)+'.')
+    consume(session,country_id,needs,count)
+    return dict(needs)
+
+
+def _refund_materials(session,base,share=Decimal(1)):
+    """Zwrot surowców faktycznie zużytych na budowę (bazy sprzed 13 Nov 2026 nie mają zapisu — brak zwrotu)."""
+    from game.mining_service import stock
+    paid=(base.deployment_payload or {}).get('materials') or {}
+    for code,amount in paid.items():
+        back=int(Decimal(int(amount))*share)
+        if back>0:stock(session,base.panstwo_id,code).quantity+=back
+
+
 UPGRADE_COSTS = {level: Decimal(cost) * 1000000000 for level,cost in [(2,1),(3,8),(4,14),(5,23),(6,79),(7,139)]}
-UPKEEP_RATES = dict(soldiers=4000,tanks=8000,launchers=8000,armored=8000,fighters=25000,warships=600000,submarines=650000,warheads=100000000)
+UPKEEP_RATES = dict(soldiers=4000,tanks=8000,launchers=8000,armored=8000,fighters=25000,warships=600000,submarines=650000,warheads=650000000)   # 13 Nov 2026: głowica w silosie — 650 mln ROI / okres
+
+
+def owned(session,army,country_id,field):
+    """Posiadana liczba zasobu; głowice nuklearne (13 Nov 2026) — rzeczywisty licznik rakiet, nie pole tabeli „wojsko”."""
+    if field==RESOURCES['warheads'][1]:
+        from game.nuclear import total
+        return total(session,country_id)
+    return (getattr(army,field) or 0) if army is not None else 0
 
 
 def enemies(session, country_id):
@@ -109,7 +150,7 @@ def natural(value, label, minimum=0):
 def change_defense(user_id, action, data):
     with Session(db.engine) as session, session.begin():
         country = _country_for_user(session,user_id,lock=False)
-        if isinstance(action,str) and action.startswith('defense_'):
+        if isinstance(action,str) and (action.startswith('defense_') or action in ('deploy','place')):   # magazyn surowców aktualny przed budową bazy
             from game.research_service import settle_production
             settle_production(session,country.PANSTWO_ID)
         country=_country_for_user(session,user_id,lock=True)
@@ -122,7 +163,7 @@ def change_defense(user_id, action, data):
             deployment_key=request_key(data.get('request_id'))
             existing=session.scalar(select(MilitaryBase).where(MilitaryBase.panstwo_id==country.PANSTWO_ID,MilitaryBase.deployment_request_id==deployment_key))
             if existing:
-                if existing.deployment_payload!={'region_id':data.get('region_id'),'kind':data.get('kind'),'garrison':data.get('garrison')}:raise FinanceError('Identyfikator rozmieszczenia został już użyty.')
+                if {key:(existing.deployment_payload or {}).get(key) for key in ('region_id','kind','garrison')}!={'region_id':data.get('region_id'),'kind':data.get('kind'),'garrison':data.get('garrison')}:raise FinanceError('Identyfikator rozmieszczenia został już użyty.')
                 return existing.id
         bases = list(session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id == country.PANSTWO_ID).order_by(MilitaryBase.id).with_for_update()))
         active = active_counts(bases,session,country.PANSTWO_ID)
@@ -150,26 +191,26 @@ def change_defense(user_id, action, data):
                 budget,total,available=military_budget(session,country.PANSTWO_ID)
                 silo_upkeep=Decimal(500000000)*period_months(*period_key(game_now()))/6
                 if budget is None or available<count*(25000000000+silo_upkeep):raise FinanceError('Za mało środków na budowę silosu i jego utrzymanie w bieżącym okresie budżetowym.')
-            if field and count > (getattr(army,field) or 0) - active.get(field,0):
-                raise FinanceError('Brak dostępnych baz tego rodzaju.')
             garrison={}
             if action=='deploy':
                 requested=data.get('garrison')
                 if not isinstance(requested,dict) or set(requested)-set(CAPACITIES[kind][0]):raise FinanceError('Uzupełnij garnizon wybranego rodzaju bazy.')
                 for resource,capacity in CAPACITIES[kind][0].items():
                     value=natural(requested.get(resource,0),RESOURCES[resource][0]);field_name=BASES[kind][2] if resource=='soldiers' else RESOURCES[resource][1]
-                    if value>capacity or value>(getattr(army,field_name) or 0)-active.get(field_name,0):raise FinanceError('Przekroczona pojemność lub dostępny zapas: '+RESOURCES[resource][0])
+                    if value>capacity or value>owned(session,army,country.PANSTWO_ID,field_name)-active.get(field_name,0):raise FinanceError('Przekroczona pojemność lub dostępny zapas: '+RESOURCES[resource][0])
                     garrison[resource]=value
-                if kind=='nuclear':
-                    if not garrison.get('warheads'):raise FinanceError('Dodaj co najmniej jedną głowicę.')
+                if kind=='nuclear':pass   # 13 Nov 2026: silos można zbudować pusty i załadować rakietami później
                 elif not garrison.get('soldiers') or not any(n for resource,n in garrison.items() if resource!='soldiers'):
                     raise FinanceError('Dodaj żołnierzy oraz co najmniej jedną jednostkę sprzętu.')
                 scale=Decimal(period_months(*period_key(game_now())))/6
-                additional=sum(n*UPKEEP_RATES[resource] for resource,n in garrison.items() if resource!='warheads')*(ABROAD_UPKEEP if abroad else 1)*scale+(25000000000+500000000*scale if kind=='nuclear' else 0)
+                additional=sum(n*UPKEEP_RATES[resource] for resource,n in garrison.items())*(ABROAD_UPKEEP if abroad else 1)*scale+(25000000000+500000000*scale if kind=='nuclear' else 0)
                 budget,total,available=military_budget(session,country.PANSTWO_ID)
                 if budget is None or available<additional:raise FinanceError('Za mało środków na utworzenie i utrzymanie garnizonu.')
+            materials=_pay_materials(session,country.PANSTWO_ID,kind,count)
             for _ in range(count):
-                new_base=MilitaryBase(panstwo_id=country.PANSTWO_ID,region_id=region.region_id,kind=kind,level=1,garrison=garrison,deployment_request_id=deployment_key,deployment_payload={'region_id':data.get('region_id'),'kind':kind,'garrison':data.get('garrison')} if deployment_key else None)
+                payload={'region_id':data.get('region_id'),'kind':kind,'garrison':data.get('garrison')} if deployment_key else {}
+                if materials:payload['materials']=materials
+                new_base=MilitaryBase(panstwo_id=country.PANSTWO_ID,region_id=region.region_id,kind=kind,level=1,garrison=garrison,deployment_request_id=deployment_key,deployment_payload=payload or None)
                 session.add(new_base);session.flush()
                 if kind=='nuclear':session.add(MilitaryExpense(panstwo_id=country.PANSTWO_ID,budget_id=budget.id,base_id=new_base.id,level=1,amount=25000000000))
             session.flush();reconcile_maintenance(session,country.PANSTWO_ID)
@@ -208,6 +249,8 @@ def change_defense(user_id, action, data):
                 raise FinanceError('Zaczekaj na powrót myśliwca przed przeniesieniem bazy.')
             if not region_contains(base.region_id,x,y):
                 raise FinanceError('Lokalizacja bazy musi znajdować się wewnątrz jej regionu.')
+            from game.nuclear import require_clear
+            require_clear(session,x,y)   # 13 Nov 2026: strefa skażenia po uderzeniu atomowym
             if base.kind=='naval':
                 from game.military_geography import naval_location_allowed
                 from game.military_flights import calibration
@@ -223,7 +266,7 @@ def change_defense(user_id, action, data):
             for resource,capacity in capacities(base).items():
                 count = natural(requested.get(resource,0),RESOURCES[resource][0])
                 field = BASES[base.kind][2] if resource == 'soldiers' else RESOURCES[resource][1]
-                available = (getattr(army,field) or 0) - active.get(field,0) + base.garrison.get(resource,0)
+                available = owned(session,army,country.PANSTWO_ID,field) - active.get(field,0) + base.garrison.get(resource,0)
                 if count < deployed.get(resource,0) or count+incoming.get(resource,0)>capacity:raise FinanceError('Uwzględnij okręty w rejsie i miejsca zarezerwowane na ich powrót.')
                 if count > capacity or count > available:
                     raise FinanceError('Przekroczona pojemność bazy lub dostępne zasoby: ' + RESOURCES[resource][0])
@@ -252,6 +295,7 @@ def change_defense(user_id, action, data):
             # Rezygnacja ze stawiania nowej bazy (12 Nov 2026): tylko baza bez lokalizacji; garnizon wraca do puli,
             # miejsce na bazę nie przepada (inaczej niż przy likwidacji), a koszt budowy silosu wraca do budżetu.
             if base.map_x is not None or base.map_y is not None:raise FinanceError('Bazę z lokalizacją można jedynie zlikwidować.')
+            _refund_materials(session,base)   # 13 Nov 2026: 100% surowców wraca do magazynu
             for expense in session.scalars(select(MilitaryExpense).where(MilitaryExpense.base_id==base.id)):session.delete(expense)
             from game.military_destruction import detach_base
             detach_base(session,base)
@@ -266,6 +310,7 @@ def change_defense(user_id, action, data):
                 raise FinanceError('Najpierw wycofaj do bazy oddziały broniące miast, wysłane z tej bazy.')
             field=BASES[base.kind][1]
             if field:setattr(army,field,max(0,(getattr(army,field) or 0)-1))
+            _refund_materials(session,base,LIQUIDATION_REFUND)   # 13 Nov 2026: 50% surowców (w dół) wraca do magazynu
             from game.military_destruction import detach_base
             detach_base(session,base)
             session.delete(base)
@@ -290,7 +335,7 @@ def reconcile_maintenance(session,country_id,now=None):
     bases=list(session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id==country_id).order_by(MilitaryBase.id).with_for_update()))
     settle_vessels(session,moment,country_id)
     army=army_for_country(session, country_id, lock=True)
-    heads=(army.bron_atomowa_ilosc or 0) if army else 0
+    heads=sum(int((base.garrison or {}).get('warheads',0)) for base in bases if base.kind=='nuclear')   # 13 Nov 2026: tylko głowice w silosach
     orphans=list(session.scalars(select(MilitaryVessel).where(MilitaryVessel.panstwo_id==country_id,MilitaryVessel.base_id.is_(None),MilitaryVessel.kind!='carriers',MilitaryVessel.status.in_(['sailing','stationed','returning'])).with_for_update()))
     if not bases and not heads and not orphans:return
     def notify(text):
@@ -318,9 +363,8 @@ def reconcile_maintenance(session,country_id,now=None):
     from game.base_permits import own_region_ids,ABROAD_UPKEEP
     own=own_region_ids(session,country_id)
     factor={base.id:(ABROAD_UPKEEP if base.region_id is not None and base.region_id not in own else 1) for base in bases}   # baza za granicą: 2× utrzymanie
-    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]*scale) for base in bases for resource,count in base.garrison.items() if resource!='warheads']
+    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]*scale) for base in bases for resource,count in base.garrison.items()]
     items.extend((-v.id,v.kind,1,UPKEEP_RATES[v.kind]*scale) for v in orphans)
-    if heads:items.append((0,'warheads',heads,UPKEEP_RATES['warheads']*scale))
     cost=sum(count*rate for _,_,count,rate in items)
     if cost>affordable:
         ratio=affordable/Decimal(cost);reduced={};remainders=[];used=0
@@ -331,13 +375,7 @@ def reconcile_maintenance(session,country_id,now=None):
             if used+rate<=affordable:reduced[(base_id,resource)]+=1;used+=rate
         for base in bases:
             base.garrison={resource:reduced.get((base.id,resource),count) for resource,count in base.garrison.items()}
-        if army is not None:army.bron_atomowa_ilosc=reduced.get((0,'warheads'),heads)
-        remaining=army.bron_atomowa_ilosc if army else 0
-        # Loaded warheads form a subset of the national stock, never a second charge.
-        for base in bases:
-            if base.kind=='nuclear':
-                count=min(base.garrison.get('warheads',0),remaining);remaining-=count
-                base.garrison={**base.garrison,'warheads':count}
+        # 13 Nov 2026: głowice, na których utrzymanie zabrakło środków, wracają z silosu do magazynu (licznik bez zmian).
         # Automatic budget withdrawals also release the corresponding vessels.
         for base in bases:
             if base.kind!='naval':continue
@@ -489,7 +527,7 @@ def create_order(user_id,data):
             if not isinstance(missile_type,str) or missile_type not in MISSILES:
                 raise FinanceError('Wybierz rodzaj rakiet.')
             count = natural(data.get('missiles'),'Liczba rakiet',1)
-            if count > (getattr(army,MISSILES[missile_type][0]) or 0):
+            if data.get('is_nuclear') is not True and count > (getattr(army,MISSILES[missile_type][0]) or 0):   # rakieta atomowa: zapas sprawdza silos (13 Nov 2026)
                 raise FinanceError('Brak wystarczającego zapasu wybranych rakiet.')
             infrastructure = data.get('infrastructure')
             if data.get('city_id') is None and data.get('target_base_id') is None and data.get('target_vessel_id') is None and data.get('target_mine_id') is None and data.get('target_defense_id') is None and data.get('target_shipment_id') is None and data.get('target_factory_id') is None and data.get('target_power_id') is None and data.get('target_radar_id') is None and (not isinstance(infrastructure,str) or infrastructure not in FIELDS):

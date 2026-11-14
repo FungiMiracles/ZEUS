@@ -22,6 +22,9 @@ def destroy_base(session,base,now):
     if army is not None:
         for resource,count in base.garrison.items():
             lost=max(0,count-spared.get(resource,0));field=BASES[base.kind][2] if resource=='soldiers' else RESOURCES[resource][1]
+            if resource=='warheads':   # 13 Nov 2026: rakiety z głowicą nuklearną w zniszczonym silosie przepadają (rzeczywisty licznik)
+                from game.nuclear import change_total
+                change_total(session,base.panstwo_id,-lost);continue
             setattr(army,field,max(0,(getattr(army,field) or 0)-lost))
         field=BASES[base.kind][1]
         if field:setattr(army,field,max(0,(getattr(army,field) or 0)-1))

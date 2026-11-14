@@ -104,6 +104,7 @@ def detect(session,control,eligible,identities):
                 from game.diplomacy_models import DiplomaticAction
                 action=session.get(DiplomaticAction,row.diplomatic_action_id)
                 if action is None:continue
+                if action.sender_user_id==identity.user_id:continue   # 14 Nov 2026: odpowiedź na własną propozycję — nie jest nową propozycją
                 kind='war_declared' if action.kind=='WAR' else 'diplomatic_proposal'
                 key,ref=f'proposal:{action.id}',action.id
                 text=f'{action.source_country_name}: {action.kind}'

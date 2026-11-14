@@ -1,0 +1,172 @@
+/* 13 Nov 2026: ekran Handlu w nowej stylistyce gry (granat #1E3A5F, tło #F0F4FA, białe karty).
+   Wczytywany jako ostatni (late_css); prefiks `html body.game-app.game-navy.game-civic.trade-room`
+   zastępuje brązowy motyw trade-room / war-room i zielony civic. Mapa w palecie ekranu „Świat”. */
+html body.game-app.game-navy.game-civic.trade-room{--tr-navy:#1E3A5F;--tr-navy-light:#2b4f7c;--tr-line:#d3dce9;--tr-soft:#eef3fa;--tr-text:#24324a;--tr-muted:#4d5f78;--tr-gold:#E8B65C;background:#F0F4FA;color:var(--tr-text)}
+html body.game-app.game-navy.game-civic.trade-room .game-main{background:#F0F4FA;color:var(--tr-text)}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) :is(h2,h3){color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) :is(p,label,legend,summary,span){color:inherit}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) button{background:var(--tr-navy);color:#fff;border:1px solid var(--tr-navy);border-radius:7px;box-shadow:none;font-weight:700;letter-spacing:0;text-transform:none}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) button:hover:not(:disabled){background:var(--tr-navy-light);border-color:var(--tr-navy-light)}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) button:disabled{opacity:.5;cursor:not-allowed}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) :is(input:not([type=hidden]):not([type=checkbox]):not([type=radio]),select){background:#fff;color:var(--tr-text);-webkit-text-fill-color:var(--tr-text);border:1px solid #b9c7da;border-radius:6px;font-weight:600}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) :is(input,select,button,summary,a):focus-visible{outline:2px solid var(--tr-navy);outline-offset:2px}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) option{background:#fff;color:var(--tr-text)}
+html body.game-app.game-navy.game-civic.trade-room :is(.game-main,dialog) fieldset{border:1px solid var(--tr-line);border-radius:7px;padding:10px 12px}
+html body.game-app.game-navy.game-civic.trade-room .trade-intro{max-width:none;margin:0 0 14px;color:var(--tr-muted);font-size:13px;line-height:1.6}
+html body.game-app.game-navy.game-civic.trade-room #trade-error:not(:empty){padding:9px 12px;border:1px solid #e3b4ae;border-left:3px solid #b3261e;border-radius:7px;background:#fbeaea;color:#8f1f18}
+html body.game-app.game-navy.game-civic.trade-room #trade-status:not(:empty){padding:9px 12px;border:1px solid var(--tr-line);border-left:3px solid var(--tr-navy);border-radius:7px;background:var(--tr-soft);color:var(--tr-text);font-size:13px}
+
+/* Liczniki — karty jak „Dostępne środki” */
+html body.game-app.game-navy.game-civic.trade-room .war-readiness{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 16px;padding:0;background:transparent;border:0;box-shadow:none}
+html body.game-app.game-navy.game-civic.trade-room .war-readiness>div{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;padding:11px 16px;background:#fff;border:1px solid var(--tr-line);border-left:4px solid var(--tr-navy);border-radius:8px;box-shadow:0 2px 8px #1e3a5f12}
+html body.game-app.game-navy.game-civic.trade-room .war-readiness>div:first-child{border-left-color:var(--tr-gold)}
+html body.game-app.game-navy.game-civic.trade-room .war-readiness span{color:var(--tr-muted);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.trade-room .war-readiness strong{margin:0;color:var(--tr-navy);font:700 18px Consolas,monospace;white-space:nowrap}
+
+/* Kontenery */
+html body.game-app.game-navy.game-civic.trade-room .commerce-layout{display:flex;flex-direction:column;gap:16px;margin:0 0 16px}
+html body.game-app.game-navy.game-civic.trade-room .game-panel{margin:0 0 16px;padding:0;background:#fff;color:var(--tr-text);border:1px solid var(--tr-line);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14;overflow:hidden}
+html body.game-app.game-navy.game-civic.trade-room .commerce-layout>.game-panel{margin:0}
+html body.game-app.game-navy.game-civic.trade-room .war-panel-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 14px;padding:11px 16px;background:linear-gradient(180deg,var(--tr-navy-light),var(--tr-navy));border:0;color:#fff}
+html body.game-app.game-navy.game-civic.trade-room .war-panel-bar h2{margin:0;color:#fff;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:left}
+html body.game-app.game-navy.game-civic.trade-room .war-eyebrow{display:block;margin:0 0 2px;color:#b9cbe2;font-size:10px;font-weight:700;letter-spacing:.12em}
+html body.game-app.game-navy.game-civic.trade-room :is(.trade-panel-symbol,.trade-map-speed,.trade-section-note){color:#d6e2f0;font-size:11px;letter-spacing:.06em}
+html body.game-app.game-navy.game-civic.trade-room .trade-panel-symbol{font-size:20px}
+
+/* Sprzedaż */
+html body.game-app.game-navy.game-civic.trade-room .trade-panel-hint{margin:12px 16px 0;padding:0;color:var(--tr-muted);font-size:13px;line-height:1.6}
+html body.game-app.game-navy.game-civic.trade-room #trade-offer-form{padding:0 16px 16px}
+html body.game-app.game-navy.game-civic.trade-room #trade-offer-form label{color:var(--tr-muted);font-size:12px;font-weight:600}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields>label{background:var(--tr-soft);border:1px solid var(--tr-line);border-radius:7px;color:var(--tr-text)}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields>label:focus-within{border-color:var(--tr-navy);box-shadow:0 0 0 1px var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-name{color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-available{color:var(--tr-muted)}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-range{color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields>label img{padding:2px;box-sizing:border-box;background:#fff;border:1px solid var(--tr-line);border-radius:5px}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch{display:inline-flex;border:2px solid var(--tr-navy);border-radius:8px;overflow:hidden}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch label{margin:0;cursor:pointer}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch input{position:absolute;opacity:0;pointer-events:none}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch span{display:block;padding:7px 14px;background:#fff;color:var(--tr-navy);font-size:12.5px;font-weight:700}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch input:checked+span{background:var(--tr-navy);color:#fff}
+html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch input:focus-visible+span{outline:2px solid var(--tr-gold);outline-offset:-2px}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-departure-quote,#trade-buy-quote,#trade-price-range:not(:empty)){padding:9px 12px;background:var(--tr-soft);border:1px solid var(--tr-line);border-left:3px solid var(--tr-gold);border-radius:7px;color:var(--tr-text);font-size:12.5px;line-height:1.6}
+html body.game-app.game-navy.game-civic.trade-room .trade-exclusion-details{margin:4px 0;color:var(--tr-navy);font-size:13px}
+html body.game-app.game-navy.game-civic.trade-room .trade-exclusion-details summary{color:var(--tr-navy);font-weight:700;cursor:pointer}
+html body.game-app.game-navy.game-civic.trade-room #trade-offer-form>button[type=submit]{width:100%;min-height:46px;background:var(--tr-navy);color:#fff;text-transform:uppercase;letter-spacing:.06em;font-size:12.5px}
+html body.game-app.game-navy.game-civic.trade-room .trade-port-choice>button{background:#fff;color:var(--tr-navy);border-color:var(--tr-navy);font-size:11.5px}
+html body.game-app.game-navy.game-civic.trade-room .trade-port-choice>button:hover:not(:disabled){background:var(--tr-soft);color:var(--tr-navy)}
+
+/* Mapa — jak „Świat” */
+html body.game-app.game-navy.game-civic.trade-room .trade-map-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:7px 16px;background:var(--tr-navy);border:0;border-top:1px solid #ffffff1f;color:#d6e2f0;font-size:11.5px}
+html body.game-app.game-navy.game-civic.trade-room .trade-map-legend span{display:inline-flex;align-items:center;gap:6px;color:#d6e2f0}
+html body.game-app.game-navy.game-civic.trade-room .trade-map-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #fff;box-shadow:inset 0 0 0 3px var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room .trade-map-legend .trade-port-unavailable{background:#95a3b8;box-shadow:none}
+html body.game-app.game-navy.game-civic.trade-room #trade-map{height:clamp(480px,70dvh,820px);margin:0;border:0;border-radius:0;background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%);background-size:auto}
+html body.game-app.game-navy.game-civic.trade-room #trade-map-status:not(:empty){margin:0;padding:10px 16px;color:var(--tr-muted);font-size:13px}
+html body.game-app.game-navy.game-civic.trade-room .leaflet-control-zoom{border:1px solid var(--tr-navy);border-radius:7px;box-shadow:0 2px 8px #0b1d3340;overflow:hidden}
+html body.game-app.game-navy.game-civic.trade-room .leaflet-control-zoom a{background:#fff;color:var(--tr-navy);border-color:var(--tr-line)}
+html body.game-app.game-navy.game-civic.trade-room .leaflet-control-zoom a:hover{background:var(--tr-soft)}
+html body.game-app.game-navy.game-civic.trade-room .trade-ship-icon{position:relative;box-sizing:border-box;width:30px;height:30px;padding:3px;background:#fff;border:1.5px solid var(--tr-navy);border-radius:50%;box-shadow:0 2px 5px #0006}
+html body.game-app.game-navy.game-civic.trade-room .trade-ship-icon>img:first-child{display:block;width:100%;height:100%;object-fit:contain}
+html body.game-app.game-navy.game-civic.trade-room .leaflet-tooltip.world-tooltip{width:max-content;max-width:min(280px,calc(100vw - 40px));padding:7px 10px;border:1px solid var(--tr-navy);border-radius:6px;background:#fff;color:#1d2b40;font-size:12px;line-height:1.4;box-shadow:0 4px 12px #0b1d3340;white-space:normal}
+html body.game-app.game-navy.game-civic.trade-room .leaflet-tooltip.world-tooltip span{color:#1d2b40}
+
+/* Rynek ofert */
+html body.game-app.game-navy.game-civic.trade-room #trade-offers,html body.game-app.game-navy.game-civic.trade-room #trade-shipments{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:16px}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card{position:relative;margin:0;min-width:0;padding:14px 16px;background:#fff;color:var(--tr-text);border:1px solid var(--tr-line);border-top:3px solid var(--tr-navy);border-radius:8px;box-shadow:0 2px 8px #1e3a5f12}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card.trade-offer-own{border-top-color:var(--tr-gold);background:#fffaf0}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card h3{display:flex;align-items:center;gap:8px;margin:8px 0 10px;color:var(--tr-navy);font-size:14px;text-align:left}
+html body.game-app.game-navy.game-civic.trade-room .trade-offer-flag{width:34px;height:22px;object-fit:cover;border:1px solid var(--tr-navy);border-radius:2px}
+html body.game-app.game-navy.game-civic.trade-room .trade-offer-badge{display:inline-block;padding:2px 8px;border:0;border-radius:10px;background:var(--tr-soft);color:var(--tr-navy);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.trade-room .trade-offer-own .trade-offer-badge{background:var(--tr-gold);color:#3a2a0a}
+html body.game-app.game-navy.game-civic.trade-room .trade-cargo-list{display:grid;gap:4px;margin:0 0 8px;padding:8px 10px;background:var(--tr-soft);border:1px solid var(--tr-line);border-radius:7px}
+html body.game-app.game-navy.game-civic.trade-room .trade-cargo-list p{display:flex;align-items:center;gap:8px;margin:0;color:var(--tr-text);font-size:13px}
+html body.game-app.game-navy.game-civic.trade-room .trade-cargo-list img{width:22px;height:22px;object-fit:contain}
+html body.game-app.game-navy.game-civic.trade-room .trade-cargo-list strong{margin-left:auto;color:var(--tr-navy);font-family:Consolas,monospace}
+html body.game-app.game-navy.game-civic.trade-room .trade-offer-price{display:block;margin:4px 0;padding:0;color:var(--tr-navy);font:700 20px/1.4 Consolas,monospace}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card>p{margin:4px 0 0;color:var(--tr-muted);font-size:12.5px;line-height:1.5}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card>button{width:100%;margin-top:10px;min-height:38px}
+html body.game-app.game-navy.game-civic.trade-room .commerce-card progress{width:100%;height:8px;margin-top:8px;accent-color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-offers,#trade-shipments)>p{grid-column:1/-1;margin:0;color:var(--tr-muted);font-size:13px}
+
+/* Moje dostawy — zwinięte, przycisk w pasku */
+html body.game-app.game-navy.game-civic.trade-room .trade-deliveries-panel .trade-shipments-open{min-height:34px;padding:6px 14px;background:#fff;color:var(--tr-navy);border-color:#fff;font-size:12.5px}
+html body.game-app.game-navy.game-civic.trade-room .trade-deliveries-panel .trade-shipments-open:hover{background:var(--tr-soft);color:var(--tr-navy)}
+
+/* Okna modalne — nowy styl (dostawy, zakup, opłaty portowe) */
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-shipments-dialog,#trade-buy-dialog,#trade-port-fees-dialog){box-sizing:border-box;max-height:calc(100dvh - 24px);padding:0;overflow:auto;background:#fff;color:var(--tr-text);border:1px solid var(--tr-line);border-top:4px solid var(--tr-navy);border-radius:10px;box-shadow:0 20px 60px #0b1d3355}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-shipments-dialog,#trade-buy-dialog,#trade-port-fees-dialog)::backdrop{background:#10244099;backdrop-filter:none}
+html body.game-app.game-navy.game-civic.trade-room #trade-shipments-dialog{width:min(920px,calc(100vw - 24px))}
+html body.game-app.game-navy.game-civic.trade-room #trade-shipments-dialog[open]{display:flex;flex-direction:column}
+html body.game-app.game-navy.game-civic.trade-room .trade-modal-heading{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(180deg,var(--tr-navy-light),var(--tr-navy))}
+html body.game-app.game-navy.game-civic.trade-room .trade-modal-heading h2{margin:0;color:#fff;font-size:14px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.trade-room .trade-modal-heading button{width:32px;height:32px;min-width:0;min-height:0;padding:0;background:transparent;border:1.5px solid #ffffff99;border-radius:6px;color:#fff;font-size:15px}
+html body.game-app.game-navy.game-civic.trade-room .trade-modal-heading button:hover{background:#ffffff26;border-color:#fff}
+html body.game-app.game-navy.game-civic.trade-room .trade-modal-body{overflow-y:auto}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-dialog{width:min(520px,calc(100vw - 24px))}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-form{padding:0 18px 18px}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-form>h2{margin:0 -18px 14px;padding:14px 18px;background:linear-gradient(180deg,var(--tr-navy-light),var(--tr-navy));color:#fff;border:0;font-size:14px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;text-align:left}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-cargo{padding:0;background:transparent;border:0}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-dialog label{color:var(--tr-muted);font-size:12px;font-weight:600}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-cancel,html body.game-app.game-navy.game-civic.trade-room #trade-pick-arrival,html body.game-app.game-navy.game-civic.trade-room #trade-port-fees-close{background:#fff;color:var(--tr-navy);border-color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room #trade-buy-error:not(:empty){color:#b3261e;font-weight:600}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-fees-dialog{width:min(640px,calc(100vw - 24px))}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-fees-dialog .game-panel{margin:0;border:0;border-radius:0;box-shadow:none}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-fees-dialog :is(.trade-port-panel>p,#trade-tariff,#trade-no-port){margin:14px 18px;color:var(--tr-muted);font-size:13px;line-height:1.6}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-access{margin:0 18px;padding:14px 0;border-top:1px solid var(--tr-line)}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-access h3{margin:0 0 8px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-access p{color:var(--tr-muted);font-size:12.5px}
+html body.game-app.game-navy.game-civic.trade-room #trade-tariff-feedback:not(:empty){margin:0 18px;color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room #trade-port-fees-close{display:block;margin:12px 18px 18px auto}
+
+/* Nagłówek ekranu */
+html body.game-app.game-navy.game-civic.trade-room .game-section-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html body.game-app.game-navy.game-civic.trade-room .game-section-actions>#trade-port-fees-open{margin:0;min-height:38px;padding:7px 14px;background:var(--tr-navy);color:#fff;border:1px solid var(--tr-navy);border-radius:7px;font-size:13px;font-weight:700}
+html body.game-app.game-navy.game-civic.trade-room .game-section-actions>a{padding:8px 12px;border:1px solid var(--tr-navy);border-radius:7px;background:#fff;color:var(--tr-navy);font-size:13px;font-weight:700;text-decoration:none}
+html body.game-app.game-navy.game-civic.trade-room .game-section-actions>a:hover{background:var(--tr-soft)}
+
+/* Telefon i tablet */
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic.trade-room .game-section-actions>*{flex:1 1 auto;text-align:center}
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness{gap:6px}
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness>div{flex-direction:column;align-items:flex-start;gap:3px;padding:8px 10px;border-left-width:3px}
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness span{font-size:9.5px;letter-spacing:.03em;line-height:1.25}
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness strong{font-size:15px;white-space:normal;overflow-wrap:anywhere}
+  html body.game-app.game-navy.game-civic.trade-room .war-panel-bar{padding:9px 12px}
+  html body.game-app.game-navy.game-civic.trade-room :is(.trade-panel-hint){margin:10px 12px 0;font-size:12.5px}
+  html body.game-app.game-navy.game-civic.trade-room #trade-offer-form{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:0 12px 12px}
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px}
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields>label{width:auto;font-size:11px;white-space:normal}
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-available{flex-direction:column;gap:0}
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields input{min-height:40px}
+  html body.game-app.game-navy.game-civic.trade-room .trade-price-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+  html body.game-app.game-navy.game-civic.trade-room .trade-unit-switch span{padding:10px 12px}
+  html body.game-app.game-navy.game-civic.trade-room .trade-port-choice{flex-direction:column;align-items:stretch}
+  html body.game-app.game-navy.game-civic.trade-room .trade-port-choice>button{min-height:44px;font-size:13px}
+  html body.game-app.game-navy.game-civic.trade-room .trade-map-legend{padding:7px 12px;font-size:11px}
+  html body.game-app.game-navy.game-civic.trade-room #trade-map{height:clamp(300px,55dvh,480px);min-height:300px}
+  html body.game-app.game-navy.game-civic.trade-room :is(#trade-offers,#trade-shipments){grid-template-columns:minmax(0,1fr);padding:12px;gap:10px}
+  html body.game-app.game-navy.game-civic.trade-room .trade-section-note{display:none}
+  html body.game-app.game-navy.game-civic.trade-room .commerce-card>button{min-height:44px}
+  html body.game-app.game-navy.game-civic.trade-room .trade-deliveries-panel .war-panel-bar{flex-wrap:nowrap}
+  html body.game-app.game-navy.game-civic.trade-room .trade-deliveries-panel .trade-shipments-open{flex:0 0 auto;min-height:40px}
+  html body.game-app.game-navy.game-civic.trade-room .commerce-actions{flex-direction:column-reverse}
+  html body.game-app.game-navy.game-civic.trade-room .commerce-actions button,html body.game-app.game-navy.game-civic.trade-room #trade-pick-arrival{width:100%;min-height:44px}
+}
+@media(max-width:420px){
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  html body.game-app.game-navy.game-civic.trade-room .war-readiness>div:first-child{grid-column:1/-1}
+}
+/* Silniejsze selektory (z identyfikatorem w :is) — stare reguły civic wskazują te elementy przez #id */
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-offer-form,#trade-buy-form,#trade-tariff) :is(input:not([type=hidden]):not([type=checkbox]):not([type=radio]),select){background:#fff;color:var(--tr-text);-webkit-text-fill-color:var(--tr-text);caret-color:var(--tr-navy);border:1px solid #b9c7da;border-radius:6px;font-weight:600}
+html body.game-app.game-navy.game-civic.trade-room :is(.trade-panel-hint,.trade-port-panel>p,#trade-offers>p,#trade-shipments>p,#trade-no-port,#trade-z){color:var(--tr-muted)}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-departure-quote,#trade-buy-quote){color:var(--tr-text)}
+html body.game-app.game-navy.game-civic.trade-room :is(.trade-exclusion-details summary,#trade-z){color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-pick-departure,#trade-pick-arrival,#trade-buy-cancel,#trade-port-fees-close){background:#fff;color:var(--tr-navy);border:1px solid var(--tr-navy);box-shadow:none}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-pick-departure,#trade-pick-arrival,#trade-buy-cancel,#trade-port-fees-close):hover{background:var(--tr-soft);color:var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-offer-form>button[type=submit],#trade-buy-form button[type=submit],#trade-z){background:var(--tr-navy);color:#fff;border:1px solid var(--tr-navy)}
+html body.game-app.game-navy.game-civic.trade-room :is(#trade-offers,#trade-shipments)>p{padding:14px;border:1px dashed var(--tr-line);border-radius:8px;background:#fff;text-align:center}
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.25}
+  html body.game-app.game-navy.game-civic.trade-room #trade-cargo-fields .trade-cargo-available>span{white-space:normal;overflow:visible;text-overflow:clip}
+}

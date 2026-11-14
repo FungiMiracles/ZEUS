@@ -129,7 +129,8 @@ def create_offer(user_id,data):
         settle_production(session,country_id,game_now())
         for code,quantity in sorted(cargo.items()):
             change_goods(session,country_id,code,-quantity)
-        offer=TradeOffer(panstwo_id=country_id,user_id=user_id,cargo=cargo,price=price,excluded=excluded,port_id=port.miasto_id,port_country_id=controller_id(session,port.panstwo_id),departure_rate=departure_rate,request_id=key,status='open')
+        offer=TradeOffer(panstwo_id=country_id,user_id=user_id,cargo=cargo,price=price,excluded=excluded,port_id=port.miasto_id,port_country_id=controller_id(session,port.panstwo_id),departure_rate=departure_rate,request_id=key,status='open',
+                         created_game_at=game_now())
         session.add(offer);session.flush();return offer.id
 
 
@@ -145,6 +146,61 @@ def cancel_offer(user_id,data):
         settle_production(session,country.PANSTWO_ID,game_now())
         for code,quantity in sorted(offer.cargo.items()):change_goods(session,country.PANSTWO_ID,code,quantity)
         offer.status='cancelled'
+
+
+# 13 Nov 2026: oferta niesprzedana przez 14 dni Entendy jest wycofywana (towar wraca do magazynu, sprzedający dostaje powiadomienie).
+OFFER_LIFETIME_DAYS=14
+
+
+def offer_expires_at(offer):
+    from datetime import timedelta
+    return offer.created_game_at+timedelta(days=OFFER_LIFETIME_DAYS) if offer.created_game_at else None
+
+
+def expire_offers(session,now=None):
+    """Wycofuje wszystkie otwarte oferty starsze niż 14 dni Entendy. Zwraca liczbę wycofanych ofert."""
+    from datetime import timedelta
+    from game.paga_ai_actor import country_user_id
+    from game.forum_models import GameNotification
+    from game.models import utc_now
+    moment=now or game_now();limit=moment-timedelta(days=OFFER_LIFETIME_DAYS)
+    expired=list(session.scalars(select(TradeOffer).where(TradeOffer.status=='open',TradeOffer.created_game_at.is_not(None),TradeOffer.created_game_at<=limit).order_by(TradeOffer.id).with_for_update()))
+    if not expired:return 0
+    from game.mining_service import RESOURCES as RAW
+    from game.industry_catalog import GOODS
+    names={**{code:label for code,label in RAW},**{code:value[0] for code,value in GOODS.items()},
+           'tanks':'Czołgi','armored':'Wozy opancerzone','fighters':'Myśliwce','drones':'Drony','warships':'Okręty wojenne','submarines':'Okręty podwodne','carriers':'Lotniskowce'}
+    settled=set()
+    for offer in expired:
+        if offer.panstwo_id not in settled and AMMUNITION in offer.cargo:
+            from game.research_service import settle_production
+            settle_production(session,offer.panstwo_id,moment);settled.add(offer.panstwo_id)
+        for code,quantity in sorted(offer.cargo.items()):change_goods(session,offer.panstwo_id,code,quantity)
+        offer.status='cancelled'
+        owner=country_user_id(session,offer.panstwo_id)
+        if owner is not None:
+            goods=', '.join(f'{quantity} × {names.get(code,code)}' for code,quantity in offer.cargo.items())
+            session.add(GameNotification(user_id=owner,notification_type='SYSTEM',created_at=utc_now(),
+                system_text=f'Oferta handlowa #{offer.id} ({goods}) nie znalazła kupca przez {OFFER_LIFETIME_DAYS} dni Entendy i została wycofana. Towar wrócił do magazynu.'))
+    session.flush()
+    return len(expired)
+
+
+def reprice_offer(user_id,data):
+    """Obniżenie ceny własnej, otwartej oferty (w granicach cen gry); termin wycofania liczony od wystawienia."""
+    from game.military_service import natural
+    from game import trade_prices
+    price=money(data.get('price'))
+    with Session(db.engine) as session,session.begin():
+        country=_country_for_user(session,user_id,lock=True)
+        offer=session.scalar(select(TradeOffer).where(TradeOffer.id==natural(data.get('offer_id'),'Oferta',1),TradeOffer.panstwo_id==country.PANSTWO_ID).with_for_update())
+        if offer is None:raise FinanceError('Oferta nie należy do gracza.')
+        if offer.status!='open':raise FinanceConflict('Oferta nie jest już otwarta.')
+        if price>=offer.price:raise FinanceError('Nowa cena musi być niższa od obecnej.')
+        problem=trade_prices.check_offer(offer.cargo,price)
+        if problem:raise FinanceError(problem)
+        offer.price=price;offer.price_changed_game_at=game_now()
+        return offer.id
 
 
 def set_tariff(user_id,data):
@@ -169,6 +225,8 @@ def buy_offer(user_id,data):
             return existing.id
         preview=session.get(TradeOffer,offer_id)
         if preview is None:raise FinanceError('Oferta nie jest dostępna.')
+        expires=offer_expires_at(preview)
+        if preview.status=='open' and expires is not None and expires<=game_now():raise FinanceError('Oferta wygasła po 14 dniach Entendy i nie jest już dostępna.')
         arrival=choose_port(session,buyer_id,data.get('port_id'))
         involved=sorted({buyer_id,preview.panstwo_id,preview.port_country_id,controller_id(session,arrival.panstwo_id)})
         list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(involved)).order_by(Panstwo.PANSTWO_ID).with_for_update()))

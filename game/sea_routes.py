@@ -23,6 +23,17 @@ def path_position(path,fraction):
     return list(path[-1])
 
 
+def remaining_path(path,fraction):
+    """Pozostała część trasy od pozycji po pokonaniu `fraction` długości (14 Nov 2026: widoczne obce okręty)."""
+    if not path:return []
+    left=max(0,min(1,fraction))*path_length(path)
+    for i,(a,b) in enumerate(zip(path,path[1:])):
+        length=hypot(b[0]-a[0],b[1]-a[1])
+        if length and left<=length:return [[a[k]+(b[k]-a[k])*left/length for k in (0,1)]]+[list(p) for p in path[i+1:]]
+        left-=length
+    return [list(path[-1])]
+
+
 class SeaRouter:
     def __init__(self,land,resolution=1800):
         land=shapely.make_valid(land)

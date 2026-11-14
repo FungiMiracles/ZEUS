@@ -16,7 +16,7 @@ from game.military_navy import carriers_at_sea
 from game.military_geography import city_point,region_point
 from game.military_navy import vessel_data,settle_vessels,busy_vessels,VESSEL_SPEED
 from engine.clock import get_time_multiplier
-from game.military_service import (BASES, RESOURCES, CAPACITIES, UPGRADE_COSTS, active_counts,
+from game.military_service import (BASES, RESOURCES, CAPACITIES, UPGRADE_COSTS, active_counts, owned,
                                    enemies, military_budget, upkeep_cost, change_defense, reconcile_maintenance, MISSILES, land_targets, create_order)
 from models import Region, Miasto, Panstwo, Wojsko
 
@@ -55,12 +55,19 @@ def render_military(mode):
     from game.base_permits import own_region_ids,ally_regions
     own_regions=own_region_ids(db.session,country.PANSTWO_ID)
     inventory = {}
+    from game.military_service import buildable_bases,BASE_MATERIALS,MATERIAL_LABELS
+    from game.industry_service import available as stock_available
+    buildable=buildable_bases(db.session,country.PANSTWO_ID)
+    material_icons={'kamien':'KAMIEŃ.svg','zelazo':'ŻELAZO.svg'}
+    base_materials={kind:[{'code':code,'label':MATERIAL_LABELS[code],'need':need,'have':stock_available(db.session,country.PANSTWO_ID,code),
+                            'icon':url_for('static',filename='icons/'+material_icons[code])} for code,need in needs.items()] for kind,needs in BASE_MATERIALS.items()}
     for kind,(label,base_field,soldier_field) in BASES.items():
         if kind=='nuclear':
             inventory[kind]={'total':0,'available':100,'label':label+' — budowa: 25 mld ROI'}
             continue
-        inventory[kind] = {'total':getattr(army,base_field) or 0 if army else 0,
-                           'available':max(0,(getattr(army,base_field) or 0)-active.get(base_field,0)) if army else 0,
+        # 13 Nov 2026: bez limitu z tabeli „wojsko” — dostępność wynika z surowców w magazynie (BASE_MATERIALS).
+        inventory[kind] = {'total':sum(1 for base in bases if base.kind==kind),
+                           'available':buildable.get(kind) or 0,
                            'label':label}
     from game.trade_navigation import visible_shipments
     response = render_template('game/military.html', game_user=user,game_country=country_summary(country),
@@ -93,7 +100,7 @@ def render_military(mode):
             'coastUrl':url_for('game_military.coastline',region_id=0),
             'flags':{str(id):url_for('static',filename='flags/'+(name or '').replace(' ','_')+'.jpg') for id,name in db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa))},
             'cargoShipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'tradeShips':visible_shipments(db.session,country.PANSTWO_ID),
-            'vessels':visible_vessels(country.PANSTWO_ID,mode=='war'),'vesselSpeed':VESSEL_SPEED,
+            'vessels':visible_vessels(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),'vesselSpeed':VESSEL_SPEED,
             'vesselIcons':{kind:url_for('static',filename='icons/'+name) for kind,name in [('warships','OKRĘT WOJENNY.svg'),('submarines','SUBMARINE.svg'),('carriers','LOTNISKOWIEC.svg')]},
             'fighterRange':FIGHTER_RANGE,'carrierCapacity':CARRIER_FIGHTERS,
             'carriersAvailable':max(0,((army.lotniskowce_ilosc or 0) if army else 0)-carriers_at_sea(db.session,country.PANSTWO_ID)),
@@ -103,10 +110,11 @@ def render_military(mode):
             'stateUrl':url_for('game_military.map_state'),
             'missileRules':{code:{'min':low,'max':high,'speed':speed} for code,(low,high,speed) in MISSILE_FLIGHT.items()},
             'fighterSpeed':FIGHTER_SPEED,'maxSalvo':MAX_SALVO,
+            'nuclear':{'range':__import__('game.nuclear',fromlist=['RANGE_KM']).RANGE_KM,'speed':__import__('game.nuclear',fromlist=['SPEED_KMH']).SPEED_KMH,'radius':__import__('game.nuclear',fromlist=['RADIUS_KM']).RADIUS_KM},
             'fighterIcon':url_for('static',filename='icons/MYŚLIWIEC.svg'),
             'baseCapacities':{kind:values[0] for kind,values in CAPACITIES.items()},
-            'availableGarrison':{kind:{resource:max(0,(getattr(army,BASES[kind][2] if resource=='soldiers' else RESOURCES[resource][1]) or 0)-active.get(BASES[kind][2] if resource=='soldiers' else RESOURCES[resource][1],0)) if army else 0 for resource in CAPACITIES[kind][0]} for kind in BASES},
-            'inventory':inventory,'budgetTotal':str(total),'budgetAvailable':str(available),'upkeep':str(current_upkeep),
+            'availableGarrison':{kind:{resource:max(0,owned(db.session,army,country.PANSTWO_ID,BASES[kind][2] if resource=='soldiers' else RESOURCES[resource][1])-active.get(BASES[kind][2] if resource=='soldiers' else RESOURCES[resource][1],0)) if army else 0 for resource in CAPACITIES[kind][0]} for kind in BASES},
+            'inventory':inventory,'baseMaterials':base_materials,'budgetTotal':str(total),'budgetAvailable':str(available),'upkeep':str(current_upkeep),
             'resources':{code:{'label':label,'icon':url_for('static',filename='icons/'+icon)} for code,(label,field,icon) in RESOURCES.items()},
             'csrf':session['game_csrf_token'],'changeUrl':url_for('game_military.defense_change'),
             'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
@@ -122,6 +130,19 @@ def render_military(mode):
         })
 
     db.session.commit()
+    return response
+
+
+@military_bp.get('/strefy-skazenia')
+def nuclear_zones():
+    """13 Nov 2026: aktywne strefy skażenia po uderzeniach atomowych — rysowane na wszystkich mapach gry."""
+    from game.nuclear import zones_data
+    from game.military_flights import calibration
+    if not isinstance(session.get('game_user_id'),int):return jsonify({'zones':[],'kmPerUnit':1})
+    try:scale=calibration(db.session).km_per_unit
+    except Exception:return jsonify({'zones':[],'kmPerUnit':1})
+    response=jsonify({'zones':zones_data(db.session),'kmPerUnit':scale})
+    response.headers['Cache-Control']='no-store'
     return response
 
 
@@ -167,7 +188,7 @@ def war_order():
     except FinanceError as exc:
         return jsonify(error=str(exc)),400
     message='Wysłano myśliwiec. Bombardowanie nastąpi po dotarciu do celu.' if data.get('kind')=='air' else 'Wystrzelono rakiety. Trafienie zostanie rozliczone po zakończeniu lotu.'
-    if data.get('is_nuclear'):message+=' Pocisk atomowy nie powoduje jeszcze ofiar ani zniszczeń.'
+    if data.get('is_nuclear'):message+=' Rakieta z głowicą nuklearną: skażenie w promieniu 100 km po trafieniu.'
     if not flight_id:message='Przyjęto rozkaz przemarszu. Zmiana kontroli regionu nie jest jeszcze rozstrzygana.'
     return jsonify(ok=True,flight_id=flight_id,message=message)
 
@@ -179,7 +200,7 @@ def base_data(base,own=None):
     own=own if own is not None else own_region_ids(db.session,base.panstwo_id)
     abroad=base.region_id is not None and base.region_id not in own
     from game.finance_service import current_period_months
-    upkeep=sum(n*UPKEEP_RATES[r] for r,n in (base.garrison or {}).items() if r!='warheads')*(ABROAD_UPKEEP if abroad else 1)*current_period_months()/6
+    upkeep=sum(n*UPKEEP_RATES[r] for r,n in (base.garrison or {}).items())*(ABROAD_UPKEEP if abroad else 1)*current_period_months()/6
     return {'abroad':abroad,'upkeep':str(upkeep),'id':base.id,'name':base.name,'operational':base.operational,'busyVessels':{kind:busy_vessels(db.session,base.id,kind) for kind in ('warships','submarines')} if base.kind=='naval' else {},'countryId':base.panstwo_id,'regionId':str(base.region_id),'kind':base.kind,
         'label':BASES[base.kind][0],'level':base.level,'garrison':base.garrison,'capacity':CAPACITIES[base.kind][base.level-1],
         'upgradeCost':str(UPGRADE_COSTS.get(base.level+1,0)*(2 if base.kind=='nuclear' else 1)),'position':[base.map_x,base.map_y] if base.map_x is not None and base.map_y is not None else None,
@@ -229,16 +250,26 @@ def map_state():
     return response
 
 
-def visible_vessels(country_id,world=False):
+def visible_vessels(country_id,submarines=False):
+    """Okręty na mapach (14 Nov 2026): własne zawsze; obce okręty wojenne i lotniskowce widzą wszyscy (bez wywiadu),
+    obce okręty podwodne — tylko państwo w stanie wojny. Obcy okręt w rejsie płynie po pozostałej części trasy;
+    wracający do bazy lub na pozycji jest pokazany w miejscu (bez trasy) — nie ujawniamy portu macierzystego."""
+    from game.sea_routes import remaining_path
     query=select(MilitaryVessel).where(MilitaryVessel.status.in_(['sailing','stationed','returning']))
-    if not world:query=query.where(MilitaryVessel.panstwo_id==country_id)
-    items=[]
+    if not submarines:query=query.where(or_(MilitaryVessel.panstwo_id==country_id,MilitaryVessel.kind!='submarines'))
+    items=[];now=game_now();stamp=now.isoformat()+'Z'
     for vessel in db.session.scalars(query.order_by(MilitaryVessel.id)):
-        item=vessel_data(vessel,game_now())
+        item=vessel_data(vessel,now)
         if vessel.panstwo_id!=country_id:
-            # A return route must not disclose an undiscovered naval base.
-            item['baseId']=None;item['regionId']=None;item['source']=item['position'];item['target']=item['position']
-            item['startsAt']=game_now().isoformat()+'Z';item['arrivesAt']=item['startsAt']
+            item['baseId']=None;item['regionId']=None;item['airBaseId']=None;item['busyFighters']=0
+            position=item['position']
+            if vessel.status=='sailing' and item.get('route') and vessel.arrives_at>now:
+                seconds=max(1,(vessel.arrives_at-vessel.starts_at).total_seconds())
+                item['route']=remaining_path(item['route'],(now-vessel.starts_at).total_seconds()/seconds)
+                item['source']=position;item['startsAt']=stamp
+            else:
+                item['route']=[position,position];item['source']=position;item['target']=position
+                item['startsAt']=stamp;item['arrivesAt']=stamp
         items.append(item)
     return items
 
@@ -290,7 +321,7 @@ def visible_factories(country_id,world=False):
     from game.industry_catalog import FACTORIES
     from game.commerce import goods_catalog
     products=goods_catalog()
-    for code,label,file in [('warships','Okręty wojenne','OKRĘT WOJENNY.svg'),('submarines','Okręty podwodne','SUBMARINE.svg'),('carriers','Lotniskowce','LOTNISKOWIEC.svg')]:
+    for code,label,file in [('warships','Okręty wojenne','OKRĘT WOJENNY.svg'),('submarines','Okręty podwodne','SUBMARINE.svg'),('carriers','Lotniskowce','LOTNISKOWIEC.svg'),('nuclear_missiles','Rakiety z głowicą nuklearną','BROŃ ATOMOWA.svg')]:
         products[code]={'label':label,'icon':url_for('static',filename='icons/'+file)}
     query=select(AmmunitionFactory).where(AmmunitionFactory.removed_at.is_(None)).order_by(AmmunitionFactory.id)
     if not world:query=query.where(AmmunitionFactory.panstwo_id==country_id)

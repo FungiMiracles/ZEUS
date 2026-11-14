@@ -3,7 +3,8 @@ miasta i obiekty, najazdy lądowe na miasta i bazy, decyzje o okupacji, aneksja 
 
 Cele wroga pochodzą wyłącznie z ekranu wojennego gracza (obiekty znane z wywiadu, jawne miasta i regiony).
 Wykonalność sprawdzana przed decyzją: sprawna baza z odpowiednim sprzętem, zasięg rakiet, zapas rakiet, budżet wojska,
-szacowana przewaga w bitwie. Uderzenia jądrowe nie są wykonywane.
+szacowana przewaga w bitwie. Uderzenie jądrowe (13 Nov 2026) — wyłącznie w stanie wojny i w ostateczności (przegrywana
+wojna: wróg okupuje nasze regiony albo użył broni atomowej przeciw nam), rakietą z głowicą nuklearną z silosu (zasięg 3000 km).
 """
 from decimal import Decimal
 from uuid import uuid5,NAMESPACE_URL
@@ -122,6 +123,40 @@ def strike_options(ctx,forces,screen,config,enemies):
                               notes=[f'Źródło: baza #{base.id} ({base.kind}), odległość {distance:.0f} km; cel {"chroniony obroną" if defended else "bez znanej obrony"}.'],
                               payload={'kind':order,'region_id':int(region),'source_base_id':base.id,'missile_type':missile,'missiles':count,TARGET_FIELD[kind]:id,'group':f'war:strike:{owner}'}))
     return sorted(options,key=lambda o:-o.base)[:6]
+
+
+def losing_war(ctx,enemies):
+    """Ostateczność: wróg okupuje nasze regiony albo w ostatnich zdarzeniach uderzył w nas bronią atomową."""
+    occupied=ctx.situation.get('occupied_regions') or {}
+    for value in (occupied.values() if isinstance(occupied,dict) else occupied):
+        occupier=value.get('occupier') if isinstance(value,dict) else value
+        if occupier in enemies or occupier is None:return True
+    for trigger in getattr(ctx,'triggers',None) or []:
+        if isinstance(trigger,dict) and trigger.get('kind')=='nuclear_strike':return True
+    return False
+
+
+def nuclear_strike_options(ctx,forces,screen,config,enemies):
+    """13 Nov 2026: jedna rakieta z głowicą nuklearną z silosu na najcenniejszy znany cel wroga w zasięgu 3000 km."""
+    from game.nuclear import RANGE_KM
+    if ctx.situation.get('level')!='war' or not losing_war(ctx,enemies):return []
+    silos=[b for b in forces.bases if b.kind=='nuclear' and b.health>0 and b.operational and b.map_x is not None and (b.garrison or {}).get('warheads',0)>0]
+    if not silos:return []
+    best=None
+    for kind,id,region,point,owner,defended in enemy_targets(ctx,screen,config,enemies):
+        if kind=='shipment':continue
+        for silo in silos:
+            distance=km(ctx,[silo.map_x,silo.map_y],point)
+            if distance is None or distance>RANGE_KM:continue
+            value=TARGET_VALUE[kind]+(3.0 if not defended else 0)
+            if best is None or value>best[0]:best=(value,kind,id,region,owner,silo,distance)
+    if best is None:return []
+    value,kind,id,region,owner,silo,distance=best
+    return [Option(key=f'war:nuclear:{kind}:{id}',domain='war',action='NUCLEAR_STRIKE',label=f'Uderzenie atomowe (1 rakieta z głowicą nuklearną) na {kind} #{id} państwa {owner}',
+                   target=owner,stance='hostile',effects={'offensive_army':1.0,'defensive_army':.6,'conquest':.4},
+                   traits={'militarism':.9,'provocation':.8,'loss_tolerance':.5,'agreeableness':-.8,'prosociality':-.9},categories={'terrorist':1.0,'imperialist':.5},
+                   base=value-2.0,risk=.6,notes=[f'Ostateczność: przegrywana wojna. Silos #{silo.id}, odległość {distance:.0f} km. Skażenie 100 km na 3 lata — powiadomienie do wszystkich państw.'],
+                   payload={'kind':'missile','region_id':int(region),'source_base_id':silo.id,'missile_type':'long','missiles':1,'is_nuclear':True,TARGET_FIELD[kind]:id,'group':f'war:nuclear:{owner}'})]
 
 
 DEFEAT_MARGIN=.3        # o tyle rośnie wymagana przewaga po każdej porażce o ten sam cel
@@ -246,11 +281,16 @@ def land_options(ctx,forces,screen,config,enemies,recapture_targets):
     if not bases:return []
     intel=battle_intel(ctx);plans=war_plans(ctx)
     neighbors=set(ctx.world_summary().get('neighbor_countries',[]))
+    # 14 Nov 2026: obiekty wroga, które już okupujemy, nie są celem ataku (gra odrzuca: „Ten obiekt jest już pod kontrolą naszego państwa.”).
+    held={(o['kind'],o.get('baseId') if o['kind']=='base' else o.get('cityId')) for o in (screen.get('occupations') or [])+((config or {}).get('occupations') or [])
+          if o.get('status')=='ACTIVE' and o.get('occupierId')==ctx.country_id and o.get('kind') in ('base','city')}
     targets=[]
     for item in screen.get('bases',[]):
+        if ('base',item.get('id')) in held:continue
         if item.get('countryId') in enemies&neighbors and item.get('position') and (item.get('health') or 100)>0:
             targets.append(('base',item['id'],item['position'],item['countryId'],item.get('level'),False))
     for id,city in (config.get('cities') or {}).items():
+        if ('city',int(id)) in held:continue
         if city.get('countryId') in enemies&neighbors and city.get('point'):targets.append(('city',int(id),city['point'],city['countryId'],None,False))
     targets+=recapture_targets
     live={(kind,id) for kind,id,*_ in targets}
@@ -417,6 +457,22 @@ class NSV:
 NAVAL_REACH_KM=1500    # okręt dalej od celów wroga dostaje nowy kierunek
 
 
+def sea_point(ctx,point):
+    """14 Nov 2026: cel rejsu przy celu lądowym (miasto, baza) — najbliższa woda poza pasem 2 km od brzegu, jak wymaga gra
+    (wcześniej PAGA2 wysyłała współrzędne lądu i gra odrzucała każdy rejs)."""
+    cache=getattr(ctx,'_sea_points',None)
+    if cache is None:cache=ctx._sea_points={}
+    key=(float(point[0]),float(point[1]))
+    if key not in cache:
+        try:
+            from game.sea_routes import _navy_router,MAP_PATH
+            from game.military_flights import calibration
+            with Session(db.engine) as session:scale=calibration(session).km_per_unit
+            cache[key]=_navy_router(MAP_PATH.stat().st_mtime_ns,scale).offshore(list(key))
+        except Exception:cache[key]=list(key)
+    return cache[key]
+
+
 def busy(base_id,kind):
     from game.military_navy import busy_vessels
     with Session(db.engine) as session:return busy_vessels(session,base_id,kind)
@@ -447,7 +503,7 @@ def naval_options(ctx,forces,targets,enemies):
         if here is None or goal is None or goal[0]<=NAVAL_REACH_KM:continue
         options.append(Option(key=f'war:vessel:redirect:{v.id}',domain='war',action='VESSEL_REDIRECT',label=f'Nowy kierunek okrętu #{v.id}: wody państwa {here[2]}',target=here[2],stance='hostile',
                               effects={'offensive_army':.8,'conquest':.3},traits={'militarism':.5},base=2.0,notes=[f'Obecny cel rejsu {goal[0]:.0f} km od celów wroga.'],
-                              payload={'action':'redirect_vessel','vessel_id':v.id,'x':here[1][0],'y':here[1][1],'group':f'vessel:{v.id}'}))
+                              payload={'action':'redirect_vessel','vessel_id':v.id,**dict(zip(('x','y'),sea_point(ctx,here[1]))),'group':f'vessel:{v.id}'}))
     if True:
         for b in forces.bases:
             if b.kind!='naval' or b.health<=0 or b.map_x is None:continue
@@ -457,7 +513,7 @@ def naval_options(ctx,forces,targets,enemies):
                 if goal is None:continue
                 options.append(Option(key=f'war:vessel:sail:{b.id}:{kind}',domain='war',action='VESSEL_SAIL',label=f'Rejs ({"okręt podwodny" if kind=="submarines" else "okręt wojenny"}) z bazy #{b.id} ku państwu {goal[2]}',
                                       target=goal[2],stance='hostile',effects={'offensive_army':.9,'conquest':.4},traits={'militarism':.6,'loss_tolerance':.2},base=1.0,
-                                      notes=[f'Odległość do celu: {goal[0]:.0f} km.'],payload={'action':'sail','base_id':b.id,'vessel_kind':kind,'x':goal[1][0],'y':goal[1][1],'group':f'sail:{b.id}'}))
+                                      notes=[f'Odległość do celu: {goal[0]:.0f} km.'],payload={'action':'sail','base_id':b.id,'vessel_kind':kind,**dict(zip(('x','y'),sea_point(ctx,goal[1]))),'group':f'sail:{b.id}'}))
     return options
 
 
@@ -470,6 +526,8 @@ def declare_options(ctx,forces,screen=None):
     triggers={item.get('from') for item in ctx.triggers if item.get('from')}
     neighbors=set(ctx.world_summary().get('neighbor_countries',[]))
     reach=None
+    from game.paga2.war_losses import deterrence_map
+    deterred=deterrence_map(ctx)   # 13 Nov 2026: pokój po ciężkiej wojnie — mniejsza skłonność do ataku
     for other,row in ctx.situation.get('relations',{}).items():
         if row.get('relation') not in WAR_RELATIONS or row.get('state')=='wojnakinetyczna':continue
         provoked=ctx.history(other)['hostile_from']
@@ -485,8 +543,8 @@ def declare_options(ctx,forces,screen=None):
                               effects={'conquest':1.0,'offensive_army':.7,'welfare':-.6,'financial_stability':-.5,'trade':-.4},
                               traits={'militarism':.8,'expansionism':.8,'provocation':.6,'ambition':.4,'agreeableness':-.8,'strategic_patience':-.3,'predictability':-.2},
                               categories={'imperialist':1.0,'terrorist':.4,'hegemonic':.3,'isolationist':-.5,'welfare':-.6},
-                              base=-16.0+(5.0 if other in neighbors else 0)+4*min(3,provoked)+(6.0 if other in triggers else 0),risk=.4+(.2 if distant else 0),
-                              notes=[note],payload={'kind':'WAR','target_id':other,'group':'war:declare','capable':able,**({'distant':True} if distant else {})}))
+                              base=-16.0+(5.0 if other in neighbors else 0)+4*min(3,provoked)+(6.0 if other in triggers else 0)-min(12.0,deterred.get(other,0.0)),risk=.4+(.2 if distant else 0),
+                              notes=[note]+([f'Odstraszenie: pokój po ciężkiej wojnie z tym państwem lub jego sojusznikiem (−{min(12.0,deterred[other]):.1f}).'] if deterred.get(other) else []),payload={'kind':'WAR','target_id':other,'group':'war:declare','capable':able,**({'distant':True} if distant else {})}))
     return options
 
 
@@ -507,6 +565,7 @@ def propose(ctx):
         try:options+=naval_options(ctx,forces,enemy_targets(ctx,screen,config,enemies),enemies)
         except Exception:pass
     if enemies:options+=strike_options(ctx,forces,screen,config,enemies)
+    if enemies:options+=nuclear_strike_options(ctx,forces,screen,config,enemies)
     options+=land_options(ctx,forces,screen,config,enemies,recapture)
     return options
 
@@ -543,7 +602,7 @@ def execute(ctx,option):
         return result(status,data)
     if option.action=='WAR':
         status,data=ctx.call(DECLARE,form={'kind':'WAR','target_id':str(p['target_id'])})
-    elif option.action.startswith('STRIKE_'):
+    elif option.action.startswith('STRIKE_') or option.action=='NUCLEAR_STRIKE':
         status,data=ctx.call(ORDER,json=p)
     elif option.action in ('LAND_ATTACK','RECAPTURE'):
         status,data=ctx.call(INVASION,json={**p,'request_id':rid(ctx,option)})

@@ -1,0 +1,348 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PAGA2 — algorytmy i schematy</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f0f4fa;color:#24324a;font:16px/1.6 system-ui,sans-serif}main{max-width:1060px;margin:auto;padding:24px}h1,h2,h3{color:#1e3a5f;line-height:1.25}h1{border-bottom:4px solid #1e3a5f;padding-bottom:20px}h2{margin-top:44px}a{color:#1e3a5f}code{font-size:.88em;overflow-wrap:anywhere}pre{white-space:pre-wrap;font-size:13px;padding:16px;background:#fff;border:1px solid #d3dce9;border-radius:8px}table{border-collapse:collapse;width:100%;background:white;font-size:14px}th,td{border:1px solid #d3dce9;padding:10px;text-align:left}th{background:#1e3a5f;color:white}.flow{max-width:760px;margin:20px auto;overflow-x:auto}.flow svg{display:block;width:100%;min-width:560px;font-family:system-ui,sans-serif}summary{cursor:pointer;padding:10px;font-weight:600;color:#1e3a5f}details{border:1px solid #d3dce9;border-radius:8px}button{padding:10px 18px;background:#1e3a5f;color:white;border:0;border-radius:8px;cursor:pointer;font:inherit} @media(max-width:600px){main{padding:16px}table{font-size:12px}th,td{padding:6px}}@media print{body{background:white}main{padding:0}button,details{display:none}.flow{break-inside:avoid}.flow svg{min-width:0}h2{break-after:avoid}table{font-size:11px}}
+</style><main><button onclick="window.print()">Drukuj / zapisz jako PDF</button><h1 id="paga2-schematy-dziaania">PAGA2 — schematy działania</h1>
+<p>Analiza kodu ZEUS GAME UAT z 13 listopada 2026, punkt odniesienia: <code>1b8dc4e</code>. Opis implementacji, a nie odczyt bieżącej konfiguracji lub stanu państw w bazie. Schematy Mermaid można wyświetlić w podglądzie Markdown; wersja HTML obok zawiera schematy bez zewnętrznych bibliotek.</p>
+<h2 id="1-harmonogram-i-trzy-tryby">1. Harmonogram i trzy tryby</h2>
+<div class="flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 796" role="img" aria-labelledby="diagram-0">
+<title id="diagram-0">Harmonogram PAGA2 — schemat przeglądowy; warunki opisano pod krokami</title>
+<defs><marker id="arrow-0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#1e3a5f"/></marker></defs>
+<rect x="10" y="8" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="36" font-size="18" font-weight="700" fill="#1e3a5f">1. Kontrola co 30 s</text>
+<text x="28" y="60" font-size="14" fill="#4d5f78">Czas rzeczywisty; tylko UAT</text>
+<path d="M360 94 V118" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="120" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="148" font-size="18" font-weight="700" fill="#1e3a5f">2. Sprawdzenie konfiguracji i blokady</text>
+<text x="28" y="172" font-size="14" fill="#4d5f78">Wyłączone lub zajęta blokada → koniec</text>
+<path d="M360 206 V230" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="232" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="260" font-size="18" font-weight="700" fill="#1e3a5f">3. Wybór uprawnionych państw</text>
+<text x="28" y="284" font-size="14" fill="#4d5f78">Autonomia, brak gracza; silnik sprawdza suwerenność</text>
+<path d="M360 318 V342" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="344" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="372" font-size="18" font-weight="700" fill="#1e3a5f">4. BUDGET: jeśli brakuje budżetu</text>
+<text x="28" y="396" font-size="14" fill="#4d5f78">Błąd → ponowienie za 2 godziny</text>
+<path d="M360 430 V454" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="456" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="484" font-size="18" font-weight="700" fill="#1e3a5f">5. IMMEDIATE: jeśli są nowe wyzwalacze</text>
+<text x="28" y="508" font-size="14" fill="#4d5f78">Bezpieczeństwo ma pierwszeństwo</text>
+<path d="M360 542 V566" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="568" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="596" font-size="18" font-weight="700" fill="#1e3a5f">6. CYCLIC: jeśli upłynął termin</text>
+<text x="28" y="620" font-size="14" fill="#4d5f78">Domyślny interwał: 60 minut</text>
+<path d="M360 654 V678" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-0)"/>
+<rect x="10" y="680" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="708" font-size="18" font-weight="700" fill="#1e3a5f">7. Następne państwo</text>
+<text x="28" y="732" font-size="14" fill="#4d5f78">Błąd państwa nie przerywa całej listy</text>
+</svg></div>
+<details><summary>Pełny schemat warunków w Mermaid</summary><pre>flowchart TD
+ T[Kontrola co 30 sekund czasu rzeczywistego] --&gt; G{UAT, PAGA_ENABLED oraz globalne PAGA2?}
+ G --&gt;|nie| STOP[Koniec]
+ G --&gt;|tak| L{Wolna blokada pliku tick.lock?}
+ L --&gt;|nie| STOP
+ L --&gt;|tak| C[Państwa z autonomią i bez gracza, spełniające npc_eligible]
+ C --&gt; B{Brak budżetu bieżącego okresu i upłynął termin ponowienia?}
+ B --&gt;|tak| BR[BUDGET: ocena i zatwierdzenie wariantu]
+ BR --&gt; BF[Przy niepowodzeniu ponowienie za 2 godziny rzeczywiste]
+ B --&gt;|nie| N[Odczytaj nowe powiadomienia i wiadomości]
+ BF --&gt; N
+ N --&gt; I{Są wyzwalacze?}
+ I --&gt;|tak| IR[IMMEDIATE: najpierw wyzwalacz bezpieczeństwa]
+ I --&gt;|nie| D{Upłynął termin cyklu?}
+ IR --&gt; D
+ D --&gt;|tak| CR[CYCLIC: pełny przegląd]
+ CR --&gt; NEXT[Następne państwo]
+ D --&gt;|nie| NEXT
+</pre></details>
+
+<p>Kolejność w obrębie jednego państwa: <strong>budżet → reakcja doraźna → cykl</strong>. „Natychmiastowa” reakcja oznacza obsługę przy sprawdzeniu harmonogramu; nie jest synchroniczną reakcją w chwili ataku. Przegląd cykliczny domyślnie przypada co 60 minut rzeczywistych (<code>interval_minutes</code>, konfigurowalne), a pierwszy termin ma stałe przesunięcie zależne od ID państwa. Zegar gry jest osobny: wpływa m.in. na okres budżetu i ukończenie badań.</p>
+<p>Silnik ponownie sprawdza globalne włączenie, profil, autonomię, <code>npc_eligible</code> i utratę suwerenności. Powtórzony <code>request_key</code> zwraca istniejącą decyzję. Błąd jednego państwa nie zatrzymuje kolejnych.</p>
+<p>Źródła: <code>engine/paga2_scheduler.py</code>, <code>game/paga2/engine.py</code>, <code>game/paga2/triggers.py</code>, <code>game/paga2/models.py</code>.</p>
+<h2 id="2-wybor-i-wykonanie-decyzji">2. Wybór i wykonanie decyzji</h2>
+<div class="flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 908" role="img" aria-labelledby="diagram-1">
+<title id="diagram-1">Silnik decyzji — schemat przeglądowy; warunki opisano pod krokami</title>
+<defs><marker id="arrow-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#1e3a5f"/></marker></defs>
+<rect x="10" y="8" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="36" font-size="18" font-weight="700" fill="#1e3a5f">1. Uprawnienia i request_key</text>
+<text x="28" y="60" font-size="14" fill="#4d5f78">Istniejąca decyzja → zwróć jej ID</text>
+<path d="M360 94 V118" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="120" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="148" font-size="18" font-weight="700" fill="#1e3a5f">2. Kontekst państwa</text>
+<text x="28" y="172" font-size="14" fill="#4d5f78">Profil, sytuacja, relacje, pamięć, środki, mapa</text>
+<path d="M360 206 V230" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="232" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="260" font-size="18" font-weight="700" fill="#1e3a5f">3. Opcje adapterów + PASSIVE</text>
+<text x="28" y="284" font-size="14" fill="#4d5f78">Punktacja i kontrola wykonalności</text>
+<path d="M360 318 V342" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="344" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="372" font-size="18" font-weight="700" fill="#1e3a5f">4. Wymagane decyzje</text>
+<text x="28" y="396" font-size="14" fill="#4d5f78">Najlepszy wariant w grupie, poza zwykłym limitem</text>
+<path d="M360 430 V454" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="456" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="484" font-size="18" font-weight="700" fill="#1e3a5f">5. Zwykła opcja powyżej progu</text>
+<text x="28" y="508" font-size="14" fill="#4d5f78">Różnica od najlepszej &lt;2 pkt → losowanie</text>
+<path d="M360 542 V566" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="568" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="596" font-size="18" font-weight="700" fill="#1e3a5f">6. Endpoint gracza</text>
+<text x="28" y="620" font-size="14" fill="#4d5f78">Sukces → koszty i blokada grupy; błąd → odrzucenie</text>
+<path d="M360 654 V678" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="680" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="708" font-size="18" font-weight="700" fill="#1e3a5f">7. Kolejna próba do limitu</text>
+<text x="28" y="732" font-size="14" fill="#4d5f78">Wróć do wyboru zwykłej opcji</text>
+<path d="M360 766 V790" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-1)"/>
+<rect x="10" y="792" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="820" font-size="18" font-weight="700" fill="#1e3a5f">8. Zapis historii</text>
+<text x="28" y="844" font-size="14" fill="#4d5f78">EXECUTED / REJECTED / PASSIVE / ERROR</text>
+</svg></div>
+<details><summary>Pełny schemat warunków w Mermaid</summary><pre>flowchart TD
+ A[Sprawdź uprawnienie i request_key] --&gt; B[Kontekst: profil, sytuacja, mapa, relacje, pamięć, budżet, magazyn]
+ B --&gt; C[Adaptery proponują opcje + opcja PASSIVE]
+ C --&gt; D[Punktacja wszystkich opcji]
+ D --&gt; E[Sprawdzenie budżetu, zasobów i warunków adaptera]
+ E --&gt; F[W każdej grupie required pozostaw najlepszy wykonalny wariant]
+ F --&gt; R[Wykonaj decyzje wymagane poza limitem zwykłych działań]
+ R --&gt; P{Są zwykłe opcje powyżej progu i wolny limit?}
+ P --&gt;|tak| W[Wybierz najlepszą; przy różnicy poniżej 2 pkt losuj]
+ W --&gt; X[Operacja przez endpoint gracza]
+ X --&gt; Y{Status odpowiedzi poniżej 400?}
+ Y --&gt;|tak| Z[Zapisz sukces, koszty, zasoby; zamknij grupę]
+ Y --&gt;|nie| V[Zapisz odrzucenie; opcja nie wraca do puli]
+ Z --&gt; P
+ V --&gt; P
+ P --&gt;|nie| H[Historia: EXECUTED / REJECTED / PASSIVE; przy błędzie przebiegu ERROR]
+</pre></details>
+
+<p><strong>Próg zwykłego działania:</strong> ocena musi być <strong>ściśle większa</strong> od <code>max(50, ocena PASSIVE)</code>. PASSIVE = <code>50 + 5 + (cierpliwość − 50)/10</code>, pomniejszone o 6 podczas wojny lub 3 przy zagrożeniu. W trybie BUDGET próg wynosi minus nieskończoność.</p>
+<p><strong>Limit prób zwykłych działań:</strong> CYCLIC = <code>1 + floor(ambicja/40)</code> (1–3), IMMEDIATE = 2 podczas wojny, poza nią 1; BUDGET = 1. Nieudana próba zużywa iterację limitu. Odpowiedzi na propozycje, rozstrzygnięcia okupacyjne i wybrane etapy rozwoju oznaczone <code>required</code> są obsługiwane osobno, niezależnie od progu oraz limitu. W grupie required silnik sortuje po punktach; nie używa randomizera remisów.</p>
+<p>Sukces jednej opcji blokuje pozostałe opcje w tej samej grupie. Wynik całego przebiegu to EXECUTED, jeśli choć jedna próba się powiodła, nawet gdy inne się nie udały. PASSIVE oznacza brak prób. Zapis obejmuje alternatywy, składniki ocen, blokady, wejścia i wyniki operacji.</p>
+<p>Źródła: <code>game/paga2/engine.py</code>, <code>game/paga2/scoring.py</code>, <code>game/paga2/randomizer.py</code>, <code>game/paga2/gateway.py</code>.</p>
+<h2 id="3-punktacja-i-ograniczenia">3. Punktacja i ograniczenia</h2>
+<p><code>ocena = 50 + priorytety + cechy + charakter + relacje + rozwaga finansowa + ryzyko + bonus adaptera + nieprzewidywalność</code></p>
+<table>
+<thead>
+<tr>
+<th>Składnik</th>
+<th>Implementacja</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Priorytety</td>
+<td>Suma <code>40 × waga priorytetu × wpływ opcji × mnożnik sytuacji</code>; kolejność priorytetów ma znaczenie.</td>
+</tr>
+<tr>
+<td>Cechy</td>
+<td>Odchylenie cech 0–100 od neutralnych 50, powinowactwa adaptera; wynik ograniczony do −20…20.</td>
+</tr>
+<tr>
+<td>Charakter państwa</td>
+<td>Dopasowanie kategorii, ograniczone do −16…16.</td>
+</tr>
+<tr>
+<td>Relacje</td>
+<td>Sojusze, historyczne związki, patron/satelita, zaufanie, zagrożenie i pamięć ataków.</td>
+</tr>
+<tr>
+<td>Rozwaga</td>
+<td>Kara kwadratowa względem udziału kosztu w limicie jednej akcji, maksymalnie −40.</td>
+</tr>
+<tr>
+<td>Ryzyko</td>
+<td><code>−ryzyko × 20 × (100 − tolerancja strat)/100</code>.</td>
+</tr>
+<tr>
+<td>Bonus adaptera</td>
+<td>Ocena specyficzna dla domeny, np. niedobór energii albo potrzeba obrony.</td>
+</tr>
+<tr>
+<td>Nieprzewidywalność</td>
+<td>Rozrzut do ±4, tłumiony przewidywalnością; deterministyczny dla pary request_key/opcja.</td>
+</tr>
+<tr>
+<td>Remis</td>
+<td>Oddzielne losowanie SystemRandom między opcjami oddalonymi od najlepszej o <strong>mniej niż 2 pkt</strong>; zapis w tabeli losowań.</td>
+</tr>
+</tbody>
+</table>
+<p>Sytuacja: <strong>wojna</strong>, gdy istnieje wojna kinetyczna lub obca okupacja własnych regionów; <strong>zagrożenie</strong>, gdy są niedawne wrogie działania, zapamiętane zagrożenie ≥60 albo wrogi sąsiad; w pozostałych przypadkach <strong>pokój</strong>. Np. wojna mnoży wagę obrony przez 2,5, ofensywy przez 1,8, środowiska przez 0,35.</p>
+<p>Limit jednej akcji = <code>0,6 − 0,4 × konserwatyzm_fiskalny/100</code> (20–60% początkowo dostępnych środków sektora). Limit przebiegu = <code>min(0,9; 1,6 × limit_akcji)</code> (32–90%). Wymagany jest też zapas surowców, a pojedyncze zużycie co do zasady nie przekracza limitu akcji względem dostępnego zapasu. Specjalny najmniejszy zakup punktu badań (<code>minimal_purchase</code>) omija limity rozwagi, ale nadal wymaga pieniędzy.</p>
+<p>Źródła: <code>game/paga2/scoring.py</code>, <code>game/paga2/catalog.py</code>, <code>game/paga2/situation.py</code>.</p>
+<h2 id="4-planowanie-rozwoju">4. Planowanie rozwoju</h2>
+<div class="flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 796" role="img" aria-labelledby="diagram-2">
+<title id="diagram-2">Planowanie rozwoju — schemat przeglądowy; warunki opisano pod krokami</title>
+<defs><marker id="arrow-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#1e3a5f"/></marker></defs>
+<rect x="10" y="8" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="36" font-size="18" font-weight="700" fill="#1e3a5f">1. Przeliczenie aktywnych planów</text>
+<text x="28" y="60" font-size="14" fill="#4d5f78">Każdy cykl korzysta z aktualnego stanu</text>
+<path d="M360 94 V118" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="120" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="148" font-size="18" font-weight="700" fill="#1e3a5f">2. Zgodność priorytetów i możliwość celu</text>
+<text x="28" y="172" font-size="14" fill="#4d5f78">Brak zgodności → ABANDONED; niemożliwy → IMPOSSIBLE</text>
+<path d="M360 206 V230" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="232" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="260" font-size="18" font-weight="700" fill="#1e3a5f">3. Technologie → zasoby → energia → budowa</text>
+<text x="28" y="284" font-size="14" fill="#4d5f78">Zakończone, w budowie lub zewnętrzne → DONE</text>
+<path d="M360 318 V342" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="344" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="372" font-size="18" font-weight="700" fill="#1e3a5f">4. Pierwszy gotowy etap przed blokadą</text>
+<text x="28" y="396" font-size="14" fill="#4d5f78">Brak etapu → oczekiwanie; &gt;720 bez postępu → porzucenie</text>
+<path d="M360 430 V454" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="456" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="484" font-size="18" font-weight="700" fill="#1e3a5f">5. Propozycja etapu do wspólnego silnika</text>
+<text x="28" y="508" font-size="14" fill="#4d5f78">Pierwszy proponowany etap jest required</text>
+<path d="M360 542 V566" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="568" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="596" font-size="18" font-weight="700" fill="#1e3a5f">6. Nowe cele przy wolnym limicie planów</text>
+<text x="28" y="620" font-size="14" fill="#4d5f78">Brak aktywnych planów → wymagany start planu</text>
+<path d="M360 654 V678" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-2)"/>
+<rect x="10" y="680" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="708" font-size="18" font-weight="700" fill="#1e3a5f">7. Kolejny cykl: ponowne przeliczenie</text>
+<text x="28" y="732" font-size="14" fill="#4d5f78">Etapy nie są bezwarunkowo wykonywaną kolejką</text>
+</svg></div>
+<details><summary>Pełny schemat warunków w Mermaid</summary><pre>flowchart TD
+ A[CYCLIC: przelicz aktywne plany z aktualnego stanu] --&gt; B{Cel nadal zgodny z priorytetami?}
+ B --&gt;|nie| AB[ABANDONED]
+ B --&gt;|tak| C{Cel możliwy?}
+ C --&gt;|nie| IM[IMPOSSIBLE z powodem]
+ C --&gt;|tak| D[Ścieżka: technologie od korzenia, zasoby, energia, budowa]
+ D --&gt; E{Etapy zakończone, w budowie lub zewnętrzne?}
+ E --&gt;|tak| DONE[DONE według semantyki planera]
+ E --&gt;|nie| F{Jest pierwszy gotowy etap przed blokadą?}
+ F --&gt;|tak| G[Opcja wykonania etapu; pierwszy proponowany etap jest required]
+ F --&gt;|nie| WAIT[Oczekiwanie na badania, środki lub inne warunki]
+ WAIT --&gt; IDLE{Ponad 720 przebiegów bez postępu?}
+ IDLE --&gt;|tak| AB
+ IDLE --&gt;|nie| A
+ G --&gt; RUN[Wspólny silnik: wykonalność i wykonanie]
+ RUN --&gt; A
+ A --&gt; NEW{Jest miejsce na kolejny plan?}
+ NEW --&gt;|tak| CAND[Kandydaci z priorytetów: technologia, fabryka, kopalnia, elektrownia]
+ CAND --&gt; START[Opcje PLAN_START; gdy brak aktywnych planów, start jest required]
+ START --&gt; RUN
+</pre></details>
+
+<p>Punkty badań można kupować częściowo. Rozpoczęty rozwój technologii blokuje ponowną inwestycję do ukończenia. Surowiec z własnego złoża prowadzi do kopalni; brak złoża może prowadzić do zewnętrznego etapu zakupu w handlu. Nie każdy etap zasobowy blokuje zakończenie planu. Status <code>DONE</code> może oznaczać zakończenie decyzji inwestycyjnych przy trwającej budowie, nie gotowy obiekt produkcyjny. Plany wojskowe obsługuje osobno moduł wojny.</p>
+<p>Źródła: <code>game/paga2/planner.py</code>, <code>game/paga2/holdings.py</code>, <code>game/paga2/location.py</code>, <code>game/paga2/war.py</code>.</p>
+<h2 id="5-budzet">5. Budżet</h2>
+<div class="flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 796" role="img" aria-labelledby="diagram-3">
+<title id="diagram-3">Ustalanie budżetu — schemat przeglądowy; warunki opisano pod krokami</title>
+<defs><marker id="arrow-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#1e3a5f"/></marker></defs>
+<rect x="10" y="8" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="36" font-size="18" font-weight="700" fill="#1e3a5f">1. Brak budżetu bieżącego okresu</text>
+<text x="28" y="60" font-size="14" fill="#4d5f78">Od 1 października 3001: kwartały</text>
+<path d="M360 94 V118" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="120" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="148" font-size="18" font-weight="700" fill="#1e3a5f">2. Podgląd finansów gracza</text>
+<text x="28" y="172" font-size="14" fill="#4d5f78">Podatki, dochody, wskaźniki i świadczenia</text>
+<path d="M360 206 V230" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="232" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="260" font-size="18" font-weight="700" fill="#1e3a5f">3. Wagi sektorów</text>
+<text x="28" y="284" font-size="14" fill="#4d5f78">Profil + sytuacja + potrzeby i poprzednie wykorzystanie</text>
+<path d="M360 318 V342" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="344" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="372" font-size="18" font-weight="700" fill="#1e3a5f">4. Wygładzenie poprzednim planem</text>
+<text x="28" y="396" font-size="14" fill="#4d5f78">Stopień zależy od przewidywalności państwa</text>
+<path d="M360 430 V454" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="456" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="484" font-size="18" font-weight="700" fill="#1e3a5f">5. Warianty podatku i świadczeń</text>
+<text x="28" y="508" font-size="14" fill="#4d5f78">Podgląd gry i ocena każdego wariantu</text>
+<path d="M360 542 V566" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="568" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="596" font-size="18" font-weight="700" fill="#1e3a5f">6. Wybór przez silnik</text>
+<text x="28" y="620" font-size="14" fill="#4d5f78">BUDGET: jedna zwykła próba, bez progu PASSIVE</text>
+<path d="M360 654 V678" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow-3)"/>
+<rect x="10" y="680" width="700" height="86" rx="10" fill="#fff" stroke="#1e3a5f"/>
+<text x="28" y="708" font-size="18" font-weight="700" fill="#1e3a5f">7. Zatwierdzenie operacją gracza</text>
+<text x="28" y="732" font-size="14" fill="#4d5f78">/game/finanse/zatwierdz</text>
+</svg></div>
+<details><summary>Pełny schemat warunków w Mermaid</summary><pre>flowchart TD
+ A[Brak zatwierdzonego budżetu bieżącego okresu] --&gt; B[Podgląd gracza: poprzedni podatek, dochody, świadczenia, wskaźniki]
+ B --&gt; C[Wagi sektorów: profil + sytuacja + potrzeby]
+ C --&gt; D[Wygładzenie udziałami poprzedniego budżetu]
+ D --&gt; E[Warianty podatku i świadczeń]
+ E --&gt; F[Podgląd każdego wariantu i punktacja]
+ F --&gt; G[Najlepszy wykonalny wariant przez wspólny silnik]
+ G --&gt; H[Zatwierdzenie przez /game/finanse/zatwierdz]
+</pre></details>
+
+<p>Od <strong>1 października 3001 czasu Entendy</strong> okresy są kwartalne. Starsze komentarze PAGA2 mówią jeszcze o półroczu, ale harmonogram korzysta z aktualnego <code>period_key()</code> finansów. Potrzeby zwiększają wagę badań przy oczekujących etapach planów; wykorzystanie poprzedniego sektora modyfikuje wagę od ×0,55 do ×1,45; wystarczająca liczba baz lub nadmiar sprzętu poza wojną zmniejsza wagę wojska przez ×0,6. To korekta wag, nie bezwzględny zakaz inwestowania w obronę.</p>
+<p>Źródła: <code>game/paga2/budget.py</code>, <code>game/finance_service.py</code>, <code>engine/paga2_scheduler.py</code>.</p>
+<h2 id="6-domena-dziaan-i-rola-modeli-jezykowych">6. Domena działań i rola modeli językowych</h2>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Tryby</th>
+<th>Zakres</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>budget</td>
+<td>BUDGET</td>
+<td>Podatek, podział środków, świadczenia.</td>
+</tr>
+<tr>
+<td>planner</td>
+<td>CYCLIC</td>
+<td>Plany rozwoju i kolejne etapy.</td>
+</tr>
+<tr>
+<td>industry</td>
+<td>CYCLIC</td>
+<td>Naprawy, rozbudowa, wznowienie lub likwidacja obiektów.</td>
+</tr>
+<tr>
+<td>trade</td>
+<td>CYCLIC</td>
+<td>Oferty, zakupy i obsługa braków.</td>
+</tr>
+<tr>
+<td>finance</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Przesunięcia środków, wnioski pożyczkowe, spłaty.</td>
+</tr>
+<tr>
+<td>defense</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Bazy, wyposażenie, obrona przeciwrakietowa, radary, szkolenie.</td>
+</tr>
+<tr>
+<td>diplomacy</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Relacje, propozycje, odpowiedzi, sojusze, pokój.</td>
+</tr>
+<tr>
+<td>intelligence</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Wywiad, kontrwywiad i działania hybrydowe.</td>
+</tr>
+<tr>
+<td>war</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Uderzenia konwencjonalne, najazdy, okupacje, odbijanie; wypowiadanie wojny tylko w IMMEDIATE.</td>
+</tr>
+<tr>
+<td>communication</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Wybór okazji do wystąpienia i zlecenie wypowiedzi AI.</td>
+</tr>
+<tr>
+<td>bases_abroad</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Zezwolenia i bazy zagraniczne.</td>
+</tr>
+</tbody>
+</table>
+<p>PAGA2 czyta ekrany przez <code>view.py</code> i wykonuje operacje przez <code>gateway.py</code> w tożsamości państwa. Endpointy stosują reguły gracza. Planer i historia mają też własne zapisy w bazie; nie wszystko w systemie jest wywołaniem HTTP.</p>
+<p>Modele językowe dostają profil, sytuację, plany, ostatnie działania i stosunek do rozmówcy (<code>llm_context.py</code>). Algorytm wybiera inicjowanie komunikacji, model generuje jej treść. <strong>Wyjątek istotny dla interpretacji:</strong> <code>finance.py</code> wprost pozostawia decyzję o udzieleniu pożyczki modelowi AI, udostępniając ocenę zdolności finansowej. Nie należy więc opisywać całego systemu jako pozbawionego decyzji AI.</p>
+<h2 id="7-ograniczenia-widoczne-w-kodzie-do-osobnego-rozwazenia">7. Ograniczenia widoczne w kodzie — do osobnego rozważenia</h2>
+<p>Poniższe obserwacje nie zostały zmienione w ramach korekt wyglądu:</p>
+<ol>
+<li>Wykonalność opcji sprawdzana jest przed pętlą działań. Po sukcesie aktualizowane są liczniki wydatków i zasobów, ale pozostałe opcje nie przechodzą ponownie <code>check_resources</code> ani <code>adapter.check</code>. Reguły endpointu mogą odrzucić późniejszą operację, natomiast wewnętrzny limit rozwagi całego przebiegu nie jest ponownie weryfikowany.</li>
+<li><code>minimal_purchase</code> zwraca sukces sprawdzenia zaraz po kontroli pieniędzy. Pomija także dalszą pętlę sprawdzenia surowców; obecne zastosowanie dotyczy zakupu punktów rozwoju, ale rozszerzanie tego znacznika wymaga ostrożności.</li>
+<li>Kursory wiadomości/powiadomień oraz kolejny termin cyklu zapisywane są przed wykonaniem silnika. Błąd nie oznacza automatycznego ponowienia tych samych wyzwalaczy. Dla nieudanego budżetu istnieje osobna ścieżka ponowienia.</li>
+<li>Unikalność request_key chroni zapis historii, a wywołania endpointów i zapis historii nie są jedną wspólną transakcją. Idempotencja operacji domenowych jest osobną warstwą; sam dziennik nie stanowi gwarancji dokładnie jednokrotnego wykonania w razie awarii procesu.</li>
+<li>Próg 720 oznacza porzucenie dopiero przy <code>idle_cycles &gt; 720</code>. Wiele komentarzy ma historyczne nazwy okresów; właściwe zachowanie należy odczytywać z wywoływanych funkcji finansowych.</li>
+</ol>
+<p>To analiza statyczna bieżącego kodu; nie potwierdza, jakie państwa i ustawienia są aktualnie włączone na działającym UAT.</p></main></html>

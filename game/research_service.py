@@ -12,7 +12,7 @@ from game.admin_finance import request_key
 from game.military_service import natural
 from game.research_models import ResearchAccount,ResearchExpense,ResearchInvestment,AmmunitionFactory
 
-POINT_PRICE=400000000
+POINT_PRICE=150000000   # 13 Nov 2026: cena 1 punktu rozwoju obniżona z 400 do 150 mln ROI (liczby punktów technologii bez zmian)
 FACTORY_PRICE=2000000000
 from game.industry_catalog import TECHNOLOGIES
 LEVELS={key:[rule['cost']] for key,rule in TECHNOLOGIES.items()}
@@ -84,9 +84,11 @@ def change_research(user_id,data):
                 if (existing.node,existing.points)!=(node,count):raise FinanceConflict('Identyfikator inwestycji został już użyty.')
                 return
             nodes=dict(account.nodes)
-            parent=TECHNOLOGIES[node]['parent']
             now=game_now();timers=dict(account.timers or {})
-            if parent and node_state(nodes.get(parent,0),parent,timers,now)['level']<1:raise FinanceError('Najpierw opracuj technologię: '+TECHNOLOGIES[parent]['label']+'.')
+            # 13 Nov 2026: technologia może wymagać kilku wcześniejszych (np. rakieta z głowicą nuklearną)
+            missing=[TECHNOLOGIES[code]['label'] for code in TECHNOLOGIES[node].get('requires') or ([TECHNOLOGIES[node]['parent']] if TECHNOLOGIES[node]['parent'] else [])
+                     if node_state(nodes.get(code,0),code,timers,now)['level']<1]
+            if missing:raise FinanceError('Najpierw opracuj technologię: '+', '.join(missing)+'.')
             current=nodes.get(node,0);state=node_state(current,node,timers,now)
             if state['researching']:raise FinanceError('Technologia jest w trakcie rozwoju.')
             if count>account.points:raise FinanceError('Za mało punktów rozwoju.')
@@ -95,6 +97,11 @@ def change_research(user_id,data):
             from game.research_timing import funded,start
             if funded(nodes,node):account.timers=start(timers,node,now)   # rozpoczęcie czasu rozwoju
             session.add(ResearchInvestment(panstwo_id=country,node=node,points=count,request_id=key))
+            from game.nuclear import TECHNOLOGY as NUCLEAR_TECHNOLOGY
+            if node==NUCLEAR_TECHNOLOGY and not current:
+                # 13 Nov 2026: rozpoczęcie badań nad bronią atomową — powiadomienie do wszystkich państw (gracze i PAGA2)
+                from game.nuclear import broadcast,country_name
+                broadcast(session,f'Badania atomowe: {country_name(session,country)} rozpoczęło badania nad technologią „Rakieta z głowicą nuklearną”.',exclude=(country,))
         elif action=='factory':
             raise FinanceError('Budowę fabryk przeniesiono do modułu Infrastruktura i energetyka.')
         else:raise FinanceError('Nieprawidłowa operacja badawcza.')

@@ -53,7 +53,7 @@ DOMAINS={
 # Object ids (base_id, defense_id, vessel_id, object_id, agent_id …) must come from dane_gry: only own objects are valid.
 ACTION_HELP={
     'game_military.defense_change:POST':{
-        'deploy':'kind(land|air|naval|nuclear), region_id(z nasze_regiony), x, y, garrison{soldiers,tanks,armored,launchers,fighters,warships,submarines,warheads}',
+        'deploy':'kind(land|air|naval|nuclear), region_id(z nasze_regiony), x, y, garrison{soldiers,tanks,armored,launchers,fighters,warships,submarines,warheads}; budowa zużywa surowce z magazynu: lądowa 21 kamienia + 16 żelaza, morska 28 + 18, powietrzna 20 + 12 (silos bez surowców); liczba baz nie jest limitowana',
         'place':'kind, region_id(własny), count','garrison':'base_id, garrison{…}','location':'base_id, x, y','rename':'base_id, name',
         'upgrade':'base_id','withdraw':'base_id','sail':'base_id, vessel_kind(warships|submarines), x, y','return_vessel':'vessel_id, base_id','rename_vessel':'vessel_id, name',
         'defense_place':'target_kind(region|city|base|mine|factory|power), target_id (własny obiekt bez obrony)','defense_upgrade':'defense_id (istniejąca obrona)','defense_refill':'defense_id, ammunition','defense_repair':'defense_id, count(% życia)'},

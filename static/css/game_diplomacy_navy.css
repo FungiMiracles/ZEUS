@@ -1,0 +1,142 @@
+/* 13 Nov 2026: ekran Dyplomacji w nowej stylistyce gry (granat #1E3A5F, tło #F0F4FA, białe karty).
+   Wczytywany jako ostatni (late_css); prefiks `html body.game-app.game-navy.game-civic.diplomacy-room`
+   ma pierwszeństwo przed motywami diplomacy-room / civic / navy. Mapa w układzie ekranu „Świat”. */
+html body.game-app.game-navy.game-civic.diplomacy-room{--dip-navy:#1E3A5F;--dip-navy-light:#2b4f7c;--dip-line:#d3dce9;--dip-soft:#eef3fa;--dip-text:#24324a;--dip-muted:#4d5f78;background:#F0F4FA;color:var(--dip-text)}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-main{background:#F0F4FA}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-main :is(h2,h3){color:var(--dip-navy)}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-main p{color:var(--dip-text)}
+html body.game-app.game-navy.game-civic.diplomacy-room :is(.game-main,dialog) button:not(.leaflet-popup-close-button){background:var(--dip-navy);color:#fff;border:1px solid var(--dip-navy);border-radius:7px;box-shadow:none;font-weight:700;letter-spacing:0}
+html body.game-app.game-navy.game-civic.diplomacy-room :is(.game-main,dialog) button:not(.leaflet-popup-close-button):hover{background:var(--dip-navy-light);border-color:var(--dip-navy-light)}
+html body.game-app.game-navy.game-civic.diplomacy-room :is(.game-main,dialog) button:disabled{opacity:.5;cursor:not-allowed}
+html body.game-app.game-navy.game-civic.diplomacy-room :is(.game-main,dialog) select{background:#fff;color:var(--dip-text);border:1px solid #b9c7da;border-radius:6px;min-height:40px;padding:8px 10px}
+html body.game-app.game-navy.game-civic.diplomacy-room :is(.game-main,dialog) :is(select,button):focus-visible{outline:2px solid var(--dip-navy);outline-offset:2px}
+
+/* Liczniki na górze — karty jak „Dostępne środki” */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 16px;padding:0;background:transparent;border:0;box-shadow:none}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview>div{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;padding:11px 16px;background:#fff;border:1px solid var(--dip-line);border-left:4px solid var(--dip-navy);border-radius:8px;box-shadow:0 2px 8px #1e3a5f12}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview span{color:var(--dip-muted);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview strong{color:var(--dip-navy);font:700 22px Consolas,monospace}
+
+/* Kontenery */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-column{gap:16px}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-panel{margin:0;padding:0;background:#fff;color:var(--dip-text);border:1px solid var(--dip-line);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14;overflow:hidden}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-panel-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 14px;padding:11px 16px;background:linear-gradient(180deg,var(--dip-navy-light),var(--dip-navy));border:0;color:#fff}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-panel-bar h2{margin:0;color:#fff;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:left}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-eyebrow{display:block;margin:0 0 2px;color:#b9cbe2;font-size:10px;font-weight:700;letter-spacing:.12em}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-caption{color:#b9cbe2}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-panel-body{padding:14px 16px}
+
+/* Mapa — jak „Świat” */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-panel>.game-panel-body{padding:0}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar .diplomacy-map-reset{min-height:0;padding:5px 12px;border:2px solid #ffffff99;border-radius:6px;background:transparent;color:#fff;font-size:12.5px;font-weight:700}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar .diplomacy-map-reset:hover:not(:disabled){border-color:#fff;background:#ffffff1f}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:0;padding:7px 16px;background:var(--dip-navy);border-top:1px solid #ffffff1f;color:#d6e2f0;font-size:11.5px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend span{display:inline-flex;align-items:center;gap:6px;color:#d6e2f0}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend i{width:13px;height:13px;border:1px solid #ffffffaa;border-radius:3px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend .diplomacy-war-swatch{background:transparent;border:2.5px solid #ff6b5e}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map{height:clamp(440px,68dvh,760px);margin:0;border:0;border-radius:0;background:radial-gradient(ellipse at 50% 40%,#2a5078,#173556 75%)}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map-status:not([hidden]){margin:0;padding:10px 16px;color:var(--dip-muted);font-size:13px}
+html body.game-app.game-navy.game-civic.diplomacy-room .leaflet-control-zoom{border:1px solid var(--dip-navy);border-radius:7px;box-shadow:0 2px 8px #0b1d3340;overflow:hidden}
+html body.game-app.game-navy.game-civic.diplomacy-room .leaflet-control-zoom a{background:#fff;color:var(--dip-navy);border-color:var(--dip-line)}
+html body.game-app.game-navy.game-civic.diplomacy-room .leaflet-control-zoom a:hover{background:var(--dip-soft)}
+
+/* Dymki państw — jak tooltipy mapy „Świat” */
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-map-popup .leaflet-popup-content-wrapper{padding:0;background:#fff;color:#1d2b40;border:1px solid var(--dip-navy);border-radius:7px;box-shadow:0 6px 18px #0b1d3355}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-map-popup .leaflet-popup-tip{background:#fff;border:1px solid var(--dip-navy);box-shadow:none}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-map-popup .leaflet-popup-content{margin:10px 12px;max-width:min(260px,calc(100vw - 64px));font-size:12px;line-height:1.4}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-map-popup .leaflet-popup-close-button{top:4px;right:4px;width:20px;height:20px;padding:0;color:var(--dip-muted);background:transparent;border:0;font:700 16px/20px sans-serif}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-popup-heading{display:flex;align-items:center;gap:9px;padding-right:16px;font-size:13px;line-height:1.3;color:var(--dip-navy)}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-popup-heading img{flex:0 0 auto;width:44px;height:29px;object-fit:cover;border:1px solid var(--dip-navy);border-radius:2px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-popup-heading strong{color:var(--dip-navy);font-size:13px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-country-popup p{margin:7px 0 0;color:#1d2b40;font-size:12px;line-height:1.4}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-country-popup small{display:block;margin-top:4px;color:var(--dip-muted);font-size:11px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-country-popup p:has(.diplomacy-action-button){margin:5px 0 0}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-action-button{display:block;width:100%;min-height:30px;padding:5px 10px;font-size:12px;text-align:left}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-action-button.action-war{background:#b3261e;border-color:#b3261e}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map .diplomacy-action-button.action-war:hover{background:#d0352b}
+
+/* Oczekujące propozycje */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposals h2{font-size:14px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-group h3{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card{margin-top:8px;padding:10px 14px;background:var(--dip-soft);border:1px solid var(--dip-line);border-left:3px solid var(--dip-navy);border-radius:7px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card p{margin:0 0 6px;font-size:13px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card button{min-height:36px;padding:6px 14px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card button[value=reject]{background:#fff;color:#b3261e;border-color:#b3261e}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card button[value=reject]:hover{background:#fbeaea}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposals-empty{margin:0;color:var(--dip-muted);font-size:13px}
+
+/* Panel „Rozpocznij rozmowy” */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-contact-intro{margin:14px 16px;color:var(--dip-muted);font-size:13px;line-height:1.6}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-country-chooser{margin:0 16px 14px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-country-chooser label{display:block;margin:0 0 6px;color:var(--dip-muted);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-country{width:100%;min-height:44px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide{padding:0 16px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide article{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--dip-line)}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide article>span{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border:0;border-radius:50%;background:var(--dip-navy);color:#fff;font:700 11px Consolas,monospace}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide h3{margin:0 0 4px;font-size:13px;text-align:left}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide p{margin:0;color:var(--dip-muted);font-size:12.5px;line-height:1.5}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-contact-note{margin:4px 16px 16px;padding:9px 12px;background:var(--dip-soft);border:1px solid var(--dip-line);border-left:3px solid #E8B65C;border-radius:7px;color:var(--dip-text);font-size:12.5px}
+
+/* Okno działań dyplomatycznych — nowy styl okien */
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;padding:0;overflow:auto;background:#fff;color:var(--dip-text);border:1px solid var(--dip-line);border-top:4px solid var(--dip-navy);border-radius:10px;box-shadow:0 20px 60px #0b1d3355}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-dialog::backdrop{background:#10244099;backdrop-filter:none}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-heading{margin:0;padding:14px 18px;background:linear-gradient(180deg,var(--dip-navy-light),var(--dip-navy));color:#fff;border:0;font-size:14px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;text-align:left}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-dialog .game-panel-body{padding:16px 18px 18px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-selection{margin:0 0 12px;padding:10px 12px;background:var(--dip-soft);border:1px solid var(--dip-line);border-left:3px solid var(--dip-navy);border-radius:7px;color:var(--dip-text);font-size:13px;line-height:1.6}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-form{display:grid;gap:8px;max-width:none}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-form label{color:var(--dip-muted);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-form select{width:100%}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-action-help{margin:4px 0;color:var(--dip-muted);font-size:12.5px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-form button[type=submit]{justify-self:end;min-height:40px;padding:8px 18px}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-close{margin-top:12px;background:#fff;color:var(--dip-navy);border-color:var(--dip-navy)}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-close:hover{background:var(--dip-soft)}
+
+/* Nagłówek ekranu: powiadomienia dyplomatyczne i link do forum */
+html body.game-app.game-navy.game-civic.diplomacy-room .game-section-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-section-actions>a{padding:7px 12px;border:1px solid var(--dip-navy);border-radius:7px;background:#fff;color:var(--dip-navy);font-size:13px;font-weight:700;text-decoration:none}
+html body.game-app.game-navy.game-civic.diplomacy-room .game-section-actions>a:hover{background:var(--dip-soft)}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news>summary{width:44px;height:44px;min-height:0;padding:0;border:2px solid var(--dip-navy);border-radius:9px;background:#fff}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-dropdown{background:var(--dip-navy);color:#eef3fa;border:1px solid #4d6f98;border-radius:8px;box-shadow:0 10px 26px #0b1d3366;padding:10px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-dropdown>strong{color:#fff;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-dropdown p{color:#c9d7e8}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-item:not(.notification-war){background:#24466f;color:#eef3fa;border:1px solid #3b5f8c;border-radius:6px}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-item p{color:#eef3fa}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news [data-news-more]{background:#fff;color:var(--dip-navy);border-color:#fff}
+
+/* Telefon i tablet */
+@media(max-width:1200px){
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-layout{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview{gap:6px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview>div{flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;padding:8px 10px;border-left-width:3px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview span{font-size:9.5px;letter-spacing:.03em;line-height:1.25}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview strong{font-size:18px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-panel-bar{padding:9px 12px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar{flex-wrap:nowrap}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar .diplomacy-map-reset{flex:0 0 auto;min-height:36px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 10px;padding:8px 12px;font-size:11px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend span{min-width:0;overflow-wrap:anywhere}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-legend span:last-child{grid-column:1/-1}
+  html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map{height:clamp(300px,55dvh,480px);min-height:300px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .game-panel-body{padding:12px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposal-card button{min-height:44px}
+  html body.game-app.game-navy.game-civic.diplomacy-room :is(.diplomacy-contact-intro,.diplomacy-country-chooser,.diplomacy-guide,.diplomacy-contact-note){margin-left:12px;margin-right:12px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-guide{padding:0}
+  html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-form button[type=submit]{justify-self:stretch;min-height:44px}
+  html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-actions-close{width:100%;min-height:44px}
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-world-news .game-notification-dropdown{left:12px!important;right:12px!important;width:auto!important;max-width:none!important}
+}
+@media(max-width:420px){
+  html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-overview strong{font-size:16px}
+}
+/* Silniejsze selektory dla przycisków w pasku mapy i w dymkach (wygrywają z ogólną regułą przycisków i regułami civic z #id) */
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar button.diplomacy-map-reset.diplomacy-map-reset{min-height:0;padding:5px 12px;border:2px solid #ffffff99;border-radius:6px;background:transparent;color:#fff;font-size:12.5px;font-weight:700}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-map-bar button.diplomacy-map-reset.diplomacy-map-reset:hover:not(:disabled){border-color:#fff;background:#ffffff1f}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map button.diplomacy-action-button{display:block;width:100%;min-height:30px;padding:5px 10px;background:var(--dip-navy);color:#fff;border:1px solid var(--dip-navy);border-radius:6px;font-size:12px;font-weight:700;text-align:left;box-shadow:none}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map button.diplomacy-action-button:hover{background:var(--dip-navy-light)}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map button.diplomacy-action-button.action-war{background:#b3261e;border-color:#b3261e}
+html body.game-app.game-navy.game-civic.diplomacy-room #diplomacy-map button.diplomacy-action-button.action-war:hover{background:#d0352b}
+html body.game-app.game-navy.game-civic.diplomacy-room .diplomacy-proposals .diplomacy-proposal-group h3{text-align:left}

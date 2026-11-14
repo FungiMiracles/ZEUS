@@ -52,6 +52,7 @@ def page():
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
         game_active_page="army", army=army, weapon_parameters=weapon_parameters, active=active, military_budget_total=total,interceptor_ammunition=ammunition,
         training=training,training_fields=ARMY_FIELDS,
+        nuclear_total=__import__('game.nuclear',fromlist=['total']).total(db.session,country.PANSTWO_ID),
     )
     db.session.commit()
     return rendered

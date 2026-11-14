@@ -123,6 +123,20 @@ class ProposalTests(unittest.TestCase):
         self.assertGreaterEqual(accept.score,peace.score-1)  # spójnie: kto proponuje pokój, ten go przyjmuje
 
 
+    def test_threat_from_enemy_favours_peace_and_heavy_losses_outweigh_revenge(self):
+        # 14 Nov 2026 (przypadek Tunganirii): zagrożenie ze strony przeciwnika nie może premiować odrzucenia pokoju.
+        rows=[NS(id=7,source_country_id=3,source_country_name='C',kind='PEACE',proposed_relation_id=None,target_country_id=1,expected_relation_id=1,expected_state_id=1,expected_audit_id=1)]
+        c=dctx({3:{'relation':'wrogie','state':'wojnakinetyczna'}},traits={'agreeableness':46,'revenge':73,'militarism':70},priorities=['offensive_army','welfare'])
+        c.perception=lambda other:{'trust':0,'threat':100}
+        c.history=lambda other:{'hostile_from':3,'hostile_to':0,'friendly':0}
+        with patch('game.paga2.war_losses.current_war',return_value=(72.0,{'bases':24,'factories':0,'power':0,'infrastructure':0,'nuclear':0},9)):
+            accept,reject=self.proposals(c,rows)
+        self.assertTrue(accept.payload['peace'])
+        for o in (accept,reject):score(o,c)
+        self.assertNotIn('zagrożenie',reject.factors['powiązania'])
+        self.assertGreater(accept.factors['powiązania']['zagrożenie_skłania_do_pokoju'],0)
+        self.assertGreater(accept.score,reject.score)
+
 class IntelligenceTests(unittest.TestCase):
     def ictx(self,**kwargs):
         c=dctx(**kwargs);c.now=datetime(3000,1,1)

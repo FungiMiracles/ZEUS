@@ -68,6 +68,7 @@ def add_output(session,country,code,count):
     else:stock(session,country,code).quantity+=count
 
 def factory_can_work(session,f):
+    if FACTORIES[f.kind].get('on_demand'):return False   # 13 Nov 2026: fabryka rakiet atomowych produkuje tylko na zamówienie (game.nuclear)
     return f.removed_at is None and f.health>0 and not f.paused and (f.production_progress>0 or has_inputs(session,f.panstwo_id,FACTORIES[f.kind]['levels'][f.level-1]['inputs']))
 def power_can_work(session,p):
     rule=POWER_PLANTS[p.kind]
@@ -80,7 +81,8 @@ def settle_industry(session,country,now=None):
     if clock is None:
         clock=IndustryClock(panstwo_id=country,settled_at=now);session.add(clock)
     plants=list(session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country,PowerPlant.removed_at.is_(None)).order_by(PowerPlant.id).with_for_update()))
-    factories=list(session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None)).order_by(AmmunitionFactory.id).with_for_update()))
+    factories=[f for f in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None)).order_by(AmmunitionFactory.id).with_for_update())
+               if not FACTORIES[f.kind].get('on_demand')]   # produkcja na zamówienie rozliczana w game.nuclear.settle_orders
     # Event times are anchored to each object's own commissioning time.
     from game.mining_service import extract_country
     resident=resident_demand(session,country)
@@ -119,6 +121,8 @@ def settle_industry(session,country,now=None):
             f.running=active;f.produced_at+=DAY
         session.flush()
     extract_country(session,country,now)
+    from game.nuclear import settle_orders
+    settle_orders(session,country,now)
     clock.settled_at=max(clock.settled_at,now);session.flush()
     return session.get(ResearchAccount,country)
 
@@ -216,13 +220,25 @@ def change_industry(user_id,data):
             if type(region) is not int or session.scalar(select(Region.region_id).where(Region.region_id==region,Region.panstwo_id.in_(controlled_ids(session,country)))) is None or not region_contains(region,x,y):raise FinanceError('Wskaż punkt we własnym regionie.')
             from game.land_war import require_buildable
             require_buildable(session,region,country)
+            from game.nuclear import require_clear
+            require_clear(session,x,y)   # 13 Nov 2026: strefa skażenia po uderzeniu atomowym
             if category=='factory' and kind=='shipyard':
                 from game.military_geography import naval_location_allowed
                 from game.military_flights import calibration
                 coastal=session.scalar(select(Region.region_polozenie_id).where(Region.region_id==region))
                 if coastal in (None,1) or not naval_location_allowed(region,x,y,calibration(session).km_per_unit):
                     raise FinanceError('Stocznia musi leżeć we własnym regionie nadmorskim, w pasie do 3 km od wybrzeża, tak jak baza morska.')
+            military_cost=None
+            if category=='factory' and FACTORIES[kind].get('budget_sector')=='armed_forces':
+                # 13 Nov 2026: fabryka rakiet z głowicą nuklearną — płatna z budżetu sił zbrojnych (wydatek wojskowy)
+                from game.military_service import military_budget
+                military,_,free=military_budget(session,country)
+                if military is None or free<cost:raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżące półrocze.')
+                military_cost,cost=cost,Decimal(0)
             budget=current_budget(session,country,cost)
+            if military_cost is not None:
+                from game.military_models import MilitaryExpense
+                session.add(MilitaryExpense(panstwo_id=country,budget_id=budget.id,base_id=None,level=1,amount=military_cost))
             if category=='factory':
                 obj=AmmunitionFactory(panstwo_id=country,region_id=region,budget_id=budget.id,map_x=x,map_y=y,level=level,kind=kind,cost=0,created_game_at=now,produced_at=now,request_id=key,
                                       waste_filter=False,degradation_points=FACTORY_DEGRADATION)
@@ -241,8 +257,18 @@ def change_industry(user_id,data):
                 # Upgrades, filters and repairs are construction too; liquidation stays possible.
                 from game.land_war import require_buildable
                 require_buildable(session,obj.region_id,country)
+            on_demand=category=='factory' and FACTORIES[obj.kind].get('on_demand')
+            if on_demand and action in ('order','cancel_order'):
+                from game.nuclear import order_missiles,cancel_order
+                if action=='order':order_missiles(session,country,obj,data.get('count'),key,now)
+                else:cancel_order(session,country,obj,now)
+                budget=current_budget(session,country,Decimal(0))
+                session.add(IndustryMovement(panstwo_id=country,budget_id=budget.id,amount=0,request_id=key,payload=data,sector='armed_forces'))
+                return obj.id
+            if on_demand and action in ('pause','resume','upgrade'):raise FinanceError('Fabryka rakiet z głowicą nuklearną produkuje wyłącznie na zamówienie.')
             if action=='remove':
-                if category=='factory':value=FACTORIES[obj.kind]['levels'][obj.level-1]['cost']
+                if on_demand:value=0   # koszt budowy pokryty z budżetu sił zbrojnych — likwidacja bez zwrotu
+                elif category=='factory':value=FACTORIES[obj.kind]['levels'][obj.level-1]['cost']
                 elif category=='power':value=POWER_PLANTS[obj.kind]['costs'][obj.level-1]
                 else:value=MINE_RULES[obj.resource][2][obj.level-1]*1000000000
                 cost=-Decimal(value)/4;obj.removed_at=now
@@ -324,6 +350,12 @@ def object_data(obj,category,powered=None):
         from game.mining_service import mine_data
         return {**mine_data(obj,game_now()),'category':'mine','kind':obj.resource,'icon':'KOPALNIA.svg','status':'w budowie' if obj.ready_at>game_now() else 'zniszczona' if obj.health<=0 else 'gotowa','refund':str(Decimal(MINE_RULES[obj.resource][2][obj.level-1]*1000000000)/4)}
     refund=Decimal(FACTORIES[obj.kind]['levels'][obj.level-1]['cost'] if category=='factory' else POWER_PLANTS[obj.kind]['costs'][obj.level-1])/4
+    if category=='factory' and FACTORIES[obj.kind].get('on_demand'):
+        # 13 Nov 2026: fabryka rakiet z głowicą nuklearną — budowa 31 dni, produkcja na zamówienie
+        from sqlalchemy.orm import object_session
+        from game.nuclear import factory_info
+        info=factory_info(object_session(obj),obj,game_now());extra.update(info);refund=Decimal(0)
+        status='zniszczona' if obj.health<=0 else 'w budowie' if not info['ready'] else 'produkuje' if info['order'] else 'czeka na zamówienie'
     return dict(refund=str(refund),id=obj.id,category=category,kind=obj.kind,countryId=obj.panstwo_id,regionId=str(obj.region_id),name=label+f' #{obj.id}',icon=icon,level=obj.level,position=[obj.map_x,obj.map_y],health=health,status=status,**extra)
 
 def industry_state(session,country):

@@ -108,7 +108,10 @@ class IntelligenceTests(IntelligenceFixture):
         self.assertEqual(self.client.post(f'/game/forum/powiadomienia/{notice.id}/otworz',data={'csrf_token':'token'},headers={'Accept':'application/json'}).status_code,404)
 
     def test_nuclear_resources_and_infrastructure_reports(self):
-        db.session.add(Wojsko(panstwo_id=2,bron_atomowa_ilosc=42));db.session.get(Region,2).region_stan_infra_drogowej=66;db.session.commit()
+        # 13 Nov 2026: raport podaje rzeczywistą liczbę rakiet z głowicą nuklearną (magazyn), nie pole tabeli „wojsko”
+        from game.commerce_models import ResourceStock
+        db.session.add(Wojsko(panstwo_id=2,bron_atomowa_ilosc=999));db.session.add(ResourceStock(panstwo_id=2,resource='nuclear_missiles',quantity=42))
+        db.session.get(Region,2).region_stan_infra_drogowej=66;db.session.commit()
         self.start('nuclear');self.finish();report=db.session.scalar(select(IntelligenceMission).order_by(IntelligenceMission.id.desc())).report
         self.assertEqual(report['entries'][0]['value'],'42')
         self.start('infrastructure');self.finish();report=db.session.scalar(select(IntelligenceMission).order_by(IntelligenceMission.id.desc())).report
@@ -163,6 +166,21 @@ class IntelligenceTests(IntelligenceFixture):
         db.session.add(vessel);db.session.commit()
         with patch('game.military.game_now',return_value=NOW):data=visible_vessels(1,True)[0]
         self.assertIsNone(data['baseId']);self.assertIsNone(data['regionId']);self.assertEqual(data['source'],data['target'])
+
+    def test_foreign_warships_visible_to_everyone_sailing_on_remaining_route(self):
+        # 14 Nov 2026: obce okręty wojenne i lotniskowce widać bez wywiadu; okręty podwodne tylko w czasie wojny.
+        from game.military_models import MilitaryVessel
+        from game.military import visible_vessels
+        sailing=MilitaryVessel(panstwo_id=2,base_id=self.enemy.id,region_id=2,kind='carriers',status='sailing',source_x=0,source_y=0,target_x=100,target_y=0,starts_at=NOW-timedelta(minutes=30),arrives_at=NOW+timedelta(minutes=30))
+        sub=MilitaryVessel(panstwo_id=2,base_id=self.enemy.id,region_id=2,kind='submarines',status='stationed',source_x=0,source_y=0,target_x=10,target_y=0,starts_at=NOW,arrives_at=NOW)
+        db.session.add_all([sailing,sub]);db.session.commit()
+        with patch('game.military.game_now',return_value=NOW),patch('game.military_navy.vessel_route',return_value=[[0,0],[100,0]]):
+            peaceful=visible_vessels(1,False);at_war=visible_vessels(1,True)
+        self.assertEqual([v['kind'] for v in peaceful],['carriers'])
+        self.assertEqual(sorted(v['kind'] for v in at_war),['carriers','submarines'])
+        carrier=peaceful[0]
+        self.assertIsNone(carrier['baseId']);self.assertEqual(carrier['route'],[[50.0,0.0],[100,0]])   # od bieżącej pozycji do celu
+        self.assertEqual(carrier['source'],[50.0,0.0]);self.assertEqual(carrier['startsAt'],NOW.isoformat()+'Z')
 
 class AgentNameTests(IntelligenceFixture):
     def test_rename_busy_agent_without_cost_and_keep_assignment(self):

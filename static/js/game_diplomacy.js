@@ -106,23 +106,13 @@
     map.on("popupclose", keepPopupOpen);
     map.on("movestart zoomstart", closeMapPopup);
     let worldBounds;
-    const reset = L.DomUtil.create("button", "diplomacy-map-reset");
-    reset.type = "button";
-    reset.textContent = "Pokaż cały świat";
+    // 13 Nov 2026: przycisk „Cały świat” w granatowym pasku mapy (jak na ekranie Świat).
+    const reset = document.getElementById("diplomacy-map-reset");
     reset.disabled = true;
     function focusWorld() {
         if (worldBounds?.isValid()) map.fitBounds(worldBounds, { padding: [20, 20], maxZoom: 3, animate: false });
     }
     reset.addEventListener("click", focusWorld);
-    const control = L.control({ position: "topright" });
-    control.onAdd = () => {
-        const box = L.DomUtil.create("div", "leaflet-bar");
-        box.append(reset);
-        L.DomEvent.disableClickPropagation(box);
-        L.DomEvent.disableScrollPropagation(box);
-        return box;
-    };
-    control.addTo(map);
     function countryData(feature) { return config.countries[String(feature.properties?.panstwo_id)]; }
     function popup(feature) {
         const country = countryData(feature);
@@ -174,24 +164,28 @@
         if (!response.ok) throw new Error();
         return response.json();
     }).then(data => {
-        const layer = L.geoJSON(data, {
+        let layer;
+        layer = L.geoJSON(data, {
             coordsToLatLng: coords => L.latLng(coords[1], coords[0]),
+            // 13 Nov 2026: granice i krycie jak na mapie „Świat”; wypełnienie = relacja z danym państwem.
             style: feature => {
                 const country = countryData(feature);
-                return { fillColor: country?.color || "#e2e8f0", fillOpacity: 0.85,
-                         color: country?.war ? "#b91c1c" : country?.own ? "#0b1f3a" : "#64748b",
-                         weight: country?.war ? 4 : country?.own ? 2.5 : 1 };
+                return { fillColor: country?.color || "#B8C9B0", fillOpacity: 1,
+                         color: country?.war ? "#b3261e" : country?.own ? "#1E3A5F" : "#667C63",
+                         weight: country?.war ? 3 : country?.own ? 2.5 : 1.4 };
             },
             onEachFeature: (feature, polygon) => {
                 polygon.bindPopup(() => popup(feature), {
-                    className: "diplomacy-map-popup", minWidth: 150, maxWidth: 230,
+                    className: "diplomacy-map-popup", minWidth: 180, maxWidth: 260,
                     autoPan: false, closeButton: true
                 });
                 polygon.on("mouseover", event => {
                     keepPopupOpen();
+                    polygon.setStyle({ fillOpacity: 0.72, weight: (countryData(feature)?.war ? 3 : 2.2) });
+                    polygon.bringToFront();
                     polygon.openPopup(event.latlng);
                 });
-                polygon.on("mouseout", schedulePopupClose);
+                polygon.on("mouseout", () => { layer.resetStyle(polygon); schedulePopupClose(); });
                 polygon.on("click", () => choose(String(feature.properties?.panstwo_id)));
             }
         }).addTo(map);

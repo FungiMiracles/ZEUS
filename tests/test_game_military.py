@@ -40,7 +40,18 @@ class MilitaryFixture(FeatureTestCase):
         self.flight_clock=patch('game.military_flights.game_now',return_value=NOW)
         self.flight_clock.start();self.addCleanup(self.flight_clock.stop)
 
+    def supply_materials(self,kind,count=1,country=1):
+        """13 Nov 2026: budowa bazy zużywa kamień i żelazo — dokładamy dokładnie tyle, ile zużyje (stan magazynu po budowie bez zmian)."""
+        from game.military_service import BASE_MATERIALS
+        from game.commerce_models import ResourceStock
+        for code,need in BASE_MATERIALS.get(kind,{}).items():
+            row=db.session.get(ResourceStock,(country,code))
+            if row is None:db.session.add(ResourceStock(panstwo_id=country,resource=code,quantity=need*count))
+            else:row.quantity+=need*count
+        db.session.commit()
+
     def change(self,action,**data):
+        if action in ('deploy','place'):self.supply_materials(data.get('kind'),int(data.get('count',1)) if action=='place' else 1)
         with patch('game.military_service._country_for_user',return_value=SimpleNamespace(PANSTWO_ID=1)):
             change_defense(1,action,data)
         db.session.expire_all()
@@ -58,8 +69,9 @@ class MilitaryFixture(FeatureTestCase):
 
 class MilitaryTests(MilitaryFixture):
     def test_base_limits_and_sea_coast(self):
-        self.base();self.base();self.base()
-        with self.assertRaises(FinanceError): self.base()
+        # 13 Nov 2026: liczba baz nie jest ograniczona tabelą „wojsko” (liczba_baz_ladowych=3) — czwarta baza powstaje.
+        self.base();self.base();self.base();self.assertEqual(self.base().kind,'land')
+        self.assertEqual(db.session.query(MilitaryBase).filter_by(kind='land').count(),4)
         with self.assertRaises(FinanceError): self.base(region=2)
         with self.assertRaises(FinanceError): self.base(kind='naval')
         db.session.get(Region,1).region_polozenie_id=2;db.session.commit()
@@ -163,3 +175,72 @@ class MilitaryTests(MilitaryFixture):
         graph=adjacency(regions)
         self.assertEqual(graph[1],{2})
         self.assertNotIn(3,graph[2])
+
+
+class BaseMaterialsTests(MilitaryFixture):
+    """13 Nov 2026: budowa baz zużywa kamień i żelazo; bez limitu z tabeli „wojsko”; zwroty przy rezygnacji (100%) i likwidacji (50%)."""
+    def stock(self,code):
+        from game.commerce_models import ResourceStock
+        db.session.expire_all();row=db.session.get(ResourceStock,(1,code));return int(row.quantity) if row else 0
+
+    def put(self,kamien,zelazo):
+        from game.commerce_models import ResourceStock
+        for code,value in (('kamien',kamien),('zelazo',zelazo)):
+            row=db.session.get(ResourceStock,(1,code))
+            if row is None:db.session.add(ResourceStock(panstwo_id=1,resource=code,quantity=value))
+            else:row.quantity=value
+        db.session.commit()
+
+    def place(self,kind,region=1):
+        with patch('game.military_service._country_for_user',return_value=SimpleNamespace(PANSTWO_ID=1)):
+            change_defense(1,'place',{'kind':kind,'region_id':region,'count':1})
+        db.session.expire_all();return db.session.query(MilitaryBase).order_by(MilitaryBase.id.desc()).first()
+
+    def test_costs_per_kind_and_exact_consumption(self):
+        from game.military_service import BASE_MATERIALS
+        self.assertEqual(BASE_MATERIALS,{'land':{'kamien':21,'zelazo':16},'naval':{'kamien':28,'zelazo':18},'air':{'kamien':20,'zelazo':12}})
+        db.session.get(Region,1).region_polozenie_id=2;db.session.commit()
+        self.put(100,100)
+        land=self.place('land');self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(79,84))
+        self.assertEqual(land.deployment_payload['materials'],{'kamien':21,'zelazo':16})
+        self.place('naval');self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(51,66))
+        self.place('air');self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(31,54))
+
+    def test_missing_materials_block_without_side_effects(self):
+        self.put(20,100)   # brakuje 1 kamienia do bazy lądowej
+        with self.assertRaisesRegex(FinanceError,'Za mało surowców w magazynie: kamień'):self.place('land')
+        self.assertEqual(db.session.query(MilitaryBase).count(),0)
+        self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(20,100))
+
+    def test_no_limit_from_army_table(self):
+        self.put(21*5,16*5)   # tabela „wojsko”: liczba_baz_ladowych=3
+        for _ in range(5):self.place('land')
+        self.assertEqual(db.session.query(MilitaryBase).filter_by(kind='land').count(),5)
+        self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(0,0))
+
+    def test_buildable_bases_from_stock(self):
+        from game.military_service import buildable_bases
+        self.put(42,100)
+        self.assertEqual(buildable_bases(db.session,1),{'land':2,'air':2,'naval':1,'nuclear':None})
+
+    def test_liquidation_refunds_half_rounded_down_and_legacy_base_nothing(self):
+        self.put(21,16);base=self.place('land')
+        self.change('liquidate',base_id=base.id)
+        self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(10,8))   # 50% z 21 i 16, w dół
+        legacy=MilitaryBase(panstwo_id=1,region_id=1,kind='land',level=1,garrison={});db.session.add(legacy);db.session.commit()
+        self.change('liquidate',base_id=legacy.id)
+        self.assertEqual((self.stock('kamien'),self.stock('zelazo')),(10,8))   # baza sprzed zmiany — bez zwrotu
+
+    def test_nuclear_silo_needs_no_materials(self):
+        from game.military_service import BASE_MATERIALS
+        self.assertNotIn('nuclear',BASE_MATERIALS)
+
+
+class PriceChangesTests(MilitaryFixture):
+    """13 Nov 2026: 1 punkt rozwoju — 150 mln ROI; elektrownia węglowa (poziom I) — 2,3 mld ROI; progi technologii bez zmian."""
+    def test_prices(self):
+        from game.research_service import POINT_PRICE
+        from game.paga2 import planner
+        from game.industry_catalog import POWER_PLANTS
+        self.assertEqual(POINT_PRICE,150000000);self.assertEqual(planner.POINT_PRICE,POINT_PRICE)
+        self.assertEqual([int(cost) for cost in POWER_PLANTS['coal']['costs']][:1],[2300000000])

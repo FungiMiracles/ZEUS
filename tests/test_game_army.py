@@ -78,3 +78,22 @@ class SidebarTests(unittest.TestCase):
         self.assertEqual([s['share'] for s in segments],[75.0,25.0])
         self.assertTrue(all(s['path'].startswith('M') and s['path'].endswith('Z') for s in segments))
         self.assertEqual(budget_pie([{'code':'x','label':'x','allocated':0,'remaining':0}]),[])
+
+
+class ArmyBaseCountTests(FeatureTestCase):
+    """13 Nov 2026: panel „Siły zbrojne” pokazuje faktycznie postawione bazy państwa, nie liczby z tabeli „wojsko”."""
+    def setUp(self):
+        super().setUp()
+        self.app.register_blueprint(army_bp)
+        db.metadata.create_all(db.engine, tables=[Wojsko.__table__])
+        db.session.add(Wojsko(panstwo_id=1, wojska_ladowe_ilosc=1000, liczba_baz_ladowych=9, liczba_baz_morskich=7, liczba_baz_powietrznych=5))
+        from game.military_models import MilitaryBase
+        db.session.add_all([MilitaryBase(panstwo_id=1,region_id=1,kind='land',level=1,garrison={}),MilitaryBase(panstwo_id=1,region_id=1,kind='land',level=1,garrison={}),
+                            MilitaryBase(panstwo_id=1,region_id=1,kind='air',level=1,garrison={}),MilitaryBase(panstwo_id=2,region_id=2,kind='naval',level=1,garrison={})])
+        db.session.commit()
+
+    def test_real_base_counts(self):
+        import re
+        html = self.client.get('/game/sily-zbrojne').get_data(as_text=True)
+        value = lambda label: re.search(label + r'</span></dt>\s*<dd>([^<]*)</dd>', html).group(1).strip()
+        self.assertEqual((value('Liczba baz lądowych'), value('Liczba baz morskich'), value('Liczba baz powietrznych')), ('2', '0', '1'))

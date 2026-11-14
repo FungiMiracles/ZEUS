@@ -11,8 +11,9 @@ from game import trade_prices
 class PriceLimitTests(unittest.TestCase):
     def test_limits_follow_production_costs_with_margins(self):
         low,high=trade_prices.unit_limits('wegiel_kamienny')
-        # minimum: kopalnia poz. 1 (2 MLD / 73 jedn. rocznie) −5%; maksimum: + technologie (30 MLD) +10%
-        self.assertEqual(low,26_000_000);self.assertEqual(high,483_000_000)
+        # minimum: kopalnia poz. 1 (2 MLD / 73 jedn. rocznie) −5%; maksimum: + technologie (75 pkt × cena punktu) +10%
+        # 13 Nov 2026: punkt rozwoju 150 mln ROI (było 400 mln) — górny limit węgla 483 → 200 MLN
+        self.assertEqual(low,26_000_000);self.assertEqual(high,200_000_000)
         self.assertEqual(trade_prices.unit_limits('kamien')[0],1_000_000)            # nie mniej niż 1 MLN
         for code in ('tanks','chip_natsyt','interceptor_ammunition','cemium'):
             low,high=trade_prices.unit_limits(code);self.assertLess(low,high);self.assertGreaterEqual(low,1_000_000)

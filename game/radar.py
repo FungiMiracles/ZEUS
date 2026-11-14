@@ -113,6 +113,8 @@ def change_radar(user_id, data):
             if type(region) is not int or session.scalar(select(Region.region_id).where(Region.region_id == region, Region.panstwo_id.in_(controlled_ids(session, own)))) is None \
                     or not region_contains(region, x, y):
                 raise FinanceError('Wskaż punkt we własnym regionie.')
+            from game.nuclear import require_clear
+            require_clear(session, x, y)   # 13 Nov 2026: strefa skażenia po uderzeniu atomowym
             require_buildable(session, region, own)
             budget = _pay(session, own, LEVELS[1])
             radar = Radar(panstwo_id=own, region_id=region, map_x=x, map_y=y, level=1, health=100, request_id=key, created_game_at=game_now())

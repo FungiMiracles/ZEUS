@@ -7,6 +7,18 @@ from sqlalchemy.orm import Session
 from flask import jsonify
 from extensions import db
 from test_industry_0011 import IndustryTests as _IndustryFixture
+
+
+def give_base_materials(country=1,count=1):
+    """13 Nov 2026: rozmieszczenie bazy zużywa kamień i żelazo z magazynu — scenariusz dostaje surowce na `count` baz lądowych."""
+    from extensions import db
+    from game.commerce_models import ResourceStock
+    from game.military_service import BASE_MATERIALS
+    for code,need in BASE_MATERIALS['land'].items():
+        row=db.session.get(ResourceStock,(country,code))
+        if row is None:db.session.add(ResourceStock(panstwo_id=country,resource=code,quantity=need*count))
+        else:row.quantity+=need*count
+    db.session.commit()
 from game.models import GameUser,GamePlayerCountry
 from game.paga import PagaConfiguration,PagaRevision,TRAITS,INTERESTS
 from game.paga_ai_models import PagaAiControl,PagaAiIdentity,PagaAiJob,PagaAiLog,PagaAiWrite,PagaAiGoal,PagaAiPlan,PagaAiMetric,PagaAiProvider
@@ -73,12 +85,14 @@ class AiTests(unittest.TestCase):
         self.assertEqual(result['status'],303,result)
         message=db.session.scalar(select(ForumMessage));self.assertEqual(message.user_id,self.actor.user_id)
         self.assertEqual(message.panstwo_id,1)
-        self.assertEqual(db.session.scalar(select(GameNotification.user_id).where(GameNotification.message_id==message.id)),2)
+        # 14 Nov 2026: gracz nie dostaje powiadomienia o wpisie (plakietka w menu), skrzynka PAGA nadal tak.
+        self.assertIsNone(db.session.scalar(select(GameNotification.user_id).where(GameNotification.message_id==message.id)))
         self.fixture.login(2)
         response=self.fixture.post('/game/forum',content='Czy popieracie pokojowe rozwiązanie?',reply_to_id=str(message.id))
         self.assertEqual(response.status_code,303)
         reply=db.session.scalar(select(ForumMessage).order_by(ForumMessage.id.desc()))
         self.assertEqual(reply.addressees[0].user_id,self.actor.user_id)
+        self.assertEqual(db.session.scalar(select(GameNotification.user_id).where(GameNotification.message_id==reply.id)),self.actor.user_id)
     def test_private_messages_are_scoped_to_the_actor(self):
         first=self.call('game_messages.send:POST',{'content':'Proponujemy rozmowy dyplomatyczne.','recipient_id':2})
         self.assertEqual(first['status'],201,first)
@@ -261,6 +275,7 @@ class AiTests(unittest.TestCase):
         from game.military_models import MilitaryBase
         from game.research_models import ResearchAccount
         from game.finance_models import StateBudget
+        give_base_materials()
         for operation,data,model in [
             ('game_trade.change:POST',{'action':'offer','cargo':{'wegiel_kamienny':2},'price':'100','port_id':101,'departure_rate':'0'},TradeOffer),
             ('game_trade.mining_build:POST',{'region_id':1,'resource':'wegiel_kamienny','level':1,'x':10,'y':10},Mine),
@@ -297,6 +312,7 @@ class AiTests(unittest.TestCase):
         command={'source_base_id':1,'kind':'missile','region_id':2,'missile_type':'short','missiles':2,'infrastructure':'road'}
         self.assertEqual(self.call('game_military.war_order:POST',command)['status'],400)
         db.session.add(Stosunki(PANSTWO_ID=1,PANSTWO_ID2=2,stan_id=8));db.session.commit()
+        give_base_materials()
         deploy=self.call('game_military.defense_change:POST',{'action':'deploy','kind':'land','region_id':1,'x':10,'y':10,'garrison':{'soldiers':100,'launchers':1}})
         self.assertEqual(deploy['status'],200,deploy)
         base=db.session.scalar(select(MilitaryBase));command['source_base_id']=base.id

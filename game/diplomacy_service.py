@@ -213,7 +213,8 @@ def decide_action(session,action_id,country_id,accept,now,*,user_id=None,dry_run
     if not accept:
         from game.diplomacy_news import record_rejection
         record_rejection(session,action,now)
-    if action.sender_user_id is not None and (user_id is None or action.kind in ('JOIN_WAR','BASE_PERMIT')):session.add(GameNotification(user_id=action.sender_user_id,diplomatic_action_id=action.id,notification_type='DIPLOMACY',created_at=utc_now()))
+    # 14 Nov 2026: nadawca zawsze dostaje powiadomienie o odpowiedzi (przyjęcie/odrzucenie) — także gdy odpowiada gracz albo PAGA z własnym kontem.
+    if action.sender_user_id is not None and action.sender_user_id!=user_id:session.add(GameNotification(user_id=action.sender_user_id,diplomatic_action_id=action.id,notification_type='DIPLOMACY',created_at=utc_now()))
     return action.status
 
 

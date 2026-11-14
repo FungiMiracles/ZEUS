@@ -1,0 +1,49 @@
+/* 13 Nov 2026: okno prywatnych wiadomości w nowej identyfikacji ZEUS ENTENDA (granatowy nagłówek, białe karty).
+   Wczytywany na wszystkich ekranach gry; układ mobilny (pełny ekran) zachowany z game_ui.css. */
+html body.game-app.game-navy dialog#game-mail-dialog{--mail-navy:#1E3A5F;--mail-navy-light:#2b4f7c;--mail-line:#d3dce9;--mail-soft:#eef3fa;--mail-text:#24324a;--mail-muted:#4d5f78;
+  padding:0;background:#F0F4FA;color:var(--mail-text);border:1px solid var(--mail-line);border-radius:12px;box-shadow:0 24px 70px #0b1d3366;overflow:hidden auto}
+html body.game-app.game-navy dialog#game-mail-dialog::backdrop{background:#0b1d33a6}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-heading{position:sticky;top:0;z-index:2;padding:12px 16px;background:linear-gradient(180deg,var(--mail-navy-light),var(--mail-navy));border-bottom:1px solid #0f2238}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-heading h2{color:#fff;font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-close{min-width:40px;min-height:40px;padding:0;background:transparent;color:#fff;border:2px solid #ffffff80;border-radius:8px;font-size:16px}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-close:hover{border-color:#fff;background:#ffffff1f}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-toolbar{margin:0;padding:10px 16px;background:#fff;border-bottom:1px solid var(--mail-line)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-toolbar label{color:var(--mail-muted);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy dialog#game-mail-dialog :is(select,textarea){min-height:40px;background:#fff;color:var(--mail-text);-webkit-text-fill-color:var(--mail-text);border:1px solid #b9c7da;border-radius:6px}
+html body.game-app.game-navy dialog#game-mail-dialog :is(select,textarea,button):focus-visible{outline:2px solid var(--mail-navy);outline-offset:2px}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-status{margin:0;padding:6px 16px;color:var(--mail-muted)}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-status:empty{display:none}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-columns{padding:14px 16px 16px;gap:14px}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-inbox{padding:2px}
+/* Lista wiadomości */
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item{margin-bottom:8px;padding:10px 12px;background:#fff;color:var(--mail-text);border:1px solid var(--mail-line);border-left:4px solid #b9c7da;border-radius:8px;box-shadow:0 1px 4px #1e3a5f12;font-weight:400}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item:hover{border-color:#b9c7da;background:var(--mail-soft)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item.unread{border-left-color:var(--mail-navy);background:#fff;font-weight:700}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item.unread .game-mail-identity::after{content:'nowa';margin-left:auto;padding:1px 8px;border-radius:10px;background:var(--mail-navy);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item[aria-pressed="true"]{outline:2px solid var(--mail-navy);outline-offset:0;background:var(--mail-soft)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item small{color:var(--mail-muted);font-weight:400}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-identity{color:var(--mail-navy)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-identity img{border:1px solid var(--mail-navy);border-radius:2px}
+/* Treść i formularz */
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-detail{padding:14px 16px;background:#fff;border:1px solid var(--mail-line);border-top:3px solid var(--mail-navy);border-radius:10px;box-shadow:0 2px 10px #1e3a5f14}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-detail :is(h3,strong){color:var(--mail-navy)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-detail p{color:var(--mail-text);line-height:1.5}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-compose label{color:var(--mail-muted);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-limit{color:var(--mail-muted);font:600 12px Consolas,monospace;text-align:right}
+/* Przyciski */
+html body.game-app.game-navy dialog#game-mail-dialog button{min-height:40px;background:#fff;color:var(--mail-navy);border:1px solid var(--mail-navy);border-radius:7px;font-weight:700;box-shadow:none}
+html body.game-app.game-navy dialog#game-mail-dialog button:hover:not(:disabled){background:var(--mail-soft)}
+html body.game-app.game-navy dialog#game-mail-dialog :is(#game-mail-new,.game-mail-compose-actions button[type="submit"]){background:var(--mail-navy);color:#fff;border-color:var(--mail-navy)}
+html body.game-app.game-navy dialog#game-mail-dialog :is(#game-mail-new,.game-mail-compose-actions button[type="submit"]):hover:not(:disabled){background:var(--mail-navy-light)}
+html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item,html body.game-app.game-navy dialog#game-mail-dialog .game-mail-item:hover{min-height:0}
+html body.game-app.game-navy dialog#game-mail-dialog #game-mail-more{width:100%}
+@media(max-width:650px){
+  html body.game-app.game-navy dialog#game-mail-dialog{border-radius:0;border:0}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-heading{padding:10px 12px}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-toolbar{padding:8px 12px}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-columns{padding:10px 12px 0}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-detail{padding:12px}
+  html body.game-app.game-navy dialog#game-mail-dialog button{min-height:44px}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-compose-actions{position:sticky;bottom:0;margin:10px -12px 0;padding:10px 12px;background:#fff;border-top:1px solid var(--mail-line)}
+  html body.game-app.game-navy dialog#game-mail-dialog .game-mail-compose-actions button{flex:1 1 0}
+}

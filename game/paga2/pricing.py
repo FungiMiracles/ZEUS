@@ -65,7 +65,7 @@ def consumption(holdings,days=60):
     """Zużycie surowców własnych fabryk i elektrowni w zadanym okresie (rezerwa operacyjna)."""
     need={}
     for factory in holdings.factories:
-        if factory.get('health',0)<=0 or factory['kind'] not in FACTORIES:continue
+        if factory.get('health',0)<=0 or factory['kind'] not in FACTORIES or FACTORIES[factory['kind']].get('on_demand'):continue   # produkcja na zamówienie
         levels=FACTORIES[factory['kind']]['levels'];rule=levels[min(len(levels),max(1,factory.get('level',1)))-1]
         cycles=days/(30.0 if rule['days']=='month' else float(rule['days']))
         for code,amount in rule['inputs'].items():need[code]=need.get(code,0)+amount*cycles

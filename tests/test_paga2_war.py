@@ -78,6 +78,14 @@ class LandTests(unittest.TestCase):
         self.assertLess(attack.payload['soldiers'],10000)                # nie cały garnizon — tyle, ile potrzeba z zapasem
         self.assertEqual(war.land_options(wctx(),forces(bases=[self.land_base(soldiers=100,tanks=0)]),screen(),CONFIG,{7},[]),[])
 
+    def test_already_occupied_enemy_city_is_not_attacked_again(self):
+        # 14 Nov 2026: gra odrzucała 906 takich ataków („Ten obiekt jest już pod kontrolą naszego państwa.”).
+        f=forces(bases=[self.land_base()],army={'wyszkolenie_ladowe':100})
+        mine=screen(occupations=[{'kind':'city','cityId':500,'baseId':None,'occupierId':1,'ownerId':7,'status':'ACTIVE'}])
+        self.assertEqual(war.land_options(wctx(),f,mine,CONFIG,{7},[]),[])
+        foreign=screen(occupations=[{'kind':'city','cityId':500,'baseId':None,'occupierId':9,'ownerId':7,'status':'ACTIVE'}])
+        self.assertEqual(len(war.land_options(wctx(),f,foreign,CONFIG,{7},[])),1)
+
     def test_visible_occupiers_raise_estimate_and_recapture_preferred(self):
         occupied=screen(armies=[{'status':'OCCUPYING','targetCityId':600,'units':{'soldiers':5000,'tanks':100,'armored':0}}])
         self.assertAlmostEqual(war.battle_estimate(wctx(),'city',None,600,occupied),(5000+500)*1.2)
@@ -184,6 +192,27 @@ class NavalTests(unittest.TestCase):
         peace=war.naval_options(c,forces(bases=[naval]),[],set())
         self.assertEqual({o.payload['action'] for o in peace},{'return_vessel'})
 
+
+    def test_sail_and_redirect_targets_are_moved_offshore(self):
+        # 14 Nov 2026: gra przyjmuje cel rejsu tylko na wodzie ≥2 km od brzegu — miasto/baza wroga leżą na lądzie.
+        c=wctx();c._vessels=[war.NSV(5,'warships','stationed',2,[0,0],[0,0])]
+        naval=base(2,kind='naval',garrison={'soldiers':5,'warships':3},x=0.0)
+        targets=[('city',1,'71',[2000,0],9,False)]
+        with patch.object(war,'km',lambda ctx,a,b:abs(a[0]-b[0])),patch.object(war,'busy',return_value=2),\
+             patch.object(war,'sea_point',lambda ctx,point:[point[0]-7,point[1]+3]):
+            options={o.key:o for o in war.naval_options(c,forces(bases=[naval]),targets,{9})}
+        self.assertEqual((options['war:vessel:sail:2:warships'].payload['x'],options['war:vessel:sail:2:warships'].payload['y']),(1993,3))
+        self.assertEqual((options['war:vessel:redirect:5'].payload['x'],options['war:vessel:redirect:5'].payload['y']),(1993,3))
+
+    def test_sea_point_uses_navy_router_offshore_and_caches(self):
+        calls=[]
+        router=type('R',(),{'offshore':lambda self,point:calls.append(point) or [point[0]+1,point[1]]})()
+        with patch('game.sea_routes._navy_router',return_value=router),patch('game.military_flights.calibration',return_value=type('C',(),{'km_per_unit':2.0})()),\
+             patch.object(war,'Session'),patch.object(war,'db'):
+            c=wctx()
+            self.assertEqual(war.sea_point(c,[10,20]),[11.0,20.0])
+            self.assertEqual(war.sea_point(c,[10,20]),[11.0,20.0])
+        self.assertEqual(calls,[[10.0,20.0]])
 
 class DeclareTests(unittest.TestCase):
     def test_declaration_only_in_immediate_mode_and_for_war_relations(self):

@@ -44,7 +44,7 @@ class IndustryTests(CommerceFixture):
     def refresh(self):db.session.expire_all()
 
     def test_catalog_exact_counts_and_iron_dependency(self):
-        self.assertEqual(len(TECHNOLOGIES),37,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026)')
+        self.assertEqual(len(TECHNOLOGIES),38,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026)')
         self.assertNotIn('ammunition',TECHNOLOGIES)
         for factory in FACTORIES.values():
             for level in factory['levels']:self.assertNotIn('ammunition',level['technologies'])
@@ -80,8 +80,12 @@ class IndustryTests(CommerceFixture):
                 with patch('game.military_geography.naval_location_allowed',return_value=True):id=self.operation(kind=kind,level=i)
                 self.refresh();row=db.session.get(AmmunitionFactory,id)
                 self.assertEqual((row.kind,row.level),(kind,i))
-                self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),spec['cost'])
-        self.assertEqual(db.session.query(AmmunitionFactory).count(),16)
+                if rule.get('budget_sector')=='armed_forces':   # 13 Nov 2026: fabryka rakiet atomowych — wydatek sił zbrojnych
+                    from game.military_models import MilitaryExpense
+                    self.assertEqual(db.session.scalar(select(MilitaryExpense.amount).order_by(MilitaryExpense.id.desc()).limit(1)),spec['cost'])
+                    self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),0)
+                else:self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),spec['cost'])
+        self.assertEqual(db.session.query(AmmunitionFactory).count(),17)
 
     def test_shipyard_requires_the_same_coastal_band_as_a_naval_base(self):
         with self.assertRaises(FinanceError):self.operation(kind='shipyard')
@@ -170,7 +174,7 @@ class IndustryTests(CommerceFixture):
         with patch('game.industry_service.game_now',return_value=NOW+timedelta(days=2)):
             self.operation('repair',category='power',object_id=id)
         self.refresh();self.assertEqual(db.session.get(PowerPlant,id).health,3)
-        self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),Decimal('1033333333.33'))
+        self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),Decimal('766666666.67'))   # 1/3 z 2,3 mld (13 Nov 2026)
 
     def test_power_upgrade_repair_cost_uses_cumulative_investment(self):
         id=self.operation(category='power',kind='solar')
@@ -294,12 +298,11 @@ class IndustryTests(CommerceFixture):
         self.assertNotIn('air_filters',PLANNED_TECHNOLOGIES)
         self.assertEqual((TECHNOLOGIES['air_filters']['label'],TECHNOLOGIES['air_filters']['cost'],TECHNOLOGIES['air_filters']['parent']),('Filtr zanieczyszczeń',150,'environment_tech'))
         self.assertIn('air_filters',LEVELS);self.assertIn('air_filters',layout['positions'])
-        for key,parent in [('nuclear_missiles','long_missiles')]:
-            self.assertEqual(PLANNED_TECHNOLOGIES[key]['parent'],parent)
-            self.assertFalse(response.json['technologies'][key]['available'])
-            self.assertFalse(response.json['nodes'][key]['maximum'])
-            self.assertNotIn(key,LEVELS)
-            with self.assertRaises(FinanceError):change_research(1,dict(action='invest',node=key,count=1,request_id=str(uuid4())))
+        # 13 Nov 2026: „Rakieta z głowicą nuklearną” jest aktywna — 750 pkt, wymaga trzech technologii
+        self.assertEqual(PLANNED_TECHNOLOGIES,{})
+        rule=TECHNOLOGIES['nuclear_missiles']
+        self.assertEqual((rule['cost'],rule['parent'],rule['requires']),(750,'long_missiles',['long_missiles','mine_uranium','chip_cemium_i']))
+        self.assertNotIn('available',response.json['technologies']['nuclear_missiles']);self.assertIn('nuclear_missiles',LEVELS)   # wymagania: tests/test_nuclear.py
         self.refresh();self.assertEqual(db.session.get(ResearchAccount,1).points,before)
 
     def test_military_factory_product_icons_follow_every_kind_and_level(self):
@@ -312,9 +315,9 @@ class IndustryTests(CommerceFixture):
         for kind,rule in FACTORIES.items():
             for level in range(1,len(rule['levels'])+1):
                 with patch('game.military_geography.naval_location_allowed',return_value=True):self.operation(kind=kind,level=level)
-        expected={'chip_simple':'CHIP PROSTY.svg','chip_kerbit':'CHIP KERBITOWY.svg','chip_natsyt':'CHIP NATSYTOWY.svg','chip_cemium_i':'CHIP CEMIUM I.svg','chip_cemium_ii':'CHIP CEMIUM II.svg','tanks':'CZOŁG.svg','fighters':'MYŚLIWIEC.svg','armored':'WÓZ OPANCERZONY.svg','drones':'DRON.svg','short_missiles':'WYRZUTNIA RAKIET.svg','medium_missiles':'WYRZUTNIA RAKIET.svg','long_missiles':'WYRZUTNIA RAKIET.svg','warships':'OKRĘT WOJENNY.svg','submarines':'SUBMARINE.svg','carriers':'LOTNISKOWIEC.svg','interceptor_ammunition':'AMMO.svg'}
+        expected={'nuclear_missiles':'BROŃ ATOMOWA.svg','chip_simple':'CHIP PROSTY.svg','chip_kerbit':'CHIP KERBITOWY.svg','chip_natsyt':'CHIP NATSYTOWY.svg','chip_cemium_i':'CHIP CEMIUM I.svg','chip_cemium_ii':'CHIP CEMIUM II.svg','tanks':'CZOŁG.svg','fighters':'MYŚLIWIEC.svg','armored':'WÓZ OPANCERZONY.svg','drones':'DRON.svg','short_missiles':'WYRZUTNIA RAKIET.svg','medium_missiles':'WYRZUTNIA RAKIET.svg','long_missiles':'WYRZUTNIA RAKIET.svg','warships':'OKRĘT WOJENNY.svg','submarines':'SUBMARINE.svg','carriers':'LOTNISKOWIEC.svg','interceptor_ammunition':'AMMO.svg'}
         def check(rows):
-            self.assertEqual(len(rows),16)
+            self.assertEqual(len(rows),17)
             for row in rows:
                 self.assertEqual(unquote(urlsplit(row['productIcon']).path),'/static/icons/'+expected[row['product']])
                 self.assertTrue(row['productName'])

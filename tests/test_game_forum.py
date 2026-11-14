@@ -279,9 +279,9 @@ class ForumTests(unittest.TestCase):
         self.assertEqual(self.post('Wielu adresatów', recipient_id=['2', '3', '2']).status_code, 303)
         message = self.message()
         self.assertEqual({item.user_id for item in message.addressees}, {2, 3})
+        # 14 Nov 2026: gracze nie dostają powiadomień o wpisach — zamiast nich plakietka przy „Forum międzynarodowe”.
         notices = db.session.scalars(select(GameNotification).where(GameNotification.message_id == message.id)).all()
-        self.assertEqual({item.user_id for item in notices}, {2, 3})
-        self.assertEqual(len(notices), 2)
+        self.assertEqual(notices, [])
         page = self.client.get('/game/forum').get_data(as_text=True)
         self.assertIn('Drugie Państwo · Drugi', page)
         self.assertIn('Trzecie Państwo · Bez państwa', page)
@@ -291,20 +291,20 @@ class ForumTests(unittest.TestCase):
         self.assertIn('value="2" checked', failed.get_data(as_text=True))
         self.assertIn('value="3" checked', failed.get_data(as_text=True))
         self.login(2)
-        self.assertEqual(self.client.get('/game/forum/powiadomienia').json['unread_count'], 1)
+        self.assertEqual(self.client.get('/game/forum/powiadomienia').json['unread_count'], 0)
 
     def test_broadcast_notifies_active_assigned_players_only(self):
         self.post('Do wszystkich')
         message = self.message()
         notices = db.session.scalars(select(GameNotification).where(GameNotification.message_id == message.id)).all()
-        self.assertEqual([item.user_id for item in notices], [2])
+        self.assertEqual(notices, [])
         self.assertEqual(message.addressees, [])
         self.assertIsNone(message.recipient_user_id)
         self.assertEqual(self.client.get('/game/forum/powiadomienia').json['unread_count'], 0)
         db.session.get(GameUser, 2).is_active = False
         db.session.commit()
         self.post('Brak aktywnych odbiorców')
-        self.assertEqual(db.session.scalar(select(func.count()).select_from(GameNotification)), 1)
+        self.assertEqual(db.session.scalar(select(func.count()).select_from(GameNotification)), 0)
 
     def test_reply_mandatory_recipient_and_optional_addressees(self):
         self.assign_third_player()
@@ -313,7 +313,7 @@ class ForumTests(unittest.TestCase):
         message = self.message()
         self.assertEqual({item.user_id for item in message.addressees}, {2, 3})
         notices = db.session.scalars(select(GameNotification).where(GameNotification.message_id == message.id)).all()
-        self.assertEqual({item.user_id for item in notices}, {2, 3})
+        self.assertEqual(notices, [])
         notice_count = db.session.scalar(select(func.count()).select_from(GameNotification))
         self.post('Edytowana odpowiedź', f'/game/forum/{message.id}/edytuj', version='1', recipient_id=['3'])
         db.session.refresh(message)
@@ -325,7 +325,12 @@ class ForumTests(unittest.TestCase):
         first_message = self.message().id
         for index in range(20):
             self.post(f'Nowszy wpis {index}', recipient_id='2')
-        notice = db.session.scalar(select(GameNotification).where(GameNotification.message_id == first_message))
+        # Dawne powiadomienie o wpisie (sprzed 14 Nov 2026) nadal prowadzi do wiadomości, ale nie ma go w panelu.
+        legacy = GameNotification(user_id=2, message_id=first_message, notification_type='FORUM_MESSAGE')
+        db.session.add(legacy)
+        db.session.add_all([GameNotification(user_id=2, notification_type='SYSTEM', system_text=f'Komunikat {index}') for index in range(21)])
+        db.session.commit()
+        notice = db.session.scalar(select(GameNotification).where(GameNotification.user_id == 2, GameNotification.notification_type == 'SYSTEM').order_by(GameNotification.id))
         path = f'/game/forum/powiadomienia/{notice.id}/otworz'
         # Autor nie może odczytać cudzego powiadomienia.
         self.assertEqual(self.post('', path).status_code, 404)
@@ -337,15 +342,13 @@ class ForumTests(unittest.TestCase):
         self.assertIn('no-store', feed.headers['Cache-Control'])
         ids = [item['id'] for item in feed.json['items']]
         self.assertEqual(ids, sorted(ids, reverse=True))
+        self.assertNotIn(legacy.id, ids)
         self.assertTrue(all(item['received_at'] for item in feed.json['items']))
-        self.assertEqual(self.client.get('/game/forum/powiadomienia?page=2').json['items'][0]['id'], notice.id)
+        self.assertEqual([item['id'] for item in self.client.get('/game/forum/powiadomienia?page=2').json['items']], [notice.id])
         self.assertIsNone(notice.read_at)
         self.assertEqual(self.client.get(path).status_code, 405)
         self.assertEqual(self.client.post(path).status_code, 400)
-        response = self.post('', path)
-        self.assertEqual(response.status_code, 303)
-        destination = self.client.get(response.location)
-        self.assertIn(f'page=2#message-{first_message}', destination.location)
+        self.assertEqual(self.post('', path).status_code, 303)
         db.session.refresh(notice)
         read_at = notice.read_at
         self.assertIsNotNone(read_at)
@@ -354,6 +357,30 @@ class ForumTests(unittest.TestCase):
         db.session.refresh(notice)
         self.assertEqual(notice.read_at, read_at)
         self.assertEqual(self.client.get('/game/forum/powiadomienia').json['unread_count'], 20)
+        destination = self.client.get(self.post('', f'/game/forum/powiadomienia/{legacy.id}/otworz').location)
+        self.assertIn(f'page=2#message-{first_message}', destination.location)
+
+    def test_forum_badge_counts_new_posts_of_others_until_forum_is_opened(self):
+        self.client.get('/game/forum')   # gracz 1 otwiera forum
+        self.login(2)
+        self.post('Pierwszy')
+        self.post('Drugi')
+        self.login(1)
+        page = self.client.get('/game/forum/powiadomienia')   # JSON bez menu; plakietka jest w menu stron gry
+        from game.forum import forum_new_count
+        self.assertEqual(forum_new_count(1), 2)
+        self.assertEqual(forum_new_count(2), 0)   # własne wpisy się nie liczą
+        self.assertEqual(page.json['unread_count'], 0)   # brak powiadomień o wpisach
+        html = self.client.get('/game/forum').get_data(as_text=True)
+        self.assertNotIn('game-nav-badge', html)   # na samym forum plakietki nie ma
+        self.assertEqual(forum_new_count(1), 0)   # otwarcie forum zeruje licznik
+        self.login(2)
+        self.post('Trzeci')
+        self.login(1)
+        with self.app.test_request_context():
+            from flask import session as browser, render_template_string
+            browser['game_user_id'] = 1
+            self.assertEqual(render_template_string('{{ forum_new_count() }}'), '1')
 
     def test_notifications_require_active_authenticated_player(self):
         with self.client.session_transaction() as browser:

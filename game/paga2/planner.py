@@ -17,7 +17,7 @@ from game.paga2.engine import Adapter,register
 from game.paga2.scoring import Option
 from game.paga2.models import Paga2Plan,utc_now
 
-POINT_PRICE=400000000          # cena punktu rozwoju (game/research_service.POINT_PRICE)
+from game.research_service import POINT_PRICE   # cena punktu rozwoju — jedno źródło prawdy (13 Nov 2026: 150 mln ROI)
 MINE_COSTS={code:values[2][0]*1000000000 for code,values in MINE_RULES.items()}
 ABANDON_AFTER=720              # przebiegów bez postępu (~30 dni przy cyklu co godzinę, ponad półrocze gry), po których plan jest porzucany
 RESOURCE_LABELS={'wegiel_kamienny':'węgiel kamienny','ropa_naftowa':'ropa naftowa','zloto':'złoto','srebro':'srebro','kamien':'kamień','natsyt':'natsyt',
@@ -25,7 +25,7 @@ RESOURCE_LABELS={'wegiel_kamienny':'węgiel kamienny','ropa_naftowa':'ropa nafto
 
 # Cele służące priorytetom strategicznym (kolejność = preferencja w obrębie priorytetu).
 PRIORITY_GOALS={
-    'offensive_army':['factory:tanks','factory:missiles','factory:armored','factory:drones','factory:fighters'],
+    'offensive_army':['factory:tanks','factory:missiles','factory:armored','factory:drones','factory:fighters','factory:nuclear_missiles'],
     'conquest':['factory:tanks','factory:armored','factory:missiles'],
     'defensive_army':['factory:interceptor_ammo','tech:radar','factory:missiles'],
     'production':['factory:chips','mine:zelazo','mine:ropa_naftowa','factory:interceptor_ammo'],
@@ -100,7 +100,9 @@ def research(plan,node,h,points):
         # 13 Nov 2026: punkty zainwestowane, trwa czas rozwoju — czekamy (bez ponownej inwestycji)
         plan.add(step(f'tech:{node}','research',f'Technologia: {rule["label"]} — w trakcie rozwoju','blocked',reason='Trwa rozwój technologii.'));return False
     # Cała ścieżka od korzenia drzewa: technologie nadrzędne najpierw, potomne jako kolejne etapy.
-    parent_ready=research(plan,rule['parent'],h,points) if rule['parent'] else True
+    # 13 Nov 2026: technologia może wymagać kilku wcześniejszych (rakieta z głowicą nuklearną: rakiety dalekiego zasięgu, uran, chip cemium I)
+    required=rule.get('requires') or ([rule['parent']] if rule['parent'] else [])
+    parent_ready=all([research(plan,code,h,points) for code in required]) if required else True
     if plan.impossible:return False
     need=h.missing_points(node);use=min(points['left'],need);short=need-use;points['left']-=use
     if short>0:
@@ -173,7 +175,7 @@ def factory(plan,kind,h,*,top=True):
     powered=energy(plan,level['energy'],h,kind)
     ready=techs and powered
     plan.add(step(f'factory:{kind}','build_factory',rule['label'],'ready' if ready else 'blocked',{'kind':kind,'coastal':kind=='shipyard'},
-                  None if ready else 'Najpierw technologie i energia.',cost=level['cost'],sector='infrastructure'))
+                  None if ready else 'Najpierw technologie i energia.',cost=level['cost'],sector=rule.get('budget_sector','infrastructure')))
     return ready
 
 

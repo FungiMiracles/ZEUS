@@ -76,7 +76,12 @@ def relationship_term(option,ctx):
     perception=ctx.perception(option.target)
     trust=perception.get('trust',50);threat=perception.get('threat',20)
     parts['zaufanie']=round((trust-50)/5*(1 if friendly else -1),3)
-    if hostile:parts['zagrożenie']=round(threat/10*(.3+t.get('revenge',50)/100),3)
+    # 14 Nov 2026: przy pokoju/zawieszeniu broni zagrożenie ze strony przeciwnika skłania do zawarcia pokoju, a nie do jego odrzucenia
+    # (wcześniej odrzucenie pokoju jako działanie „wrogie” dostawało premię za zagrożenie — im groźniejszy wróg, tym dłuższa wojna).
+    peace=option.action in ('PEACE','CEASEFIRE') or bool((option.payload or {}).get('peace'))
+    if peace:
+        if friendly:parts['zagrożenie_skłania_do_pokoju']=round(threat/10*(1.3-t.get('revenge',50)/100),3)
+    elif hostile:parts['zagrożenie']=round(threat/10*(.3+t.get('revenge',50)/100),3)
     history=ctx.history(option.target)
     if history['hostile_from']:
         n=min(3,history['hostile_from'])

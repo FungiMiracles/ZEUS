@@ -219,6 +219,22 @@
       body.append(inputs,result);
     }catch(exc){body.replaceChildren(make('p',exc.message,'paga-problem'));}
   }
+  // 14 Nov 2026: kontenerki ze statystykami zdarzeń PAGA2 (zgodne z filtrami państwa, obszaru i trybu).
+  function renderHistoryStats(data){
+    const st=data.stats;if(!st)return;
+    const share=value=>st.total?` (${number.format(Math.round(value*1000/st.total)/10)}%)`:'';
+    const box=$('paga2-history-stats');box.replaceChildren();
+    for(const [value,label,status] of [[st.total,'decyzji łącznie'],[st.byStatus.EXECUTED,'wykonanych'+share(st.byStatus.EXECUTED),'EXECUTED'],
+        [st.byStatus.REJECTED,'odrzuconych przez grę'+share(st.byStatus.REJECTED),'REJECTED'],[st.byStatus.PASSIVE,'bez działania'+share(st.byStatus.PASSIVE),'PASSIVE'],
+        [st.byStatus.ERROR,'błędów'+share(st.byStatus.ERROR),'ERROR'],[st.last24h,'w ostatnich 24 h'],[st.randomized,'z randomizerem'],[st.countries,'państw']]){
+      const item=make('div',null,'paga-stat');if(status)item.dataset.status=status;item.append(make('strong',number.format(value||0)),make('span',label));box.append(item);
+    }
+    const rejected=$('paga2-history-rejected');rejected.replaceChildren();
+    if(!st.topRejected.length){const row=make('tr');const cell=make('td','Brak odrzuceń.');cell.colSpan=3;row.append(cell);rejected.append(row);}
+    for(const item of st.topRejected){const row=make('tr');row.append(make('td',item.action),make('td',data.domains[item.domain]||item.domain),make('td',number.format(item.count)));rejected.append(row);}
+    const domains=$('paga2-history-domains');domains.replaceChildren();
+    for(const item of st.domains){const row=make('tr');row.append(make('td',data.domains[item.domain]||item.domain),make('td',number.format(item.count)));domains.append(row);}
+  }
   async function loadHistory(){
     const params=new URLSearchParams({page:historyPage,country:$('paga2-history-country').value,domain:$('paga2-history-domain').value,status:$('paga2-history-status').value,mode:$('paga2-history-mode').value});
     try{
@@ -227,6 +243,7 @@
       fillSelect($('paga2-history-domain'),Object.entries(data.domains),'Wszystkie obszary');
       fillSelect($('paga2-history-status'),Object.entries(data.statuses),'Wszystkie statusy');
       fillSelect($('paga2-history-mode'),Object.entries(data.modes),'Wszystkie tryby');
+      renderHistoryStats(data);
       const list=$('paga2-history-list');list.replaceChildren();
       for(const row of data.items){
         const item=make('details',null,'paga-decision'),summary=make('summary');

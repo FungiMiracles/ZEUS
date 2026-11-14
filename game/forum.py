@@ -54,6 +54,46 @@ def player():
     return user, country
 
 
+def mark_forum_seen(user_id):
+    """Otwarcie forum zeruje plakietkę nowych wpisów w menu (14 Nov 2026).
+    Osobne połączenie: zapis nie zatwierdza ani nie unieważnia obiektów sesji żądania."""
+    from sqlalchemy import update
+    try:
+        with db.engine.begin() as connection:
+            connection.execute(update(GameUser).where(GameUser.id == user_id).values(forum_seen_at=utc_now()))
+    except SQLAlchemyError:
+        pass
+
+
+def forum_new_count(user_id):
+    """Liczba wpisów innych graczy od ostatniego otwarcia forum (plakietka przy „Forum międzynarodowe”)."""
+    # Kolumny wprost z bazy (znacznik zapisuje osobne połączenie — obiekt w sesji może być nieaktualny).
+    row = db.session.execute(select(GameUser.forum_seen_at, GameUser.created_at).where(GameUser.id == user_id)).first()
+    if row is None:
+        return 0
+    since = row.forum_seen_at or row.created_at
+    if since is not None and since.tzinfo is not None:
+        since = since.astimezone(timezone.utc).replace(tzinfo=None)
+    query = select(func.count()).select_from(ForumMessage).where(ForumMessage.user_id != user_id)
+    if since is not None:
+        query = query.where(ForumMessage.created_at > since)
+    return db.session.scalar(query) or 0
+
+
+@forum_bp.app_context_processor
+def forum_badge():
+    def badge():
+        user_id = session.get("game_user_id")
+        if isinstance(user_id, bool) or not isinstance(user_id, int):
+            return 0
+        try:
+            return forum_new_count(user_id)
+        except SQLAlchemyError:
+            db.session.rollback()
+            return 0
+    return {"forum_new_count": badge}
+
+
 def validate_csrf():
     expected = session.get("game_csrf_token")
     provided = request.form.get("csrf_token", "")
@@ -129,7 +169,7 @@ def render_page(user, country, *, editing=None, content="", error=None, status=2
     )
     if choices is None:
         choices = recipients(user)
-    return render_template(
+    html = render_template(
         "game/forum.html", game_user=user,
         game_country=country_summary(country),
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
@@ -137,7 +177,9 @@ def render_page(user, country, *, editing=None, content="", error=None, status=2
         content=content, error=error, recipients=choices, replying_to=reply,
         selected_recipients=recipient or [],
         selected_recipient_ids=[item["id"] for item in recipient or []],
-    ), status
+    )
+    mark_forum_seen(user.id)
+    return html, status
 
 
 @forum_bp.route("", methods=["GET", "POST"])
@@ -177,7 +219,16 @@ def page():
                 message_id=message.id, user_id=item["id"], name=item["name"],
                 country_name=item["country_name"], flag_path=item["flag_path"],
             ))
+        # 14 Nov 2026: gracze nie dostają powiadomień o wpisach (plakietka w menu); powiadomienie trafia tylko do skrzynek PAGA,
+        # które na jego podstawie reagują na forum.
+        from game.paga_ai_actor import configured
+        ai_users = set()
+        if configured():
+            from game.paga_ai_models import PagaAiIdentity
+            ai_users = set(db.session.scalars(select(PagaAiIdentity.user_id)))
         for item in recipient or choices:
+            if item["id"] not in ai_users:
+                continue
             db.session.add(GameNotification(
                 user_id=item["id"], message_id=message.id,
                 notification_type="FORUM_MESSAGE", created_at=message.created_at,
@@ -258,13 +309,14 @@ def notifications():
     db.session.commit()
     page_number = max(1, request.args.get("page", 1, type=int) or 1)
     result = db.paginate(
-        select(GameNotification).where(GameNotification.user_id == user.id)
+        select(GameNotification).where(GameNotification.user_id == user.id, GameNotification.notification_type != "FORUM_MESSAGE")
         .options(joinedload(GameNotification.message), joinedload(GameNotification.diplomatic_action), joinedload(GameNotification.generated_event))
         .order_by(GameNotification.created_at.desc(), GameNotification.id.desc()),
         page=page_number, per_page=20, error_out=False,
     )
     count = db.session.scalar(select(func.count()).select_from(GameNotification).where(
         GameNotification.user_id == user.id, GameNotification.read_at.is_(None),
+        GameNotification.notification_type != "FORUM_MESSAGE",
     ))
     from game.diplomacy import notification_text
     from game.intelligence_models import IntelligenceMission
@@ -321,6 +373,7 @@ def read_notifications():
     db.session.commit()
     count = db.session.scalar(select(func.count()).select_from(GameNotification).where(
         GameNotification.user_id == user.id, GameNotification.read_at.is_(None),
+        GameNotification.notification_type != "FORUM_MESSAGE",
     ))
     return jsonify(unread_count=count)
 

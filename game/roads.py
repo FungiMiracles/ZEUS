@@ -71,6 +71,8 @@ def quote_road(session,country_id,data,admin=False,lock_regions=True):
         path=curved_path(features,start,end);controls=[path[8],path[16]]
         path=interpolate(start,controls,end)
         if not all(segment_inside(features,a,b) for a,b in zip(path,path[1:])):raise FinanceError('Dopasuj punkty krzywizny do granic kraju.')
+    from game.nuclear import require_clear_path
+    require_clear_path(session,path)   # 13 Nov 2026: droga nie może przebiegać przez strefę skażenia
     ratio=sum(hypot(b[0]-a[0],b[1]-a[1]) for a,b in zip(path,path[1:]))/hypot(end[0]-start[0],end[1]-start[1])
     distance=Decimal(str(distance_km(session,start,end)*ratio)).quantize(Decimal('.001'),rounding=ROUND_HALF_UP)
     if distance<=0:raise FinanceError('Odcinek jest zbyt krótki.')

@@ -36,10 +36,14 @@ class Forces:
         self.army={c.key:getattr(army,c.key) or 0 for c in army.__table__.columns} if army else {}
         active=active_counts(self.bases,session,country_id) if army else {}
         self.free={}
+        from game.military_service import owned
         for resource,(label,field,icon) in RESOURCES.items():
-            if field:self.free[resource]=max(0,self.army.get(field,0)-active.get(field,0))
+            if field:self.free[resource]=max(0,owned(session,army,country_id,field)-active.get(field,0))   # głowice: rzeczywisty licznik (13 Nov 2026)
         self.free_soldiers={kind:max(0,self.army.get(BASES[kind][2],0)-active.get(BASES[kind][2],0)) for kind in ('land','air','naval')}
-        self.slots={kind:max(0,self.army.get(BASES[kind][1],0)-active.get(BASES[kind][1],0)) if BASES[kind][1] else None for kind in BASES}
+        # 13 Nov 2026: liczba baz nie jest ograniczona tabelą „wojsko” — „wolne miejsca” to bazy, które da się zbudować
+        # z kamienia i żelaza w magazynie (te same reguły co dla gracza: game.military_service.BASE_MATERIALS).
+        from game.military_service import buildable_bases
+        self.slots=buildable_bases(session,country_id)
         self.defenses=list(session.scalars(select(MissileDefense).where(MissileDefense.panstwo_id==country_id)))
         self.radars=list(session.scalars(select(Radar).where(Radar.panstwo_id==country_id)))
         scope=controlled_ids(session,country_id) or [country_id]
@@ -99,7 +103,7 @@ def upkeep(garrison):
         from game.finance_service import current_period_months
         scale=current_period_months()/6
     except Exception:scale=1.0
-    return float(sum(n*UPKEEP_RATES[r] for r,n in garrison.items() if r!='warheads'))*scale
+    return float(sum(n*UPKEEP_RATES[r] for r,n in garrison.items()))*scale
 
 
 def base_site(ctx,kind,threats):
@@ -174,7 +178,7 @@ def base_options(ctx,forces,threats):
             extra=forces.free_soldiers.get(base.kind,0) if resource=='soldiers' else forces.free.get(resource,0)
             wanted[resource]=int(min(limit,garrison.get(resource,0)+extra))
         added={r:wanted[r]-garrison.get(r,0) for r in wanted if wanted[r]>garrison.get(r,0)}
-        if added and base.kind!='nuclear' and upkeep(added)<=room:
+        if added and upkeep(added)<=room:   # 13 Nov 2026: także ładowanie silosów rakietami z głowicą nuklearną
             near=threats.get(base.region_id)
             options.append(Option(key=f'base:garrison:{base.id}',domain='defense',action='BASE_REINFORCE',label=f'Uzupełnienie garnizonu bazy #{base.id} ({KIND_LABELS[base.kind]})',
                                   cost=upkeep(added),sector='armed_forces',effects={'defensive_army':.8,'offensive_army':.3},traits={'militarism':.5},
@@ -301,7 +305,31 @@ def propose(ctx):
     if not forces.army:return []
     threats,_=threat_map(ctx,_world(ctx))
     ctx._threats=threats
-    return base_options(ctx,forces,threats)+missile_defense_options(ctx,forces,threats)+radar_options(ctx,forces,threats)+training_options(ctx,forces)
+    return base_options(ctx,forces,threats)+missile_defense_options(ctx,forces,threats)+radar_options(ctx,forces,threats)+training_options(ctx,forces)+nuclear_production_options(ctx)
+
+
+def nuclear_production_options(ctx):
+    """13 Nov 2026: zamówienie rakiet z głowicą nuklearną w gotowej fabryce (bez aktywnego zamówienia), z surowców w magazynie."""
+    from game.research_models import AmmunitionFactory
+    from game.nuclear import TECHNOLOGY,MISSILE_INPUTS,factory_ready_at,_active_order,total
+    from game.industry_service import available
+    options=[]
+    with Session(db.engine) as session:
+        stock_now=total(session,ctx.country_id)
+        for factory in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==ctx.country_id,AmmunitionFactory.kind==TECHNOLOGY,
+                                                                        AmmunitionFactory.removed_at.is_(None),AmmunitionFactory.health>0)):
+            if ctx.now is not None and ctx.now<factory_ready_at(factory):continue
+            if _active_order(session,factory.id) is not None:continue
+            affordable=min(available(session,ctx.country_id,code)//need for code,need in MISSILE_INPUTS.items())
+            war=ctx.situation.get('level')=='war'
+            count=int(min(affordable,(6 if war else 3)))
+            if count<1:continue
+            options.append(Option(key=f'nuclear:order:{factory.id}',domain='defense',action='NUCLEAR_ORDER',label=f'Produkcja {count} szt. rakiet z głowicą nuklearną (fabryka #{factory.id})',
+                                  cost=0.0,sector='armed_forces',effects={'defensive_army':.7,'offensive_army':.6},traits={'militarism':.8,'provocation':.3},
+                                  categories={'hegemonic':.8,'imperialist':.6},base=2.0+(4.0 if war else 0)-min(4.0,stock_now*.5),
+                                  notes=[f'Zapas rakiet atomowych: {stock_now}. Produkcja: 14 dni Entendy na sztukę.'],
+                                  payload={'factory_id':factory.id,'count':count,'group':'nuclear:order'}))
+    return options
 
 
 def check(ctx,option):
@@ -339,6 +367,9 @@ def execute(ctx,option):
         body={'action':p['action'],**({'radar_id':p['radar_id']} if 'radar_id' in p else {}),**(p.get('site') or {})}
         if p['action']=='build':body['request_id']=rid
         status,data=ctx.call(RADAR,json=body)
+    elif option.action=='NUCLEAR_ORDER':
+        from game.paga2.industry import PATH as INDUSTRY
+        status,data=ctx.call(INDUSTRY,json={'action':'order','category':'factory','object_id':p['factory_id'],'count':p['count'],'request_id':rid})
     elif option.action=='TRAINING':
         status,data=ctx.call(TRAIN,json={'branch':p['branch'],'levels':p['levels'],'request_id':rid})
     else:return {'status':400,'error':'Nieznana operacja obronna.'}

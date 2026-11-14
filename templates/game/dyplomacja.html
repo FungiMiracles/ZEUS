@@ -25,15 +25,16 @@
 <section class="diplomacy-overview" aria-label="Przegląd stosunków międzynarodowych"><div><span>Państwa na mapie</span><strong>{{ diplomacy_map.countries|length }}</strong></div><div><span>Państwa innych graczy</span><strong>{{ diplomacy_map.countries.values()|selectattr('canAct')|list|length }}</strong></div><div><span>Trwające konflikty</span><strong>{{ diplomacy_map.countries.values()|rejectattr('own')|selectattr('war')|list|length }}</strong></div></section>
 <div class="diplomacy-layout">
 <div class="diplomacy-map-column">
-<section class="game-panel diplomacy-map-panel"><div class="diplomacy-panel-bar"><div><span class="diplomacy-eyebrow">01 / SCENA MIĘDZYNARODOWA</span><h2>Relacje ze światem</h2></div><span class="diplomacy-map-caption">MAPA DYPLOMATYCZNA</span></div>
+{# 13 Nov 2026: mapa w układzie ekranu „Świat” — granatowy pasek, legenda pod paskiem, ocean #}
+<section class="game-panel diplomacy-map-panel"><div class="diplomacy-panel-bar diplomacy-map-bar"><div><span class="diplomacy-eyebrow">01 / SCENA MIĘDZYNARODOWA</span><h2>Relacje ze światem</h2></div><button type="button" id="diplomacy-map-reset" class="diplomacy-map-reset">Cały świat ⤢</button></div>
+    <div class="diplomacy-legend" aria-label="Legenda mapy">
+        <span><i style="background:#2563eb"></i>Twoje państwo</span>
+        {% for item in legend %}<span><i style="background:{{ item.color }}"></i>{{ item.name }}</span>{% endfor %}
+        <span><i class="diplomacy-war-swatch"></i>Wojna kinetyczna — czerwony obrys</span>
+    </div>
     <div class="game-panel-body">
         <div id="diplomacy-map" aria-label="Mapa relacji dyplomatycznych"></div>
         <p id="diplomacy-map-status" role="status" hidden></p>
-        <div class="diplomacy-legend" aria-label="Legenda mapy">
-            <span><i style="background:#2563eb"></i>Twoje państwo</span>
-            {% for item in legend %}<span><i style="background:{{ item.color }}"></i>{{ item.name }}</span>{% endfor %}
-            <span><i class="diplomacy-war-swatch"></i>Wojna kinetyczna — czerwony obrys</span>
-        </div>
     </div>
 </section>
 {% include "game/_diplomacy_proposals.html" %}
@@ -45,7 +46,7 @@
             {% for id, item in diplomacy_map.countries.items() %}{% if not item.own %}<option value="{{ id }}">{{ item.name }}</option>{% endif %}{% endfor %}
         </select>
 </div><div class="diplomacy-guide"><article><span>01</span><div><h3>Buduj relacje</h3><p>Zaproponuj zmianę relacji. Sojusz i partnerstwa możesz wypowiedzieć jednostronnie, wybierając relację spoza tych porozumień.</p></div></article><article><span>02</span><div><h3>Negocjuj porozumienia</h3><p>W czasie wojny zaproponuj pokój lub zawieszenie broni.</p></div></article><article><span>03</span><div><h3>Podejmuj decyzje</h3><p>Wypowiedzenie wojny działa natychmiast. Przed wysłaniem sprawdź wybrane działanie.</p></div></article></div><div class="diplomacy-contact-note">Propozycje i odpowiedzi znajdziesz w panelu powiadomień.</div></aside></div>
-<dialog class="game-actions-dialog" id="diplomacy-actions-dialog" aria-labelledby="diplomacy-actions-heading">
+<dialog class="game-actions-dialog game-modal-navy" id="diplomacy-actions-dialog" aria-labelledby="diplomacy-actions-heading">
     <h2 class="game-panel-heading" id="diplomacy-actions-heading">Działania dyplomatyczne</h2>
     <div class="game-panel-body">
         <p id="diplomacy-selection" role="status"></p>
@@ -80,9 +81,10 @@
 </dialog>
 <script type="application/json" id="diplomacy-map-config">{{ diplomacy_map | tojson }}</script>
 {% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_diplomacy_navy.css',v='20261113-dipl-2') }}">{% endblock %}
 {% block extra_js %}
 <script src="{{ url_for('static',filename='js/game_diplomacy_proposals.js',v='20261106-1') }}" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/game_diplomacy.js', v='20261112-join-war-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_diplomacy.js', v='20261113-dipl-1') }}" defer></script>
 {% if config.get('DIPLOMACY_NEWS_ENABLED') %}<script src="{{ url_for('static',filename='js/game_diplomacy_news.js',v='20261106-2') }}" defer></script>{% endif %}
 {% endblock %}

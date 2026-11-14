@@ -86,6 +86,7 @@ class DeploymentTests(MilitaryFixture):
     def payload(self):return {'kind':'land','region_id':1,'garrison':{'soldiers':100,'tanks':1,'launchers':0,'armored':0},'request_id':str(uuid4())}
 
     def test_garrison_is_required_and_allocated_before_map_placement(self):
+        self.supply_materials('land')
         data=self.payload();id=change_defense(1,'deploy',data);again=change_defense(1,'deploy',data);self.assertEqual(id,again);db.session.expire_all()
         base=db.session.get(MilitaryBase,id);self.assertEqual(base.garrison['soldiers'],100);self.assertEqual(base.garrison['tanks'],1);self.assertIsNone(base.map_x)
         self.assertEqual(db.session.query(MilitaryBase).count(),1)
@@ -95,10 +96,15 @@ class DeploymentTests(MilitaryFixture):
 
     def test_cancel_deploy_removes_unplaced_base_and_keeps_the_slot(self):
         from models import Wojsko
+        from game.commerce_models import ResourceStock
+        self.supply_materials('land')
         id=change_defense(1,'deploy',self.payload());db.session.expire_all()
+        self.assertEqual((db.session.get(ResourceStock,(1,'kamien')).quantity,db.session.get(ResourceStock,(1,'zelazo')).quantity),(0,0))
         slots=db.session.query(Wojsko).one().liczba_baz_ladowych
         change_defense(1,'cancel_deploy',{'base_id':id});db.session.expire_all()
         self.assertIsNone(db.session.get(MilitaryBase,id))
+        # 13 Nov 2026: rezygnacja zwraca 100% surowców zużytych na budowę
+        self.assertEqual((db.session.get(ResourceStock,(1,'kamien')).quantity,db.session.get(ResourceStock,(1,'zelazo')).quantity),(21,16))
         self.assertEqual(db.session.query(Wojsko).one().liczba_baz_ladowych,slots)   # miejsce na bazę nie przepada
         placed=change_defense(1,'deploy',self.payload());base=db.session.get(MilitaryBase,placed);base.map_x=base.map_y=1.0;db.session.commit()
         with self.assertRaisesRegex(FinanceError,'zlikwidować'):change_defense(1,'cancel_deploy',{'base_id':placed})
@@ -152,7 +158,7 @@ class AbroadBaseTests(MilitaryFixture):
 
     def test_build_only_with_active_permit_and_double_upkeep(self):
         with self.assertRaises(FinanceError):change_defense(1,'deploy',self.payload())
-        self.permit()
+        self.permit();self.supply_materials('land')
         id=change_defense(1,'deploy',self.payload());db.session.expire_all()
         base=db.session.get(MilitaryBase,id);self.assertEqual(base.region_id,2)
         from game.military import base_data
@@ -160,13 +166,13 @@ class AbroadBaseTests(MilitaryFixture):
         with self.app.test_request_context():
             data=base_data(base,own_region_ids(db.session,1))
         self.assertTrue(data['abroad']);self.assertEqual(Decimal(data['upkeep']),2*(100*4000+8000))
-        home=change_defense(1,'deploy',self.payload(1));db.session.expire_all()
+        self.supply_materials('land');home=change_defense(1,'deploy',self.payload(1));db.session.expire_all()
         with self.app.test_request_context():
             self.assertFalse(base_data(db.session.get(MilitaryBase,home))['abroad'])
 
     def test_relation_change_freezes_or_liquidates(self):
         from game.base_permits import on_relation_change,BasePermit,permitted_region_ids
-        self.permit();id=change_defense(1,'deploy',self.payload())
+        self.permit();self.supply_materials('land');id=change_defense(1,'deploy',self.payload())
         on_relation_change(db.session,1,2,'Przyjazne');db.session.commit()
         self.assertEqual(db.session.query(BasePermit).one().status,'FROZEN');self.assertIsNotNone(db.session.get(MilitaryBase,id))
         self.assertEqual(permitted_region_ids(db.session,1),set())

@@ -21,9 +21,12 @@ html body.game-app.game-navy.game-civic .game-nav-links>button:disabled{color:#c
 html body.game-app.game-navy.game-civic .game-nav-links .zeus-section-icon{width:28px;height:28px;flex:0 0 28px;padding:3px;box-sizing:border-box;background:#fff;border:0;border-radius:6px;opacity:1}
 html body.game-app.game-navy.game-civic .game-nav-links .game-nav-country-flag{width:30px;flex:0 0 30px;border:1px solid #fff}
 html body.game-app.game-navy.game-civic .game-mobile-toggle{display:none}
+html body.game-app.game-navy.game-civic .game-nav-links .game-nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#d32f2f;color:#fff;font-size:11px;font-weight:700;line-height:1;letter-spacing:0}
+html body.game-app.game-navy.game-civic .game-rail-logo{display:block;width:auto;height:46px;max-width:100%}
 @media(max-width:900px){
   html body.game-app.game-navy.game-civic .game-navigation{position:sticky;top:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0;padding:6px 12px;max-height:100dvh}
   html body.game-app.game-navy.game-civic .game-rail-brand{font-size:16px}
+  html body.game-app.game-navy.game-civic .game-rail-logo{height:34px}
   html body.game-app.game-navy.game-civic .game-rail-mark{width:30px;height:30px;font-size:17px}
   html body.game-app.game-navy.game-civic .game-mobile-toggle{display:inline-flex;align-self:center;justify-self:end;min-height:38px;margin:0;background:transparent;border:2px solid #fff;color:#fff;font-size:13px}
   html body.game-app.game-navy.game-civic .game-nav-links{display:none;grid-column:1/-1;padding:8px 0 14px}

@@ -162,6 +162,24 @@ class Paga2PanelTests(unittest.TestCase):
         self.assertEqual(detail['draws'][0]['chosen'],'A')
         self.assertEqual(self.get('/admin/paga/paga2/decyzje/999').status_code,404)
 
+    def test_decision_history_stats_follow_filters_and_count_rejected_attempts(self):
+        # 14 Nov 2026: kontenerki statystyk w Historii decyzji.
+        rejected=[{'domain':'war','action':'VESSEL_SAIL','blocked':'Gra odrzuciła operację: Cel rejsu musi znajdować się na wodzie.'}]*2+[{'domain':'war','action':'LAND_ATTACK','blocked':'Gra odrzuciła operację: X'}]
+        rows=[(1,'war','REJECTED',rejected,True),(1,'economy','EXECUTED',[],False),(2,'war','PASSIVE',[],False)]
+        for index,(country,domain,status,options,randomized) in enumerate(rows):
+            db.session.add(Paga2Decision(request_key=f's{index}',country_id=country,mode='CYCLIC',trigger='cykl',domain=domain,action='A',status=status,score=50,
+                                         options=options,inputs={},result={},randomized=randomized,game_at=datetime(3000,1,1)))
+        db.session.commit()
+        stats=self.get('/admin/paga/paga2/decyzje').get_json()['stats']
+        self.assertEqual(stats['total'],3);self.assertEqual(stats['byStatus']['REJECTED'],1);self.assertEqual(stats['byStatus']['EXECUTED'],1)
+        self.assertEqual(stats['randomized'],1);self.assertEqual(stats['countries'],2);self.assertEqual(stats['last24h'],3)
+        self.assertEqual(stats['topRejected'],[{'domain':'war','action':'VESSEL_SAIL','count':2},{'domain':'war','action':'LAND_ATTACK','count':1}])
+        self.assertEqual({d['domain']:d['count'] for d in stats['domains']},{'war':2,'economy':1})
+        filtered=self.get('/admin/paga/paga2/decyzje?country=1&status=EXECUTED').get_json()['stats']
+        self.assertEqual(filtered['total'],2)   # filtr statusu nie zawęża podziału na statusy
+        html=self.get('/admin/paga').get_data(as_text=True)
+        self.assertIn('id="paga2-history-stats"',html)
+
     def test_proposals_nobody_can_answer_expire(self):
         from game.diplomacy_models import DiplomaticAction
         from game.diplomacy_service import expire_unanswerable

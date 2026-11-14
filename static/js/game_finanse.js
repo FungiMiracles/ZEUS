@@ -85,80 +85,169 @@ function formatRatio(numerator, denominator, digits = 2) {
         return `${tenths / 10n},${tenths % 10n}`;
     }
 
-    const budgetColors = [
-        "#2563eb", "#ea580c", "#16a34a", "#9333ea",
-        "#0891b2", "#dc2626", "#ca8a04", "#4f46e5",
-        "#0d9488", "#db2777", "#65a30d", "#7c3aed",
-        "#0284c7", "#c2410c", "#475569", "#be185d",
-        "#78716c"
-    ];
+    // 13 Nov 2026: wykres kołowy jak na lewym pasku — te same kolory sektorów (game/sidebar.py SECTOR_COLORS).
+    const sectorColors = {
+        administration: "#7fa7d9", infrastructure: "#f0b35a", armed_forces: "#d9665b",
+        social_policy: "#9b7fd1", environment: "#5fbf8a", health: "#e889b5",
+        education: "#5ec3d6", research: "#c9d35a", security_services: "#8e9bb0",
+        propaganda: "#e07fdc", reserve: "#f2e6c9"
+    };
+    const fallbackColors = ["#7fa7d9", "#f0b35a", "#d9665b", "#9b7fd1", "#5fbf8a", "#e889b5", "#5ec3d6", "#c9d35a", "#8e9bb0", "#e07fdc", "#f2e6c9"];
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    // 13 Nov 2026: bez tooltipa nad wykresem (zasłaniał legendę) — „Pozostało do wykorzystania” jest w legendzie.
+
+    function slicePath(cx, cy, r, ri, start, end) {
+        const point = (radius, angle) => [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+        const large = end - start > Math.PI ? 1 : 0;
+        const [x1, y1] = point(r, start), [x2, y2] = point(r, end), [x3, y3] = point(ri, end), [x4, y4] = point(ri, start);
+        const f = value => value.toFixed(2);
+        return `M${f(x1)} ${f(y1)}A${f(r)} ${f(r)} 0 ${large} 1 ${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}A${f(ri)} ${f(ri)} 0 ${large} 0 ${f(x4)} ${f(y4)}Z`;
+    }
+
+    // Dokładna suma kwot dziesiętnych (tekst z serwera) przez BigInt.
+    function sumDecimals(values) {
+        const parts = values.map(decimalParts).filter(Boolean);
+        const scale = parts.reduce((max, part) => part.scale > max ? part.scale : max, 1n);
+        const sum = parts.reduce((acc, part) => acc + part.value * (scale / part.scale), 0n);
+        const digits = scale.toString().length - 1;
+        if (!digits) return sum.toString();
+        const negative = sum < 0n, abs = negative ? -sum : sum;
+        return `${negative ? "-" : ""}${abs / scale}.${(abs % scale).toString().padStart(digits, "0")}`;
+    }
 
     function renderBudgetBar(container, state) {
         container.replaceChildren();
 
-        const bar = document.createElement("div");
-        bar.className = "finance-budget-bar";
-        bar.setAttribute("role", "group");
-        bar.setAttribute("aria-label", "Podział dostępnych środków");
-
-        const legend = document.createElement("div");
-        legend.className = "finance-budget-legend";
-
-        const total = decimalParts(state.budget_total);
-        let visibleSegments = 0;
-
+        // 13 Nov 2026: po zatwierdzeniu wykres pokazuje bieżące środki sektorów (plan po przesunięciach,
+        // wpływach i korektach administratora, np. zmianie rezerwy), a nie pierwotny plan.
+        const current = Boolean(state.approved && state.balances);
+        const amountFor = code => current
+            ? (state.balances?.[code]?.allocated ?? "0")
+            : (state.allocations?.[code] ?? "0");
+        const totalAmount = current
+            ? sumDecimals(config.categories.map(category => amountFor(category.code)).filter(value => (decimalParts(value)?.value ?? 0n) > 0n))
+            : state.budget_total;
+        const total = decimalParts(totalAmount);
+        const items = [];
         config.categories.forEach((category, index) => {
-            const amount = state.allocations?.[category.code] ?? "0";
+            const amount = amountFor(category.code);
             const parts = decimalParts(amount);
             if (!parts || parts.value <= 0n) return;
-
-            const color = budgetColors[index % budgetColors.length];
-            const percentage = allocationPercentage(amount, state.budget_total);
-            const description =
-                `${category.name}: ${moneyText(amount, true)} · ${percentage}%`;
-
-            const segment = document.createElement("div");
-            segment.className = "finance-budget-segment";
-            segment.style.backgroundColor = color;
-
-            // Waga służy wyłącznie geometrii paska.
-            // Kwoty i procenty w tooltipie liczymy dokładnie przez BigInt.
+            // Waga służy wyłącznie geometrii wykresu; kwoty i procenty liczymy dokładnie przez BigInt.
             const weight = total && total.value > 0n
-                ? Number(parts.value * total.scale) /
-                    Number(parts.scale * total.value)
+                ? Number(parts.value * total.scale) / Number(parts.scale * total.value)
                 : 0;
-
-            segment.style.flexGrow = String(weight);
-            segment.tabIndex = 0;
-            segment.setAttribute("aria-label", description);
-
-            const tooltip = document.createElement("span");
-            tooltip.className = "finance-budget-tooltip";
-            tooltip.textContent = description;
-            segment.append(tooltip);
-            bar.append(segment);
-
-            const item = document.createElement("span");
-            item.className = "finance-budget-legend-item";
-
-            const dot = document.createElement("span");
-            dot.className = "finance-budget-dot";
-            dot.style.backgroundColor = color;
-
-            item.append(dot, document.createTextNode(description));
-            legend.append(item);
-            visibleSegments += 1;
+            items.push({
+                category, amount, weight,
+                color: sectorColors[category.code] || fallbackColors[index % fallbackColors.length],
+                percentage: allocationPercentage(amount, totalAmount),
+                remaining: state.balances?.[category.code]?.remaining
+            });
         });
 
-        if (!visibleSegments) {
+        if (!items.length) {
             const empty = document.createElement("p");
             empty.textContent = "Brak środków do podziału.";
             container.append(empty);
             return;
         }
 
-        container.append(bar, legend);
+        const wrapper = document.createElement("div");
+        wrapper.className = "finance-pie-chart";
+
+        const pie = document.createElement("div");
+        pie.className = "finance-pie";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 200 200");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", "Podział dostępnych środków według sektorów");
+
+        // 13 Nov 2026: najechanie na wycinek podświetla wiersz legendy i odwrotnie.
+        function highlight(item, on) {
+            item.path?.classList.toggle("is-active", on);
+            item.entry?.classList.toggle("is-active", on);
+            wrapper.classList.toggle("has-active", on);
+        }
+        const weightSum = items.reduce((sum, item) => sum + item.weight, 0) || 1;
+        let angle = -Math.PI / 2;
+        items.forEach(item => {
+            let share = item.weight / weightSum;
+            if (items.length === 1) share = 0.99999;
+            const end = angle + share * 2 * Math.PI;
+            const path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", slicePath(100, 100, 97, 97 * 0.56, angle, end));
+            path.setAttribute("fill", item.color);
+            path.setAttribute("class", "finance-pie-slice");
+            path.setAttribute("tabindex", "0");
+            const description = `${item.category.name}: ${moneyText(item.amount)} · ${item.percentage}%`
+                + (item.remaining !== undefined ? ` · pozostało do wykorzystania: ${moneyText(item.remaining)}` : "");
+            path.setAttribute("aria-label", description);
+            item.path = path;
+            const show = () => highlight(item, true);
+            const hide = () => highlight(item, false);
+            path.addEventListener("mouseenter", show);
+            path.addEventListener("focus", show);
+            path.addEventListener("mouseleave", hide);
+            path.addEventListener("blur", hide);
+            svg.append(path);
+            angle = end;
+        });
+
+        const center = document.createElement("div");
+        center.className = "finance-pie-center";
+        const centerLabel = document.createElement("span");
+        centerLabel.textContent = current ? "Aktualnie" : "Do podziału";
+        const centerValue = document.createElement("strong");
+        centerValue.textContent = moneyText(totalAmount);
+        center.append(centerLabel, centerValue);
+        pie.append(svg, center);
+
+        const legend = document.createElement("ul");
+        legend.className = "finance-pie-legend";
+        items.forEach(item => {
+            const entry = document.createElement("li");
+            const dot = document.createElement("span");
+            dot.className = "finance-budget-dot";
+            dot.style.backgroundColor = item.color;
+            const name = document.createElement("span");
+            name.className = "finance-pie-name";
+            name.textContent = item.category.name;
+            const value = document.createElement("span");
+            value.className = "finance-pie-value";
+            value.textContent = `${moneyText(item.amount)} · ${item.percentage}%`;
+            entry.append(dot, name, value);
+            if (item.remaining !== undefined) {
+                const remaining = document.createElement("span");
+                remaining.className = "finance-pie-remaining";
+                const remainingAmount = document.createElement("span");
+                remainingAmount.className = "finance-pie-remaining-amount";
+                remainingAmount.textContent = moneyText(item.remaining);
+                remaining.append("Pozostało do wykorzystania: ", remainingAmount);
+                entry.append(remaining);
+            }
+            item.entry = entry;
+            entry.addEventListener("mouseenter", () => highlight(item, true));
+            entry.addEventListener("mouseleave", () => highlight(item, false));
+            legend.append(entry);
+        });
+
+        wrapper.append(pie, legend);
+        container.append(wrapper);
     }
+
+    // Tooltip „i” przy podatku ogólnym: najechanie / fokus (CSS) oraz dotknięcie (klasa is-open).
+    root.querySelectorAll(".finance-info").forEach(info => {
+        const button = info.querySelector("button");
+        const close = () => { info.classList.remove("is-open"); button.setAttribute("aria-expanded", "false"); };
+        button.addEventListener("click", () => {
+            const open = info.classList.toggle("is-open");
+            button.setAttribute("aria-expanded", String(open));
+            if (!open) button.blur();
+        });
+        info.addEventListener("keydown", event => { if (event.key === "Escape") { close(); button.focus(); } });
+        document.addEventListener("click", event => { if (!info.contains(event.target)) { close(); if (document.activeElement === button) button.blur(); } });
+    });
 
     function benefitCents(value) {
         const match=/^(\d+)(?:\.(\d{1,2}))?$/.exec(String(value));
@@ -716,7 +805,7 @@ function formatRatio(numerator, denominator, digits = 2) {
     });
 
 
-    const transferForm=root.querySelector('[data-finance-transfer]');
+    const transferForm=document.querySelector('[data-finance-transfer]');
     if(transferForm){
         let requestId=null,requestPayload=null;
         const source=transferForm.elements.source,destination=transferForm.elements.destination,amount=transferForm.elements.amount;

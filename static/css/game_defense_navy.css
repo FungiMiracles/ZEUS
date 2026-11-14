@@ -191,3 +191,17 @@ html body.game-app.game-navy.game-civic.military-war .war-operation p{margin:3px
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) :is(.military-sidebar,.leaflet-popup-content) button.military-attack:hover:not(:disabled){background:#8a2a20;border-color:#8a2a20}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) :is(.military-sidebar,.leaflet-popup-content) button:is(.military-attack,.military-action):disabled{background:#e4e9f0;border-color:#c9d3e0;color:#5f6b7b;opacity:1;cursor:not-allowed}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) :is(.military-sidebar,.leaflet-popup-content) button:disabled img{opacity:.55}
+/* 13 Nov 2026: receptura surowców w oknie „Rozmieść bazę”: [kamień] + [żelazo] → [baza], ilość na plakietce w prawym dolnym rogu */
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe{margin:12px 0 4px;padding:10px 12px;background:var(--def-soft);border:1px solid var(--def-line);border-left:3px solid var(--def-navy);border-radius:8px}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe[hidden]{display:none}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-title{display:block;margin-bottom:8px;color:var(--def-muted);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-item{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;box-sizing:border-box;padding:5px;background:#fff;border:1px solid var(--def-line);border-radius:9px;box-shadow:0 1px 4px #1e3a5f1f}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-item img{width:100%;height:100%;object-fit:contain}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-badge{position:absolute;right:-7px;bottom:-7px;min-width:22px;height:20px;padding:0 5px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;border:2px solid #fff;border-radius:10px;background:var(--def-navy);color:#fff;font:700 11px/1 Consolas,monospace}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-item.is-missing{border-color:#e3a59d}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-item.is-missing .military-recipe-badge{background:#a43426}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-target{width:52px;height:52px;border:2px solid var(--def-navy)}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-sign{color:var(--def-navy);font-size:20px;font-weight:800;line-height:1}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) #military-dialog p.military-recipe-stock{margin:10px 0 0;color:var(--def-muted);font-size:12px}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) #military-dialog p.military-recipe-stock.is-missing{color:#a43426}

@@ -1,0 +1,87 @@
+/* Responsive layout only. Loaded after screen themes to preserve their palette. */
+@media (max-width: 900px) {
+  html body.game-app.game-navy.game-civic .game-workspace,
+  html body.game-app.game-navy.game-civic .game-main { min-width:0; width:100%; box-sizing:border-box; }
+  html body.game-app.game-navy.game-civic .game-main { padding:16px 12px; }
+  html body.game-app.game-navy.game-civic .game-navigation { padding-inline:max(12px,env(safe-area-inset-left)); }
+  html body.game-app.game-navy.game-civic .game-mobile-toggle { min-height:44px; }
+  html body.game-app.game-navy.game-civic .game-nav-links.is-open { max-height:calc(100dvh - 120px); overscroll-behavior:contain; }
+  html body.game-app.game-navy.game-civic .game-nav-links :is(a,button) { white-space:normal; }
+  html body.game-app.game-navy.game-civic .infrastructure-layout { grid-template-columns:minmax(0,1fr); }
+  html body.game-app.game-navy.game-civic :is(.game-panel,.panel-card,.industry-card,.industry-build-card) { min-width:0; }
+  html body.game-app.game-navy.game-civic :is(.panel-map-bar,.war-panel-bar,.module-funds .industry-budget-card) { flex-wrap:wrap; }
+  html body.game-app.game-navy.game-civic .module-funds .industry-budget-card { flex-basis:100%; min-width:0; }
+  html body.game-app.game-navy.game-civic .module-funds .industry-budget-card strong { white-space:normal; overflow-wrap:anywhere; }
+  html body.game-app.game-navy.game-civic :is(.panel-map-reset,.world-map-reset,.civic-tabs button,.infrastructure-stepper button,.research-modal-actions button) { min-height:44px; }
+  html body.game-app.game-navy.game-civic .world-view-switch span { min-height:44px; display:flex; align-items:center; box-sizing:border-box; }
+  html body.game-app.game-navy.game-civic :is(#game-country-map,#world-map,#infrastructure-map,#factory-map) { height:clamp(280px,55dvh,520px); min-height:280px; }
+  html body.game-app.game-navy.game-civic :is(.infrastructure-table-scroll,.finance-table-scroll,.game-table-scroll,.table-responsive) { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  html body.game-app.game-navy.game-civic :is(.game-main,dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea) { min-width:0; max-width:100%; font-size:16px; box-sizing:border-box; }
+  html body.game-app.game-navy.game-civic dialog { max-width:calc(100vw - 24px); max-height:calc(100dvh - 24px); overflow-y:auto; box-sizing:border-box; }
+  html body.game-app.game-navy.game-civic.research-room #research-dialog { overflow-y:auto; }
+  html body.game-app.game-navy.game-civic .research-network-panel { overflow-x:auto; }
+  html body.game-app.game-navy.game-civic :is(.leaflet-tooltip,.leaflet-popup-content) { max-width:calc(100vw - 64px); overflow-wrap:anywhere; }
+}
+@media (max-width: 600px) {
+  html body.game-app.game-navy.game-civic .game-country-summary { padding:14px 12px; gap:12px; }
+  html body.game-app.game-navy.game-civic .game-country-metrics { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 0; }
+  html body.game-app.game-navy.game-civic .game-country-metrics>div { min-width:0; padding:4px 8px; }
+  html body.game-app.game-navy.game-civic .game-country-metrics dd { overflow-wrap:anywhere; }
+  html body.game-app.game-navy.game-civic .panel-cards { grid-template-columns:minmax(0,1fr); }
+  html body.game-app.game-navy.game-civic :is(.industry-records,.industry-build-cards) { grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+  html body.game-app.game-navy.game-civic .civic-tabs button { flex:1 1 140px; white-space:normal; }
+  html body.game-app.game-navy.game-civic #research-purchase { grid-template-columns:minmax(0,1fr); }
+  html body.game-app.game-navy.game-civic .world-map-bar { gap:10px; }
+  html body.game-app.game-navy.game-civic .world-map-bar h2 { flex-basis:100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.game-app .game-news-track { animation:none; }
+}
+@media (max-width: 900px) {
+  html body.game-app.game-navy.game-civic #industry-build-cards { grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr)); }
+  html body.game-app.game-navy.game-civic #industry-build-cards .industry-build-card { grid-template-rows:38px minmax(52px,auto) 44px minmax(30px,auto) minmax(44px,auto) auto; }
+  html body.game-app.game-navy.game-civic #industry-build-cards :is(select,.industry-build-card>button),
+  html body.game-app.game-navy.game-civic .industry-object-actions>button,
+  html body.game-app.game-navy.game-civic #industry-records button[data-industry-action] { min-height:44px; height:auto; font-size:14px; }
+  html body.game-app.game-navy.game-civic #industry-build-cards select { width:auto; }
+}
+html body.game-app .game-summary-toggle[hidden], .research-touch-hint { display:none; }
+@media (max-width:900px) {
+  html body.game-app.game-navy.game-civic .game-summary-toggle:not([hidden]) { display:block; width:100%; min-height:44px; margin:0; padding:12px; border:0; border-bottom:1px solid #d3dce9; border-radius:0; background:#F0F4FA; color:#1E3A5F; text-align:left; font-weight:700; }
+  html body.game-app.game-navy.game-civic .game-summary-toggle:not([hidden])+.game-country-summary:not(.is-open) { display:none; }
+  html body.game-app.game-navy.game-civic .game-topbar { grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:10px 12px; }
+  html body.game-app.game-navy.game-civic .game-topbar>.game-tools { grid-column:2; grid-row:1; flex-wrap:nowrap; gap:8px; }
+  html body.game-app.game-navy.game-civic.research-room .technology-viewport { overflow-x:auto; overscroll-behavior-x:contain; }
+  html body.game-app.game-navy.game-civic.research-room .technology-radial { min-width:620px; max-width:none; }
+  html body.game-app.game-navy.game-civic.research-room .research-touch-hint { display:inline; }
+  html body.game-app.game-navy.game-civic.infrastructure-room #industry-mine-filters button { min-height:44px; }
+  html body.game-app.game-navy.game-civic.infrastructure-room .infrastructure-map-reset { min-height:44px; }
+}
+@media (max-width:900px) {
+  html body.game-app.game-navy.game-civic .game-summary-toggle::after { content:' ▾'; }
+  html body.game-app.game-navy.game-civic .game-summary-toggle[aria-expanded=true]::after { content:' ▴'; }
+  html body.game-app.game-navy.game-civic.research-room .research-network-panel>p { display:block; }
+}
+/* 13 Nov 2026 (2): filtry mapy panelu państwa — zwarta, wyrównana siatka na telefonie */
+@media (max-width:900px) {
+  html body.game-app.game-navy.game-civic .panel-map-filters { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; padding:10px 12px; }
+  html body.game-app.game-navy.game-civic .panel-map-filters .panel-filter-all { justify-self:start; min-height:32px; padding:4px 12px; }
+  html body.game-app.game-navy.game-civic .panel-filter-group { display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:5px; }
+  html body.game-app.game-navy.game-civic .panel-filter-group>span { grid-column:1/-1; margin:2px 0 0; font-size:10px; }
+  html body.game-app.game-navy.game-civic .panel-map-filters .panel-filter-group button { justify-content:flex-start; width:100%; min-width:0; min-height:34px; padding:3px 8px 3px 4px; font-size:11.5px; line-height:1.15; text-align:left; white-space:normal; overflow-wrap:anywhere; }
+  html body.game-app.game-navy.game-civic .panel-map-filters .panel-filter-group button img { flex:0 0 20px; width:20px; height:20px; }
+  html body.game-app.game-navy.game-civic .panel-map-bar { flex-wrap:nowrap; padding:8px 12px; }
+  html body.game-app.game-navy.game-civic .panel-map-bar .panel-map-reset { flex:0 0 auto; min-height:36px; }
+}
+/* 13 Nov 2026 (2): „Dostępne środki” i „Rezerwa budżetowa” — komputer: format automatyczny; telefon: dwie karty obok siebie, kwoty w MLD */
+html body.game-app .module-funds .module-funds-mld { display:none; }
+html body.game-app.game-navy.game-civic .module-funds .industry-budget-card strong>span { color:inherit; font:inherit; text-transform:none; letter-spacing:inherit; }
+@media (max-width:900px) {
+  html body.game-app.game-navy.game-civic .module-funds { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr)); gap:8px; }
+  html body.game-app.game-navy.game-civic .module-funds .industry-budget-card { flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:4px; min-width:0; padding:9px 12px; }
+  html body.game-app.game-navy.game-civic .module-funds .industry-budget-card>span { font-size:10px; line-height:1.3; letter-spacing:.04em; }
+  html body.game-app.game-navy.game-civic .module-funds .industry-budget-card strong { font-size:16px; line-height:1.2; white-space:nowrap; overflow-wrap:normal; }
+  html body.game-app.game-navy.game-civic .module-funds .module-funds-full { display:none; }
+  html body.game-app.game-navy.game-civic .module-funds .module-funds-mld { display:inline; }
+  html body.game-app.game-navy.game-civic .module-funds .module-funds-mld small { font:600 10.5px system-ui,sans-serif; color:#4d5f78; letter-spacing:.03em; }
+}

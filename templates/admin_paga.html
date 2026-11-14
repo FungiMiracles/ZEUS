@@ -2,7 +2,7 @@
 {% block title %}PAGA — konfiguracja państw{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/wiki_paga.css',v='20261112-paga2-2') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/wiki_paga.css',v='20261114-stats-1') }}">
 <div class="paga-page">
 <header class="paga-heading"><div><h1>PAGA</h1><p>Panel Administracyjny Gry Autonomicznej</p></div><a href="{{ url_for('home_page') }}">← Główny ekran ZEUSa</a></header>
 <nav class="paga-main-tabs" role="tablist" aria-label="Sekcje panelu PAGA">
@@ -146,6 +146,11 @@
 <div id="paga-main-history" role="tabpanel" aria-labelledby="paga-main-tab-history" data-main-panel="history" hidden>
 <section class="paga-card"><h2>Historia decyzji państw PAGA2</h2>
 <p class="paga-note">Każda decyzja zawiera rozważone opcje z punktacją oraz dane, na podstawie których została podjęta.</p>
+<div id="paga2-history-stats" class="paga-stats" role="status" aria-live="polite"></div>
+<div class="paga-stats-lists">
+<div class="paga-monitor-table"><table><caption class="paga-note">Najczęściej odrzucane przez grę</caption><thead><tr><th>Akcja</th><th>Obszar</th><th>Liczba</th></tr></thead><tbody id="paga2-history-rejected"></tbody></table></div>
+<div class="paga-monitor-table"><table><caption class="paga-note">Decyzje według obszaru</caption><thead><tr><th>Obszar</th><th>Liczba</th></tr></thead><tbody id="paga2-history-domains"></tbody></table></div>
+</div>
 <form id="paga2-history-filter" class="paga-decision-filters">
 <label>Państwo<select id="paga2-history-country"><option value="">Wszystkie państwa</option></select></label>
 <label>Obszar<select id="paga2-history-domain"><option value="">Wszystkie obszary</option></select></label>
@@ -184,7 +189,7 @@
 <script type="application/json" id="paga-config">{{ paga_config|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga.js',v='20261112-paga2-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261112-paga2-2') }}" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261114-stats-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga_relationships.js',v='20261108-1') }}" defer></script>
 {% if paga_config.monitoringUrl %}<script src="{{ url_for('static',filename='js/wiki_paga_monitoring.js',v='20261110-multiai-1') }}" defer></script>{% endif %}
 {% endblock %}

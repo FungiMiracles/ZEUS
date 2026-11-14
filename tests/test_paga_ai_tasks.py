@@ -20,6 +20,18 @@ REASON='Plan finansuje świadczenia społeczne i inwestycje infrastrukturalne zg
 DONE={'ocena':'Nic więcej nie wymaga działania.','actions':[],'task_done':True}
 
 
+
+
+def give_base_materials(country=1,count=1):
+    """13 Nov 2026: rozmieszczenie bazy zużywa kamień i żelazo z magazynu — scenariusz dostaje surowce na `count` baz lądowych."""
+    from extensions import db
+    from game.commerce_models import ResourceStock
+    from game.military_service import BASE_MATERIALS
+    for code,need in BASE_MATERIALS['land'].items():
+        row=db.session.get(ResourceStock,(country,code))
+        if row is None:db.session.add(ResourceStock(panstwo_id=country,resource=code,quantity=need*count))
+        else:row.quantity+=need*count
+    db.session.commit()
 class Scenario:
     """Shared helpers. Subclasses compose an existing isolated fixture (no inherited test methods)."""
     def ready(self):
@@ -279,6 +291,7 @@ class AiScenarioTests(Scenario,unittest.TestCase):
         """Regression (UAT 10 Nov 2026, tasks 359–361): invented base/region numbers, missing kind, text in number fields."""
         from game.military_models import MilitaryBase
         from game.forum_models import ForumMessage
+        give_base_materials()
         deploy=self.base.call('game_military.defense_change:POST',{'action':'deploy','kind':'land','region_id':1,'x':10,'y':10,'garrison':{'soldiers':100,'launchers':1}})
         self.assertEqual(deploy['status'],200,deploy)
         base=db.session.scalar(select(MilitaryBase))
@@ -506,6 +519,7 @@ class AiScenarioTests(Scenario,unittest.TestCase):
         from game.autonomy_models import AutonomyEvent
         from game.military_models import MilitaryBase
         deploy={'action':'deploy','kind':'land','region_id':1,'x':10,'y':10,'garrison':{'soldiers':100,'launchers':1}}
+        give_base_materials()
         plan={'ocena':'Przygotowujemy obronę.','actions':[{'operation_id':'plan.conditional','path':{},'data':{'condition':{'type':'attacked_by','country_id':2},'operation_id':'game_military.defense_change:POST','path':{},'data':deploy,'valid_game_days':10,'note':'Baza obronna po ataku Kraju B'}}],'task_done':True}
         self.tick([plan])
         self.assertEqual(db.session.scalar(select(PagaAiPlan.status)),'ACTIVE')

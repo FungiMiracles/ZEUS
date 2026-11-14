@@ -582,3 +582,81 @@ body.finance-modal-open {
 
 [data-finance-transfer] select,[data-finance-transfer] input { display:block; box-sizing:border-box; width:100%; padding:10px; margin-top:6px; }
 [data-balance="remaining"] { font-weight:700; color:#17652a; }
+
+/* 13 Nov 2026: wykres kołowy podziału środków (jak na lewym pasku gry) */
+.finance-pie-chart { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 24px; margin: 8px 0 14px; }
+.finance-pie { position: relative; flex: 0 0 auto; width: min(230px, 100%); aspect-ratio: 1; margin: 0 auto; }
+.finance-pie svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.finance-pie-slice { stroke: #fff; stroke-width: 1.5; cursor: pointer; transform-origin: 100px 100px; transition: transform .12s, filter .12s; outline: none; }
+.finance-pie-slice:hover, .finance-pie-slice:focus-visible { transform: scale(1.05); filter: brightness(1.08); stroke: #1E3A5F; stroke-width: 2; }
+.finance-pie-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.finance-pie-center span { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #4d5f78; }
+.finance-pie-center strong { max-width: 110px; font: 700 14px/1.25 Consolas, monospace; color: #1E3A5F; }
+.finance-pie-legend { flex: 1 1 240px; display: grid; gap: 6px; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.finance-pie-legend li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 13px; line-height: 1.35; }
+.finance-pie-legend .finance-budget-dot { width: 10px; height: 10px; border-radius: 3px; }
+.finance-pie-value { font-family: Consolas, monospace; font-weight: 700; color: #1E3A5F; white-space: nowrap; }
+.finance-pie-tip { z-index: 3000; }
+
+/* Tooltip „i” przy podatku ogólnym */
+.finance-tax-field { display: grid; gap: 7px; font-weight: 600; }
+.finance-tax-label { display: inline-flex; align-items: center; gap: 8px; }
+.finance-info { position: relative; display: inline-flex; }
+html body.game-app .finance-info .finance-info-button { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; min-width: 0; min-height: 0; padding: 0; border: 1.5px solid #1E3A5F; border-radius: 50%; background: #fff; color: #1E3A5F; font: italic 700 13px/1 Georgia, serif; box-shadow: none; cursor: help; }
+html body.game-app .finance-info .finance-info-button:hover, html body.game-app .finance-info .finance-info-button:focus-visible, html body.game-app .finance-info.is-open .finance-info-button { background: #1E3A5F; color: #fff; outline: none; }
+.finance-info-tooltip { display: none; position: absolute; z-index: 1300; top: calc(100% + 8px); left: -8px; width: min(440px, calc(100vw - 40px)); box-sizing: border-box; padding: 12px 14px; border: 1px solid #4d6f98; border-radius: 8px; background: #1E3A5F; color: #eef3fa; font-size: 12.5px; font-weight: 400; line-height: 1.5; box-shadow: 0 10px 26px #0b1d3366; }
+.finance-info-tooltip > span { display: block; }
+.finance-info-tooltip > span + span { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffffff26; }
+.finance-info-tooltip strong { color: #ffcf6b; }
+.finance-info:has(.finance-info-button:focus-visible) .finance-info-tooltip, .finance-info.is-open .finance-info-tooltip { display: block; }
+@media (hover: hover) { .finance-info:hover .finance-info-tooltip { display: block; } }
+
+/* Układ ekranu: wykres | podsumowanie; przesunięcia | pożyczki */
+.finance-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.finance-split > * { min-width: 0; }
+.finance-split > :only-child { grid-column: 1 / -1; }
+.finance-summary-section .finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.finance-split-bottom { margin: 0 0 24px; }
+.finance-split-bottom > .finance-section, .finance-split-bottom > .loan-panel { margin: 0; }
+@media (max-width: 900px) {
+    .finance-split { grid-template-columns: minmax(0, 1fr); }
+    .finance-info-tooltip { position: fixed; top: auto; left: 12px; right: 12px; width: auto; bottom: 12px; max-height: 60dvh; overflow-y: auto; }
+}
+
+/* Historia pożyczek — okno modalne w nowym stylu */
+.loan-history-open[hidden] { display: none; }
+.loan-history-dialog { width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); box-sizing: border-box; padding: 0; overflow: hidden; border: 1px solid #d3dce9; border-top: 4px solid #1E3A5F; border-radius: 10px; background: #fff; color: #24324a; box-shadow: 0 20px 60px #0b1d3355; }
+.loan-history-dialog[open] { display: flex; flex-direction: column; }
+.loan-history-dialog::backdrop { background: #10244099; }
+.loan-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: linear-gradient(180deg, #2b4f7c, #1E3A5F); }
+.loan-history-heading h2 { margin: 0; color: #fff; font-size: 14px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.game-app .loan-history-heading button { min-width: 0; min-height: 0; width: 32px; height: 32px; padding: 0; border: 1.5px solid #ffffff99; border-radius: 6px; background: transparent; color: #fff; font-size: 15px; box-shadow: none; cursor: pointer; }
+.game-app .loan-history-heading button:hover, .game-app .loan-history-heading button:focus-visible { border-color: #fff; background: #ffffff26; outline: none; }
+.loan-history-body { display: grid; gap: 10px; padding: 16px 18px 18px; overflow-y: auto; }
+.loan-history-body .loan-card { margin: 0; padding: 10px 14px; border: 1px solid #d3dce9; border-left: 3px solid #1E3A5F; border-radius: 7px; background: #eef3fa; }
+.loan-history-body .loan-card h3 { margin: 0 0 4px; color: #1E3A5F; font-size: 14px; }
+.loan-history-body .loan-card p { margin: 0; color: #4d5f78; font-size: 13px; }
+.loan-history-body .loan-actions:empty { display: none; }
+
+/* 13 Nov 2026 (2): legenda obok wykresu, podświetlanie powiązanego wycinka i wiersza */
+.finance-pie-chart { flex-wrap: nowrap; align-items: center; gap: 18px; }
+.finance-pie { width: 200px; margin: 0; }
+.finance-pie-legend { flex: 1 1 0; }
+.finance-pie-legend li { padding: 3px 6px; border-radius: 5px; transition: background .12s, opacity .12s; cursor: default; }
+.finance-pie-chart.has-active .finance-pie-legend li:not(.is-active) { opacity: .45; }
+.finance-pie-legend li.is-active { background: #1E3A5F; color: #fff; opacity: 1; }
+.finance-pie-legend li.is-active .finance-pie-value { color: #fff; }
+.finance-pie-chart.has-active .finance-pie-slice:not(.is-active) { opacity: .4; }
+.finance-pie-slice.is-active { transform: scale(1.05); stroke: #1E3A5F; stroke-width: 2; }
+@media (max-width: 1250px) { .finance-pie-chart { flex-wrap: wrap; } .finance-pie { margin: 0 auto; } .finance-pie-legend { flex-basis: 100%; } }
+/* 13 Nov 2026 (3): wiersz legendy w dwóch liniach — nazwa sektora, pod nią kwota i udział (bez łamania słów) */
+.finance-pie-legend { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 8px; align-content: center; }
+.finance-pie-legend li { grid-template-columns: 10px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; row-gap: 1px; overflow-wrap: normal; word-break: normal; }
+.finance-pie-legend .finance-budget-dot { grid-row: 1 / 3; align-self: center; }
+.finance-pie-name { overflow-wrap: normal; word-break: normal; font-weight: 600; }
+.finance-pie-value { grid-column: 2; font-size: 11.5px; }
+/* 13 Nov 2026 (4): bez tooltipa nad wykresem — „Pozostało do wykorzystania” jako trzecia linia wiersza legendy */
+.finance-pie-legend .finance-budget-dot { grid-row: 1 / -1; }
+.finance-pie-remaining { grid-column: 2; min-width: 0; font-size: 11px; line-height: 1.3; color: #4d5f78; white-space: normal; overflow-wrap: normal; }
+.finance-pie-remaining-amount { font-family: Consolas, monospace; font-weight: 700; white-space: nowrap; }
+.finance-pie-legend li.is-active .finance-pie-remaining { color: #d6e2f1; }

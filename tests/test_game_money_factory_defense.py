@@ -21,7 +21,7 @@ class MoneyDisplayTests(unittest.TestCase):
     def test_strict_boundaries_one_decimal_and_large_exact_values(self):
         cases=[('0','0,0 MLN ROI'),('123456789','123,5 MLN ROI'),('1000000000','1\u00a0000,0 MLN ROI'),('1000000000.01','1,0 MLD ROI'),('1500000000','1,5 MLD ROI'),('1000000000000','1\u00a0000,0 MLD ROI'),('1000000000000.01','1,0 BLN ROI'),('9007199254740993.27','9\u00a0007,2 BLN ROI'),('-2500000','-2,5 MLN ROI')]
         for value,expected in cases:self.assertEqual(format_money(value),expected)
-        self.assertEqual(format_money('NaN'),'—');self.assertEqual(format_money(None),'—');self.assertEqual(POINT_PRICE,400000000)
+        self.assertEqual(format_money('NaN'),'—');self.assertEqual(format_money(None),'—');self.assertEqual(POINT_PRICE,150000000)   # 13 Nov 2026: 150 mln ROI za punkt rozwoju
 
 class FactoryProtectionTests(MilitaryFixture):
     def test_factory_can_be_protected_only_by_its_owner_and_maps_at_factory(self):

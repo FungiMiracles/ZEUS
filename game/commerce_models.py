@@ -63,6 +63,9 @@ class TradeOffer(db.Model):
     status=db.Column(db.String(16),nullable=False,default='open',index=True)
     request_id=db.Column(db.String(36),nullable=False)
     created_at=db.Column(db.DateTime,nullable=False,default=utc_now)
+    # 13 Nov 2026: czas gry wystawienia i ostatniej zmiany ceny (wycofanie po 14 dniach Entendy, obniżki ceny PAGA2)
+    created_game_at=db.Column(db.DateTime,nullable=True,index=True)
+    price_changed_game_at=db.Column(db.DateTime,nullable=True)
     __table_args__=(db.UniqueConstraint('panstwo_id','request_id',name='uq_trade_offer_request'),db.CheckConstraint("price > 0 AND status IN ('open','sold','cancelled')",name='ck_trade_offer_values'),{'mysql_engine':'InnoDB'})
 
 

@@ -62,6 +62,8 @@ def build_mine(user_id,data):
             return existing.id
         region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==natural(data.get('region_id'),'Region',1),Region.panstwo_id.in_(controlled_ids(session, country_id))).with_for_update())
         if region is None or not region_contains(region.region_id,x,y):raise FinanceError('Kopalnia musi znajdować się wewnątrz własnego regionu.')
+        from game.nuclear import require_clear
+        require_clear(session,x,y)   # 13 Nov 2026: strefa skażenia po uderzeniu atomowym
         from game.land_war import require_buildable
         require_buildable(session,region.region_id,country_id)
         from game.industry_service import require_technologies,ready_at,settle_industry

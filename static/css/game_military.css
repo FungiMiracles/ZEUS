@@ -119,3 +119,15 @@
 .leaflet-tooltip.leaflet-interactive { pointer-events:auto; }
 .game-app .leaflet-tooltip button.military-tooltip-action.military-tooltip-action { display:inline-block; min-height:0; margin-top:5px; padding:1px 8px; font:inherit; font-size:11px; font-weight:600; line-height:1.5; border:1px solid #9fb3c8; border-radius:4px; background:#fff; color:#193453; box-shadow:none; cursor:pointer; }
 .game-app .leaflet-tooltip button.military-tooltip-action.military-tooltip-action:hover { background:#e6eef8; }
+
+/* 14 Nov 2026: wybuch w miejscu trafienia rakiety */
+.military-explosion-icon { background:transparent; border:0; pointer-events:none; }
+.military-explosion { position:relative; width:100%; height:100%; }
+.military-explosion-flash,.military-explosion-ring { position:absolute; inset:0; border-radius:50%; }
+.military-explosion-flash { background:radial-gradient(circle,#fff 0 12%,#ffe066 25%,#ff8a00 45%,#d32f2f 62%,#d32f2f00 72%); animation:military-blast 1.2s ease-out forwards; }
+.military-explosion-ring { border:3px solid #ffb74d; animation:military-blast-ring 1.2s ease-out forwards; }
+.military-explosion.is-nuclear .military-explosion-flash { background:radial-gradient(circle,#fff 0 18%,#fff3b0 30%,#ffb300 48%,#e65100 62%,#e6510000 74%); animation-duration:2.4s; }
+.military-explosion.is-nuclear .military-explosion-ring { border:4px solid #fff3b0; animation-duration:2.4s; }
+@keyframes military-blast { 0% { transform:scale(.1); opacity:1; } 35% { transform:scale(1); opacity:1; } 100% { transform:scale(1.15); opacity:0; } }
+@keyframes military-blast-ring { 0% { transform:scale(.2); opacity:.9; } 100% { transform:scale(1.6); opacity:0; } }
+@media(prefers-reduced-motion:reduce) { .military-explosion-flash { animation:none; opacity:.8; } .military-explosion-ring { display:none; } }
