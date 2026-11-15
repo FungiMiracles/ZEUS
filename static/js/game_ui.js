@@ -42,7 +42,7 @@
     const timeInfo=document.querySelector(".game-time-info");
     function reposition() {
         if (notifications?.open) {
-            const anchor = notifications.querySelector("summary"), panel = notifications.querySelector(".game-notification-dropdown");
+            const anchor = notifications.querySelector("summary"), panel = document.getElementById("game-notification-panel") || notifications.querySelector(".game-notification-dropdown");
             const inSidebar = Boolean(notifications.closest(".game-sidebar")) && window.matchMedia("(min-width:901px)").matches;
             if (!(inSidebar && placeBeside(anchor, panel))) place(anchor, panel);
         }

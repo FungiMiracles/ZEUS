@@ -1,7 +1,8 @@
 """PAGA2 — inicjowanie wpisów na forum międzynarodowym i wiadomości prywatnych.
 
 Algorytm decyduje, CZY i KIEDY państwo zabiera głos oraz do kogo (okazje: atak na nasze państwo, atak na sojusznika,
-wojna w innym regionie, nasza oferta handlowa, zmiana stosunków, wydarzenie z generatora zdarzeń). Treść pisze model AI
+wojna w innym regionie, nasza oferta handlowa, zmiana stosunków, wydarzenie z generatora zdarzeń, a przy skrytości
+poniżej 20 — faktyczne rozpoczęcie prac nad technologią). Treść pisze model AI
 (zadanie forum_announcement / private_initiative) zgodnie z polityką PAGA2. Bez włączonych modeli AI okazje są pomijane.
 """
 from datetime import timedelta
@@ -35,6 +36,36 @@ def used_today(session,country_id):
 def recent_actions(ctx):
     from game.paga2.memory import executed_actions
     with Session(db.engine) as session:return executed_actions(session,ctx.country_id,since=ctx.now-timedelta(days=RECENT_DAYS) if ctx.now else None,limit=50)
+
+
+# 15 Nov 2026: państwa o niskiej skrytości mogą ogłosić na forum rozpoczęcie prac nad technologią — tylko gdy faktycznie
+# je rozpoczęły (pierwsza inwestycja punktów w technologię albo rozpoczęty czas rozwoju), raz na technologię.
+OPEN_RESEARCH_SECRECY=20
+RESEARCH_INVESTMENT_DAYS=2   # dni rzeczywiste od pierwszej inwestycji (inwestycje zapisują czas UTC, nie czas gry)
+
+
+def started_research(ctx):
+    """[(technologia, nazwa)] — technologie, nad którymi państwo niedawno faktycznie rozpoczęło prace."""
+    from game.research_models import ResearchAccount,ResearchInvestment
+    from game.research_timing import _parse
+    from game.industry_catalog import TECHNOLOGIES
+    from game.paga2.models import utc_now
+    from sqlalchemy.exc import SQLAlchemyError
+    found={}
+    try:
+        with Session(db.engine) as session:
+            account=session.get(ResearchAccount,ctx.country_id)
+            if ctx.now:
+                for node,item in ((account.timers if account else None) or {}).items():
+                    started=_parse((item or {}).get('started'))
+                    if started and ctx.now-timedelta(days=RECENT_DAYS)<=started<=ctx.now:found[node]=started
+            first=session.execute(select(ResearchInvestment.node,func.min(ResearchInvestment.created_at)).where(ResearchInvestment.panstwo_id==ctx.country_id)
+                                  .group_by(ResearchInvestment.node)).all()
+            limit=utc_now()-timedelta(days=RESEARCH_INVESTMENT_DAYS)
+            for node,at in first:
+                if at and at>=limit:found.setdefault(node,at)
+    except SQLAlchemyError:return []
+    return [(node,TECHNOLOGIES[node]['label']) for node in sorted(found) if node in TECHNOLOGIES]
 
 
 def occasions(ctx,names):
@@ -95,6 +126,12 @@ def occasions(ctx,names):
         elif action in ('RELATION_WORSEN','WAR') and target:
             result.append((f'paga2:hostile:{action}:{target}:{stamp}','forum_announcement',None,f'Nasze państwo {"wypowiedziało wojnę" if action=="WAR" else "pogorszyło stosunki z"} {label(target)}. Uzasadnij decyzję.',
                            {'conquest':.4,'alliances':.2},{'provocation':.6,'secrecy':-.5},2.0 if action=='WAR' else -1.0))
+    if t.get('secrecy',50)<OPEN_RESEARCH_SECRECY:
+        for node,title in started_research(ctx):
+            result.append((f'paga2:research:{node}','forum_announcement',None,
+                           f'Nasze państwo rozpoczęło prace nad technologią „{title}”. Poinformuj społeczność międzynarodową o rozpoczęciu tych prac '
+                           '(bez zmyślania szczegółów, terminów i wyników, których nie znamy).',
+                           {'research':.6},{'secrecy':-.8,'ambition':.3},1.0))
     return result
 
 

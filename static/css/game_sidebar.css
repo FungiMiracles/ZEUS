@@ -70,7 +70,7 @@ html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notif
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .zeus-section-icon{width:30px;height:30px;flex:0 0 30px;margin:0;padding:3px;box-sizing:border-box;background:#fff;border:0;border-radius:6px;opacity:1}
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-badge{position:absolute;top:-7px;right:-7px;border:2px solid #1E3A5F}
 html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notifications{position:static}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{position:fixed;right:auto;z-index:2500;width:min(400px,calc(100vw - 360px));max-height:75vh}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown{position:fixed;right:auto;z-index:2500;width:min(400px,calc(100vw - 360px));max-height:75vh}
 
 /* 13 Nov 2026 (2): głowa paska — gracz | flaga | ikony; nazwa państwa i plakietka UAT pod spodem */
 .game-sidebar .sidebar-head{display:flex;align-items:center;justify-content:center;gap:8px;padding-bottom:10px;border-bottom:0}
@@ -136,18 +136,18 @@ html body.game-app.game-navy.game-civic .game-news-bar .game-news-date{font-weig
   .game-sidebar{top:var(--game-nav-height,0px);height:calc(100dvh - var(--game-nav-height,0px))}
 }
 /* Lista powiadomień: w dół, na prawo od ikony, w kolorach granatu */
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{background:#1E3A5F;color:#eef3fa;border:1px solid #4d6f98;border-radius:8px;box-shadow:0 10px 26px #0b1d3366;padding:10px}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown>strong{color:#fff;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown :is(p,#game-notification-status){color:#c9d7e8}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item{background:#24466f;color:#eef3fa;border:1px solid #3b5f8c;border-radius:6px}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item:hover{background:#2b5282;border-color:#fff}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.unread{background:#2d5585;border-left:3px solid #ffcf6b}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item :is(small,time,span){color:#c9d7e8}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.notification-war{background:#5a1f24;border-color:#b3261e;color:#ffe0e0}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-item.notification-construction{background:#5a4417;border-color:#c08a2c;color:#fff1d6}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-new{background:#ffcf6b;color:#1E3A5F}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools :is(.game-notification-read-all,#game-notification-more){background:#fff;color:#1E3A5F;border:1px solid #fff}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools button.game-notification-mark.game-notification-mark{background:#1E3A5F;color:#fff;border-color:#ffffff99}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown{background:#1E3A5F;color:#eef3fa;border:1px solid #4d6f98;border-radius:8px;box-shadow:0 10px 26px #0b1d3366;padding:10px}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown>strong{color:#fff;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown :is(p,#game-notification-status){color:#c9d7e8}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item{background:#24466f;color:#eef3fa;border:1px solid #3b5f8c;border-radius:6px}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item:hover{background:#2b5282;border-color:#fff}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item.unread{background:#2d5585;border-left:3px solid #ffcf6b}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item :is(small,time,span){color:#c9d7e8}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item.notification-war{background:#5a1f24;border-color:#b3261e;color:#ffe0e0}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-item.notification-construction{background:#5a4417;border-color:#c08a2c;color:#fff1d6}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-new{background:#ffcf6b;color:#1E3A5F}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) :is(.game-notification-read-all,#game-notification-more){background:#fff;color:#1E3A5F;border:1px solid #fff}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) button.game-notification-mark.game-notification-mark{background:#1E3A5F;color:#fff;border-color:#ffffff99}
 /* Usuń konto (UAT) obok Wyloguj — ten sam styl, czerwony */
 .game-sidebar .sidebar-account-actions{display:flex;align-items:center;gap:5px;margin-left:auto;flex:0 0 auto}
 .game-sidebar .sidebar-account-actions .sidebar-logout-form{margin:0}
@@ -171,7 +171,7 @@ html body.game-app.game-navy.game-civic .game-main{max-width:none;width:auto}
 /* 13 Nov 2026 (8): lista powiadomień nad mapami i kontenerami — pasek tworzy własny kontekst nakładania,
    więc musi leżeć wyżej niż panele Leaflet (400–1000). Lista pozycjonowana przez game_ui.js na prawo od ikony. */
 html body.game-app.game-navy.game-civic .game-sidebar{z-index:1050}
-html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{width:400px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain}
+html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown{width:400px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain}
 /* Zegar Entendy: w DOM przed przyciskiem menu (telefon), na komputerze nadal po prawej stronie menu */
 @media(min-width:901px){html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock{order:5}}
 /* Zakładka i tło szuflady — tylko telefon */
@@ -195,7 +195,7 @@ html body.game-app .sidebar-drawer-tab,html body.game-app .sidebar-drawer-backdr
   html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar) :is(.game-topbar,.game-country-summary,.game-budget-overview),
   html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar) .game-summary-toggle:not([hidden]){display:none}
   /* Lista powiadomień w szufladzie: pod ikoną, na szerokość ekranu */
-  html body.game-app.game-navy.game-civic .game-sidebar .sidebar-tools .game-notification-dropdown{width:calc(100vw - 24px);max-width:calc(100vw - 24px)}
+  html body.game-app.game-navy.game-civic :is(.game-sidebar .sidebar-tools,.game-notification-layer.from-sidebar) .game-notification-dropdown{width:calc(100vw - 24px);max-width:calc(100vw - 24px)}
   /* Nagłówek: marka | pomniejszony zegar | MENU */
   html body.game-app.game-navy.game-civic .game-navigation{grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px}
   html body.game-app.game-navy.game-civic .game-navigation .game-rail-brand{grid-column:1;grid-row:1;min-width:0}

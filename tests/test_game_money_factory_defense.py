@@ -6,7 +6,7 @@ from uuid import uuid4
 from unittest.mock import patch
 from sqlalchemy import select,text
 from extensions import db
-from game.money_display import format_money
+from game.money_display import format_money,format_thousands
 from game.research_service import settle_production,POINT_PRICE
 from game.research_models import AmmunitionFactory,ResearchAccount
 from game.military_models import MilitaryFlight,MissileDefense
@@ -22,6 +22,12 @@ class MoneyDisplayTests(unittest.TestCase):
         cases=[('0','0,0 MLN ROI'),('123456789','123,5 MLN ROI'),('1000000000','1\u00a0000,0 MLN ROI'),('1000000000.01','1,0 MLD ROI'),('1500000000','1,5 MLD ROI'),('1000000000000','1\u00a0000,0 MLD ROI'),('1000000000000.01','1,0 BLN ROI'),('9007199254740993.27','9\u00a0007,2 BLN ROI'),('-2500000','-2,5 MLN ROI')]
         for value,expected in cases:self.assertEqual(format_money(value),expected)
         self.assertEqual(format_money('NaN'),'—');self.assertEqual(format_money(None),'—');self.assertEqual(POINT_PRICE,150000000)   # 13 Nov 2026: 150 mln ROI za punkt rozwoju
+
+    def test_thousands_for_gdp_per_capita(self):
+        # 15 Nov 2026: PKB per capita na pasku bocznym w tysiącach ROI
+        cases=[(25340,'25,3 TYS ROI'),(999,'1,0 TYS ROI'),(0,'0,0 TYS ROI'),(-1500,'-1,5 TYS ROI'),(12345678,'12\u00a0345,7 TYS ROI')]
+        for value,expected in cases:self.assertEqual(format_thousands(value),expected)
+        self.assertEqual(format_thousands(None),'—');self.assertEqual(format_thousands('NaN'),'—')
 
 class FactoryProtectionTests(MilitaryFixture):
     def test_factory_can_be_protected_only_by_its_owner_and_maps_at_factory(self):

@@ -45,19 +45,23 @@
 
 /* 15 Nov 2026: czytelność panelu powiadomień (tablet).
    Etykieta „NOWE” dziedziczyła jasny kolor tekstu (span w powiadomieniu na pasku) i była nieczytelna na żółtym tle. */
-html body.game-app #game-notifications .game-notification-item .game-notification-new { color: #1E3A5F; font-weight: 800; }
-html body.game-app #game-notifications .game-notification-item.notification-war .game-notification-new { color: #5a1010; }
+html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-item .game-notification-new { color: #1E3A5F; font-weight: 800; }
+html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-item.notification-war .game-notification-new { color: #5a1010; }
 @media (min-width: 601px) and (max-width: 1366px) {
   /* Tablet: większy tekst i szerszy panel obok paska (mniej zawijania długich komunikatów). */
-  html body.game-app.game-navy.game-civic #game-notifications .game-notification-dropdown { width: 540px; padding: 14px; }
-  html body.game-app.game-navy.game-civic #game-notifications .game-notification-dropdown > strong { font-size: 15px; }
-  html body.game-app #game-notifications .game-notification-item { font-size: 16px; line-height: 1.5; padding: 14px; }
-  html body.game-app #game-notifications .game-notification-item small { font-size: 13.5px; }
-  html body.game-app #game-notifications .game-notification-new { font-size: 12px; padding: 2px 9px; }
-  html body.game-app #game-notifications .game-notification-read-all { padding: 11px 12px; font-size: 15px; }
-  html body.game-app #game-notifications form + form { margin-top: 10px; }
+  html body.game-app.game-navy.game-civic :is(#game-notifications,#game-notification-layer) .game-notification-dropdown { width: 540px; padding: 14px; }
+  html body.game-app.game-navy.game-civic :is(#game-notifications,#game-notification-layer) .game-notification-dropdown > strong { font-size: 15px; }
+  html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-item { font-size: 16px; line-height: 1.5; padding: 14px; }
+  html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-item small { font-size: 13.5px; }
+  html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-new { font-size: 12px; padding: 2px 9px; }
+  html body.game-app :is(#game-notifications,#game-notification-layer) .game-notification-read-all { padding: 11px 12px; font-size: 15px; }
+  html body.game-app :is(#game-notifications,#game-notification-layer) form + form { margin-top: 10px; }
 }
 @media (min-width: 601px) and (max-width: 900px) {
   /* Tablet pionowo: lista na całą szerokość ekranu, nad zawartością szuflady. */
-  html body.game-app.game-navy.game-civic #game-notifications .game-notification-dropdown { width: calc(100vw - 24px); }
+  html body.game-app.game-navy.game-civic :is(#game-notifications,#game-notification-layer) .game-notification-dropdown { width: calc(100vw - 24px); }
 }
+
+/* 15 Nov 2026: warstwa listy powiadomień w <body> (game_notifications.js) — sam kontener nie zajmuje miejsca. */
+.game-notification-layer { position: static; }
+.game-notification-layer[hidden] { display: none; }

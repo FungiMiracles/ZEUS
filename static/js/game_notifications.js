@@ -28,7 +28,7 @@
         dialogStatus.textContent = data.status;
         accept.hidden = reject.hidden = !data.can_decide;
         accept.disabled = reject.disabled = false;
-        root.open = false;
+        root.open = false; settle();
         dialog.showModal();
     }
     async function decide(value) {
@@ -73,7 +73,7 @@
         effects.replaceChildren();
         appendEffects(effects, data.effects);
         if (!data.effects.length) effects.textContent = "Brak zarejestrowanych zmian wskaźników.";
-        root.open = false;
+        root.open = false; settle();
         eventDialog.showModal();
     }
 
@@ -85,7 +85,7 @@
         document.getElementById('game-intelligence-date').textContent='Zakończenie (Entenda): '+data.date;
         const entries=document.getElementById('game-intelligence-entries');entries.replaceChildren();
         for(const item of data.entries){const label=document.createElement('dt'),value=document.createElement('dd');label.textContent=item.label;value.textContent=item.value;entries.append(label,value);}
-        root.open=false;intelligenceDialog.showModal();
+        root.open=false;settle();intelligenceDialog.showModal();
     };
 
     async function load(page = 1, countOnly = false) {
@@ -215,12 +215,33 @@
         } catch (error) { status.hidden = false; status.textContent = "Nie udało się oznaczyć powiadomień."; }
         finally { readAll.disabled = false; }
     });
-    root.addEventListener("toggle", () => { if (root.open) load(); });
-    root.addEventListener("keydown", event => {
-        if (event.key === "Escape") { root.open = false; toggle.focus(); }
-    });
+    // 15 Nov 2026: tablet (Safari) — lista pozycjonowana „fixed” wewnątrz przewijanego paska bocznego i <details>
+    // trafiała pod dolną krawędź ekranu. Otwarta lista jest przenoszona do warstwy bezpośrednio w <body>
+    // (poza paskiem i jego przewijaniem), a po zamknięciu wraca na miejsce w <details>.
+    const panel = document.getElementById("game-notification-panel");
+    const layer = document.createElement("div");
+    layer.id = "game-notification-layer"; layer.className = "game-notification-layer"; layer.hidden = true;
+    document.body.append(layer);
+    function lift() {
+        if (!panel || panel.parentElement === layer) return;
+        layer.classList.toggle("from-sidebar", Boolean(root.closest(".game-sidebar")));
+        layer.append(panel); layer.hidden = false;
+    }
+    function settle() {
+        if (!panel) return;
+        if (root.open) { lift(); return; }
+        if (panel.parentElement === layer) root.append(panel);
+        layer.hidden = true;
+    }
+    toggle.addEventListener("click", () => { if (!root.open) lift(); });   // przed otwarciem — bez mignięcia w starym miejscu
+    root.addEventListener("toggle", () => { settle(); if (root.open) load(); });
+    const escape = event => {
+        if (event.key === "Escape" && root.open) { root.open = false; settle(); toggle.focus(); }
+    };
+    root.addEventListener("keydown", escape);
+    layer.addEventListener("keydown", escape);
     document.addEventListener("click", event => {
-        if (root.open && !root.contains(event.target)) root.open = false;
+        if (root.open && !root.contains(event.target) && !layer.contains(event.target)) root.open = false;
     });
     more.addEventListener("click", () => { if (nextPage) load(nextPage); });
     document.addEventListener("visibilitychange", () => { if (!document.hidden) load(1, true); });

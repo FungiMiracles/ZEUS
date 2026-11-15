@@ -626,7 +626,7 @@
                 continue;
             }
             const point=MilitaryFlightMath.sample(flight,now),impact=Date.parse(flight.impactAt);
-            if(entry.lastNow!==undefined&&entry.lastNow<impact&&now>=impact&&now-impact<=2000*config.timeMultiplier)explode(flight);
+            if(entry.lastNow!==undefined&&entry.lastNow<impact&&now>=impact&&now-impact<=2000*config.timeMultiplier){explode(flight);refreshAfterImpact();}
             entry.lastNow=now;
             if(now>=Date.parse(flight.returnsAt||flight.impactAt)){entry.group.remove();missionLayers.delete(flight.id);continue;}
             if(entry.rocket)entry.rocket.setLatLng(point.rocket).setOpacity(point.rocketVisible?1:0);
@@ -639,10 +639,16 @@
         window.GameLandWar?.tick(now);
         requestAnimationFrame(animate);
     }
+    // 15 Nov 2026: telefon — zapytanie o stan może „zawisnąć” (uśpiona karta, zmiana sieci); bez limitu czasu flaga
+    // refreshing zostawała ustawiona na zawsze i mapa przestawała pokazywać utratę życia i zniszczenie obiektów.
+    let refreshStarted=0,refreshAgain=false,impactRefresh=null;
     async function refreshState() {
-        if(refreshing||!window.L)return;refreshing=true;
+        if(!window.L)return;
+        if(refreshing&&performance.now()-refreshStarted<20000){refreshAgain=true;return;}
+        refreshing=true;refreshStarted=performance.now();refreshAgain=false;
+        const abort=window.AbortController?new AbortController():null,timer=abort?setTimeout(()=>abort.abort(),15000):null;
         try {
-            const response=await fetch(config.stateUrl,{credentials:'same-origin',cache:'no-store'});
+            const response=await fetch(config.stateUrl,{credentials:'same-origin',cache:'no-store',signal:abort?.signal});
             if(!response.ok)throw new Error('state');const state=await response.json();
             config.visiblePower=state.power||[];config.visibleFactories=state.factories||[];config.tradeShips=state.tradeShips||[];config.visibleMines=state.mines;config.visibleBases=state.bases;config.bases=state.bases.filter(base=>base.countryId===config.countryId);config.missiles=state.missiles;config.vessels=state.vessels;config.defenses=state.defenses;
             config.gameNow=state.gameNow;config.timeMultiplier=state.timeMultiplier;updateReadiness(state.flights);window.GameLandWar?.update(state);if(state.radars)config.radars=state.radars;drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();updateFlights(state.flights,state.gameNow);drawShips();drawCargoShips();drawDefenses();
@@ -652,9 +658,12 @@
             if(selectedTarget?.kind==='shipment'){const ship=config.tradeShips.find(s=>s.id===selectedTarget.id);if(ship&&ship.canAttack)selectedTarget.point=window.GameTradeNavigation.position(ship,currentGameTime());else{selectedTarget=null;actions.replaceChildren();document.getElementById('military-feedback').textContent='Statek zakończył rejs lub został zatopiony.';}}
             if(selectedTarget?.kind==='vessel'){const vessel=config.vessels.find(v=>v.id===selectedTarget.id);if(vessel)selectedTarget.point=shipPosition(vessel,currentGameTime());}
             if(selected&&!dialog.open&&!locating&&!sailing&&!document.querySelector('.military-base-menu[open]'))showRegion(selected,selectedCity,selectedTarget);
-        } catch(error) {document.getElementById('military-map-status').hidden=false;document.getElementById('military-map-status').textContent='Nie udało się odświeżyć stanu lotów. Ponawiam próbę.';}
-        finally {refreshing=false;}
+            const status=document.getElementById('military-map-status');if(status&&status.dataset.refreshError){status.hidden=true;status.textContent='';delete status.dataset.refreshError;}
+        } catch(error) {const status=document.getElementById('military-map-status');status.hidden=false;status.dataset.refreshError='1';status.textContent='Nie udało się odświeżyć stanu lotów. Ponawiam próbę.';}
+        finally {if(timer)clearTimeout(timer);refreshing=false;if(refreshAgain){refreshAgain=false;setTimeout(refreshState,250);}}
     }
+    // Po trafieniu (animacja dociera do celu) stan odświeżany od razu, nie dopiero przy kolejnym cyklu 5 s.
+    function refreshAfterImpact(){clearTimeout(impactRefresh);impactRefresh=setTimeout(refreshState,1500);}
     window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,
         showRegion:(...args)=>showRegion(...args),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     window.GameRadar?.attach(map);
@@ -662,6 +671,9 @@
     L.control.scale({imperial:false,metric:true}).addTo(map);
     requestAnimationFrame(animate);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshState();});
+    // Telefon: powrót do karty z pamięci podręcznej przeglądarki, do aplikacji lub do sieci.
+    window.addEventListener('pageshow',event=>{if(event.persisted)refreshState();});
+    window.addEventListener('focus',()=>refreshState());window.addEventListener('online',()=>refreshState());
 
     Promise.allSettled([load(config.regionsUrl),load(config.countriesUrl),load(config.citiesUrl)]).then(results => {
         const empty = {type:'FeatureCollection',features:[]};

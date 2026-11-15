@@ -130,11 +130,52 @@ class CommunicationTests(unittest.TestCase):
                 [option]=communication.propose(c)
         self.assertEqual(option.action,'FORUM_POST');self.assertEqual(option.payload['group'],'communication')
 
+    def test_open_states_announce_research_they_actually_started(self):
+        # 15 Nov 2026: skrytość < 20 — wpis o rozpoczęciu prac nad technologią, tylko dla faktycznie rozpoczętych prac.
+        started=[('radar','Radar')]
+        with patch('game.paga2.communication.started_research',return_value=started) as found:
+            keys={k:i for k,*i in self.run_occasions(self.ctx(traits={'secrecy':10}))}
+            self.assertIn('paga2:research:radar',keys);self.assertIn('„Radar”',keys['paga2:research:radar'][2])
+            self.assertEqual(keys['paga2:research:radar'][0],'forum_announcement')
+            for secrecy in (20,50,90):
+                keys={k for k,*i in self.run_occasions(self.ctx(traits={'secrecy':secrecy}))}
+                self.assertFalse(any(k.startswith('paga2:research:') for k in keys))
+            self.assertEqual(found.call_count,1)                 # przy skrytości ≥ 20 dane badań nie są nawet sprawdzane
+        with patch('game.paga2.communication.started_research',return_value=[]):
+            keys={k for k,*i in self.run_occasions(self.ctx(traits={'secrecy':5}))}
+            self.assertFalse(any(k.startswith('paga2:research:') for k in keys))   # bez rozpoczętych prac — brak wpisu
+
     def test_secretive_states_speak_less(self):
         from game.paga2.scoring import score,Option
         make=lambda:Option('x','communication','FORUM_POST','w',traits={'secrecy':-.6,'provocation':.4},base=0.0)
         loud=score(make(),self.ctx(traits={'secrecy':5,'provocation':90}));quiet=score(make(),self.ctx(traits={'secrecy':95,'provocation':10}))
         self.assertGreater(loud.score,quiet.score+10)
+
+
+class StartedResearchTests(unittest.TestCase):
+    def setUp(self):
+        self.app=Flask(__name__);self.app.config.update(SQLALCHEMY_DATABASE_URI='sqlite:///:memory:')
+        db.init_app(self.app);self.app_ctx=self.app.app_context();self.app_ctx.push()
+        from models import Panstwo
+        Panstwo.__table__.create(db.engine,checkfirst=True)
+    def tearDown(self):db.session.remove();db.engine.dispose();self.app_ctx.pop()
+
+    def test_started_research_reads_investments_and_development_timers(self):
+        from datetime import timedelta
+        from game.research_models import ResearchAccount,ResearchInvestment
+        from game.paga2.models import utc_now
+        for model in (ResearchAccount,ResearchInvestment):model.__table__.create(db.engine,checkfirst=True)
+        c=NS(country_id=1,now=datetime(3001,9,20,12),traits={'secrecy':10})
+        db.session.merge(ResearchAccount(panstwo_id=c.country_id,points=0,ammunition=0,nodes={},timers={
+            'drones':{'started':(c.now-timedelta(days=1)).isoformat(),'ready':(c.now+timedelta(days=6)).isoformat()},
+            'tanks':{'started':(c.now-timedelta(days=30)).isoformat(),'ready':(c.now-timedelta(days=9)).isoformat()}}))
+        db.session.add_all([ResearchInvestment(panstwo_id=c.country_id,node='radar',points=1,request_id='r1',created_at=utc_now()),
+                            ResearchInvestment(panstwo_id=c.country_id,node='armored',points=1,request_id='r2',created_at=utc_now()-timedelta(days=10)),
+                            ResearchInvestment(panstwo_id=c.country_id,node='armored',points=1,request_id='r3',created_at=utc_now()),
+                            ResearchInvestment(panstwo_id=c.country_id+1000,node='fighters',points=1,request_id='r4',created_at=utc_now())])
+        db.session.commit()
+        nodes={node for node,label in communication.started_research(c)}
+        self.assertEqual(nodes,{'drones','radar'})   # stary rozwój, kontynuacja dawnych prac i cudze inwestycje pominięte
 
 
 class InitiativeTaskTests(unittest.TestCase):

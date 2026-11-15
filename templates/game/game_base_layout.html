@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#f3f3ed">
 <title>{% block title %}ENTENDA GAME — ZEUS{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_notifications.css', v='20261115-tablet-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_notifications.css', v='20261115-layer-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_country_summary.css', v='20261023-1') }}">
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-2') }}">
@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261114-nav-6') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261114-sidebar-14') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261115-layer-1') }}">
 {# 13 Nov 2026: arkusze ekranów w nowej stylistyce — wczytywane na końcu #}
 {% block late_css %}{% endblock %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_mobile.css', v='20261113-mobile-2') }}">
@@ -181,7 +181,7 @@
     <dl class="sidebar-stats">
       <div><dt>Populacja</dt><dd>{{ game_country.populacja|spacenum if game_country.populacja is not none else '—' }}</dd></div>
       <div><dt>PKB</dt><dd>{{ game_country.pkb|game_money if game_country.pkb is not none else '—' }}</dd></div>
-      <div><dt>PKB per capita</dt><dd>{{ game_country.pkb_per_capita|game_money if game_country.pkb_per_capita is not none else '—' }}</dd></div>
+      <div><dt>PKB per capita</dt><dd>{{ (game_country.pkb_per_capita_label or '—') if game_country.pkb_per_capita is not none else '—' }}</dd></div>
       <div><dt>Infrastruktura</dt><dd>{{ (game_country.infrastruktura ~ ' / 100') if game_country.infrastruktura is not none else '—' }}</dd></div>
     </dl>
   </section>
@@ -247,7 +247,7 @@
         {{ icon('notifications') }}
         <span class="game-notification-badge" id="game-notification-count" hidden></span>
       </summary>
-      <div class="game-notification-dropdown">
+      <div class="game-notification-dropdown" id="game-notification-panel">
         <strong>Powiadomienia</strong>
         <p id="game-notification-status" role="status">Ładowanie powiadomień…</p>
         <button type="button" id="game-notification-read-all" class="game-notification-read-all" hidden>Oznacz wszystkie jako przeczytane</button>
@@ -313,7 +313,7 @@
             <dt>PKB per capita</dt>
             <dd>
                 {% if game_country.pkb_per_capita is not none %}
-                    {{ game_country.pkb_per_capita | game_money }} 
+                    {{ game_country.pkb_per_capita_label or '—' }} 
                 {% else %}
                     Brak danych
                 {% endif %}
@@ -421,8 +421,8 @@
 })();
 </script>
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261112-unread-2') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_ui.js', v='20261113-notes-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261115-layer-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_ui.js', v='20261115-layer-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261114-sidebar-11') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>
 {# 13 Nov 2026: strefy skażenia atomowego na wszystkich mapach gry (L.Map.addInitHook) #}
