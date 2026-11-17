@@ -91,8 +91,8 @@ def render_panel(country_id, error=None, status=200, form=None, generated=False)
         .join(DictZasob, DictZasob.zasob_id == RegionZasob.zasob_id)
         .where(RegionZasob.zloze_ilosc > 0).order_by(DictZasob.zasob_id)
     ):
-        map_deposits.setdefault(region_id, []).append({'name': name, 'unit': unit or '', 'quantity': str(quantity)})
         code = resource_codes.get(normalized(resource_code or '')) or resource_codes.get(normalized(name))
+        map_deposits.setdefault(region_id, []).append({'name': name, 'code': code, 'unit': unit or '', 'quantity': str(quantity)})
         if code is not None:
             global_totals[code] += int(quantity)
     return render_template(

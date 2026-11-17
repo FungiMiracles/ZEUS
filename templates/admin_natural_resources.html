@@ -3,7 +3,7 @@
 {% block title %}Surowce naturalne — administracja ZEUS{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_natural_resources.css', v='20261117-global-totals') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_natural_resources.css', v='20261117-resource-filters') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-1') }}">
 <div class="resources-admin">
 <header class="resources-header"><h1>Surowce naturalne</h1><p>Zarządzaj złożami regionalnymi i technologią wydobywczą państw.</p></header>
@@ -15,8 +15,9 @@
 <div class="resources-workspace">
 <section class="resources-panel resources-map-panel">
 <h2>Złoża regionalne</h2>
-<p>Wybierz region na mapie, aby edytować ilości minerałów. Zielony kolor oznacza region z co najmniej jednym minerałem w ilości większej od zera. Mapa pokazuje zapisane złoża.</p>
-<div class="resources-map-legend"><span><i class="deposit-empty"></i>Brak złóż</span><span><i class="deposit-present"></i>Zapisane złoża</span><span><i class="deposit-selected"></i>Wybrany region</span></div>
+<p>Wybierz surowiec, aby zobaczyć skalę zasobności regionów, lub kliknij region, aby edytować złoża. Mapa pokazuje zapisane ilości.</p>
+<div class="resources-map-filters" role="group" aria-label="Filtry surowców na mapie"><button type="button" data-map-resource="" aria-pressed="true">Wszystkie surowce</button>{% for code, name in resources %}<button type="button" data-map-resource="{{ code }}" aria-pressed="false">{{ icon(name) }} {{ name }}</button>{% endfor %}</div>
+<div class="resources-map-legend" id="resources-map-legend" aria-live="polite"><span><i class="deposit-empty"></i>Brak złóż</span><span><i class="deposit-present"></i>Zapisane złoża</span><span><i class="deposit-selected"></i>Wybrany region</span></div>
 <div id="resources-world-map" aria-label="Mapa złóż regionalnych"></div>
 <p id="resources-map-status" role="status" hidden></p>
 <noscript>Mapa wymaga JavaScript. Wybierz region z listy poniżej.</noscript>
@@ -79,5 +80,5 @@
 {% set resource_icons = {} %}{% for code, name in resources %}{% set _ = resource_icons.update({name: url_for('static', filename='icons/' ~ icon_files[name])}) %}{% endfor %}
 <script type="application/json" id="resource-map-config">{{ {'regions':region_index, 'countries':country_names, 'resourceIcons':resource_icons, 'url':url_for('admin_natural_resources'), 'countriesUrl':url_for('region_sovereignty.country_boundaries'), 'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'), 'selected':selected_region}|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-deposits-2') }}" defer></script>
+<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-resource-filters') }}" defer></script>
 {% endblock %}
