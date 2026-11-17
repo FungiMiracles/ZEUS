@@ -184,7 +184,7 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   }
   load(config.citiesUrl).then(cities => {
     citiesLayer = window.WorldCityMarkers.createLayer(L,map,cities,config.cities,{
-      cityIcon:config.cityMarkerIcon,capitalIcon:config.capitalMarkerIcon,
+      land:regions,
       tooltip:city=>iconTip(config.cityIcon,city.name,[`Populacja: ${mln(city.population)}`,`Rodzaj: ${city.type || 'brak danych'}`,`Portowe: ${city.port ? 'tak' : 'nie'}`])
     });
     if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);
