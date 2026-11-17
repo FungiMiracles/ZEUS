@@ -73,31 +73,39 @@
             onEachFeature: (feature,layer) => {
                 const id = String(feature.properties.region_id), region = config.regions[id];
                 if (!region) return;
-                const label = document.createElement('div');
-                const title = document.createElement('strong');
-                title.textContent = `${config.countries[region.countryId] || ''} — ${region.name}`;
-                label.append(title);
-                const heading = document.createElement('div'); heading.textContent = 'Zapisane złoża surowców:'; label.append(heading);
-                const format = new Intl.NumberFormat('pl-PL');
-                for (const deposit of region.deposits || []) {
-                    const row = document.createElement('div');
-                    row.className = 'resources-deposit-row';
-                    const unit = deposit.unit?.trim();
-                    const text = document.createElement('span');
-                    text.textContent = `${deposit.name}: ${format.format(BigInt(deposit.quantity))}${unit && unit.toUpperCase() !== 'RU' ? ' ' + unit : ''}`;
-                    const iconUrl = config.resourceIcons?.[deposit.name];
-                    if (iconUrl) {
-                        const icon = document.createElement('img');
-                        icon.src = iconUrl; icon.width = 24; icon.height = 24; icon.alt = ''; icon.setAttribute('aria-hidden', 'true');
-                        row.append(icon);
+                layer.bindTooltip(() => {
+                    const label = document.createElement('div');
+                    const title = document.createElement('strong');
+                    title.textContent = `${config.countries[region.countryId] || ''} — ${region.name}`;
+                    label.append(title);
+                    const heading = document.createElement('div'); heading.textContent = 'Zapisane złoża surowców:'; label.append(heading);
+                    const format = new Intl.NumberFormat('pl-PL');
+                    let deposits = region.deposits || [];
+                    if (activeResource) {
+                        const selected = deposits.filter(item => item.code === activeResource);
+                        deposits = [{name:buttons.find(button => button.dataset.mapResource === activeResource).textContent.trim(),
+                            quantity:selected.reduce((total, item) => total + BigInt(item.quantity), 0n).toString(), unit:selected[0]?.unit || ''}];
                     }
-                    row.append(text);
-                    label.append(row);
-                }
-                if (!region.deposits?.length) {
-                    const empty = document.createElement('div'); empty.textContent = 'Brak złóż surowców.'; label.append(empty);
-                }
-                layer.bindTooltip(label,{sticky:true, className:'resources-deposit-tooltip'});
+                    for (const deposit of deposits) {
+                        const row = document.createElement('div');
+                        row.className = 'resources-deposit-row';
+                        const unit = deposit.unit?.trim();
+                        const text = document.createElement('span');
+                        text.textContent = `${deposit.name}: ${format.format(BigInt(deposit.quantity))}${unit && unit.toUpperCase() !== 'RU' ? ' ' + unit : ''}`;
+                        const iconUrl = config.resourceIcons?.[deposit.name];
+                        if (iconUrl) {
+                            const icon = document.createElement('img');
+                            icon.src = iconUrl; icon.width = 24; icon.height = 24; icon.alt = ''; icon.setAttribute('aria-hidden', 'true');
+                            row.append(icon);
+                        }
+                        row.append(text);
+                        label.append(row);
+                    }
+                    if (!deposits.length) {
+                        const empty = document.createElement('div'); empty.textContent = 'Brak złóż surowców.'; label.append(empty);
+                    }
+                    return label;
+                },{sticky:true, className:'resources-deposit-tooltip'});
                 layer.on('click', () => { const url = new URL(config.url,location.origin); url.searchParams.set('country_id',region.countryId); url.searchParams.set('region_id',id); if(activeResource)url.searchParams.set('resource',activeResource); location.assign(url); });
             }
         }).addTo(map);

@@ -80,5 +80,5 @@
 {% set resource_icons = {} %}{% for code, name in resources %}{% set _ = resource_icons.update({name: url_for('static', filename='icons/' ~ icon_files[name])}) %}{% endfor %}
 <script type="application/json" id="resource-map-config">{{ {'regions':region_index, 'countries':country_names, 'resourceIcons':resource_icons, 'url':url_for('admin_natural_resources'), 'countriesUrl':url_for('region_sovereignty.country_boundaries'), 'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'), 'selected':selected_region}|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-resource-filters') }}" defer></script>
+<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-filtered-tooltip') }}" defer></script>
 {% endblock %}

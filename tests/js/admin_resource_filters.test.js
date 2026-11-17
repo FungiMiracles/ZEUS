@@ -14,15 +14,23 @@ class Element {
 (async () => {
     const buttons = ['',...codes].map(code => Object.assign(new Element(), {dataset:{mapResource:code},textContent:code}));
     const regions = Object.fromEntries(quantities.map((quantity,index) => [String(index),{hasMinerals:index>0,deposits:codes.map(code => ({code,quantity}))}]));
-    const config = {regions,selected:'3',countriesUrl:'/countries',regionsUrl:'/regions'};
+    regions.empty = {name:'Empty',deposits:[]};
+    for (const region of Object.values(regions)) for (const deposit of region.deposits) deposit.name=deposit.code;
+    const config = {regions,countries:{},selected:'3',countriesUrl:'/countries',regionsUrl:'/regions'};
     const legend = new Element();
     let styles, redraws = 0;
+    const tooltips = {};
     const layer = {addTo() { return this; },getBounds() { return {isValid:()=>false}; },setStyle(fn) { styles=fn;redraws++; }};
     const context = {
         document:{getElementById:id=>id==='resource-map-config'?{textContent:JSON.stringify(config)}:id==='resources-map-legend'?legend:null,
             querySelectorAll:()=>buttons,createElement:()=>new Element(),createTextNode:text=>text},
         location:{href:'https://example.test/admin/surowce-naturalne',search:'',origin:'https://example.test'},history:{replaceState(){}},
-        window:{L:true}, L:{CRS:{Simple:{}},map:()=>({setView(){}}),geoJSON:(data,options)=>{if(typeof options.style==='function')styles=options.style;return layer;}},
+        window:{L:true}, L:{CRS:{Simple:{}},map:()=>({setView(){}}),geoJSON:(data,options)=>{
+            if(typeof options.style==='function')styles=options.style;
+            if(options.onEachFeature)for(const id of Object.keys(regions))options.onEachFeature({properties:{region_id:id}},
+                {bindTooltip(callback){tooltips[id]=callback;},on(){}});
+            return layer;
+        }},
         fetch:async()=>({ok:true,json:async()=>({})}),URL,URLSearchParams,Intl,BigInt
     };
     vm.runInNewContext(fs.readFileSync('static/js/admin_natural_resources.js','utf8'),context);
@@ -36,10 +44,16 @@ class Element {
         for(let index=0;index<colors.length;index++)assert.equal(colors[index],colors[groups.indexOf(groups[index])],code+': '+quantities[index]);
         assert.equal(styles({properties:{region_id:'3'}}).color,'#ad2366');
         assert.equal(legend.children.length,7);
+        const tooltip=tooltips['1']();
+        assert.equal(tooltip.children.length,3);
+        assert.equal(tooltip.children[2].children[0].textContent,code+': 200');
+        assert.equal(tooltips.empty().children[2].children[0].textContent,code+': 0');
     }
     buttons[0].click();
     assert.equal(styles({properties:{region_id:'0'}}).fillColor,'#779ce4');
     assert.equal(styles({properties:{region_id:'1'}}).fillColor,'#218838');
     assert.equal(redraws,11);
+    assert.equal(tooltips['1']().children.length,12);
+    assert.equal(tooltips.empty().children[2].textContent,'Brak złóż surowców.');
     console.log('Resource filters: all 10 palettes, exact interval boundaries, BIGINT, selection and reset passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
