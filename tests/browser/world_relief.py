@@ -74,6 +74,28 @@ with sync_playwright() as p:
         assert kao['westAfter'] > kao['westBefore'] * 1.5, kao
         assert abs(kao['eastAfter'] - kao['eastBefore']) < .01, kao
         assert kao['westSpan'] == 65 and kao['islandSpan'] == 100, kao
+        outlines = page.evaluate('''()=>{
+            const rectangle=(id,left,right)=>({type:'Feature',properties:{region_id:id},geometry:{type:'Polygon',
+                coordinates:[[[left,0],[right,0],[right,-1000],[left,-1000],[left,0]]]}});
+            const geo={type:'FeatureCollection',features:[rectangle(1,0,500),rectangle(2,500,1000)]};
+            const metadata={'1':{terrain:'Wysokogórski'},'2':{terrain:'Górski'}};
+            const sample=WorldRelief.createModel(WorldRelief.prepare(geo,metadata));
+            const crossings=[];
+            for(let y=250;y<=750;y+=25) {
+                let left=400,right=600;
+                for(let i=0;i<24;i++) {
+                    const middle=(left+right)/2;
+                    if(sample(middle,y).height>210)left=middle;else right=middle;
+                }
+                crossings.push((left+right)/2);
+            }
+            const other=WorldRelief.createModel(WorldRelief.prepare(geo,metadata));
+            return {spread:Math.max(...crossings)-Math.min(...crossings),
+                repeat:sample(510,500).height===other(510,500).height,
+                jump:Math.abs(sample(500-.001,500).height-sample(500+.001,500).height)};
+        }''')
+        assert 10 < outlines['spread'] < 120, outlines
+        assert outlines['repeat'] and outlines['jump'] < .1, outlines
         ink = page.evaluate('''()=>{
             let maximum=0,colored=0,visible=0;const colors=new Set();
             for(const tile of Object.values(relief._tiles)) {

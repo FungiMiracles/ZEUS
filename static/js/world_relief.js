@@ -8,6 +8,19 @@
         gorski:{height:165,ruggedness:.75}, wysokogorski:{height:245,ruggedness:1}
     };
     const normalize = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').trim();
+    // Continuous world-space variation changes band outlines only. It never
+    // changes the six fill colors or introduces illumination/surface texture.
+    function shapeNoise(x,y) {
+        const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
+        const ease=t=>t*t*t*(t*(t*6-15)+10),sx=ease(fx),sy=ease(fy);
+        const value=(a,b)=>{
+            let n=Math.imul(a,374761393)^Math.imul(b,668265263);
+            n=Math.imul(n^(n>>>13),1274126177);
+            return((n^(n>>>16))>>>0)/2147483647.5-1;
+        };
+        const a=value(ix,iy),b=value(ix+1,iy),c=value(ix,iy+1),d=value(ix+1,iy+1);
+        return(a+(b-a)*sx)*(1-sy)+(c+(d-c)*sx)*sy;
+    }
     function prepare(geojson,metadata) {
         const result=[];
         for(const feature of geojson.features||[]) {
@@ -106,20 +119,31 @@
         }
         for(let pass=0;pass<3;pass++){blur(true);blur(false);}
         return(x,y)=>{
-            const px=Math.max(0,Math.min(width-1.001,(x-left)/step-.5)),py=Math.max(0,Math.min(height-1.001,(y-top)/step-.5));
+            const warpX=26*shapeNoise(x/135+31.3,y/135-18.6)+8*shapeNoise(x/43+71.1,y/43+46.2);
+            const warpY=26*shapeNoise(x/135-91.8,y/135+62.1)+8*shapeNoise(x/43-23.4,y/43-56.7);
+            const px=Math.max(0,Math.min(width-1.001,(x+warpX-left)/step-.5)),py=Math.max(0,Math.min(height-1.001,(y+warpY-top)/step-.5));
             const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
             let elevation=0,ruggedness=0,weight=0,distance=0,kaoWeight=0;
             for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++) {
                 const index=((iy+dy)*width+ix+dx)*3;
                 const w=(dx?fx:1-fx)*(dy?fy:1-fy);
                 elevation+=data[index]*w;ruggedness+=data[index+1]*w;weight+=data[index+2]*w;
-                distance+=coastDistance[(iy+dy)*width+ix+dx]*step*w;
-                if(kao.id&&components[(iy+dy)*width+ix+dx]===kao.id)kaoWeight+=w;
+            }
+            // Keep shoreline distances and Kao's steeper coast in their actual
+            // positions; only the inland elevation bands follow the deformation.
+            const actualX=Math.max(0,Math.min(width-1.001,(x-left)/step-.5)),actualY=Math.max(0,Math.min(height-1.001,(y-top)/step-.5));
+            const ax=Math.floor(actualX),ay=Math.floor(actualY),tx=actualX-ax,ty=actualY-ay;
+            for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++) {
+                const index=(ay+dy)*width+ax+dx,w=(dx?tx:1-tx)*(dy?ty:1-ty);
+                distance+=coastDistance[index]*step*w;
+                if(kao.id&&components[index]===kao.id)kaoWeight+=w;
             }
             const across=(x-kao.left)/(kao.right-kao.left),blend=Math.max(0,Math.min(1,(across-.3)/.3));
             const west=1-blend*blend*(3-2*blend),coastSpan=100-35*kaoWeight*west;
             const t=Math.min(1,Math.max(0,(distance-step*.5)/coastSpan)),coast=t*t*(3-2*t);
-            return weight?{height:elevation/weight*coast,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance,coastSpan}
+            const detail=.65*shapeNoise(x/96+42.7,y/96-13.1)+.35*shapeNoise(x/34-27.2,y/34+81.9);
+            const variation=weight?1+detail*(.02+.12*ruggedness/weight):1;
+            return weight?{height:elevation/weight*coast*variation,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance,coastSpan}
                 :{height:0,ruggedness:0,coast:0,distance:0};
         };
     }
