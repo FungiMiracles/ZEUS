@@ -73,7 +73,7 @@ with sync_playwright() as p:
         }''', {'geo':geo,'metadata':metadata})
         assert kao['westAfter'] > kao['westBefore'] * 1.5, kao
         assert abs(kao['eastAfter'] - kao['eastBefore']) < .01, kao
-        assert kao['westSpan'] == 65 and kao['islandSpan'] == 100, kao
+        assert kao['westSpan'] == 40 and kao['islandSpan'] == 100, kao
         outlines = page.evaluate('''()=>{
             const rectangle=(id,left,right)=>({type:'Feature',properties:{region_id:id},geometry:{type:'Polygon',
                 coordinates:[[[left,0],[right,0],[right,-1000],[left,-1000],[left,0]]]}});
@@ -134,6 +134,10 @@ with sync_playwright() as p:
         # Exercise the production world screen, including all map modes and toggle.
         page = browser.new_page(viewport={'width': 1200, 'height': 850})
         page.on('pageerror', lambda error: errors.append(str(error)))
+        # Separate geometry belonging to the same region must highlight together.
+        detached={'type':'Feature','properties':{'region_id':0},'geometry':{'type':'Polygon',
+                  'coordinates':[[[30,-450],[70,-450],[70,-500],[30,-500],[30,-450]]]}}
+        integration_geo={'type':'FeatureCollection','features':[*features,detached]}
         config = dict(regions=metadata, countries={}, cities={}, occupied={}, continents={}, ships=[], vessels=[],
                       countriesUrl='https://fixture.invalid/countries', regionsUrl='https://fixture.invalid/regions',
                       citiesUrl='https://fixture.invalid/cities', gameNow='2990-01-01T00:00:00Z')
@@ -143,8 +147,8 @@ with sync_playwright() as p:
                          '<input type="checkbox" id="world-relief-toggle" checked><button id="world-map-reset"></button>'
                          + ''.join(f'<input type="radio" name="world-view" value="{name}">' for name in ('political', 'regional', 'continents'))
                          + '<script id="world-config" type="application/json">' + json.dumps(config) + '</script>')
-        page.route('**/countries', lambda route: route.fulfill(json=geo))
-        page.route('**/regions', lambda route: route.fulfill(json=geo))
+        page.route('**/countries', lambda route: route.fulfill(json=integration_geo))
+        page.route('**/regions', lambda route: route.fulfill(json=integration_geo))
         page.route('**/cities', lambda route: route.fulfill(json={'type': 'FeatureCollection', 'features': []}))
         page.add_style_tag(path='/tmp/industry-leaflet.css')
         page.add_style_tag(path=str(ROOT / 'static/css/game_world.css'))
@@ -157,12 +161,22 @@ with sync_playwright() as p:
         for view in ('political', 'regional', 'continents'):
             page.check(f'[name="world-view"][value="{view}"]')
             assert page.locator('.leaflet-worldRelief-pane canvas').count() > 0
+            page.mouse.move(1190,830)
+            hover_paths=page.locator('.leaflet-worldRegionHover-pane path')
+            hover_paths.first.hover()
+            assert hover_paths.first.get_attribute('fill-opacity') == '0.5'
+            assert hover_paths.evaluate_all("paths=>paths.slice(1,-1).every(path=>path.getAttribute('fill-opacity')==='0') && paths.at(-1).getAttribute('fill-opacity')==='0.5'")
+            assert page.locator('.world-tooltip').count() == 1
+            page.mouse.move(1190,830)
+            assert hover_paths.first.get_attribute('fill-opacity') == '0'
         page.uncheck('#world-relief-toggle')
         assert page.locator('.leaflet-worldRelief-pane canvas').count() == 0
+        assert page.locator('.leaflet-worldRegionHover-pane path').count() == 0
         assert not page.locator('#world-map').evaluate("el=>el.classList.contains('world-map-physical')")
         page.check('#world-relief-toggle')
         page.wait_for_selector('.leaflet-worldRelief-pane canvas')
+        assert page.locator('.leaflet-worldRegionHover-pane path').count() == len(features)+1
         assert page.evaluate("getComputedStyle(document.querySelector('.leaflet-worldRelief-pane')).pointerEvents") == 'none'
         assert not errors, errors
-        print('Production world screen: all three views, terrain toggle and pointer pass-through passed.')
+        print('Production world screen: all three views, 50% region hover, tooltip, mouseout and terrain toggle passed.')
     browser.close()

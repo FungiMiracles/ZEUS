@@ -8,6 +8,7 @@
         gorski:{height:165,ruggedness:.75}, wysokogorski:{height:245,ruggedness:1}
     };
     const normalize = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').trim();
+    const irregularity=1.25;
     // Continuous world-space variation changes band outlines only. It never
     // changes the six fill colors or introduces illumination/surface texture.
     function shapeNoise(x,y) {
@@ -119,8 +120,8 @@
         }
         for(let pass=0;pass<3;pass++){blur(true);blur(false);}
         return(x,y)=>{
-            const warpX=26*shapeNoise(x/135+31.3,y/135-18.6)+8*shapeNoise(x/43+71.1,y/43+46.2);
-            const warpY=26*shapeNoise(x/135-91.8,y/135+62.1)+8*shapeNoise(x/43-23.4,y/43-56.7);
+            const warpX=irregularity*(26*shapeNoise(x/135+31.3,y/135-18.6)+8*shapeNoise(x/43+71.1,y/43+46.2));
+            const warpY=irregularity*(26*shapeNoise(x/135-91.8,y/135+62.1)+8*shapeNoise(x/43-23.4,y/43-56.7));
             const px=Math.max(0,Math.min(width-1.001,(x+warpX-left)/step-.5)),py=Math.max(0,Math.min(height-1.001,(y+warpY-top)/step-.5));
             const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
             let elevation=0,ruggedness=0,weight=0,distance=0,kaoWeight=0;
@@ -139,10 +140,10 @@
                 if(kao.id&&components[index]===kao.id)kaoWeight+=w;
             }
             const across=(x-kao.left)/(kao.right-kao.left),blend=Math.max(0,Math.min(1,(across-.3)/.3));
-            const west=1-blend*blend*(3-2*blend),coastSpan=100-35*kaoWeight*west;
+            const west=1-blend*blend*(3-2*blend),coastSpan=100-60*kaoWeight*west;
             const t=Math.min(1,Math.max(0,(distance-step*.5)/coastSpan)),coast=t*t*(3-2*t);
             const detail=.65*shapeNoise(x/96+42.7,y/96-13.1)+.35*shapeNoise(x/34-27.2,y/34+81.9);
-            const variation=weight?1+detail*(.02+.12*ruggedness/weight):1;
+            const variation=weight?1+irregularity*detail*(.02+.12*ruggedness/weight):1;
             return weight?{height:elevation/weight*coast*variation,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance,coastSpan}
                 :{height:0,ruggedness:0,coast:0,distance:0};
         };

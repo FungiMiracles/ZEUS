@@ -37,12 +37,17 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     return { color: C.regionBorder, weight: .6, fillColor: occupied ? C.occupied : C.land, fillOpacity: 1 };
   };
   const regional = L.layerGroup();
+  function regionTip(id) {
+    const r=config.regions[id],occupied=config.occupied[id],owner=config.countries[String(r.countryId)];
+    const lines=[`Populacja: ${mln(r.population)}`];
+    if(owner)lines.push(`Państwo: ${owner.name}`);
+    if(occupied)lines.push(`Okupowany przez: ${occupied.occupier || 'nieznane państwo'}`);
+    return iconTip(owner ? owner.flag : config.regionIcon,r.name,lines,!!owner);
+  }
   const regionLayer = L.geoJSON(regions, { pane: 'worldRegions', coordsToLatLng: coordinates, style: regionStyle, filter: f => !!config.regions[String(f.properties?.region_id)],
     onEachFeature: (feature, layer) => {
-      const id = String(feature.properties.region_id), r = config.regions[id], occupied = config.occupied[id];
-      const owner = config.countries[String(r.countryId)];
-      const lines = [`Populacja: ${mln(r.population)}`]; if (owner) lines.push(`Państwo: ${owner.name}`); if (occupied) lines.push(`Okupowany przez: ${occupied.occupier || 'nieznane państwo'}`);
-      layer.bindTooltip(iconTip(owner ? owner.flag : config.regionIcon, r.name, lines, !!owner), tipOptions);
+      const id = String(feature.properties.region_id);
+      layer.bindTooltip(regionTip(id), tipOptions);
       layer.on('mouseover', () => layer.setStyle({ fillColor: C.hover })); layer.on('mouseout', () => regionLayer.resetStyle(layer));
     } }).addTo(regional);
   L.geoJSON(countries, { pane: 'worldBorders', coordsToLatLng: coordinates, interactive: false, style: { color: C.border, weight: 2, fill: false } }).addTo(regional);
@@ -82,6 +87,28 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   if (window.WorldRelief && reliefToggle) {
     map.createPane('worldRelief'); map.getPane('worldRelief').style.zIndex = '415'; map.getPane('worldRelief').style.pointerEvents = 'none';
     const relief = window.WorldRelief.createLayer(L, regions, config.regions);
+    // Transparent hit areas above the opaque terrain tiles. All pieces of a
+    // region share one 50%-opaque highlight, without changing the base map.
+    map.createPane('worldRegionHover');map.getPane('worldRegionHover').style.zIndex='430';
+    const hoverGroups=new Map();let hoveredRegion=null;
+    const hoverStyle={color:'#29486b',weight:1.2,opacity:0,fill:true,fillColor:C.hover,fillOpacity:0};
+    function clearRegionHover() {
+      for(const layer of hoverGroups.get(hoveredRegion)||[])layer.setStyle(hoverStyle);
+      hoveredRegion=null;
+    }
+    const regionHover=L.geoJSON(regions,{pane:'worldRegionHover',coordsToLatLng:coordinates,
+      filter:feature=>!!config.regions[String(feature.properties?.region_id)],style:hoverStyle,
+      onEachFeature:(feature,layer)=>{
+        const id=String(feature.properties.region_id);
+        if(!hoverGroups.has(id))hoverGroups.set(id,[]);hoverGroups.get(id).push(layer);
+        layer.bindTooltip(regionTip(id),tipOptions);
+        layer.on('mouseover',()=>{
+          clearRegionHover();hoveredRegion=id;
+          for(const part of hoverGroups.get(id))part.setStyle({opacity:.8,fillOpacity:.5});
+        });
+        layer.on('mouseout',clearRegionHover);
+      }});
+    map.on('movestart worldviewchange',clearRegionHover);
     relief.setOpacity(saved === 'continents' ? .4 : 1);
     map.on('worldviewchange', event => relief.setOpacity(event.view === 'continents' ? .4 : 1));
     map.createPane('worldShelf'); map.getPane('worldShelf').style.zIndex='390'; map.getPane('worldShelf').style.pointerEvents='none';
@@ -98,8 +125,9 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     function setRelief(on) {
       map.getContainer().classList.toggle('world-map-physical',on);
       document.querySelectorAll('.legend-terrain').forEach(item=>{item.hidden=!on;});
-      if (on) { shelf.addTo(map); relief.addTo(map); reliefBorders.addTo(map); reliefRegions.addTo(regional); }
-      else { shelf.remove(); relief.remove(); reliefBorders.remove(); regional.removeLayer(reliefRegions); }
+      clearRegionHover();
+      if (on) { shelf.addTo(map); relief.addTo(map); reliefBorders.addTo(map); reliefRegions.addTo(regional); regionHover.addTo(map); }
+      else { regionHover.remove(); shelf.remove(); relief.remove(); reliefBorders.remove(); regional.removeLayer(reliefRegions); }
       try { localStorage.setItem('world-relief', on ? '1' : '0'); } catch {}
     }
     let showRelief = true; try { showRelief = localStorage.getItem('world-relief') !== '0'; } catch {}
