@@ -52,10 +52,28 @@ with sync_playwright() as p:
             const sample=WorldRelief.createModel(WorldRelief.prepare(geo,metadata));
             return {before:sample(249.99,200).height,after:sample(250.01,200).height,
                 mountain:sample(150,200).height,lowland:sample(1125,200).height,
+                shore:sample(200,0).height,nearShore:sample(200,10).height,
+                inland:sample(200,120).height,sea:sample(200,-20).height,
                 shared:WorldRelief.elevation(250,200,sample(250,200))};
         }''', {'geo':geo,'metadata':metadata})
         assert abs(continuity['before'] - continuity['after']) < .2, continuity
         assert continuity['mountain'] > continuity['lowland'] * 4, continuity
+        assert continuity['shore'] < .1, continuity
+        assert continuity['sea'] == 0, continuity
+        assert continuity['nearShore'] < continuity['inland'] * .1, continuity
+        ink = page.evaluate('''()=>{
+            let maximum=0,colored=0,visible=0;
+            for(const tile of Object.values(relief._tiles)) {
+                const data=tile.el.getContext('2d').getImageData(0,0,tile.el.width,tile.el.height).data;
+                for(let i=0;i<data.length;i+=4)if(data[i+3]){
+                    maximum=Math.max(maximum,data[i+3]);visible++;
+                    if(data[i]||data[i+1]||data[i+2])colored++;
+                }
+            }
+            return{maximum,colored,visible};
+        }''')
+        assert ink['visible'] > 0 and ink['maximum'] <= 72, ink
+        assert ink['colored'] == 0, ink
         # Holes and sea stay transparent. A map movement must produce new tiles.
         def alpha(x, y):
             return page.evaluate('''([x,y])=>{

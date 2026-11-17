@@ -66,6 +66,20 @@
             path(ctx,region.rings,left,top,step);
         }
         const pixels=ctx.getImageData(0,0,width,height).data;
+        // Distance from the union of land, never from regional borders. Both
+        // raster passes propagate shoreline distances across the whole continent.
+        const coastDistance=new Float32Array(width*height),diagonal=Math.SQRT2;
+        for(let i=0;i<coastDistance.length;i++)coastDistance[i]=pixels[i*4+3]>127?1e6:0;
+        for(let y=1;y<height-1;y++)for(let x=1;x<width-1;x++) {
+            const i=y*width+x;
+            coastDistance[i]=Math.min(coastDistance[i],coastDistance[i-1]+1,coastDistance[i-width]+1,
+                coastDistance[i-width-1]+diagonal,coastDistance[i-width+1]+diagonal);
+        }
+        for(let y=height-2;y>0;y--)for(let x=width-2;x>0;x--) {
+            const i=y*width+x;
+            coastDistance[i]=Math.min(coastDistance[i],coastDistance[i+1]+1,coastDistance[i+width]+1,
+                coastDistance[i+width+1]+diagonal,coastDistance[i+width-1]+diagonal);
+        }
         let data=new Float32Array(width*height*3),scratch=new Float32Array(data.length);
         for(let i=0;i<width*height;i++) {
             const alpha=pixels[i*4+3]/255;
@@ -95,14 +109,16 @@
         return(x,y)=>{
             const px=Math.max(0,Math.min(width-1.001,(x-left)/step-.5)),py=Math.max(0,Math.min(height-1.001,(y-top)/step-.5));
             const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
-            let elevation=0,ruggedness=0,weight=0;
+            let elevation=0,ruggedness=0,weight=0,distance=0;
             for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++) {
                 const index=((iy+dy)*width+ix+dx)*3;
-                // Normalized convolution avoids sea lowering coastal mountains.
                 const w=(dx?fx:1-fx)*(dy?fy:1-fy);
                 elevation+=data[index]*w;ruggedness+=data[index+1]*w;weight+=data[index+2]*w;
+                distance+=coastDistance[(iy+dy)*width+ix+dx]*step*w;
             }
-            return weight?{height:elevation/weight,ruggedness:ruggedness/weight}:profiles.nizinny;
+            const t=Math.min(1,Math.max(0,(distance-step*.5)/100)),coast=t*t*(3-2*t);
+            return weight?{height:elevation/weight*coast,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance}
+                :{height:0,ruggedness:0,coast:0,distance:0};
         };
     }
     function elevation(x,y,profile,step=1) {
@@ -119,22 +135,18 @@
         const lowland=.94+noise(x/85,y/85)*.06;
         return profile.height*(lowland*(1-profile.ruggedness)+(.16+ridge*1.34)*profile.ruggedness);
     }
-    const colors=[[0,[129,158,113]],[35,[158,177,126]],[75,[180,177,133]],[120,[168,158,132]],
-        [165,[160,153,141]],[210,[184,181,173]],[250,[239,242,238]]];
-    function colorAt(height) {
-        for(let i=1;i<colors.length;i++)if(height<colors[i][0]) {
-            const [a,ca]=colors[i-1],[b,cb]=colors[i],t=Math.max(0,(height-a)/(b-a));
-            return ca.map((v,index)=>v+(cb[index]-v)*t);
-        }
-        return colors[colors.length-1][1];
-    }
     function shade(x,y,sample,step) {
         const epsilon=Math.max(1,step*.55),profile=sample(x,y),height=elevation(x,y,profile,step);
         const at=(a,b)=>elevation(a,b,sample(a,b),step);
-        const dx=(at(x+epsilon,y)-at(x-epsilon,y))/(2*epsilon);
-        const dy=(at(x,y+epsilon)-at(x,y-epsilon))/(2*epsilon);
-        const light=Math.max(.45,Math.min(1.2,.57+(.58*dx+.65*dy+.65)/Math.hypot(dx,dy,1)*.58));
-        return colorAt(height).map(value=>Math.max(0,Math.min(255,Math.round(value*light))));
+        const east=at(x+epsilon,y),west=at(x-epsilon,y),south=at(x,y+epsilon),north=at(x,y-epsilon);
+        const dx=(east-west)/(2*epsilon),dy=(south-north)/(2*epsilon);
+        const light=(.58*dx+.65*dy+.65)/Math.hypot(dx,dy,1);
+        const shadow=Math.max(0,Math.min(1,(.65-light)/1.2));
+        const curvature=(east+west+south+north-height*4)/(epsilon*epsilon);
+        const ridge=Math.max(0,Math.min(1,(-curvature-.025)*3))*profile.ruggedness;
+        // Only translucent black: the political/continent colors remain intact.
+        // Concave-up valleys stay open; narrow convex crests become fine lines.
+        return Math.min(.28,shadow*.14+ridge*.14);
     }
     function createLayer(L,geojson,metadata) {
         const terrain=prepare(geojson,metadata),sample=createModel(terrain);
@@ -149,8 +161,9 @@
                 const image=ctx.getImageData(0,0,size,size);
                 for(let py=0;py<size;py++)for(let px=0;px<size;px++) {
                     const index=(py*size+px)*4;if(!image.data[index+3])continue;
-                    const color=shade(left+(px+.5)*step,top+(py+.5)*step,sample,step);
-                    image.data[index]=color[0];image.data[index+1]=color[1];image.data[index+2]=color[2];
+                    const opacity=shade(left+(px+.5)*step,top+(py+.5)*step,sample,step);
+                    image.data[index]=0;image.data[index+1]=0;image.data[index+2]=0;
+                    image.data[index+3]=Math.round(image.data[index+3]*opacity);
                 }
                 ctx.putImageData(image,0,0);return tile;
             }
