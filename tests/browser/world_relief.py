@@ -10,9 +10,9 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
-types = ['Wysokogórski', 'Górski', 'Pogórski', 'Wyżynny']
+types = ['Wysokogórski', 'Górski', 'Pogórski', 'Wyżynny', 'Nizinny', 'Depresyjny']
 features = []
-for index in range(4):
+for index in range(len(types)):
     x = index * 250
     rings = [[[x, 0], [x + 250, 0], [x + 250, -400], [x, -400], [x, 0]]]
     if index == 0:
@@ -48,6 +48,14 @@ with sync_playwright() as p:
     assert result['polygons'] > 0
     assert page.locator('.leaflet-worldRelief-pane canvas').count() > 0
     if not world:
+        continuity = page.evaluate('''({geo,metadata})=>{
+            const sample=WorldRelief.createModel(WorldRelief.prepare(geo,metadata));
+            return {before:sample(249.99,200).height,after:sample(250.01,200).height,
+                mountain:sample(150,200).height,lowland:sample(1125,200).height,
+                shared:WorldRelief.elevation(250,200,sample(250,200))};
+        }''', {'geo':geo,'metadata':metadata})
+        assert abs(continuity['before'] - continuity['after']) < .2, continuity
+        assert continuity['mountain'] > continuity['lowland'] * 4, continuity
         # Holes and sea stay transparent. A map movement must produce new tiles.
         def alpha(x, y):
             return page.evaluate('''([x,y])=>{
@@ -55,7 +63,7 @@ with sync_playwright() as p:
                 const tx=Math.floor(point.x/size),ty=Math.floor(point.y/size);
                 const tile=relief._tiles[`${tx}:${ty}:${relief._tileZoom}`]?.el;
                 if(!tile)return 0;
-                return tile.getContext('2d').getImageData(Math.floor((point.x-tx*size)/2),Math.floor((point.y-ty*size)/2),1,1).data[3];
+                return tile.getContext('2d').getImageData(Math.floor((point.x-tx*size)*tile.width/size),Math.floor((point.y-ty*size)*tile.height/size),1,1).data[3];
             }''', [x, y])
         assert alpha(85, -85) == 0, 'lake hole painted'
         assert alpha(150, -150) > 0, 'mountain missing'

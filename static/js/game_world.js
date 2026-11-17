@@ -73,7 +73,7 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   // --- przełącznik widoku ---
   const views = { political, regional, continents: continentLayer };
   function setView(view) { if (!views[view]) view = 'political'; for (const [name, layer] of Object.entries(views)) { if (name === view) layer.addTo(map); else layer.remove(); }
-    document.querySelector('.legend-regional').hidden = view !== 'regional'; try { localStorage.setItem('world-view', view); } catch {} }
+    document.querySelector('.legend-regional').hidden = view !== 'regional'; map.fire('worldviewchange', {view}); try { localStorage.setItem('world-view', view); } catch {} }
   let saved = 'political'; try { saved = localStorage.getItem('world-view') || 'political'; } catch {}
   for (const radio of document.querySelectorAll('[name="world-view"]')) { radio.checked = radio.value === saved; radio.addEventListener('change', () => setView(radio.value)); }
   setView(saved);
@@ -82,10 +82,20 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   if (window.WorldRelief && reliefToggle) {
     map.createPane('worldRelief'); map.getPane('worldRelief').style.zIndex = '415'; map.getPane('worldRelief').style.pointerEvents = 'none';
     const relief = window.WorldRelief.createLayer(L, regions, config.regions);
+    // Preserve continent colors in the thematic view while retaining the same relief.
+    relief.setOpacity(saved === 'continents' ? .35 : 1);
+    map.on('worldviewchange', event => relief.setOpacity(event.view === 'continents' ? .35 : 1));
     const reliefBorders = L.geoJSON(countries, {pane:'worldBorders', coordsToLatLng:coordinates, interactive:false,
       style:{color:C.border,weight:1.4,fill:false,opacity:.8}});
+    const reliefRegions = L.geoJSON(regions, {pane:'worldBorders', coordsToLatLng:coordinates, interactive:false,
+      style:feature => {
+        const occupied = !!config.occupied[String(feature.properties?.region_id)];
+        return {color:occupied ? C.occupied : C.regionBorder,weight:occupied ? 1.8 : .55,opacity:occupied ? 1 : .5,
+          fill:occupied,fillColor:C.occupied,fillOpacity:.22};
+      }});
     function setRelief(on) {
-      if (on) { relief.addTo(map); reliefBorders.addTo(map); } else { relief.remove(); reliefBorders.remove(); }
+      if (on) { relief.addTo(map); reliefBorders.addTo(map); reliefRegions.addTo(regional); }
+      else { relief.remove(); reliefBorders.remove(); regional.removeLayer(reliefRegions); }
       try { localStorage.setItem('world-relief', on ? '1' : '0'); } catch {}
     }
     let showRelief = true; try { showRelief = localStorage.getItem('world-relief') !== '0'; } catch {}
