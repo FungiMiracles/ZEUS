@@ -48,3 +48,6 @@ html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked) s
 .legend-waters i{display:inline-block;width:14px;height:10px;border-radius:2px}
 .legend-waters-own{background:#ffcf6b80;border:1px solid #ffcf6b}
 .legend-waters-foreign{margin-left:10px;background:#8fd3ff55;border:1px solid #9fd8ff}
+#world-map.world-map-physical,html body.game-app.game-navy :is(#world-map.world-map-physical){background:#b5dbea}
+.legend-terrain i{display:inline-block;width:14px;height:10px;border:1px solid #ffffff80;border-radius:2px}
+.legend-lowland{background:#b7da96}.legend-upland{background:#f9edb3}.legend-foothills{background:#f0d29a}.legend-mountains{background:#e1b584}.legend-high-mountains{background:#d3a175}

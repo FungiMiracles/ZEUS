@@ -2,7 +2,7 @@
 {% block title %}Świat — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261116-cities-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261117-atlas-1') }}">
 {% endblock %}
 {% block content %}
 <section class="world-map-card" aria-labelledby="world-map-title">
@@ -19,6 +19,11 @@
     <button type="button" id="world-map-reset" class="world-map-reset">Cały świat ⤢</button>
   </div>
   <div class="world-map-legend" aria-label="Legenda">
+    <span class="legend-terrain"><i class="legend-lowland"></i> Niziny</span>
+    <span class="legend-terrain"><i class="legend-upland"></i> Wyżyny</span>
+    <span class="legend-terrain"><i class="legend-foothills"></i> Pogórza</span>
+    <span class="legend-terrain"><i class="legend-mountains"></i> Góry</span>
+    <span class="legend-terrain"><i class="legend-high-mountains"></i> Wysokie góry</span>
     <span class="legend-cities"><i class="legend-city legend-big"></i> Miasto &gt; 5 mln</span>
     <span class="legend-cities"><i class="legend-city legend-mid"></i> 1–5 mln</span>
     <span class="legend-cities"><i class="legend-city legend-small"></i> &lt; 1 mln</span>
@@ -34,6 +39,6 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261025-1') }}"></script>
-<script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-coastal-shadows-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-coastal-shadows-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-atlas-1') }}"></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-atlas-1') }}" defer></script>
 {% endblock %}

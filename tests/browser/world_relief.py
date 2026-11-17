@@ -31,7 +31,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1400, 'height': 950}, device_scale_factor=1)
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
-    page.set_content('<div id="map" style="width:1380px;height:900px;background:#234864"></div>')
+    page.set_content('<div id="map" style="width:1380px;height:900px;background:#b5dbea"></div>')
     page.add_style_tag(path='/tmp/industry-leaflet.css')
     page.add_script_tag(path='/tmp/industry-leaflet.js')
     page.add_script_tag(path=str(ROOT / 'static/js/world_relief.js'))
@@ -72,8 +72,8 @@ with sync_playwright() as p:
             }
             return{maximum,colored,visible};
         }''')
-        assert ink['visible'] > 0 and ink['maximum'] <= 72, ink
-        assert ink['colored'] == 0, ink
+        assert ink['visible'] > 0 and ink['maximum'] == 255, ink
+        assert ink['colored'] == ink['visible'], ink
         # Holes and sea stay transparent. A map movement must produce new tiles.
         def alpha(x, y):
             return page.evaluate('''([x,y])=>{
@@ -110,15 +110,19 @@ with sync_playwright() as p:
         page.route('**/regions', lambda route: route.fulfill(json=geo))
         page.route('**/cities', lambda route: route.fulfill(json={'type': 'FeatureCollection', 'features': []}))
         page.add_style_tag(path='/tmp/industry-leaflet.css')
+        page.add_style_tag(path=str(ROOT / 'static/css/game_world.css'))
         page.add_script_tag(path='/tmp/industry-leaflet.js')
         page.add_script_tag(path=str(ROOT / 'static/js/world_relief.js'))
         page.add_script_tag(path=str(ROOT / 'static/js/game_world.js'))
         page.wait_for_selector('.leaflet-worldRelief-pane canvas')
+        assert page.locator('#world-map').evaluate("el=>el.classList.contains('world-map-physical')")
+        assert page.locator('#world-map').evaluate("el=>getComputedStyle(el).backgroundColor") == 'rgb(181, 219, 234)'
         for view in ('political', 'regional', 'continents'):
             page.check(f'[name="world-view"][value="{view}"]')
             assert page.locator('.leaflet-worldRelief-pane canvas').count() > 0
         page.uncheck('#world-relief-toggle')
         assert page.locator('.leaflet-worldRelief-pane canvas').count() == 0
+        assert not page.locator('#world-map').evaluate("el=>el.classList.contains('world-map-physical')")
         page.check('#world-relief-toggle')
         page.wait_for_selector('.leaflet-worldRelief-pane canvas')
         assert page.evaluate("getComputedStyle(document.querySelector('.leaflet-worldRelief-pane')).pointerEvents") == 'none'

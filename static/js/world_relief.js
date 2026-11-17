@@ -135,6 +135,20 @@
         const lowland=.94+noise(x/85,y/85)*.06;
         return profile.height*(lowland*(1-profile.ruggedness)+(.16+ridge*1.34)*profile.ruggedness);
     }
+    // Muted atlas hypsometry: broad green plains, butter-yellow uplands,
+    // ochre foothills and warm brown mountains, with no white/satellite texture.
+    const palette = [
+        [0,[173,212,143]],[28,[183,218,150]],[38,[222,231,167]],
+        [50,[249,237,179]],[85,[246,224,164]],[125,[237,202,148]],
+        [175,[225,181,132]],[245,[211,161,117]],[320,[196,146,108]]
+    ];
+    function atlasColor(height) {
+        for(let i=1;i<palette.length;i++)if(height<palette[i][0]) {
+            const[a,ca]=palette[i-1],[b,cb]=palette[i],t=Math.max(0,(height-a)/(b-a));
+            return ca.map((value,index)=>value+(cb[index]-value)*t);
+        }
+        return palette[palette.length-1][1];
+    }
     function shade(x,y,sample,step) {
         const epsilon=Math.max(1,step*.55),profile=sample(x,y),height=elevation(x,y,profile,step);
         const at=(a,b)=>elevation(a,b,sample(a,b),step);
@@ -144,9 +158,8 @@
         const shadow=Math.max(0,Math.min(1,(.65-light)/1.2));
         const curvature=(east+west+south+north-height*4)/(epsilon*epsilon);
         const ridge=Math.max(0,Math.min(1,(-curvature-.025)*3))*profile.ruggedness;
-        // Only translucent black: the political/continent colors remain intact.
-        // Concave-up valleys stay open; narrow convex crests become fine lines.
-        return Math.min(.28,shadow*.14+ridge*.14);
+        const darkness=Math.min(.19,shadow*.13+ridge*.06);
+        return atlasColor(profile.height*.9+height*.1).map(value=>Math.round(value*(1-darkness)));
     }
     function createLayer(L,geojson,metadata) {
         const terrain=prepare(geojson,metadata),sample=createModel(terrain);
@@ -161,9 +174,8 @@
                 const image=ctx.getImageData(0,0,size,size);
                 for(let py=0;py<size;py++)for(let px=0;px<size;px++) {
                     const index=(py*size+px)*4;if(!image.data[index+3])continue;
-                    const opacity=shade(left+(px+.5)*step,top+(py+.5)*step,sample,step);
-                    image.data[index]=0;image.data[index+1]=0;image.data[index+2]=0;
-                    image.data[index+3]=Math.round(image.data[index+3]*opacity);
+                    const color=shade(left+(px+.5)*step,top+(py+.5)*step,sample,step);
+                    image.data[index]=color[0];image.data[index+1]=color[1];image.data[index+2]=color[2];
                 }
                 ctx.putImageData(image,0,0);return tile;
             }

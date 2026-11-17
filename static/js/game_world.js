@@ -73,7 +73,7 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   // --- przełącznik widoku ---
   const views = { political, regional, continents: continentLayer };
   function setView(view) { if (!views[view]) view = 'political'; for (const [name, layer] of Object.entries(views)) { if (name === view) layer.addTo(map); else layer.remove(); }
-    document.querySelector('.legend-regional').hidden = view !== 'regional'; try { localStorage.setItem('world-view', view); } catch {} }
+    document.querySelector('.legend-regional').hidden = view !== 'regional'; map.fire('worldviewchange', {view}); try { localStorage.setItem('world-view', view); } catch {} }
   let saved = 'political'; try { saved = localStorage.getItem('world-view') || 'political'; } catch {}
   for (const radio of document.querySelectorAll('[name="world-view"]')) { radio.checked = radio.value === saved; radio.addEventListener('change', () => setView(radio.value)); }
   setView(saved);
@@ -82,8 +82,13 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   if (window.WorldRelief && reliefToggle) {
     map.createPane('worldRelief'); map.getPane('worldRelief').style.zIndex = '415'; map.getPane('worldRelief').style.pointerEvents = 'none';
     const relief = window.WorldRelief.createLayer(L, regions, config.regions);
+    relief.setOpacity(saved === 'continents' ? .4 : 1);
+    map.on('worldviewchange', event => relief.setOpacity(event.view === 'continents' ? .4 : 1));
+    map.createPane('worldShelf'); map.getPane('worldShelf').style.zIndex='390'; map.getPane('worldShelf').style.pointerEvents='none';
+    const shelf=L.geoJSON(countries,{pane:'worldShelf',coordsToLatLng:coordinates,interactive:false,
+      style:{color:'#daedf3',weight:7,opacity:1,fill:false}});
     const reliefBorders = L.geoJSON(countries, {pane:'worldBorders', coordsToLatLng:coordinates, interactive:false,
-      style:{color:C.border,weight:1.4,fill:false,opacity:.8}});
+      style:{color:'#7e8975',weight:1,fill:false,opacity:.7}});
     const reliefRegions = L.geoJSON(regions, {pane:'worldBorders', coordsToLatLng:coordinates, interactive:false,
       style:feature => {
         const occupied = !!config.occupied[String(feature.properties?.region_id)];
@@ -91,8 +96,10 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
           fill:occupied,fillColor:C.occupied,fillOpacity:.22};
       }});
     function setRelief(on) {
-      if (on) { relief.addTo(map); reliefBorders.addTo(map); reliefRegions.addTo(regional); }
-      else { relief.remove(); reliefBorders.remove(); regional.removeLayer(reliefRegions); }
+      map.getContainer().classList.toggle('world-map-physical',on);
+      document.querySelectorAll('.legend-terrain').forEach(item=>{item.hidden=!on;});
+      if (on) { shelf.addTo(map); relief.addTo(map); reliefBorders.addTo(map); reliefRegions.addTo(regional); }
+      else { shelf.remove(); relief.remove(); reliefBorders.remove(); regional.removeLayer(reliefRegions); }
       try { localStorage.setItem('world-relief', on ? '1' : '0'); } catch {}
     }
     let showRelief = true; try { showRelief = localStorage.getItem('world-relief') !== '0'; } catch {}
