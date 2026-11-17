@@ -1,6 +1,5 @@
-/* One continuous illustrated height field for the whole world. Region terrain
-   controls elevation and ruggedness, blended across administrative boundaries.
-   Land polygons only clip coastlines and lakes; they never clip mountain ranges. */
+/* Flat 2D atlas hypsometry. Regional elevation bands blend across borders,
+   taper at coastlines and contain no lighting, shading or surface texture. */
 (() => {
     'use strict';
     const profiles = {
@@ -9,26 +8,6 @@
         gorski:{height:165,ruggedness:.75}, wysokogorski:{height:245,ruggedness:1}
     };
     const normalize = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').trim();
-    function hash(x,y) {
-        let n=Math.imul(x,374761393)^Math.imul(y,668265263);
-        n=Math.imul(n^(n>>>13),1274126177);return(n^(n>>>16))>>>0;
-    }
-    // Gradient noise produces branching ridgelines, rather than contour bands
-    // around interpolated random values at grid vertices.
-    function noise(x,y) {
-        const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
-        const fade=t=>t*t*t*(t*(t*6-15)+10),sx=fade(fx),sy=fade(fy);
-        const gradient=(a,b,dx,dy)=>{
-            switch(hash(a,b)&7) {
-                case 0:return dx;case 1:return-dx;case 2:return dy;case 3:return-dy;
-                case 4:return(dx+dy)*.7071;case 5:return(dx-dy)*.7071;
-                case 6:return(-dx+dy)*.7071;default:return(-dx-dy)*.7071;
-            }
-        };
-        const a=gradient(ix,iy,fx,fy),b=gradient(ix+1,iy,fx-1,fy);
-        const c=gradient(ix,iy+1,fx,fy-1),d=gradient(ix+1,iy+1,fx-1,fy-1);
-        return((a+(b-a)*sx)*(1-sy)+(c+(d-c)*sx)*sy)*1.7;
-    }
     function prepare(geojson,metadata) {
         const result=[];
         for(const feature of geojson.features||[]) {
@@ -40,7 +19,7 @@
                 if(!coordinates.length)continue;
                 let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
                 for(const[x,y]of coordinates[0]){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
-                result.push({rings:coordinates,bounds:[left,top,right,bottom],profile});
+                result.push({rings:coordinates,bounds:[left,top,right,bottom],profile,kao:normalize(metadata[String(feature.properties?.region_id)]?.continent)==='kao'});
             }
         }
         return result;
@@ -62,10 +41,30 @@
         const source=document.createElement('canvas');source.width=width;source.height=height;
         const ctx=source.getContext('2d');
         for(const region of terrain) {
-            ctx.fillStyle=`rgb(${region.profile.height},${Math.round(region.profile.ruggedness*255)},0)`;
+            ctx.fillStyle=`rgb(${region.profile.height},${Math.round(region.profile.ruggedness*255)},${region.kao?255:0})`;
             path(ctx,region.rings,left,top,step);
         }
         const pixels=ctx.getImageData(0,0,width,height).data;
+        // Locate Kao's mainland from connected land, so overseas possessions
+        // do not change the western continental coast adjustment.
+        const components=new Uint32Array(width*height);
+        let kao={id:0,count:0,left:0,right:1};
+        if(terrain.some(region=>region.kao)) {
+            const queue=new Uint32Array(width*height);let id=0,tail=0;
+            const enqueue=i=>{if(!components[i]&&pixels[i*4+3]>127){components[i]=id;queue[tail++]=i;}};
+            for(let start=0;start<components.length;start++) {
+                if(components[start]||pixels[start*4+3]<=127)continue;
+                id++;tail=0;enqueue(start);let head=0,count=0,minX=width,maxX=0;
+                while(head<tail) {
+                    const i=queue[head++],x=i%width,y=Math.floor(i/width);
+                    if(pixels[i*4+2]>127)count++;
+                    minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+                    if(x>0)enqueue(i-1);if(x<width-1)enqueue(i+1);
+                    if(y>0)enqueue(i-width);if(y<height-1)enqueue(i+width);
+                }
+                if(count>kao.count)kao={id,count,left:left+minX*step,right:left+(maxX+1)*step};
+            }
+        }
         // Distance from the union of land, never from regional borders. Both
         // raster passes propagate shoreline distances across the whole continent.
         const coastDistance=new Float32Array(width*height),diagonal=Math.SQRT2;
@@ -109,57 +108,29 @@
         return(x,y)=>{
             const px=Math.max(0,Math.min(width-1.001,(x-left)/step-.5)),py=Math.max(0,Math.min(height-1.001,(y-top)/step-.5));
             const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
-            let elevation=0,ruggedness=0,weight=0,distance=0;
+            let elevation=0,ruggedness=0,weight=0,distance=0,kaoWeight=0;
             for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++) {
                 const index=((iy+dy)*width+ix+dx)*3;
                 const w=(dx?fx:1-fx)*(dy?fy:1-fy);
                 elevation+=data[index]*w;ruggedness+=data[index+1]*w;weight+=data[index+2]*w;
                 distance+=coastDistance[(iy+dy)*width+ix+dx]*step*w;
+                if(kao.id&&components[(iy+dy)*width+ix+dx]===kao.id)kaoWeight+=w;
             }
-            const t=Math.min(1,Math.max(0,(distance-step*.5)/100)),coast=t*t*(3-2*t);
-            return weight?{height:elevation/weight*coast,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance}
+            const across=(x-kao.left)/(kao.right-kao.left),blend=Math.max(0,Math.min(1,(across-.3)/.3));
+            const west=1-blend*blend*(3-2*blend),coastSpan=100-35*kaoWeight*west;
+            const t=Math.min(1,Math.max(0,(distance-step*.5)/coastSpan)),coast=t*t*(3-2*t);
+            return weight?{height:elevation/weight*coast,ruggedness:ruggedness/weight*Math.sqrt(coast),coast,distance,coastSpan}
                 :{height:0,ruggedness:0,coast:0,distance:0};
         };
     }
-    function elevation(x,y,profile,step=1) {
-        const warpX=noise(x/240+9,y/240-12)*55,warpY=noise(x/240-18,y/240+31)*55;
-        const u=x*.86+y*.51+warpX,v=-x*.51+y*.86+warpY;
-        let ridge=0,amplitude=.57,weight=1,total=0;
-        for(let octave=0,scale=125;octave<5;octave++,scale*=.5,amplitude*=.48) {
-            if(scale<step*1.5)break;
-            let signal=1-Math.abs(noise(u/scale+octave*17.3,v/(scale*.72)-octave*13.7));
-            signal=signal*signal*weight;
-            ridge+=signal*amplitude;total+=amplitude;weight=Math.min(1,signal*2.2);
-        }
-        ridge/=total||1;
-        const lowland=.94+noise(x/85,y/85)*.06;
-        return profile.height*(lowland*(1-profile.ruggedness)+(.16+ridge*1.34)*profile.ruggedness);
-    }
-    // Muted atlas hypsometry: broad green plains, butter-yellow uplands,
-    // ochre foothills and warm brown mountains, with no white/satellite texture.
+    // Flat atlas bands, not gradients: no directional illumination, grain,
+    // highlights or shaded slopes that could suggest a 3D surface.
     const palette = [
-        [0,[173,212,143]],[28,[183,218,150]],[38,[222,231,167]],
-        [50,[249,237,179]],[85,[246,224,164]],[125,[237,202,148]],
-        [175,[225,181,132]],[245,[211,161,117]],[320,[196,146,108]]
+        [30,[183,218,150]],[65,[249,237,179]],[115,[246,224,164]],
+        [155,[237,202,148]],[210,[225,181,132]],[Infinity,[211,161,117]]
     ];
     function atlasColor(height) {
-        for(let i=1;i<palette.length;i++)if(height<palette[i][0]) {
-            const[a,ca]=palette[i-1],[b,cb]=palette[i],t=Math.max(0,(height-a)/(b-a));
-            return ca.map((value,index)=>value+(cb[index]-value)*t);
-        }
-        return palette[palette.length-1][1];
-    }
-    function shade(x,y,sample,step) {
-        const epsilon=Math.max(1,step*.55),profile=sample(x,y),height=elevation(x,y,profile,step);
-        const at=(a,b)=>elevation(a,b,sample(a,b),step);
-        const east=at(x+epsilon,y),west=at(x-epsilon,y),south=at(x,y+epsilon),north=at(x,y-epsilon);
-        const dx=(east-west)/(2*epsilon),dy=(south-north)/(2*epsilon);
-        const light=(.58*dx+.65*dy+.65)/Math.hypot(dx,dy,1);
-        const shadow=Math.max(0,Math.min(1,(.65-light)/1.2));
-        const curvature=(east+west+south+north-height*4)/(epsilon*epsilon);
-        const ridge=Math.max(0,Math.min(1,(-curvature-.025)*3))*profile.ruggedness;
-        const darkness=Math.min(.19,shadow*.13+ridge*.06);
-        return atlasColor(profile.height*.9+height*.1).map(value=>Math.round(value*(1-darkness)));
+        return palette.find(([limit])=>height<limit)[1];
     }
     function createLayer(L,geojson,metadata) {
         const terrain=prepare(geojson,metadata),sample=createModel(terrain);
@@ -174,7 +145,7 @@
                 const image=ctx.getImageData(0,0,size,size);
                 for(let py=0;py<size;py++)for(let px=0;px<size;px++) {
                     const index=(py*size+px)*4;if(!image.data[index+3])continue;
-                    const color=shade(left+(px+.5)*step,top+(py+.5)*step,sample,step);
+                    const color=atlasColor(sample(left+(px+.5)*step,top+(py+.5)*step).height).map(Math.round);
                     image.data[index]=color[0];image.data[index+1]=color[1];image.data[index+2]=color[2];
                 }
                 ctx.putImageData(image,0,0);return tile;
@@ -182,5 +153,5 @@
         }))({pane:'worldRelief',tileSize:256,minZoom:-10,maxZoom:8,noWrap:true,updateWhenIdle:true,keepBuffer:1,
             attribution:'Ilustracyjna rzeźba terenu wg typów regionów'});
     }
-    window.WorldRelief={createLayer,prepare,createModel,elevation,profiles,normalize};
+    window.WorldRelief={createLayer,prepare,createModel,atlasColor,profiles,normalize};
 })();

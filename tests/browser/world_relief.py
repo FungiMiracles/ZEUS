@@ -54,26 +54,41 @@ with sync_playwright() as p:
                 mountain:sample(150,200).height,lowland:sample(1125,200).height,
                 shore:sample(200,0).height,nearShore:sample(200,10).height,
                 inland:sample(200,120).height,sea:sample(200,-20).height,
-                shared:WorldRelief.elevation(250,200,sample(250,200))};
+                shared:WorldRelief.atlasColor(sample(250,200).height)};
         }''', {'geo':geo,'metadata':metadata})
         assert abs(continuity['before'] - continuity['after']) < .2, continuity
         assert continuity['mountain'] > continuity['lowland'] * 4, continuity
         assert continuity['shore'] < .1, continuity
         assert continuity['sea'] == 0, continuity
         assert continuity['nearShore'] < continuity['inland'] * .1, continuity
+        kao = page.evaluate('''({geo,metadata})=>{
+            const plain=WorldRelief.createModel(WorldRelief.prepare(geo,metadata));
+            const kaometa=Object.fromEntries(Object.entries(metadata).map(([id,value])=>[id,{...value,continent:'Kao'}]));
+            kaometa['999']={terrain:'Wysokogórski',continent:'Kao'};
+            const island={type:'Feature',properties:{region_id:999},geometry:{type:'Polygon',coordinates:[[[1800,0],[1900,0],[1900,-100],[1800,-100],[1800,0]]]}};
+            const adjusted=WorldRelief.createModel(WorldRelief.prepare({...geo,features:[...geo.features,island]},kaometa));
+            return {westBefore:plain(20,200).height,westAfter:adjusted(20,200).height,
+                eastBefore:plain(1480,200).height,eastAfter:adjusted(1480,200).height,
+                westSpan:adjusted(20,200).coastSpan,islandSpan:adjusted(1810,50).coastSpan};
+        }''', {'geo':geo,'metadata':metadata})
+        assert kao['westAfter'] > kao['westBefore'] * 1.5, kao
+        assert abs(kao['eastAfter'] - kao['eastBefore']) < .01, kao
+        assert kao['westSpan'] == 65 and kao['islandSpan'] == 100, kao
         ink = page.evaluate('''()=>{
-            let maximum=0,colored=0,visible=0;
+            let maximum=0,colored=0,visible=0;const colors=new Set();
             for(const tile of Object.values(relief._tiles)) {
                 const data=tile.el.getContext('2d').getImageData(0,0,tile.el.width,tile.el.height).data;
                 for(let i=0;i<data.length;i+=4)if(data[i+3]){
                     maximum=Math.max(maximum,data[i+3]);visible++;
                     if(data[i]||data[i+1]||data[i+2])colored++;
+                    if(data[i+3]===255)colors.add(`${data[i]},${data[i+1]},${data[i+2]}`);
                 }
             }
-            return{maximum,colored,visible};
+            return{maximum,colored,visible,colors:colors.size};
         }''')
         assert ink['visible'] > 0 and ink['maximum'] == 255, ink
         assert ink['colored'] == ink['visible'], ink
+        assert ink['colors'] == 6, ink  # Six flat bands, without any lighting or gradients.
         # Holes and sea stay transparent. A map movement must produce new tiles.
         def alpha(x, y):
             return page.evaluate('''([x,y])=>{

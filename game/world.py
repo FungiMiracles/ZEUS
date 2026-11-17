@@ -13,7 +13,7 @@ world_bp=Blueprint('game_world',__name__,url_prefix='/game/swiat')
 
 
 def world_data():
-    from models import Panstwo,Region,Miasto,DictPanstwoUstroj,DictMiastoTyp,DictRegionTeren
+    from models import Panstwo,Region,Miasto,DictPanstwoUstroj,DictMiastoTyp,DictRegionTeren,DictKontynent
     money=current_app.jinja_env.filters.get('game_money',lambda value:str(value))
     regimes=dict(db.session.execute(select(DictPanstwoUstroj.ustroj_id,DictPanstwoUstroj.ustroj_nazwa)).all())
     city_types=dict(db.session.execute(select(DictMiastoTyp.miasto_typ_id,DictMiastoTyp.miasto_typ_nazwa)).all())
@@ -21,8 +21,10 @@ def world_data():
     def owner_of(country_id):
         if country_id not in cache:cache[country_id]=controller_id(db.session,country_id)
         return cache[country_id]
-    countries={}
+    names=dict(db.session.execute(select(DictKontynent.kontynent_id,DictKontynent.kontynent_nazwa)).all())
+    countries={};country_continents={}
     for c in db.session.scalars(select(Panstwo)):
+        country_continents[c.PANSTWO_ID]=names.get(c.kontynent_id,'')
         countries[str(c.PANSTWO_ID)]={'name':c.panstwo_nazwa,'fullName':getattr(c,'panstwo_pelna_nazwa',None) or c.panstwo_nazwa,
             'flag':url_for('static',filename='flags/'+(c.panstwo_nazwa or '').replace(' ','_')+'.jpg'),'regime':regimes.get(c.ustroj_id),
             'population':c.panstwo_populacja,'gdp':money(c.panstwo_PKB) if c.panstwo_PKB is not None else None,'controller':None}
@@ -35,6 +37,7 @@ def world_data():
     for r in db.session.execute(select(Region.region_id,Region.region_nazwa,Region.panstwo_id,Region.region_ludnosc_pozamiejska,Region.region_teren_id)):
         regions[str(r.region_id)]={'name':r.region_nazwa,'countryId':owner_of(r.panstwo_id),
                                    'terrain':terrains.get(r.region_teren_id,''),
+                                   'continent':country_continents.get(r.panstwo_id,''),
                                    'population':int(r.region_ludnosc_pozamiejska or 0)+city_population.get(r.region_id,0)}
     occupied={}
     try:
@@ -47,8 +50,6 @@ def world_data():
                               'capital':m.miasto_typ_id==1}
             for m in db.session.scalars(select(Miasto).where(Miasto.czy_na_mapie=='TAK'))}
     # Kontynenty: państwa wg kontynentu i łączne wskaźniki (13 Nov 2026)
-    from models import DictKontynent
-    names=dict(db.session.execute(select(DictKontynent.kontynent_id,DictKontynent.kontynent_nazwa)).all())
     continents={}
     for c in db.session.scalars(select(Panstwo)):
         if c.kontynent_id is None or getattr(c,'status','aktywne')!='aktywne':continue   # tylko istniejące państwa
