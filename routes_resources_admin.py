@@ -9,7 +9,7 @@ from sqlalchemy.orm import lazyload
 from sqlalchemy.exc import SQLAlchemyError
 
 from extensions import db
-from models import CountryMiningSettings, Panstwo, Region, RegionZasob
+from models import CountryMiningSettings, DictZasob, Panstwo, Region, RegionZasob
 from permissions import wymaga_roli
 from services.natural_resources import (
     integer_value, MAX_QUANTITY, RESOURCES, ResourceError, deposits_for_country, field_name,
@@ -82,15 +82,19 @@ def render_panel(country_id, error=None, status=200, form=None, generated=False)
             suggested_technology = int(Decimal(str(average)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     selected_region = request.args.get("region_id", submitted.get("region_id", ""))
     region_index = db.session.execute(select(Region.region_id, Region.region_nazwa, Region.panstwo_id)).all()
-    regions_with_deposits = set(db.session.scalars(
-        select(RegionZasob.region_id).where(RegionZasob.zloze_ilosc > 0).distinct()
-    ).all())
+    map_deposits = {}
+    for region_id, name, unit, quantity in db.session.execute(
+        select(RegionZasob.region_id, DictZasob.zasob_nazwa, DictZasob.zasob_jednostka, RegionZasob.zloze_ilosc)
+        .join(DictZasob, DictZasob.zasob_id == RegionZasob.zasob_id)
+        .where(RegionZasob.zloze_ilosc > 0).order_by(DictZasob.zasob_id)
+    ):
+        map_deposits.setdefault(region_id, []).append({'name': name, 'unit': unit or '', 'quantity': str(quantity)})
     return render_template(
         "admin_natural_resources.html", countries=countries, country=country,
         regions=regions, resources=RESOURCES, values=values, technology=technology,
         version=version, search=search, error=error, configuration_ok=configuration_ok,
         suggested_technology=suggested_technology, selected_region=selected_region,
-        region_index={str(r.region_id): {"name": r.region_nazwa, "countryId": r.panstwo_id, "hasMinerals": r.region_id in regions_with_deposits} for r in region_index},
+        region_index={str(r.region_id): {"name": r.region_nazwa, "countryId": r.panstwo_id, "hasMinerals": bool(map_deposits.get(r.region_id)), "deposits": map_deposits.get(r.region_id, [])} for r in region_index},
         country_names={str(c.PANSTWO_ID): c.panstwo_nazwa for c in countries},
         generated=generated or submitted.get("action") == "bulk",
         resource_csrf=csrf_token(), max_quantity=MAX_QUANTITY, field_name=field_name,

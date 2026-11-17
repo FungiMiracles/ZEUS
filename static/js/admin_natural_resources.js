@@ -33,8 +33,21 @@
             onEachFeature: (feature,layer) => {
                 const id = String(feature.properties.region_id), region = config.regions[id];
                 if (!region) return;
-                const label = document.createElement('span'); label.textContent = `${config.countries[region.countryId] || ''} — ${region.name}`;
-                layer.bindTooltip(label,{sticky:true});
+                const label = document.createElement('div');
+                const title = document.createElement('strong');
+                title.textContent = `${config.countries[region.countryId] || ''} — ${region.name}`;
+                label.append(title);
+                const heading = document.createElement('div'); heading.textContent = 'Zapisane złoża surowców:'; label.append(heading);
+                const format = new Intl.NumberFormat('pl-PL');
+                for (const deposit of region.deposits || []) {
+                    const row = document.createElement('div');
+                    row.textContent = `${deposit.name}: ${format.format(BigInt(deposit.quantity))}${deposit.unit ? ' ' + deposit.unit : ''}`;
+                    label.append(row);
+                }
+                if (!region.deposits?.length) {
+                    const empty = document.createElement('div'); empty.textContent = 'Brak złóż surowców.'; label.append(empty);
+                }
+                layer.bindTooltip(label,{sticky:true, className:'resources-deposit-tooltip'});
                 layer.on('click', () => { const url = new URL(config.url,location.origin); url.searchParams.set('country_id',region.countryId); url.searchParams.set('region_id',id); location.assign(url); });
             }
         }).addTo(map);
