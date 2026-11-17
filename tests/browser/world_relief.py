@@ -44,7 +44,23 @@ with sync_playwright() as p:
         window.relief=WorldRelief.createLayer(L,geo,metadata).addTo(map);
         return {ms:performance.now()-started,polygons:WorldRelief.prepare(geo,metadata).length};
     }''', {'geo': geo, 'metadata': metadata})
+    if world and '--cities' in sys.argv:
+        page.add_style_tag(path=str(ROOT/'static/css/game_world.css'))
+        page.add_script_tag(path=str(ROOT/'static/js/world_city_markers.js'))
+        for filename in ('map-city.svg','map-capital.svg'):
+            page.route('**/'+filename,lambda route:route.fulfill(path=str(ROOT/'static/icons'/route.request.url.rsplit('/',1)[-1])))
+        page.evaluate('''({geo,metadata})=>{
+            map.createPane('worldCities');map.getPane('worldCities').style.zIndex='600';
+            WorldCityMarkers.createLayer(L,map,geo,metadata,{
+                cityIcon:'https://fixture.invalid/map-city.svg',capitalIcon:'https://fixture.invalid/map-capital.svg',
+                tooltip:city=>{const el=document.createElement('span');el.textContent=city.name;return el;}
+            }).addTo(map);
+        }''',{'geo':json.loads((ROOT/'static/maps/entenda_miasta.geojson').read_text()),
+              'metadata':json.loads(Path('/tmp/world_cities_metadata.json').read_text())})
     page.screenshot(path='/tmp/world-relief-world.png' if world else '/tmp/world-relief-profiles.png')
+    if world and '--cities' in sys.argv:
+        page.evaluate('map.setView([-1750,1020],.5,{animate:false})')
+        page.screenshot(path='/tmp/world-city-pins-detail.png')
     assert result['polygons'] > 0
     assert page.locator('.leaflet-worldRelief-pane canvas').count() > 0
     if not world:
@@ -140,8 +156,9 @@ with sync_playwright() as p:
         detached={'type':'Feature','properties':{'region_id':0},'geometry':{'type':'Polygon',
                   'coordinates':[[[30,-450],[70,-450],[70,-500],[30,-500],[30,-450]]]}}
         integration_geo={'type':'FeatureCollection','features':[*features,detached]}
-        config = dict(regions=metadata, countries={}, cities={}, occupied={}, continents={}, ships=[], vessels=[],
+        config = dict(regions=metadata, countries={}, cities={'9900':{'name':'Testopolis','population':8000000,'capital':False}}, occupied={}, continents={}, ships=[], vessels=[],
                       countriesUrl='https://fixture.invalid/countries', regionsUrl='https://fixture.invalid/regions',
+                      cityMarkerIcon='https://fixture.invalid/map-city.svg',capitalMarkerIcon='https://fixture.invalid/map-capital.svg',
                       citiesUrl='https://fixture.invalid/cities', gameNow='2990-01-01T00:00:00Z')
         page.set_content('<div id="world-map" style="width:1100px;height:700px"></div>'
                          '<div id="world-map-status" hidden></div><span class="legend-regional"></span>'
@@ -151,13 +168,22 @@ with sync_playwright() as p:
                          + '<script id="world-config" type="application/json">' + json.dumps(config) + '</script>')
         page.route('**/countries', lambda route: route.fulfill(json=integration_geo))
         page.route('**/regions', lambda route: route.fulfill(json=integration_geo))
-        page.route('**/cities', lambda route: route.fulfill(json={'type': 'FeatureCollection', 'features': []}))
+        page.route('**/cities', lambda route: route.fulfill(json={'type':'FeatureCollection','features':[
+            {'type':'Feature','properties':{'miasto_id':9900},'geometry':{'type':'Point','coordinates':[1400,-250]}}]}))
+        for filename in ('map-city.svg','map-capital.svg'):
+            page.route('**/'+filename,lambda route:route.fulfill(path=str(ROOT/'static/icons'/route.request.url.rsplit('/',1)[-1])))
         page.add_style_tag(path='/tmp/industry-leaflet.css')
         page.add_style_tag(path=str(ROOT / 'static/css/game_world.css'))
         page.add_script_tag(path='/tmp/industry-leaflet.js')
         page.add_script_tag(path=str(ROOT / 'static/js/world_relief.js'))
+        page.add_script_tag(path=str(ROOT / 'static/js/world_city_markers.js'))
         page.add_script_tag(path=str(ROOT / 'static/js/game_world.js'))
         page.wait_for_selector('.leaflet-worldRelief-pane canvas')
+        page.wait_for_selector('.world-city-marker')
+        page.uncheck('#world-cities-toggle')
+        assert page.locator('.world-city-marker').count()==0
+        page.check('#world-cities-toggle')
+        assert page.locator('.world-city-marker').count()==1
         assert page.locator('#world-map').evaluate("el=>el.classList.contains('world-map-physical')")
         assert page.locator('#world-map').evaluate("el=>getComputedStyle(el).backgroundColor") == 'rgb(181, 219, 234)'
         for view in ('political', 'regional', 'continents'):

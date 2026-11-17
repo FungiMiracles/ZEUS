@@ -102,6 +102,7 @@ def page():
             'watersUrl':url_for('game_world.territorial_waters'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
             'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
+            'cityMarkerIcon':url_for('static',filename='icons/map-city.svg'),'capitalMarkerIcon':url_for('static',filename='icons/map-capital.svg'),
             'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
                              game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config)

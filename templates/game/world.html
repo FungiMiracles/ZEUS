@@ -2,7 +2,7 @@
 {% block title %}Świat — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261117-dark-peaks-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261117-city-pins-1') }}">
 {% endblock %}
 {% block content %}
 <section class="world-map-card" aria-labelledby="world-map-title">
@@ -24,9 +24,11 @@
     <span class="legend-terrain"><i class="legend-foothills"></i> Pogórza</span>
     <span class="legend-terrain"><i class="legend-mountains"></i> Góry</span>
     <span class="legend-terrain"><i class="legend-high-mountains"></i> Wysokie góry</span>
-    <span class="legend-cities"><i class="legend-city legend-big"></i> Miasto &gt; 5 mln</span>
-    <span class="legend-cities"><i class="legend-city legend-mid"></i> 1–5 mln</span>
-    <span class="legend-cities"><i class="legend-city legend-small"></i> &lt; 1 mln</span>
+    <span class="legend-cities"><img class="legend-city-pin legend-capital" src="{{ url_for('static',filename='icons/map-capital.svg') }}" alt=""> Stolica</span>
+    <span class="legend-cities"><img class="legend-city-pin legend-big" src="{{ url_for('static',filename='icons/map-city.svg') }}" alt=""> Miasto &gt; 5 mln</span>
+    <span class="legend-cities"><img class="legend-city-pin legend-mid" src="{{ url_for('static',filename='icons/map-city.svg') }}" alt=""> 1–5 mln</span>
+    <span class="legend-cities"><img class="legend-city-pin legend-small" src="{{ url_for('static',filename='icons/map-city.svg') }}" alt=""> &lt; 1 mln</span>
+    <span class="legend-cities">Przybliż, aby zobaczyć mniejsze miasta i nazwy.</span>
     <span class="legend-regional"><i class="legend-occupied"></i> Region okupowany</span>
     <span><i class="legend-ship"></i> Statek towarowy</span>
     <span class="legend-waters" hidden><i class="legend-waters-own"></i> Nasze wody terytorialne <i class="legend-waters-foreign"></i> Obce wody terytorialne (100 km)</span>
@@ -40,5 +42,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261025-1') }}"></script>
 <script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-dark-peaks-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-dark-peaks-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/world_city_markers.js', v='20261117-city-pins-1') }}"></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-city-pins-1') }}" defer></script>
 {% endblock %}
