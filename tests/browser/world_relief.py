@@ -110,7 +110,9 @@ with sync_playwright() as p:
         }''')
         assert ink['visible'] > 0 and ink['maximum'] == 255, ink
         assert ink['colored'] == ink['visible'], ink
-        assert ink['colors'] == 6, ink  # Six flat bands, without any lighting or gradients.
+        assert ink['colors'] == 8, ink  # Eight flat bands, without any lighting or gradients.
+        peaks=page.evaluate("[165,195,220,260].map(height=>WorldRelief.atlasColor(height))")
+        assert all(sum(a)>sum(b) for a,b in zip(peaks,peaks[1:])), peaks
         # Holes and sea stay transparent. A map movement must produce new tiles.
         def alpha(x, y):
             return page.evaluate('''([x,y])=>{

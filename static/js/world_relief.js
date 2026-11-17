@@ -8,9 +8,9 @@
         gorski:{height:165,ruggedness:.75}, wysokogorski:{height:245,ruggedness:1}
     };
     const normalize = name => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').trim();
-    const irregularity=1.25;
+    const irregularity=1.25*1.2;
     // Continuous world-space variation changes band outlines only. It never
-    // changes the six fill colors or introduces illumination/surface texture.
+    // changes the flat fill colors or introduces illumination/surface texture.
     function shapeNoise(x,y) {
         const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
         const ease=t=>t*t*t*(t*(t*6-15)+10),sx=ease(fx),sy=ease(fy);
@@ -152,7 +152,8 @@
     // highlights or shaded slopes that could suggest a 3D surface.
     const palette = [
         [30,[183,218,150]],[65,[249,237,179]],[115,[246,224,164]],
-        [155,[237,202,148]],[210,[225,181,132]],[Infinity,[211,161,117]]
+        [155,[237,202,148]],[180,[225,181,132]],[210,[202,154,107]],
+        [235,[172,121,78]],[Infinity,[139,91,59]]
     ];
     function atlasColor(height) {
         return palette.find(([limit])=>height<limit)[1];
