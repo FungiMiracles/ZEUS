@@ -13,6 +13,7 @@ class ResourceStock(db.Model):
 
 class Mine(db.Model):
     __tablename__='game_mines'
+    pollution_points=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))
     level=db.Column(db.Integer,nullable=False,default=1,server_default=db.text('1'))
     removed_at=db.Column(db.DateTime)
     investment=db.Column(db.Numeric(29,2),nullable=False,default=0,server_default=db.text('0'))

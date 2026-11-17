@@ -614,6 +614,8 @@ def decide_region(user_id,data):
         if data.get('occupy') is True:
             if not held_all(session,row.region_id,row.occupier_id,row.owner_id):raise FinanceError('Nasze wojska nie kontrolują już wszystkich baz i miast tego regionu.')
             row.status='ACTIVE';row.started_at=game_now()
+            from game.foreign_mining import seize
+            seize(session,row.region_id,row.occupier_id,row.started_at)
             region=session.scalar(select(Region.region_nazwa).where(Region.region_id==row.region_id))
             who=names(session,country.PANSTWO_ID).get(country.PANSTWO_ID)
             notify(session,row.owner_id,f'Region {region} jest okupowany przez {who}. Bez odbicia w ciągu {ANNEX_DAYS} dni Entendy okupant może go anektować.')
@@ -704,6 +706,8 @@ def annex(session,row,own,now):
     from game.military_service import BASES
     gdp=annexed_gdp(session,row.owner_id,row.region_id)
     region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==row.region_id).with_for_update())
+    from game.foreign_mining import seize
+    seize(session,row.region_id,own,now)
     region.panstwo_id=own
     for city in session.scalars(select(Miasto).options(lazyload('*')).where(Miasto.region_id==row.region_id).with_for_update()):city.panstwo_id=own
     session.flush()

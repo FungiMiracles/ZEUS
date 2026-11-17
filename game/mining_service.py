@@ -60,8 +60,10 @@ def build_mine(user_id,data):
         if existing:
             if (existing.resource,existing.region_id,existing.map_x,existing.map_y)!=(resource,data.get('region_id'),x,y):raise FinanceError('Identyfikator operacji jest już wykorzystany.')
             return existing.id
-        region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==natural(data.get('region_id'),'Region',1),Region.panstwo_id.in_(controlled_ids(session, country_id))).with_for_update())
-        if region is None or not region_contains(region.region_id,x,y):raise FinanceError('Kopalnia musi znajdować się wewnątrz własnego regionu.')
+        region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==natural(data.get('region_id'),'Region',1)).with_for_update())
+        from game.foreign_mining import allowed
+        abroad=region is not None and controller_id(session,region.panstwo_id)!=country_id
+        if region is None or (abroad and not allowed(session,country_id,region)) or not region_contains(region.region_id,x,y):raise FinanceError('Kopalnia musi znajdować się wewnątrz własnego regionu.')
         from game.nuclear import require_clear
         require_clear(session,x,y)   # 13 Nov 2026: strefa skażenia po uderzeniu atomowym
         from game.land_war import require_buildable
@@ -74,10 +76,22 @@ def build_mine(user_id,data):
         if type(data.get('level',1)) is not int or data.get('level',1)!=1:raise FinanceError('Kopalnię można zbudować tylko na poziomie 1.')
         settle_industry(session,country_id)
         budget,total,available=mining_budget(session,country_id);cost,days=RULES[resource]
+        base_cost=cost
+        if abroad:cost*=2
         if budget is None or available<cost:raise FinanceError('Za mało środków we wspólnym budżecie infrastruktury na bieżący okres budżetowy. Możesz przesunąć środki w formularzu zatwierdzonego budżetu.')
         now=game_now();ready=ready_at(now,days)
         mine=Mine(panstwo_id=country_id,region_id=region.region_id,resource=resource,map_x=x,map_y=y,health=100,level=1,investment=cost,starts_at=now,ready_at=ready,extracted_at=ready,request_id=key)
         session.add(mine);session.flush();session.add(MiningExpense(panstwo_id=country_id,budget_id=budget.id,mine_id=mine.id,amount=cost))
+        from game.foreign_mining import POLLUTION
+        from game.industry_service import change_pollution
+        change_pollution(session,region.region_id,POLLUTION)
+        mine.pollution_points=POLLUTION
+        if abroad:
+            from game.industry_models import IndustryMovement
+            host=controller_id(session,region.panstwo_id)
+            host_budget,_,_=mining_budget(session,host)
+            if host_budget is None:raise FinanceError('Gospodarz musi mieć bieżący budżet infrastruktury.')
+            session.add(IndustryMovement(panstwo_id=host,budget_id=host_budget.id,amount=-base_cost,request_id=key,payload={'foreign_mine_id':mine.id,'guest':country_id},sector='infrastructure'))
         return mine.id
 
 
@@ -98,7 +112,7 @@ def extract_country(session,country_id,now):
         interval=EXTRACTION_INTERVAL*float(factor)
         periods=int((now-mine.extracted_at)//interval)
         if periods<1:continue
-        if region is not None and controller_id(session,region.panstwo_id)==country_id:
+        if region is not None:
             deposit=session.scalar(select(RegionZasob).options(lazyload('*')).where(RegionZasob.region_id==mine.region_id,RegionZasob.zasob_id==dictionary[mine.resource]).with_for_update())
             quantity=min(periods*MINE_RULES[mine.resource][3][mine.level-1],max(0,deposit.zloze_ilosc or 0)) if deposit else 0
             if quantity:

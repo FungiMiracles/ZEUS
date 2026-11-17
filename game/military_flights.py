@@ -174,6 +174,7 @@ def launch_flight(session,country_id,army,target,order,data):
     if target_shipment is not None:
         from game.trade_navigation import target_country
         attacked_country=target_country(session,target_shipment,country_id)
+    elif target_mine is not None:attacked_country=controller_id(session,target_mine.panstwo_id)
     else:attacked_country=controller_id(session,target.panstwo_id)
     flight=MilitaryFlight(target_radar_id=target_radar.id if target_radar else None,target_power_id=target_power.id if target_power else None,target_factory_id=target_factory.id if target_factory else None,target_shipment_id=target_shipment.id if target_shipment else None,order_id=order.id,panstwo_id=country_id,target_country_id=attacked_country,
         source_base_id=base.id if base else None,source_vessel_id=vessel.id if vessel else None,is_nuclear=nuclear,city_id=city.miasto_id if city else None,target_defense_id=target_defense.id if target_defense else None,target_mine_id=target_mine.id if target_mine else None,target_kind='radar' if target_radar else 'power' if target_power else 'factory' if target_factory else 'shipment' if target_shipment else 'defense' if target_defense else 'mine' if target_mine else 'base' if target_base else 'vessel' if target_vessel else 'city' if city else 'region',target_name=target_name,target_base_id=target_base.id if target_base else None,target_vessel_id=target_vessel.id if target_vessel else None,kind=order.kind,
@@ -325,6 +326,8 @@ def apply_structural_damage(session,flight,order,hits):
                     session.execute(delete(MissileDefense).where(MissileDefense.id.in_(defense_ids)))
                 session.execute(update(MiningExpense).where(MiningExpense.mine_id==mine.id).values(mine_id=None))
                 session.execute(update(MilitaryFlight).where(MilitaryFlight.target_mine_id==mine.id).values(target_mine_id=None))
+                from game.industry_service import change_pollution
+                if mine.pollution_points:change_pollution(session,mine.region_id,-mine.pollution_points)
                 session.delete(mine);session.flush()
     elif flight.target_kind=='radar':
         from game.radar_models import Radar

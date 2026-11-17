@@ -251,8 +251,13 @@ def change_industry(user_id,data):
         else:
             object_id=data.get('object_id')
             if type(object_id) is not int:raise FinanceError('Wybierz obiekt.')
-            obj=session.scalar(select(models[category]).where(models[category].id==object_id,models[category].panstwo_id==country).with_for_update())
+            obj=session.scalar(select(models[category]).where(models[category].id==object_id).with_for_update())
             if obj is None or obj.removed_at is not None:raise FinanceError('Nie znaleziono własnego aktywnego obiektu.')
+            host_removal=False
+            if obj.panstwo_id!=country:
+                from game.foreign_mining import host_may_remove
+                if category!='mine' or action!='remove' or not host_may_remove(session,obj,country,now):raise FinanceError('Obcy obiekt można zlikwidować na własnym terytorium po 180 dniach od ukończenia budowy.')
+                host_removal=True
             if action!='remove':
                 # Upgrades, filters and repairs are construction too; liquidation stays possible.
                 from game.land_war import require_buildable
@@ -271,10 +276,10 @@ def change_industry(user_id,data):
                 elif category=='factory':value=FACTORIES[obj.kind]['levels'][obj.level-1]['cost']
                 elif category=='power':value=POWER_PLANTS[obj.kind]['costs'][obj.level-1]
                 else:value=MINE_RULES[obj.resource][2][obj.level-1]*1000000000
-                cost=-Decimal(value)/4;obj.removed_at=now
+                cost=0 if host_removal else -Decimal(value)/4;obj.removed_at=now
                 if category in ('factory','power'):obj.running=False
                 # Liquidation removes the pollution the plant added; filter costs are not refunded.
-                if category=='power' and obj.pollution_points:change_pollution(session,obj.region_id,-obj.pollution_points);obj.pollution_points=0
+                if category in ('power','mine') and obj.pollution_points:change_pollution(session,obj.region_id,-obj.pollution_points);obj.pollution_points=0
                 if category=='factory' and obj.degradation_points:change_degradation(session,obj.region_id,-obj.degradation_points);obj.degradation_points=0
                 from game.military_models import MissileDefense
                 defense=session.scalar(select(MissileDefense).where(MissileDefense.target_kind==category,MissileDefense.target_id==obj.id))
@@ -310,7 +315,10 @@ def change_industry(user_id,data):
                 cost=(obj.investment*Decimal(3-obj.health)/3).quantize(Decimal('.01'));obj.health=3
             elif action in ('pause','resume') and category=='factory':obj.paused=action=='pause';obj.running=False
             else:raise FinanceError('Nieprawidłowa operacja obiektu.')
-            budget=current_budget(session,country,cost,environment)
+            if host_removal:
+                budget=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==country).order_by(StateBudget.id.desc()).limit(1))
+                if budget is None:return obj.id
+            else:budget=current_budget(session,country,cost,environment)
         # Filters are charged to the environmental protection budget; an upgrade with a filter charges both sectors
         # (the second movement gets a request id derived from the operation, so a retry stays idempotent).
         if environment and not cost:
@@ -374,6 +382,14 @@ def industry_state(session,country):
     factories=list(session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None))))
     powered=powered_factories(session,factories,sum(plant_output(session,p) for p in plants if power_can_work(session,p)),resident_demand(session,country))
     objects=[object_data(row,category,powered) for category,model in [('factory',AmmunitionFactory),('power',PowerPlant),('mine',Mine)] for row in session.scalars(select(model).where(model.panstwo_id==country,model.removed_at.is_(None)).order_by(model.id))]
+    from game.foreign_mining import map_regions
+    foreign=map_regions(session,country)
+    known=set(foreign_id for foreign_id,r in foreign.items() if r['permit'])
+    for rid,resource,amount in session.execute(select(RegionZasob.region_id,RegionZasob.zasob_id,RegionZasob.zloze_ilosc).where(RegionZasob.region_id.in_([int(r) for r in known] or [0]),RegionZasob.zasob_id.in_(codes))):
+        deposits.setdefault(str(rid),{})[codes[resource]]=int(amount or 0)
+    from game.foreign_mining import host_may_remove
+    for mine in session.scalars(select(Mine).join(Region,Region.region_id==Mine.region_id).where(Region.panstwo_id.in_(controlled_ids(session,country)),Mine.panstwo_id!=country,Mine.removed_at.is_(None))):
+        obj=object_data(mine,'mine',powered);obj['hostManaged']=True;obj['canHostRemove']=host_may_remove(session,mine,country,game_now());objects.append(obj)
     remaining={region:dict(values) for region,values in deposits.items()}
     from game.infrastructure_effects import extraction_time_factor
     rail={str(id):level for id,level in session.execute(select(Region.region_id,Region.region_stan_infra_kolejowej).where(Region.region_id.in_({int(obj['regionId']) for obj in objects if obj['category']=='mine'} or {0})))}
@@ -388,7 +404,7 @@ def industry_state(session,country):
         obj['effectiveDailyExtraction']=min(daily,deposit) if active else 0
         if active:obj['status']=('pracuje' if deposit else 'brak złoża') if factor is not None else 'brak infrastruktury'
         region[obj['kind']]=deposit-obj['effectiveDailyExtraction']
-    return dict(deposits=deposits,energy=energy_balance(session,country),budget=str(sector_balances(session,budget)['infrastructure']['remaining']) if budget else '0',
+    return dict(foreignRegions=foreign,deposits=deposits,energy=energy_balance(session,country),budget=str(sector_balances(session,budget)['infrastructure']['remaining']) if budget else '0',
         technologies={key:researched(session,country,key) for key in TECHNOLOGIES},technologyLabels={key:rule['label'] for key,rule in TECHNOLOGIES.items()},
         factories=FACTORIES,powerPlants=POWER_PLANTS,mines={key:dict(label=rule[0],technology=rule[1],costs=[cost*1000000000 for cost in rule[2]],extraction=rule[3],days=rule[4]) for key,rule in MINE_RULES.items()},goods=goods_catalog(),
         objects=objects)

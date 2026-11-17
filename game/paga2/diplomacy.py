@@ -274,6 +274,13 @@ def proposal_options(ctx):
                         base=terms['base']-(0 if cap['able'] else 8.0),notes=terms['notes']+cap['notes'])
             reject=dict(effects={'alliances':-.6,'financial_stability':.3,'welfare':.2},traits={'isolationism':.6,'alliance_loyalty':-.6,'interventionism':-.6},
                         categories={'isolationist':.6},base=-terms['base'],notes=terms['notes'])
+        elif row.kind=='MINING_PERMIT':
+            label=f'wydobycie w regionie {params.get("region_name")}'
+            relation=ctx.situation.get('relations',{}).get(other,{}).get('relation','neutralne')
+            rank={'sojusznicze':5,'partnerskiestrategiczne':4,'partnerskie':3,'przyjazne':2,'dobre':1}.get(normalized(relation),0)
+            base=rank+2*(ctx.traits.get('agreeableness',50)-50)/50+2*(ctx.traits.get('industrialism',50)-50)/50
+            accept=dict(effects={'infrastructure':1.0,'financial_stability':.8},traits={'agreeableness':.8,'industrialism':.8},base=base+1,notes=['Połowa podwójnego kosztu budowy zasili budżet infrastruktury. Zanieczyszczenie pozostaje w regionie.'])
+            reject=dict(effects={'infrastructure':-.3},traits={'agreeableness':-.6,'industrialism':-.6},base=-base)
         elif row.kind=='BASE_PERMIT':
             from game.paga2.bases_abroad import permit_terms
             label=f'baza wojskowa w regionie {params.get("region_name")}'

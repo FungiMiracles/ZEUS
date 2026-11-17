@@ -10,7 +10,7 @@ from game.military import csrf_valid
 from game.finance_service import FinanceError,game_now
 from game.intelligence_models import IntelligenceAgent,IntelligenceMission
 from game.intelligence_service import (operate,complete_missions,intelligence_budget,counter_level,mission_details,
-                                      AGENT_COSTS,AGENT_CHANCES,COUNTER_COSTS,COUNTER_PROTECTION,MISSIONS,MISSION_COST)
+                                      AGENT_COSTS,AGENT_CHANCES,COUNTER_COSTS,COUNTER_PROTECTION,MISSIONS,MISSION_COSTS,mission_days)
 from models import Region,Panstwo
 from engine.clock import get_time_multiplier
 
@@ -28,7 +28,7 @@ def state_data(country_id):
     return {'budgetTotal':str(total),'budgetAvailable':str(available),'counterLevel':level,'protection':COUNTER_PROTECTION[level-1],
         'counterCost':COUNTER_COSTS[level] if level<7 else 0,
         'agents':[{'id':agent.id,'name':names[agent.id],'level':agent.level,'chance':AGENT_CHANCES[agent.level-1],'captured':agent.captured_at is not None,'busy':agent.id in busy} for agent in agents],
-        'missions':[{'id':mission.id,'agentId':mission.agent_id,'agentName':names.get(mission.agent_id,f'Agent #{mission.agent_id}'),'country':countries.get(mission.target_country_id,'Państwo celu'),'region':mission.region_name,'regionId':str(mission.region_id),'kind':MISSIONS[mission.kind],
+        'missions':[{'id':mission.id,'agentId':mission.agent_id,'agentName':names.get(mission.agent_id,f'Agent #{mission.agent_id}'),'country':countries.get(mission.target_country_id,'Państwo celu'),'region':mission.region_name,'regionId':str(mission.region_id) if mission.region_id is not None else None,'countryId':mission.target_country_id,'scope':'country' if mission.kind=='warehouses' else 'region','kind':MISSIONS[mission.kind],
                      'startsAt':mission.starts_at.isoformat()+'Z','endsAt':mission.ends_at.isoformat()+'Z',
                      'captured':bool((mission.report or {}).get('captured')),'completed':mission.completed_at is not None,'success':mission.success} for mission in ([m for m in missions if m.completed_at is None]+[m for m in missions if m.completed_at is not None][:100])],
         'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
@@ -47,7 +47,7 @@ def page():
         'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
         'regions':{str(id):{'name':name,'countryId':controller_id(db.session,owner)} for id,name,owner in db.session.execute(select(Region.region_id,Region.region_nazwa,Region.panstwo_id))},
         'countries':{str(id):name for id,name in db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa))},
-        'agentIcon':url_for('static',filename='icons/WYWIAD WOJSKOWY.svg'),'agentCosts':AGENT_COSTS,'agentChances':AGENT_CHANCES,'missionCost':MISSION_COST,'missionTypes':MISSIONS,
+        'agentIcon':url_for('static',filename='icons/WYWIAD WOJSKOWY.svg'),'agentCosts':AGENT_COSTS,'agentChances':AGENT_CHANCES,'missionCosts':MISSION_COSTS,'missionDays':{key:mission_days(key) for key in MISSIONS},'missionTypes':MISSIONS,
         'initialReport':request.args.get('raport',type=int)})
     response=render_template('game/intelligence.html',game_user=user,game_country=country_summary(country),
         game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),game_active_page='intelligence',intelligence_config=config)

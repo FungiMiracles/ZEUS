@@ -141,6 +141,9 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     from game import land_war
     if lost(session, defeated) is not None:
         return
+    from game.foreign_mining import seize
+    for region_id in session.scalars(select(Region.region_id).where(Region.panstwo_id==defeated)):
+        seize(session,region_id,annexer,moment)
     transferred = {}
     transferred['regions'] = session.execute(update(Region).where(Region.panstwo_id == defeated).values(panstwo_id=annexer)
                                              .execution_options(synchronize_session=False)).rowcount

@@ -29,7 +29,7 @@ class DiplomaticAction(db.Model):
         db.Index("ix_diplomatic_sender", "sender_user_id"),
         db.Index("ix_diplomatic_target", "target_country_id"),
         db.Index("ix_diplomatic_relation", "proposed_relation_id"),
-        db.CheckConstraint("kind IN ('WAR', 'PEACE', 'CEASEFIRE', 'RELATION', 'JOIN_WAR', 'BASE_PERMIT')", name="ck_diplomatic_kind"),
+        db.CheckConstraint("kind IN ('WAR', 'PEACE', 'CEASEFIRE', 'RELATION', 'JOIN_WAR', 'BASE_PERMIT', 'MINING_PERMIT')", name="ck_diplomatic_kind"),
         db.CheckConstraint("status IN ('PENDING', 'APPLIED', 'ACCEPTED', 'REJECTED', 'EXPIRED')", name="ck_diplomatic_status"),
         db.CheckConstraint("source_country_id <> target_country_id AND (sender_user_id IS NULL OR recipient_user_id IS NULL OR sender_user_id <> recipient_user_id)", name="ck_diplomatic_different_parties"),
     )

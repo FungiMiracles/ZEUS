@@ -165,6 +165,17 @@ class IntelligenceTests(unittest.TestCase):
         hybrid=[o for o in self.run_options(subversive,data) if o.action.startswith('HYBRID_')]
         self.assertTrue(hybrid);self.assertEqual(hybrid[0].stance,'hostile')
 
+    def test_country_warehouse_scout_uses_agent_price_and_no_region(self):
+        c=self.ictx(traits={'subversion':10})
+        c.world_summary=lambda:{'neighbor_countries':[9]}
+        data={'budgetAvailable':'1e12','agents':[{'id':4,'level':2,'busy':False}],'counterLevel':1}
+        with patch('game.paga2.intelligence.recent_missions',return_value={(9,'resources'),(9,'infrastructure')}),patch('game.paga2.intelligence.target_regions',side_effect=AssertionError('Warehouse mission must not choose a region')):
+            scouts=[o for o in intelligence.options_for(c,data) if o.action=='SCOUT_warehouses']
+        self.assertEqual(len(scouts),1)
+        self.assertEqual(scouts[0].cost,200000000)
+        self.assertEqual(scouts[0].payload['country_id'],9)
+        self.assertNotIn('region_id',scouts[0].payload)
+
     def test_counterintelligence_after_hybrid_attack(self):
         c=self.ictx();c.memory['actions_against_us']=[{'kind':'HYBRID_DETECTED'}]
         [counter]=[o for o in self.run_options(c,{'budgetAvailable':'1e12','agents':[{'id':1,'level':1,'busy':True}],'counterLevel':2}) if o.action=='COUNTER_UPGRADE']

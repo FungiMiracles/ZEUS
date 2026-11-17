@@ -6,7 +6,7 @@
     const reserveSummary=document.getElementById('infrastructure-reserve-summary');
     if(reserveSummary)reserveSummary.textContent=window.GameMoney.format(config.reserve);
     const projectCount=document.getElementById('infrastructure-project-count');
-    if(projectCount)projectCount.textContent=Object.values(config.regions).reduce((sum,region)=>sum+Object.keys(region.projects).length,0);
+    if(projectCount)projectCount.textContent=Object.values(config.regions).reduce((sum,region)=>sum+Object.keys(region.projects||{}).length,0);
     const metropolitanIds = new Set(config.metropolitanRegionIds);
     const status = document.getElementById('infrastructure-map-status');
     function warn(message) { status.textContent = message; status.hidden = false; }
@@ -18,7 +18,7 @@
     function selectRegion(id) {
         selected = id; selector.value = id; panel.replaceChildren();
         const region = config.regions[id];
-        if (!region) return;
+        if (!region || region.foreign) return;
         const title = document.createElement('h2'); title.textContent = region.name; panel.append(title);
         for (const metric of config.metrics) {
             const item = region.indicators[metric.code], project = region.projects[metric.code];
@@ -97,7 +97,7 @@
         } catch (error) { document.getElementById('expand-error').textContent = error.message; }
         finally { button.disabled = false; }
     };
-    if (Object.values(config.regions).some(region => Object.keys(region.projects).length)) {
+    if (Object.values(config.regions).some(region => Object.keys(region.projects||{}).length)) {
         setInterval(() => {
             if (!dialog.open && document.getElementById('infrastructure-regions-panel')?.hidden !== true) {
                 if (selected) sessionStorage.setItem('infrastructure-selected', selected);
@@ -172,13 +172,21 @@
         const constructionAnchors = new Map();
         const regionsLayer = L.geoJSON(regions, {
             coordsToLatLng: coords => L.latLng(coords[1], coords[0]),
-            filter: feature => metropolitanIds.has(String(feature.properties?.region_id)),
+            filter: feature => !!config.regions[String(feature.properties?.region_id)] || !!config.foreignRegions?.[String(feature.properties?.region_id)],
             // 13 Nov 2026: paleta mapy panelu państwa (regiony #B8C9B0, granice #667C63, najechany #D5E5C6, wybrany #E8B65C)
-            style: {color: '#667C63', weight: 1.5, fillColor: '#B8C9B0', fillOpacity: 1},
+            style: feature => ({color: '#667C63', weight: 1.5, fillColor: config.foreignRegions?.[String(feature.properties.region_id)]?.permit ? '#65b96e' : '#B8C9B0', fillOpacity: 1}),
             onEachFeature: (feature, layer) => {
                 const id = String(feature.properties.region_id);
-                const label = document.createElement('span'); label.textContent = config.regions[id].name;
-                layer.bindTooltip(label, {sticky: true});
+                const label = document.createElement('span'); label.textContent = (config.regions[id]||config.foreignRegions[id]).name;
+                const foreign=config.foreignRegions?.[id];
+                if(foreign){
+                    const box=document.createElement('div');box.append(label);
+                    for(const entry of foreign.report){const row=document.createElement('p');row.textContent=entry.label+': '+entry.value;box.append(row);}
+                    if(!foreign.report.length){const row=document.createElement('p');row.textContent='Brak danych wywiadowczych o zasobach.';box.append(row);}
+                    if(foreign.canRequest){const button=document.createElement('button');button.textContent='Wnioskuj o możliwość wydobycia';button.onclick=async event=>{event.stopPropagation();button.disabled=true;try{const response=await fetch('/game/dyplomacja/akcje',{method:'POST',body:new URLSearchParams({kind:'MINING_PERMIT',target_id:foreign.countryId,region_id:id,csrf_token:config.csrf})});const data=await response.json();if(!response.ok)throw Error(data.error||'Nie udało się wysłać wniosku.');button.textContent='Wniosek wysłany';}catch(error){button.disabled=false;warn(error.message);}};box.append(button);}
+                    window.GameRegionTooltip.bind(layer,box);
+                }else layer.bindTooltip(label, {sticky: true});
+                if(!config.regions[id])return;
                 anchors.set(id, true);
                 if (Object.keys(config.regions[id].projects).length) {
                     const anchor = constructionAnchor(feature.geometry);

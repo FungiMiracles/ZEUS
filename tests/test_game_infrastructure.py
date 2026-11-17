@@ -297,3 +297,15 @@ class ConstructionTests(InfrastructureTests):
         db.session.expire_all()
         self.assertEqual(db.session.query(GameNotification).count(), 1)
         self.assertEqual(db.session.get(Region, 1).region_stan_infra_drogowej, 87)
+
+
+class ForeignMapRegressionTests(InfrastructureTests):
+    def test_page_with_region_without_sovereign_controller(self):
+        from models import Panstwo
+        from sqlalchemy import update
+        db.session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==4).values(czy_suwerenny='NIE'))
+        db.session.add(Region(region_id=3,panstwo_id=4,region_nazwa='Bez gospodarza'))
+        db.session.commit()
+        response=self.client.get('/game/infrastruktura')
+        self.assertEqual(response.status_code,200)
+        self.assertIn('Bez gospodarza',response.get_data(as_text=True))

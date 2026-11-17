@@ -499,11 +499,12 @@ def create_order(user_id,data):
             if special_target.id not in known_ids(session,country.PANSTWO_ID,'defenses'):raise FinanceError('Brak informacji wywiadowczych o położeniu tej obrony.')
         if isinstance(special_target,Mine):
             from game.intelligence_service import known_ids
-            if special_target.id not in known_ids(session,country.PANSTWO_ID,'mines'):raise FinanceError('Brak informacji wywiadowczych o położeniu tej kopalni.')
+            host=session.get(Region,special_target.region_id)
+            if controller_id(session,host.panstwo_id)!=country.PANSTWO_ID and special_target.id not in known_ids(session,country.PANSTWO_ID,'mines'):raise FinanceError('Brak informacji wywiadowczych o położeniu tej kopalni.')
         if special_target is not None and controller_id(session,special_target.panstwo_id) not in enemy_ids:raise FinanceError('Cel nie należy do państwa, z którym trwa wojna.')
         if sum(data.get(key) is not None for key in ('city_id','target_base_id','target_vessel_id','target_mine_id','target_defense_id','target_shipment_id','target_factory_id','target_power_id','target_radar_id'))>1:raise FinanceError('Wybierz dokładnie jeden obiekt celu.')
         target = session.scalar(select(Region).options(lazyload('*')).where(Region.region_id == region_id))
-        if target is None or (shipment_target is None and controller_id(session,target.panstwo_id) not in enemy_ids):
+        if target is None or (shipment_target is None and not isinstance(special_target,Mine) and controller_id(session,target.panstwo_id) not in enemy_ids):
             raise FinanceError('Wybrany region nie należy do państwa, z którym trwa wojna.')
         kind = data.get('kind')
         if kind not in ('air','missile','naval','land'):

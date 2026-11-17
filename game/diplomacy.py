@@ -25,15 +25,17 @@ ACTION_TEXT = {
     "CEASEFIRE": "proponuje zawieszenie broni w trwającej wojnie",
     "RELATION": "proponuje zmianę relacji z Twoim krajem",
     "JOIN_WAR": "prosi o dołączenie do wojny",
+    "MINING_PERMIT": "prosi o pozwolenie na wydobycie surowców",
     "BASE_PERMIT": "prosi o pozwolenie na budowę bazy wojskowej",
 }
-PROPOSAL_KINDS = ['RELATION','PEACE','CEASEFIRE','JOIN_WAR','BASE_PERMIT']
+PROPOSAL_KINDS = ['MINING_PERMIT','RELATION','PEACE','CEASEFIRE','JOIN_WAR','BASE_PERMIT']
 
 
 def proposal_label(action, relation_labels):
     params = action.params or {}
     if action.kind == 'RELATION': return relation_labels.get(action.proposed_relation_id, 'Brak danych')
     if action.kind == 'JOIN_WAR': return 'Dołączenie do wojny z państwem ' + (params.get('enemy_name') or '?')
+    if action.kind == 'MINING_PERMIT': return 'Wydobycie w regionie ' + (params.get('region_name') or '?') + '. Budowa kosztuje 2×; połowa kosztu trafia do budżetu infrastruktury gospodarza. Zanieczyszczenie pozostaje w regionie. Gospodarz może zlikwidować kopalnię po 180 dniach od ukończenia budowy.'
     if action.kind == 'BASE_PERMIT': return 'Pozwolenie na bazę w regionie ' + (params.get('region_name') or '?')
     if action.kind == 'CEASEFIRE' and params.get('days'): return f"Zawieszenie broni na {params['days']} dni Entendy"
     return {'PEACE':'Zawarcie pokoju','CEASEFIRE':'Zawieszenie broni'}[action.kind]
@@ -189,7 +191,7 @@ def create_action():
     target=controller_id(db.session,request.form.get('target_id',type=int))
     if not target:return fail('Nieprawidłowa akcja lub państwo.',400)
     try:
-        params={'enemy_id':request.form.get('enemy_id',type=int)} if request.form.get('kind')=='JOIN_WAR' else {'region_id':request.form.get('region_id',type=int)} if request.form.get('kind')=='BASE_PERMIT' else {'days':request.form.get('days',type=int)} if request.form.get('kind')=='CEASEFIRE' else None
+        params={'enemy_id':request.form.get('enemy_id',type=int)} if request.form.get('kind')=='JOIN_WAR' else {'region_id':request.form.get('region_id',type=int)} if request.form.get('kind') in ('BASE_PERMIT','MINING_PERMIT') else {'days':request.form.get('days',type=int)} if request.form.get('kind')=='CEASEFIRE' else None
         action=create_shared(db.session,country.PANSTWO_ID,target,request.form.get('kind'),request.form.get('relation_id',type=int),get_current_entenda_datetime(),sender_user_id=user.id,params=params)
         db.session.commit()
         return jsonify(message='Wypowiedziano wojnę.' if action.kind=='WAR' else 'Jednostronnie pogorszono relacje. Druga strona otrzyma powiadomienie.' if action.status=='APPLIED' else 'Wysłano propozycję dyplomatyczną.'),201
@@ -225,6 +227,7 @@ def notification_text(action,user_id):
         if action.status=='EXPIRED':return f'Twoja propozycja {proposal} skierowana do państwa {action.target_country_name} jest nieaktualna.'
         if action.status=='PENDING':return f'Twoja propozycja {proposal} skierowana do państwa {action.target_country_name} oczekuje na odpowiedź.'
     if action.kind=='JOIN_WAR':return f"{action.source_country_name} prosi o dołączenie do wojny z państwem {(action.params or {}).get('enemy_name') or '?'}. Zgoda oznacza natychmiastowy stan wojny z tym państwem."
+    if action.kind=='MINING_PERMIT':return f"{action.source_country_name} prosi o pozwolenie na wydobycie w regionie {(action.params or {}).get('region_name')}. Połowa podwójnego kosztu budowy trafi do Twojego budżetu infrastruktury; zanieczyszczenie pozostanie w regionie. Likwidacja możliwa po 180 dniach od ukończenia budowy."
     if action.kind=='BASE_PERMIT':return f"{action.source_country_name} prosi o pozwolenie na budowę bazy wojskowej w regionie {(action.params or {}).get('region_name') or '?'}."
     if action.kind=='CEASEFIRE' and (action.params or {}).get('days'):
         return f"{action.source_country_name} {ACTION_TEXT['CEASEFIRE']} na {action.params['days']} dni Entendy. Do końca tego okresu żadna ze stron nie będzie mogła wypowiedzieć drugiej wojny."

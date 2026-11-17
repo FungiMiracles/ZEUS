@@ -16,7 +16,7 @@ from game.paga2.finance import result
 PATH='/game/wywiad-wojskowy/zmien'
 REPEAT_DAYS=60
 SCOUT_FOR_WAR=('bases','defenses','silos','power','mines','nuclear')
-SCOUT_FOR_ECONOMY=('resources','infrastructure')
+SCOUT_FOR_ECONOMY=('resources','infrastructure','warehouses')
 
 
 def screen(ctx):return (ctx.screen('intelligence') or {}).get('data') or {}
@@ -45,7 +45,7 @@ def options_for(ctx,data):
     available=float(data.get('budgetAvailable') or 0);ctx._sectors['security_services']=available
     agents=[a for a in data.get('agents',[]) if not a.get('captured')]
     free=[a for a in agents if not a.get('busy')]
-    from game.intelligence_service import AGENT_COSTS,MISSION_COST,COUNTER_COSTS
+    from game.intelligence_service import AGENT_COSTS,MISSION_COSTS,COUNTER_COSTS
     # Rekrutacja: brak wolnych agentów; poziom rośnie ze skłonnością do szpiegostwa (w granicach budżetu).
     if not free:
         level=max(1,min(7,1+int(t.get('espionage',50)//17)))
@@ -70,14 +70,14 @@ def options_for(ctx,data):
     for other,kinds,purpose in targets:
         for kind in kinds:
             if (other,kind) in done:continue
-            regions=target_regions(ctx,other)
-            if not regions:continue
+            regions=target_regions(ctx,other) if kind!='warehouses' else []
+            if not regions and kind!='warehouses':continue
             friendly=other in s.get('allies',[])
-            options.append(Option(key=f'intel:scout:{kind}:{other}',domain='intelligence',action='SCOUT_'+kind,label=f'Rozpoznanie ({kind}) w państwie {other}, region {regions[0]}',
-                                  target=other,stance='neutral',cost=float(MISSION_COST),sector='security_services',
+            options.append(Option(key=f'intel:scout:{kind}:{other}',domain='intelligence',action='SCOUT_'+kind,label=f'Rozpoznanie ({kind}) w państwie {other}'+(f', region {regions[0]}' if kind!='warehouses' else ''),
+                                  target=other,stance='neutral',cost=float(MISSION_COSTS[agent['level']-1]),sector='security_services',
                                   effects={'intelligence':1.0,'offensive_army':.5 if purpose=='war' else 0,'defensive_army':.4 if purpose=='war' else 0,'trade':.3 if purpose=='economy' else 0,'conquest':.3 if purpose=='war' else 0},
                                   traits={'espionage':.8,'secrecy':.2},base=(6.0 if purpose=='war' else 0)-(15.0 if friendly else 0),
-                                  payload={'action':'mission','kind':kind,'agent_id':agent['id'],'region_id':regions[0],'group':'intel:mission'}))
+                                  payload={'action':'mission','kind':kind,'agent_id':agent['id'],**({'country_id':other} if kind=='warehouses' else {'region_id':regions[0]}),'group':'intel:mission'}))
             break  # jedna misja na państwo w przebiegu
     # Misje hybrydowe: dywersja wobec wrogów (państwa o dużej dywersyjności, terrorystyczne).
     if t.get('subversion',50)>=50 or 'terrorist' in ctx.categories:
@@ -88,7 +88,7 @@ def options_for(ctx,data):
                 regions=target_regions(ctx,other,coastal=kind=='cyber_port')
                 if not regions:continue
                 options.append(Option(key=f'intel:hybrid:{kind}:{other}',domain='intelligence',action='HYBRID_'+kind,label=f'Działanie hybrydowe ({kind}) w państwie {other}, region {regions[0]}',
-                                      target=other,stance='hostile',cost=float(MISSION_COST),sector='security_services',effects={'intelligence':.5,'conquest':.4,'offensive_army':.3},
+                                      target=other,stance='hostile',cost=float(MISSION_COSTS[agent['level']-1]),sector='security_services',effects={'intelligence':.5,'conquest':.4,'offensive_army':.3},
                                       traits={'subversion':1.0,'secrecy':.4,'agreeableness':-.6,'provocation':.4},categories={'terrorist':1.0,'imperialist':.3},base=-4.0,
                                       payload={'action':'mission','kind':kind,'agent_id':agent['id'],'region_id':regions[0],'group':'intel:mission'}))
                 break

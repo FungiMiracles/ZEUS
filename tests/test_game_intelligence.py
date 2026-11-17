@@ -48,12 +48,12 @@ class IntelligenceTests(IntelligenceFixture):
         self.assertEqual(db.session.query(IntelligenceAgent).count(),14)
         self.assertEqual(db.session.query(IntelligenceExpense).count(),7)
 
-    def test_week_long_mission_is_paid_and_agent_reserved(self):
+    def test_four_day_mission_is_paid_and_agent_reserved(self):
         mission=self.start();agent=db.session.get(IntelligenceAgent,mission.agent_id)
-        self.assertEqual(mission.ends_at-mission.starts_at,timedelta(days=7))
-        self.assertEqual(sum(row.amount for row in db.session.query(IntelligenceExpense)),3105900000)
+        self.assertEqual(mission.ends_at-mission.starts_at,timedelta(days=4))
+        self.assertEqual(sum(row.amount for row in db.session.query(IntelligenceExpense)),1305900000)
         with self.assertRaises(FinanceError):self.operation('mission',kind='bases',agent_id=agent.id,region_id=2)
-        complete_missions(db.session,NOW+timedelta(days=7)-timedelta(seconds=1));db.session.commit()
+        complete_missions(db.session,NOW+timedelta(days=4)-timedelta(seconds=1));db.session.commit()
         self.assertIsNone(db.session.get(IntelligenceMission,mission.id).completed_at)
         self.finish(9999);self.assertFalse(db.session.get(IntelligenceMission,mission.id).success)
         self.start(agent=agent)
@@ -123,7 +123,7 @@ class IntelligenceTests(IntelligenceFixture):
 
     def test_unsupported_or_unowned_missions_and_low_budget(self):
         agent=self.recruit()
-        for kind,region in [('warehouses',2),('bases',1),('bases',999)]:
+        for kind,region in [('unknown',2),('bases',1),('bases',999)]:
             with self.assertRaises(FinanceError):self.operation('mission',agent_id=agent.id,kind=kind,region_id=region)
         with self.assertRaises(FinanceError):self.operation('mission',agent_id=999,kind='bases',region_id=2)
         db.session.execute(text("UPDATE game_state_budget_allocations SET amount=0 WHERE category_code='security_services'"));db.session.commit()
@@ -201,3 +201,70 @@ class AgentNameTests(IntelligenceFixture):
         for name in ['', 'Jan', 'A'*101, 'Jan\nKowalski', None]:
             with self.assertRaises(FinanceError):self.operation('rename',agent_id=agent.id,name=name)
         with self.assertRaises(FinanceError):operate(2,{'action':'rename','agent_id':agent.id,'name':'Jan Kowalski','request_id':str(uuid4())})
+
+
+class MissionRulesTests(IntelligenceFixture):
+    def test_prices_by_agent_level_and_idempotence(self):
+        for level,price in enumerate((50000000,200000000,400000000,600000000,800000000,1000000000,1200000000),1):
+            agent=self.recruit(level)
+            before=intelligence_budget(db.session,1)[2]
+            data=self.operation('mission',kind='bases',agent_id=agent.id,region_id=2)
+            operate(1,data)
+            self.assertEqual(before-intelligence_budget(db.session,1)[2],price)
+
+    def test_duration_and_exact_completion_boundary_for_every_kind(self):
+        from game.intelligence_service import MISSIONS,HYBRID
+        db.session.get(Region,2).region_polozenie_id=2;db.session.commit()
+        for kind in MISSIONS:
+            with self.subTest(kind=kind):
+                agent=self.recruit(1)
+                self.operation('mission',kind=kind,agent_id=agent.id,**({'country_id':2} if kind=='warehouses' else {'region_id':2}))
+                mission=db.session.scalar(select(IntelligenceMission).order_by(IntelligenceMission.id.desc()))
+                deadline=NOW+timedelta(days=2 if kind in HYBRID else 4)
+                self.assertEqual(mission.ends_at,deadline)
+                complete_missions(db.session,deadline-timedelta(seconds=1));db.session.commit()
+                self.assertIsNone(db.session.get(IntelligenceMission,mission.id).completed_at)
+                with patch('game.intelligence_service.randbelow',return_value=9999):complete_missions(db.session,deadline)
+                db.session.commit()
+                self.assertIsNotNone(db.session.get(IntelligenceMission,mission.id).completed_at)
+
+    def test_warehouse_report_is_country_wide_private_snapshot(self):
+        from game.commerce_models import ResourceStock
+        from game.intelligence import state_data
+        db.session.add(Region(region_id=3,panstwo_id=2,region_nazwa='Inny region celu'))
+        db.session.add_all([ResourceStock(panstwo_id=2,resource='wegiel_kamienny',quantity=123),ResourceStock(panstwo_id=2,resource='chip_simple',quantity=45),ResourceStock(panstwo_id=3,resource='wegiel_kamienny',quantity=999)])
+        db.session.commit()
+        agent=self.recruit(3)
+        self.operation('mission',kind='warehouses',agent_id=agent.id,country_id=2)
+        mission=db.session.scalar(select(IntelligenceMission).order_by(IntelligenceMission.id.desc()))
+        self.assertIsNone(mission.region_id)
+        self.assertEqual(mission.target_country_id,2)
+        with patch('game.intelligence_service.randbelow',return_value=0):complete_missions(db.session,NOW+timedelta(days=4))
+        db.session.commit();db.session.expire_all()
+        report=db.session.get(IntelligenceMission,mission.id).report
+        self.assertEqual(report['scope'],'country')
+        self.assertEqual(report['warehouse']['wegiel_kamienny']['available'],123)
+        self.assertEqual(report['warehouse']['chip_simple']['available'],45)
+        db.session.get(ResourceStock,(2,'wegiel_kamienny')).quantity=321;db.session.commit()
+        self.assertEqual(db.session.get(IntelligenceMission,mission.id).report['warehouse']['wegiel_kamienny']['available'],123)
+        state=state_data(1)['missions'][0]
+        self.assertEqual(state['scope'],'country');self.assertIsNone(state['regionId'])
+        notice=db.session.get(GameNotification,mission.notification_id)
+        self.assertIn('państwo Państwo 2',notice.system_text)
+        self.assertNotIn('region',notice.system_text)
+        self.login(3)
+        self.assertEqual(self.client.get(f'/game/wywiad-wojskowy/raport/{mission.id}').status_code,404)
+
+    def test_country_mission_rejects_own_missing_and_regional_targets(self):
+        agent=self.recruit(1)
+        for data in ({'country_id':1},{'country_id':999},{'region_id':2},{'country_id':2,'region_id':2}):
+            with self.assertRaises(FinanceError):self.operation('mission',kind='warehouses',agent_id=agent.id,**data)
+        self.assertEqual(db.session.query(IntelligenceMission).count(),0)
+
+    def test_budget_checks_actual_level_price(self):
+        agent=self.recruit(2)
+        db.session.execute(text("UPDATE game_state_budget_allocations SET amount=227799999 WHERE category_code='security_services'"));db.session.commit()
+        with self.assertRaises(FinanceError):self.operation('mission',kind='bases',agent_id=agent.id,region_id=2)
+        db.session.execute(text("UPDATE game_state_budget_allocations SET amount=227800000 WHERE category_code='security_services'"));db.session.commit()
+        self.operation('mission',kind='bases',agent_id=agent.id,region_id=2)
+        self.assertEqual(intelligence_budget(db.session,1)[2],0)

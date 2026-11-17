@@ -213,7 +213,10 @@ def join_war_params(session,source,target,params,now=None):
 
 
 def create_action(session,source,target,kind,proposed,now,*,sender_user_id=None,npc=False,dry_run=False,params=None):
-    if kind not in ('WAR','PEACE','CEASEFIRE','RELATION','JOIN_WAR','BASE_PERMIT') or source==target or controller_id(session,target)!=target:raise DiplomacyError('Nieprawidłowa akcja lub państwo.',400)
+    if kind not in ('WAR','PEACE','CEASEFIRE','RELATION','JOIN_WAR','BASE_PERMIT','MINING_PERMIT') or source==target or controller_id(session,target)!=target:raise DiplomacyError('Nieprawidłowa akcja lub państwo.',400)
+    if kind=='MINING_PERMIT':
+        from game.foreign_mining import permit_params
+        params=permit_params(session,source,target,params)
     if kind=='BASE_PERMIT':
         from game.base_permits import permit_params
         params=permit_params(session,source,target,params)
@@ -242,15 +245,18 @@ def create_action(session,source,target,kind,proposed,now,*,sender_user_id=None,
     if kind=='BASE_PERMIT':
         from game.base_permits import PERMIT_RELATIONS
         if normalized(relations.get(relation) or '') not in PERMIT_RELATIONS:raise DiplomacyError('O pozwolenie na bazę można prosić tylko sojusznika.')
+    if kind=='MINING_PERMIT':
+        from game.foreign_mining import eligible
+        if not eligible(session,source,target):raise DiplomacyError('Relacje nie pozwalają wnioskować o wydobycie.')
     if kind=='CEASEFIRE':params={'days':ceasefire_days(params)}
-    if kind not in ('JOIN_WAR','BASE_PERMIT','CEASEFIRE'):params=None
+    if kind not in ('JOIN_WAR','BASE_PERMIT','MINING_PERMIT','CEASEFIRE'):params=None
     breaking=kind=='RELATION' and is_worsening(relations.get(relation),relations.get(proposed))
     immediate=kind=='WAR' or breaking
     if session.scalar(select(Panstwo.status).where(Panstwo.PANSTWO_ID==target))!='aktywne':raise DiplomacyError('Państwo docelowe nie jest aktywne.',400)
     if not immediate and recipient is None and not npc_eligible(session,target):raise DiplomacyError('Państwo nie ma aktywnego gracza ani aktywnej autonomii.',400)
     pair=or_((DiplomaticAction.source_country_id==a)&(DiplomaticAction.target_country_id==b),(DiplomaticAction.source_country_id==b)&(DiplomaticAction.target_country_id==a))
     pending=[row for row in session.scalars(select(DiplomaticAction).where(DiplomaticAction.kind==kind,DiplomaticAction.status=='PENDING',pair))
-             if kind not in ('JOIN_WAR','BASE_PERMIT') or row.source_country_id==source and (row.params or {})==(params or {})]
+             if kind not in ('JOIN_WAR','BASE_PERMIT','MINING_PERMIT') or row.source_country_id==source and (row.params or {})==(params or {})]
     if pending and not immediate:raise DiplomacyError('Taka propozycja już oczekuje na rozpatrzenie.')
     if dry_run:return None
     names=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID.in_([source,target]))).all())
@@ -286,6 +292,11 @@ def decide_action(session,action_id,country_id,accept,now,*,user_id=None,dry_run
     if action.kind=='JOIN_WAR' and (action.params or {}).get('enemy_id') not in joinable_wars(session,action.source_country_id,action.target_country_id,now):
         if not dry_run:action.status='EXPIRED';action.decided_at=utc_now()
         return 'EXPIRED'
+    if action.kind=='MINING_PERMIT':
+        from game.foreign_mining import valid
+        if not valid(session,action):
+            if not dry_run:action.status='EXPIRED';action.decided_at=utc_now()
+            return 'EXPIRED'
     if action.kind=='BASE_PERMIT':
         from game.base_permits import permit_valid
         if not permit_valid(session,action):
@@ -297,6 +308,7 @@ def decide_action(session,action_id,country_id,accept,now,*,user_id=None,dry_run
     elif accept and action.kind=='BASE_PERMIT':
         from game.base_permits import grant
         grant(session,action,now)
+    elif accept and action.kind=='MINING_PERMIT':pass  # accepted action is the durable permit
     elif accept:
         # 16 Nov 2026: zawarcie pokoju ustawia relację „neutralne” i stan „pokój” (wcześniej relacja wojenna pozostawała).
         new_relation=action.proposed_relation_id if action.kind=='RELATION' else neutral if action.kind=='PEACE' else relation
@@ -343,7 +355,7 @@ def expire_unanswerable(session,now=None):
     rozpatrzone — wygasają, a nadawca dostaje powiadomienie (12 Nov 2026)."""
     from game.models import utc_now
     from game.diplomacy_models import DiplomaticAction
-    rows=list(session.scalars(select(DiplomaticAction).where(DiplomaticAction.status=='PENDING',DiplomaticAction.kind.in_(['RELATION','PEACE','CEASEFIRE','JOIN_WAR','BASE_PERMIT'])).with_for_update()))
+    rows=list(session.scalars(select(DiplomaticAction).where(DiplomaticAction.status=='PENDING',DiplomaticAction.kind.in_(['RELATION','PEACE','CEASEFIRE','JOIN_WAR','BASE_PERMIT','MINING_PERMIT'])).with_for_update()))
     expired=0
     for action in rows:
         human=session.scalar(select(GameUser.id).join(GamePlayerCountry,GamePlayerCountry.user_id==GameUser.id).where(GamePlayerCountry.panstwo_id==action.target_country_id,GameUser.is_active.is_(True)))

@@ -315,6 +315,7 @@ def visible_mines(country_id,world=False):
     from game.mining_service import mine_data
     from game.intelligence_service import known_ids
     allowed=known_ids(db.session,country_id,'mines') if world else set()
+    allowed.update(db.session.scalars(select(Mine.id).join(Region,Region.region_id==Mine.region_id).where(Region.panstwo_id.in_(controlled_ids(db.session,country_id)))))
     return [mine_data(mine,game_now()) for mine in db.session.scalars(select(Mine).where(or_(Mine.panstwo_id==country_id,Mine.id.in_(allowed)),Mine.removed_at.is_(None)).order_by(Mine.id))]
 
 

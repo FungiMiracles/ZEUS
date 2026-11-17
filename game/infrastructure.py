@@ -91,6 +91,8 @@ def page():
             "indicators": {code: indicator(getattr(row, field)) for code, _, field, _ in METRICS},
         } for row in rows
     }
+    from game.foreign_mining import map_regions
+    foreign_regions=map_regions(db.session,country.PANSTWO_ID)
     metrics = [{"code": code, "label": label, "icon": url_for("static", filename="icons/" + filename)}
                for code, label, _, filename in METRICS]
     from game.military_flights import calibration
@@ -102,7 +104,7 @@ def page():
             "coastUrl":'/game/obrona-panstwa/wybrzeze/0',"kmPerUnit":calibration(db.session).km_per_unit,
             "funds": funds, "reserve": reserve, "csrf": session["game_csrf_token"], "startUrl": url_for("game_infrastructure.expand"),
             "metropolitanRegionIds": own_metropolitan_region_ids(country.PANSTWO_ID),
-            "countryId": country.PANSTWO_ID, "regions": regions, "metrics": metrics,
+            "countryId": country.PANSTWO_ID, "regions": regions, "foreignRegions": foreign_regions, "metrics": metrics,
             "cities": {str(city.miasto_id): {"name": city.miasto_nazwa, "regionId": str(city.region_id)} for city in cities},
             "citiesUrl": url_for("static", filename="maps/entenda_miasta.geojson"),
             "constructionIcon": url_for("static", filename="icons/PRACE BUDOWLANE.svg"),

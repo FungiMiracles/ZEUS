@@ -26,7 +26,7 @@ class IntelligenceMission(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     panstwo_id=db.Column(db.Integer,db.ForeignKey('panstwa.PANSTWO_ID'),nullable=False,index=True)
     agent_id=db.Column(db.Integer,db.ForeignKey('game_intelligence_agents.id'),nullable=False)
-    region_id=db.Column(db.Integer,db.ForeignKey('regiony.region_id'),nullable=False)
+    region_id=db.Column(db.Integer,db.ForeignKey('regiony.region_id'),nullable=True)
     target_country_id=db.Column(db.Integer,nullable=False)
     region_name=db.Column(db.String(255),nullable=False)
     kind=db.Column(db.String(24),nullable=False)
@@ -37,8 +37,8 @@ class IntelligenceMission(db.Model):
     effective_chance=db.Column(db.Integer)
     report=db.Column(db.JSON)
     notification_id=db.Column(db.Integer,db.ForeignKey('game_notifications.id'),unique=True)
-    __table_args__=(db.CheckConstraint('ends_at > starts_at',name='ck_intelligence_mission_time'),
-        db.CheckConstraint("kind IN ('bases','defenses','nuclear','resources','infrastructure','silos','mines','cyber_energy','cyber_rail','cyber_port','arson','rail_explosive','power')",name='ck_intelligence_mission_kind'),
+    __table_args__=(db.CheckConstraint("(kind = 'warehouses' AND region_id IS NULL) OR (kind <> 'warehouses' AND region_id IS NOT NULL)",name='ck_intelligence_mission_scope'),db.CheckConstraint('ends_at > starts_at',name='ck_intelligence_mission_time'),
+        db.CheckConstraint("kind IN ('bases','defenses','nuclear','resources','infrastructure','silos','mines','cyber_energy','cyber_rail','cyber_port','arson','rail_explosive','power','warehouses')",name='ck_intelligence_mission_kind'),
         db.Index('ix_intelligence_mission_due','completed_at','ends_at'),{'mysql_engine':'InnoDB'})
 
 
