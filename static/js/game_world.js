@@ -77,6 +77,21 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   let saved = 'political'; try { saved = localStorage.getItem('world-view') || 'political'; } catch {}
   for (const radio of document.querySelectorAll('[name="world-view"]')) { radio.checked = radio.value === saved; radio.addEventListener('change', () => setView(radio.value)); }
   setView(saved);
+  // Cieniowana rzeźba terenu w geometrii regionów, pod miastami i granicami.
+  const reliefToggle = document.getElementById('world-relief-toggle');
+  if (window.WorldRelief && reliefToggle) {
+    map.createPane('worldRelief'); map.getPane('worldRelief').style.zIndex = '415'; map.getPane('worldRelief').style.pointerEvents = 'none';
+    const relief = window.WorldRelief.createLayer(L, regions, config.regions);
+    const reliefBorders = L.geoJSON(countries, {pane:'worldBorders', coordsToLatLng:coordinates, interactive:false,
+      style:{color:C.border,weight:1.4,fill:false,opacity:.8}});
+    function setRelief(on) {
+      if (on) { relief.addTo(map); reliefBorders.addTo(map); } else { relief.remove(); reliefBorders.remove(); }
+      try { localStorage.setItem('world-relief', on ? '1' : '0'); } catch {}
+    }
+    let showRelief = true; try { showRelief = localStorage.getItem('world-relief') !== '0'; } catch {}
+    reliefToggle.checked = showRelief;
+    reliefToggle.addEventListener('change', () => setRelief(reliefToggle.checked)); setRelief(showRelief);
+  }
   const fit = () => { map.invalidateSize(); if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20], animate: false }); };
   fit(); document.getElementById('world-map-reset').addEventListener('click', fit);
   // --- wody terytorialne (15 Nov 2026): filtr widoczny we wszystkich widokach, wczytywany przy pierwszym włączeniu ---

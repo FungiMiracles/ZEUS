@@ -13,7 +13,7 @@ world_bp=Blueprint('game_world',__name__,url_prefix='/game/swiat')
 
 
 def world_data():
-    from models import Panstwo,Region,Miasto,DictPanstwoUstroj,DictMiastoTyp
+    from models import Panstwo,Region,Miasto,DictPanstwoUstroj,DictMiastoTyp,DictRegionTeren
     money=current_app.jinja_env.filters.get('game_money',lambda value:str(value))
     regimes=dict(db.session.execute(select(DictPanstwoUstroj.ustroj_id,DictPanstwoUstroj.ustroj_nazwa)).all())
     city_types=dict(db.session.execute(select(DictMiastoTyp.miasto_typ_id,DictMiastoTyp.miasto_typ_nazwa)).all())
@@ -30,9 +30,11 @@ def world_data():
         owner=owner_of(int(id))
         countries[id]['controller']=owner if owner!=int(id) else None
     city_population={region:int(total or 0) for region,total in db.session.execute(select(Miasto.region_id,func.sum(Miasto.miasto_populacja)).group_by(Miasto.region_id))}
+    terrains={id:(name or code or '') for id,name,code in db.session.execute(select(DictRegionTeren.id,DictRegionTeren.nazwa,DictRegionTeren.kod))}
     regions={}
-    for r in db.session.execute(select(Region.region_id,Region.region_nazwa,Region.panstwo_id,Region.region_ludnosc_pozamiejska)):
+    for r in db.session.execute(select(Region.region_id,Region.region_nazwa,Region.panstwo_id,Region.region_ludnosc_pozamiejska,Region.region_teren_id)):
         regions[str(r.region_id)]={'name':r.region_nazwa,'countryId':owner_of(r.panstwo_id),
+                                   'terrain':terrains.get(r.region_teren_id,''),
                                    'population':int(r.region_ludnosc_pozamiejska or 0)+city_population.get(r.region_id,0)}
     occupied={}
     try:

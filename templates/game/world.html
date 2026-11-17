@@ -15,6 +15,7 @@
     </div>
     <label class="world-layer-toggle"><input type="checkbox" id="world-waters-toggle"><span>Wody terytorialne</span></label>
     <label class="world-layer-toggle"><input type="checkbox" id="world-cities-toggle" checked><span>Miasta</span></label>
+    <label class="world-layer-toggle"><input type="checkbox" id="world-relief-toggle" checked><span>Rzeźba terenu</span></label>
     <button type="button" id="world-map-reset" class="world-map-reset">Cały świat ⤢</button>
   </div>
   <div class="world-map-legend" aria-label="Legenda">
@@ -33,5 +34,6 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261025-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261116-cities-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-relief-1') }}"></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-relief-1') }}" defer></script>
 {% endblock %}
