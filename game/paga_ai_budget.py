@@ -56,7 +56,7 @@ def completed_budget(state):
     year,period,budget_id=state.get('year'),state.get('period'),state.get('budget_id')
     return {'goal':'budżet_półrocza','status':'ZAKOŃCZONY','year':year,'period':period,'budget_id':budget_id,
             'message':f'Budżet państwa na półrocze {year}/{period} jest już zatwierdzony (budget_id {budget_id}). Ta operacja została zakończona sukcesem. '
-                      'Nie wywołuj ponownie game_finance.preview ani game_finance.approve w tym półroczu; kolejny budżet przygotujesz w następnym półroczu.',
+                      'Nie wywołuj ponownie game_finance.preview ani game_finance.approve w tym okresie budżetowym; kolejny budżet przygotujesz w następnym okresie budżetowym.',
             'next':'Przejdź do innych obszarów zgodnie z interesami PAGA: gospodarka (handel, przemysł, wydobycie, badania, infrastruktura, pożyczki, przesunięcia środków budżetu), '
                    'dyplomacja, wojsko, wywiad, forum i wiadomości. Jeśli nic nie wymaga działania, zakończ analizę operacją finish.'}
 
@@ -70,7 +70,7 @@ def latest_plan(actor):
         plan=(row.result or {}).get('_budget_plan')
         if not plan:
             if ((row.result or {}).get('result') or {}).get('completed_goal'):
-                raise ValueError('Ostatni podgląd wykazał, że budżet tego półrocza jest już zatwierdzony. Nie zatwierdzaj go ponownie.')
+                raise ValueError('Ostatni podgląd wykazał, że budżet tego okresu budżetowego jest już zatwierdzony. Nie zatwierdzaj go ponownie.')
             raise ValueError('Ostatni podgląd nie zawiera planu do zatwierdzenia. Odczytaj game_finance.page:GET i przelicz plan przez preview.')
         return plan
 
@@ -151,7 +151,7 @@ BUDGET_GUIDANCE=(
     'Dopiero po ocenie poprawnego podglądu użyj game_finance.approve:POST z rationale (minimum 20 znaków) opisującym faktyczne skutki. '
     'Przy świadomie wybranych wypłatach niższych od oczekiwań podaj accept_social_shortfall=true; przy spadku dochodów accept_revenue_decline=true. '
     'To nie pozwala przekroczyć dostępnych środków. Radykalne obniżki podatków są dozwolone, ale uzasadnij strategię i jej finansowanie. '
-    'approved=true albo completed_goal oznacza, że budżet bieżącego półrocza JEST JUŻ ZATWIERDZONY: nie wywołuj ponownie preview ani approve w tym półroczu, przejdź do innych spraw państwa. '
+    'approved=true albo completed_goal oznacza, że budżet bieżącego okresu budżetowego JEST JUŻ ZATWIERDZONY: nie wywołuj ponownie preview ani approve w tym okresie budżetowym, przejdź do innych spraw państwa. '
     'Token, okres i sesję przygotowuje ZEUS; nie generuj ich. Błąd nie oznacza sukcesu: popraw decyzję; identyczne odrzucone próby są blokowane. '
     'Nie twierdź, że coś wykonano, bez potwierdzenia wyniku. Zwracaj wyłącznie JSON operation_id,path,data,memory.'
 )

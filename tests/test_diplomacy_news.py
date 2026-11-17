@@ -70,6 +70,17 @@ class DiplomacyNewsTests(FeatureTestCase):
         self.login(1);self.post('/game/dyplomacja/wiadomosci-swiatowe/odczytaj',ids=str(id))
         self.assertEqual(db.session.query(NewsNotice).filter_by(user_id=1).count(),0)
 
+    def test_mark_all_world_news_read_covers_every_page_and_only_own_notices(self):
+        # 16 Nov 2026: przycisk „Oznacz wszystkie jako przeczytane” w panelu powiadomień modułu dyplomatycznego.
+        for index in range(23):
+            db.session.add(AudytStosunki(panstwo_id=1,panstwo_id2=2,relacja_id=6 if index%2 else 10,stan_id=1,data_zmiany_entenda=NOW,data_zmiany_rzeczywista=NOW))
+        db.session.commit();collect(db.session,NOW);db.session.commit()
+        total=self.client.get('/game/dyplomacja/wiadomosci-swiatowe').json['unread_count']
+        self.assertGreater(total,20)
+        self.assertEqual(self.client.post('/game/dyplomacja/wiadomosci-swiatowe/odczytaj',data={'all':'1'}).status_code,400)   # bez CSRF
+        self.assertEqual(self.post('/game/dyplomacja/wiadomosci-swiatowe/odczytaj',all='1').json['unread_count'],0)
+        self.assertEqual(db.session.query(NewsNotice).filter(NewsNotice.user_id!=3,NewsNotice.read_at.is_not(None)).count(),0)
+
     def test_inline_and_collector_do_not_duplicate_and_rollback_erases_news(self):
         self.war();collect(db.session,NOW);db.session.commit()
         self.assertEqual(db.session.query(NewsEvent).count(),1)

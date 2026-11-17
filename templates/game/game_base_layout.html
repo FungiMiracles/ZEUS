@@ -4,12 +4,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="format-detection" content="telephone=no">
+<script src="{{ url_for('static', filename='js/uuid_polyfill.js', v='20261117-1') }}"></script>
 <script src="{{ url_for('static',filename='js/game_industry_view.js',v='20261108-ui20') }}"></script>
 <script src="{{ url_for('static',filename='js/game_money.js',v='20261113-mld-1') }}"></script>
 <meta name="theme-color" content="#f3f3ed">
 <title>{% block title %}ENTENDA GAME — ZEUS{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_notifications.css', v='20261115-layer-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_notifications.css', v='20261116-dipl-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_country_summary.css', v='20261023-1') }}">
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-2') }}">
@@ -24,13 +26,14 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261112-offers-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261114-nav-6') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261115-layer-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261116-pop-1') }}">
 {# 13 Nov 2026: arkusze ekranów w nowej stylistyce — wczytywane na końcu #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_tutorial.css', v='20261115-tutorial-3') }}">
 {% block late_css %}{% endblock %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_mobile.css', v='20261113-mobile-2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_mail_navy.css', v='20261113-mail-1') }}">
 </head>
-<body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}">
+{% set _period = game_period() if game_period is defined else {'nom':'okres','gen':'okresu','loc':'okresie','current':'bieżący okres','months':6,'share':50,'per_year':'przy budżecie każdego okresu'} %}<body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}" data-period-nom="{{ _period.nom }}" data-period-gen="{{ _period.gen }}" data-period-months="{{ _period.months }}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
 <a class="game-skip-link" href="#main-content">Przejdź do treści</a>
 {% include '_sovereignty_banner.html' %}
@@ -260,7 +263,7 @@
 </header>
   {% if game_budget_overview is defined %}
   <details class="game-budget-overview" open><summary>Budżet do wydania · {{ period_label(game_budget_overview.year, game_budget_overview.period) if period_label is defined else game_budget_overview.period ~ '. okres ' ~ game_budget_overview.year }}</summary>
-    {% if game_budget_overview['items'] %}<dl>{% for item in game_budget_overview['items'] %}<div data-budget-sector="{{ item.code }}"><dt>{{ item.label }}</dt><dd>{{ item.remaining|game_money }}</dd></div>{% endfor %}</dl>{% else %}<p>Brak zatwierdzonego planu na bieżące półrocze.</p>{% endif %}
+    {% if game_budget_overview['items'] %}<dl>{% for item in game_budget_overview['items'] %}<div data-budget-sector="{{ item.code }}"><dt>{{ item.label }}</dt><dd>{{ item.remaining|game_money }}</dd></div>{% endfor %}</dl>{% else %}<p>Brak zatwierdzonego planu na {{ game_period().current if game_period is defined else 'bieżący okres' }}.</p>{% endif %}
   </details>
   <script>if(window.matchMedia('(max-width:900px)').matches)document.querySelector('.game-budget-overview').open=false;</script>
   {% endif %}
@@ -343,7 +346,7 @@
 
 <main class="game-main" id="main-content"><header class="game-section-header">{% include 'game/_page_heading.html' %}<div class="game-section-actions">{% block game_page_actions %}{% endblock %}</div></header>{% set funds = module_funds(game_active_page) if module_funds is defined and game_active_page is defined else none %}{% if funds %}{% include 'game/_module_funds.html' %}{% endif %}{% block content %}{% endblock %}</main>
 <dialog id="game-diplomacy-dialog" class="game-diplomacy-dialog" aria-labelledby="game-diplomacy-title">
-    <h2 id="game-diplomacy-title">Dyplomacja</h2>
+    <div class="game-diplomacy-head"><img id="game-diplomacy-flag" class="game-diplomacy-flag" alt="" hidden><h2 id="game-diplomacy-title">Dyplomacja</h2></div>
     <p id="game-diplomacy-text"></p>
     <p id="game-diplomacy-relation"></p>
     <p id="game-diplomacy-status" role="status"></p>
@@ -420,8 +423,21 @@
   });
 })();
 </script>
+{# 15 Nov 2026: samouczek (game/tutorial.py) — powitanie i komunikat sekcji przy pierwszym wejściu; wersja mobilna/desktopowa według szerokości ekranu #}
+{% if game_tutorials %}
+{% for item in game_tutorials %}
+<dialog class="game-tutorial-dialog" data-tutorial="{{ item.key }}" data-url="{{ game_tutorial_url }}" data-csrf="{{ game_csrf_token }}" aria-labelledby="game-tutorial-title-{{ item.key }}">
+  <h2 id="game-tutorial-title-{{ item.key }}">{{ item.title }}</h2>
+  {% if item.mobile == item.desktop %}<p data-money-fixed class="game-tutorial-text">{{ item.desktop }}</p>
+  {% else %}<p data-money-fixed class="game-tutorial-text game-tutorial-mobile">{{ item.mobile }}</p>
+  <p data-money-fixed class="game-tutorial-text game-tutorial-desktop">{{ item.desktop }}</p>{% endif %}
+  <div class="game-tutorial-actions"><button type="button" class="game-tutorial-close">{{ 'Rozpocznij grę' if item.key == 'main' else 'Rozumiem' }}</button></div>
+</dialog>
+{% endfor %}
+<script src="{{ url_for('static', filename='js/game_tutorial.js', v='20261115-tutorial-2') }}" defer></script>
+{% endif %}
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261115-layer-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261116-dipl-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_ui.js', v='20261115-layer-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261114-sidebar-11') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>

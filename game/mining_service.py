@@ -74,7 +74,7 @@ def build_mine(user_id,data):
         if type(data.get('level',1)) is not int or data.get('level',1)!=1:raise FinanceError('Kopalnię można zbudować tylko na poziomie 1.')
         settle_industry(session,country_id)
         budget,total,available=mining_budget(session,country_id);cost,days=RULES[resource]
-        if budget is None or available<cost:raise FinanceError('Za mało środków we wspólnym budżecie infrastruktury na bieżące półrocze. Możesz przesunąć środki w formularzu zatwierdzonego budżetu.')
+        if budget is None or available<cost:raise FinanceError('Za mało środków we wspólnym budżecie infrastruktury na bieżący okres budżetowy. Możesz przesunąć środki w formularzu zatwierdzonego budżetu.')
         now=game_now();ready=ready_at(now,days)
         mine=Mine(panstwo_id=country_id,region_id=region.region_id,resource=resource,map_x=x,map_y=y,health=100,level=1,investment=cost,starts_at=now,ready_at=ready,extracted_at=ready,request_id=key)
         session.add(mine);session.flush();session.add(MiningExpense(panstwo_id=country_id,budget_id=budget.id,mine_id=mine.id,amount=cost))

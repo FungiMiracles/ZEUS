@@ -6,15 +6,15 @@ from random import SystemRandom
 from sqlalchemy import select,func
 from game.paga2.models import Paga2RandomDraw
 
-TIE_MARGIN=2.0   # opcje różniące się o mniej niż tyle punktów uznajemy za nierozstrzygnięte
+TIE_PRECISION=3   # 17 Nov 2026: losowanie wyłącznie przy równych ocenach (do 0,001 pkt — dokładność zapisu oceny); bez marginesu 2 pkt
 _random=SystemRandom()
 
 
-def tied(scored,margin=TIE_MARGIN):
-    """Z listy (klucz, punkty) zwraca opcje w odległości <margin od najlepszej."""
+def tied(scored):
+    """Z listy (klucz, punkty) zwraca opcje z oceną równą najlepszej (zaokrąglenie do TIE_PRECISION miejsc)."""
     if not scored:return []
-    best=max(score for _,score in scored)
-    return [(key,score) for key,score in scored if best-score<margin]
+    best=max(round(score,TIE_PRECISION) for _,score in scored)
+    return [(key,score) for key,score in scored if round(score,TIE_PRECISION)==best]
 
 
 def draw(session,country_id,candidates,*,reason,decision_key=None,rng=None):
@@ -28,9 +28,9 @@ def draw(session,country_id,candidates,*,reason,decision_key=None,rng=None):
     return chosen
 
 
-def resolve(session,country_id,scored,*,reason,decision_key=None,margin=TIE_MARGIN,rng=None):
-    """Zwraca (klucz, czy_losowano). Losuje tylko przy remisie w granicy marginesu."""
-    top=tied(scored,margin)
+def resolve(session,country_id,scored,*,reason,decision_key=None,rng=None):
+    """Zwraca (klucz, czy_losowano). Losuje tylko przy remisie (równe oceny)."""
+    top=tied(scored)
     if not top:return None,False
     if len(top)==1:return top[0][0],False
     return draw(session,country_id,top,reason=reason,decision_key=decision_key,rng=rng),True

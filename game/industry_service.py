@@ -233,7 +233,7 @@ def change_industry(user_id,data):
                 # 13 Nov 2026: fabryka rakiet z głowicą nuklearną — płatna z budżetu sił zbrojnych (wydatek wojskowy)
                 from game.military_service import military_budget
                 military,_,free=military_budget(session,country)
-                if military is None or free<cost:raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżące półrocze.')
+                if military is None or free<cost:raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżący okres budżetowy.')
                 military_cost,cost=cost,Decimal(0)
             budget=current_budget(session,country,cost)
             if military_cost is not None:

@@ -125,3 +125,51 @@ def population_save():
         result['population']=str(result['population']) if result['population'] is not None else None
         return jsonify(result)
     except FinanceError as exc:db.session.rollback();return jsonify(error=str(exc)),400
+
+
+# 16 Nov 2026: konta graczy ludzkich — zmiana hasła przez administratora WIKI (bez kont technicznych PAGA).
+def human_players():
+    from game.models import GameUser, GamePlayerCountry
+    from game.paga_ai_models import PagaAiIdentity
+    technical = select(PagaAiIdentity.user_id)
+    rows = db.session.execute(
+        select(GameUser, Panstwo.panstwo_nazwa)
+        .outerjoin(GamePlayerCountry, GamePlayerCountry.user_id == GameUser.id)
+        .outerjoin(Panstwo, Panstwo.PANSTWO_ID == GamePlayerCountry.panstwo_id)
+        .where(GameUser.id.not_in(technical), GameUser.password_hash.is_not(None))
+        .order_by(GameUser.username_normalized)).all()
+    return [{'id': user.id, 'username': user.username, 'email': user.email, 'country': country, 'active': bool(user.is_active),
+             'created_at': user.created_at, 'last_login_at': user.last_login_at} for user, country in rows]
+
+
+@wiki_civic_bp.get('/konta-graczy')
+@wymaga_roli('wszechmocny')
+def player_accounts():
+    from game.passwords import PASSWORD_MIN, PASSWORD_MAX
+    return render_template('admin_player_accounts.html', players=human_players(), csrf=token(), password_min=PASSWORD_MIN, password_max=PASSWORD_MAX)
+
+
+@wiki_civic_bp.post('/konta-graczy/<int:user_id>/haslo')
+@wymaga_roli('wszechmocny')
+def player_password(user_id):
+    from werkzeug.security import generate_password_hash
+    from game.models import GameUser, utc_now
+    from game.passwords import password_error
+    from game.forum_models import GameNotification
+    validate()
+    if user_id not in {player['id'] for player in human_players()}:
+        abort(404)
+    password, confirm = request.form.get('password'), request.form.get('password_confirm')
+    if (error := password_error(password)):
+        flash(error, 'error'); return redirect(url_for('wiki_civic.player_accounts', _anchor=f'gracz-{user_id}'))
+    if password != confirm:
+        flash('Podane hasła nie są identyczne.', 'error'); return redirect(url_for('wiki_civic.player_accounts', _anchor=f'gracz-{user_id}'))
+    user = db.session.scalar(select(GameUser).where(GameUser.id == user_id).with_for_update())
+    user.password_hash = generate_password_hash(password)
+    db.session.add(GameNotification(user_id=user.id, notification_type='SYSTEM', created_at=utc_now(),
+                                    system_text='Administrator zmienił hasło do Twojego konta. Jeśli to nie Ty o to prosiłeś, skontaktuj się z administratorem.'))
+    db.session.commit()
+    from flask import current_app
+    current_app.logger.info('WIKI: administrator %s zmienił hasło konta gracza #%s (%s).', actor(), user.id, user.username)
+    flash(f'Zmieniono hasło gracza {user.username}.', 'success')
+    return redirect(url_for('wiki_civic.player_accounts', _anchor=f'gracz-{user_id}'))

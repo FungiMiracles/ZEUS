@@ -2,7 +2,7 @@
 {% from "macros/army.html" import army_fields %}
 {% from "macros/icons.html" import icon %}
 {% block body_class %}army-room{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261113-screens-2') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261116-screens-3') }}">{% endblock %}
 {% block title %}Siły zbrojne — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_army.css', v='20261112-groups-1') }}">
@@ -21,6 +21,21 @@
             ('Siły powietrzne', ['wojska_powietrzne_ilosc', 'mysliwce_ilosc', 'drony_ilosc', 'liczba_baz_powietrznych']),
             ('Rakiety i broń strategiczna', ['rakiety_krotkiego_zasiegu', 'rakiety_sredniego_zasiegu', 'rakiety_dalekiego_zasiegu', 'bron_atomowa_ilosc'])
         ] %}
+        {# 16 Nov 2026: rekrutacja do służby czynnej i opłata za żołnierzy #}
+        <section class="game-army-group game-army-recruitment" aria-labelledby="army-recruitment-title">
+        <h3 class="game-army-group-title" id="army-recruitment-title">Służba czynna</h3>
+        <dl class="game-army-grid">
+            <div class="game-army-resource"><dt><span>Żołnierze w służbie czynnej / limit (30% ludności 18–64)</span></dt>
+                <dd>{{ recruitment.total|spacenum }} / {% if recruitment.limit is not none %}{{ recruitment.limit|spacenum }}{% else %}—{% endif %}</dd></div>
+            <div class="game-army-resource"><dt><span>Opłata za żołnierzy w bieżącym okresie rozliczeniowym</span></dt>
+                <dd>{% if recruitment.assessed %}{{ recruitment.periodFee|game_money }}{% else %}—{% endif %}</dd>
+                <div class="game-army-active">{% if recruitment.assessed %}Naliczona za {{ recruitment.periodSoldiers|spacenum }} żołnierzy.{% else %}Zostanie naliczona po zatwierdzeniu budżetu.{% endif %}</div></div>
+            <div class="game-army-resource"><dt><span>Szacowana opłata w następnym okresie</span></dt>
+                <dd>{{ recruitment.nextFee|game_money }}</dd>
+                <div class="game-army-active">PKB per capita × 0,01 = <strong>{{ recruitment.rate|replace('.', ',') }} ROI</strong> za żołnierza na okres.</div></div>
+        </dl>
+        <p class="game-army-parameters-note">Rekrutacja jest bezpłatna; utrzymanie żołnierzy jest pobierane z budżetu sił zbrojnych od następnego okresu rozliczeniowego. Jeśli budżet nie wystarczy, gra zwolni żołnierzy, na których nie stać państwa (najpierw z rezerwy). Zwolnienie obniża koszt od następnego okresu.</p>
+        </section>
         {% for title, fields in groups %}
         <section class="game-army-group" aria-labelledby="army-group-{{ loop.index }}">
         <h3 class="game-army-group-title" id="army-group-{{ loop.index }}">{{ title }}</h3>
@@ -34,7 +49,7 @@
             {% elif field in labels %}
             {% set label, icon_key = labels[field] %}
             <div class="game-army-resource">
-                <dt>{% if icon_key %}{{ icon(icon_key) }}{% endif %}<span>{{ 'Budżet sił zbrojnych na bieżące półrocze' if field == 'procent_PKB' else label }}</span></dt>
+                <dt>{% if icon_key %}{{ icon(icon_key) }}{% endif %}<span>{{ 'Budżet sił zbrojnych na ' ~ (game_period().current if game_period is defined else 'bieżący okres') if field == 'procent_PKB' else label }}</span></dt>
                 <dd>{% if field == 'procent_PKB' %}{{ military_budget_total|game_money }}{% elif field == 'bron_atomowa_ilosc' %}{# 13 Nov 2026: rzeczywista liczba rakiet z głowicą nuklearną (magazyn + silosy) #}{{ '{:,}'.format(nuclear_total|default(0)).replace(',', ' ') }}{% elif field.startswith('liczba_baz') %}{# 13 Nov 2026: faktycznie postawione bazy państwa, nie wartość z tabeli „wojsko” #}{{ '{:,}'.format(active.get(field, 0)).replace(',', ' ') }}{% else %}{{ '{:,}'.format(army[field] or 0).replace(',', ' ') }}{% endif %}</dd>
                 {% if field in weapon_parameters %}
                 {% set parameters = weapon_parameters[field] %}
@@ -43,7 +58,11 @@
                     <div>{{ 'Prędkość lotu' if parameters.flying else 'Prędkość poruszania się' }}: <strong>{{ parameters.speed|spacenum }} km/h</strong></div>
                 </div>
                 {% endif %}
-                {% if field != 'procent_PKB' and not field.startswith('liczba_baz') %}<div class="game-army-active">W służbie czynnej: <strong>{{ '{:,}'.format(active.get(field, 0)).replace(',', ' ') }}</strong></div>{% endif %}
+                {% if field in training_fields %}{% set branch_data = recruitment.branches[training_fields[field]] %}
+                <div class="game-army-active">Przydzieleni do baz i operacji: <strong>{{ branch_data.assigned|spacenum }}</strong> · w rezerwie: <strong data-recruit-reserve="{{ training_fields[field] }}">{{ branch_data.reserve|spacenum }}</strong></div>
+                <div class="game-army-training"><button type="button" class="game-army-train-button" data-recruit="{{ training_fields[field] }}" data-recruit-action="recruit">Rekrutuj</button>
+                    <button type="button" class="game-army-train-button" data-recruit="{{ training_fields[field] }}" data-recruit-action="dismiss"{% if not branch_data.reserve %} disabled{% endif %}>Zwolnij</button></div>
+                {% elif field != 'procent_PKB' and not field.startswith('liczba_baz') %}<div class="game-army-active">W służbie czynnej: <strong>{{ '{:,}'.format(active.get(field, 0)).replace(',', ' ') }}</strong></div>{% endif %}
                 {% if field in training_fields %}{% set branch = training_fields[field] %}
                 <div class="game-army-training">Poziom wyszkolenia: <strong data-training-level="{{ branch }}">{{ training.levels[branch] }}</strong> / {{ training.max }}
                     <button type="button" class="game-army-train-button" data-train="{{ branch }}">Wyszkol</button></div>
@@ -69,8 +88,20 @@
     <p id="army-training-error" class="army-training-error" role="alert"></p>
     <div class="army-training-actions"><button type="button" id="army-training-cancel">Anuluj</button><button type="submit" id="army-training-confirm">Wyszkol</button></div>
 </form></dialog>
+<dialog id="army-recruit-dialog" aria-labelledby="army-recruit-title"><form id="army-recruit-form">
+    <h2 id="army-recruit-title">Rekrutacja</h2>
+    <p id="army-recruit-current"></p>
+    <div class="army-training-stepper"><button type="button" id="army-recruit-minus" aria-label="Zmniejsz liczbę żołnierzy">−</button>
+        <input type="number" id="army-recruit-count" min="1" step="1" value="1000" aria-label="Liczba żołnierzy">
+        <button type="button" id="army-recruit-plus" aria-label="Zwiększ liczbę żołnierzy">+</button></div>
+    <p id="army-recruit-cost" role="status"></p>
+    <p id="army-recruit-error" class="army-training-error" role="alert"></p>
+    <div class="army-training-actions"><button type="button" id="army-recruit-cancel">Anuluj</button><button type="submit" id="army-recruit-confirm">Rekrutuj</button></div>
+</form></dialog>
 <script type="application/json" id="army-training-config">{{ training|tojson }}</script>
+<script type="application/json" id="army-recruit-config">{{ recruitment|tojson }}</script>
 {% endblock %}
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/game_army_training.js', v='20261111-training-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_army_recruitment.js', v='20261116-recruit-1') }}" defer></script>
 {% endblock %}

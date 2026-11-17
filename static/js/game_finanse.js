@@ -264,10 +264,36 @@ function formatRatio(numerator, denominator, digits = 2) {
         const cents=benefitCents(value);
         return `${cents/100000000000n}.${String(cents%100000000000n).padStart(11,'0')}`;
     }
+    // 16 Nov 2026: środki na walkę z przestępczością (kwota w MLD, wysyłana w ROI).
+    function crimeAmount(value) {
+        try { return benefitAmount(value); }
+        catch { throw Error('Podaj nieujemną kwotę na walkę z przestępczością w MLD.'); }
+    }
+    const crimeInput=form?.querySelector('[data-crime-funding]');
+    if(crimeInput && config.state && !config.state.approved) {
+        const initial=config.state.crime?.previous_paid ?? config.state.crime?.expected;
+        if(initial!=null) crimeInput.value=benefitBillions(initial).replace(/\.?0+$/,'') || '0';
+    }
+    function renderCrime(state) {
+        const crime=state.crime;
+        const info=form?.querySelector('[data-crime-expectations]');
+        if(info) info.textContent=crime?.expected!=null
+            ? `Oczekiwania społeczne na ${document.body.dataset.periodNom||'okres'}: ${moneyText(crime.expected)} (poziom przestępczości: ${crime.level ?? '—'}).`
+            : 'Brak danych o ludności lub poziomie przestępczości — oczekiwania są niedostępne.';
+        if(state.approved && crime?.paid!=null && crimeInput) crimeInput.value=benefitBillions(crime.paid);
+        const result=form?.querySelector('[data-crime-result]');
+        if(result) {
+            result.textContent=crime?.settled && crime.old_level!=null
+                ? `Rozliczono: przestępczość ${crime.new_level>crime.old_level?'wzrosła':crime.new_level<crime.old_level?'spadła':'nie zmieniła się'} (z ${crime.old_level} do ${crime.new_level}).`
+                : (state.approved && crime ? 'Skutek finansowania zostanie rozliczony tydzień Entendy przed zatwierdzeniem kolejnego budżetu.' : '');
+            result.hidden=!result.textContent;
+        }
+    }
     function renderState(state) {
+        renderCrime(state);
         const benefits=state.benefits;
         const info=form.querySelector('[data-benefits-expectations]');
-        if(info) info.textContent=benefits?.expected ? `Oczekiwania na półrocze: dzieci ${moneyText(benefits.expected.children)}, emerytury ${moneyText(benefits.expected.seniors)}, razem ${window.GameMoney.formatCents(benefitCents(benefits.expected.children)+benefitCents(benefits.expected.seniors))}. Przeniesione środki: ${moneyText(benefits.carry_in || '0')}.` : 'Brak struktury wieku ludności — oczekiwania świadczeń są niedostępne.';
+        if(info) info.textContent=benefits?.expected ? `Oczekiwania na ${document.body.dataset.periodNom||'okres'}: dzieci ${moneyText(benefits.expected.children)}, emerytury ${moneyText(benefits.expected.seniors)}, razem ${window.GameMoney.formatCents(benefitCents(benefits.expected.children)+benefitCents(benefits.expected.seniors))}. Przeniesione środki: ${moneyText(benefits.carry_in || '0')}.` : 'Brak struktury wieku ludności — oczekiwania świadczeń są niedostępne.';
         if(benefits?.paid) form.querySelectorAll('[data-benefit]').forEach(input=>{input.value=benefitBillions(benefits.paid[input.dataset.benefit]);});
 
         root.querySelectorAll("[data-value]").forEach(element => {
@@ -358,7 +384,8 @@ function formatRatio(numerator, denominator, digits = 2) {
             pit_rate: percentageText(percentagePoints(pit)),
 
             shares,
-            benefits: Object.fromEntries(Array.from(form.querySelectorAll("[data-benefit]")).map(input => [input.dataset.benefit,benefitAmount(input.value)]))
+            benefits: Object.fromEntries(Array.from(form.querySelectorAll("[data-benefit]")).map(input => [input.dataset.benefit,benefitAmount(input.value)])),
+            ...(crimeInput ? { crime_funding: crimeAmount(crimeInput.value) } : {})
         };
     }
 
@@ -368,10 +395,10 @@ function formatRatio(numerator, denominator, digits = 2) {
         return JSON.stringify(
             Array.from(
                 form.querySelectorAll(
-                    ".finance-rate, .finance-share:not([readonly]), [data-benefit]:not([readonly])"
+                    ".finance-rate, .finance-share:not([readonly]), [data-benefit]:not([readonly]), [data-crime-funding]:not([readonly])"
                 ),
                 input => [
-                    input.name || input.dataset.category || input.dataset.benefit,
+                    input.name || input.dataset.category || input.dataset.benefit || "crime_funding",
                     input.value
                 ]
             )
@@ -554,7 +581,7 @@ function formatRatio(numerator, denominator, digits = 2) {
                 previewValid = true;
 
                 throw new Error(
-                    "Dane państwa, rezerwa lub półrocze zmieniły się. " +
+                    "Dane państwa, rezerwa lub okres budżetowy zmieniły się. " +
                     "Sprawdź nowy podgląd i ponownie zatwierdź budżet."
                 );
             }
@@ -819,7 +846,7 @@ function formatRatio(numerator, denominator, digits = 2) {
             event.preventDefault();showError('');status.textContent='';showTransferError('');
             if(source.value===destination.value){showError('Wybierz dwa różne sektory budżetu.');return;}
             // Sector-to-sector transfers need public trust above the threshold; reserve operations stay open.
-            if(displayedState.sector_transfers_allowed===false&&source.value!=='reserve'&&destination.value!=='reserve'){showTransferError(trustMessage(displayedState.public_trust));return;}
+            if(displayedState.sector_transfers_allowed===false&&source.value!=='reserve'&&destination.value!=='reserve'&&!(destination.value==='armed_forces'&&displayedState.defense_transfers_allowed)){showTransferError(trustMessage(displayedState.public_trust));return;}
             const payload={budget_id:displayedState.budget_id,source:source.value,destination:destination.value,amount:window.GameMoney.fromBillions(amount.value)};
             const signature=JSON.stringify(payload);
             if(requestPayload!==signature){requestId=crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=crypto.getRandomValues(new Uint8Array(1))[0]&15;return (c==='x'?r:(r&3)|8).toString(16);});requestPayload=signature;}

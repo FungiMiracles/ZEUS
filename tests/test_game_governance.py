@@ -51,10 +51,19 @@ class SovereignRegistrationTests(FeatureTestCase):
         with self.client.session_transaction() as browser:
             browser['game_registration_csrf'] = 'registration-test'
 
-    def submit(self, country):
+    def submit(self, country, password='bezpieczne-haslo-test'):
         return self.client.post('/game/api/rejestracja', headers={'X-CSRF-Token': 'registration-test'}, json={
-            'username':'NowyGracz', 'email':'new@example.test', 'password':'bezpieczne-haslo-test',
-            'password_confirm':'bezpieczne-haslo-test', 'panstwo_id':country})
+            'username':'NowyGracz', 'email':'new@example.test', 'password':password,
+            'password_confirm':password, 'panstwo_id':country})
+
+    def test_password_must_be_longer_than_six_characters(self):
+        # 16 Nov 2026: hasło dłuższe niż 6 znaków (7–128).
+        self.dependent.czy_suwerenny = 'TAK'; self.dependent.zwierzch_panstwo_id = None; db.session.commit()
+        for password in ('123456', 'x' * 129):
+            response = self.submit(4, password)
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.json['error'], 'Hasło musi mieć od 7 do 128 znaków.')
+        self.assertEqual(self.submit(4, '1234567').status_code, 201)
 
     def test_forged_dependent_registration_cannot_create_account(self):
         response = self.submit(4)

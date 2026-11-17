@@ -113,7 +113,7 @@ def budget_plan(app,actor,task_id,data,*,step,model_id):
         extra={key:body.get(key) for key in ('allocation_total_percent','over_limit_percent') if body.get(key) is not None}
         return {'outcome':'DECISION','summary':'Odrzucono plan budżetu: '+reason[:160],'problem':{'operacja':'budget.plan','błąd':reason,**extra}}
     if body.get('completed_goal'):
-        return {'outcome':'ALREADY_DONE','summary':'Cel już zrealizowany: budżet tego półrocza był zatwierdzony.','completed_goal':body['completed_goal']}
+        return {'outcome':'ALREADY_DONE','summary':'Cel już zrealizowany: budżet tego okresu budżetowego był zatwierdzony.','completed_goal':body['completed_goal']}
     view=preview_view(body)
     approve={'rationale':str(data.get('rationale') or '')[:900]}
     for key in ('accept_social_shortfall','accept_revenue_decline'):

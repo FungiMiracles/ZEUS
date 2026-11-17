@@ -72,13 +72,16 @@ def init_game_auth_routes(app):
         username = request.form.get("game_login", "").strip()
         password = request.form.get("game_password", "")
 
-        if not username or len(username) > 50 or not 1 <= len(password) <= 128:
-            flash("Podaj poprawny login i hasło.", "game_error")
+        # 16 Nov 2026: logowanie loginem albo adresem e-mail. Login nie może zawierać „@” (rejestracja: litery, cyfry,
+        # _ i -), więc identyfikator z „@” jest zawsze adresem e-mail — wyszukiwanie jest jednoznaczne.
+        if not username or len(username) > 254 or not 1 <= len(password) <= 128:
+            flash("Podaj poprawny login lub adres e-mail i hasło.", "game_error")
             return redirect(url_for("wejscie"), code=303)
 
-        user = GameUser.query.filter_by(
-            username_normalized=username.casefold()
-        ).first()
+        if "@" in username:
+            user = GameUser.query.filter_by(email_normalized=username.casefold()).first()
+        else:
+            user = GameUser.query.filter_by(username_normalized=username.casefold()).first()
 
         if (
             user is None
@@ -86,7 +89,7 @@ def init_game_auth_routes(app):
             or not user.password_hash
             or not check_password_hash(user.password_hash, password)
         ):
-            flash("Nieprawidłowy login lub hasło.", "game_error")
+            flash("Nieprawidłowy login, adres e-mail lub hasło.", "game_error")
             return redirect(url_for("wejscie"), code=303)
 
         try:
@@ -199,8 +202,10 @@ def init_game_auth_routes(app):
             return jsonify(error='Login: 3–50 znaków (litery, cyfry, _ lub -).'), 400
         if len(email) > 254 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email):
             return jsonify(error='Podaj poprawny adres e-mail.'), 400
-        if not isinstance(password, str) or not 12 <= len(password) <= 128:
-            return jsonify(error='Hasło musi mieć od 12 do 128 znaków.'), 400
+        # 16 Nov 2026: hasło dłuższe niż 6 znaków (7–128) — wspólna reguła game.passwords.
+        from game.passwords import password_error
+        if (error := password_error(password)):
+            return jsonify(error=error), 400
         if password != password_confirm:
             return jsonify(error='Podane hasła nie są identyczne.'), 400
         if isinstance(panstwo_id, bool) or not str(panstwo_id).isdigit():

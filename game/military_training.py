@@ -45,7 +45,7 @@ def train(user_id,data):
         if current+count>MAX_LEVEL:raise FinanceError(f'{label}: maksymalny poziom wyszkolenia to {MAX_LEVEL} (obecnie {current}).')
         cost=price*count
         budget,_,available=military_budget(session,own)
-        if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżące półrocze.')
+        if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżący okres budżetowy.')
         if available<cost:raise FinanceError('Za mało środków w budżecie sił zbrojnych na szkolenie.')
         setattr(army,field,current+count)
         session.add(TrainingExpense(panstwo_id=own,user_id=user_id,budget_id=budget.id,branch=branch,levels=count,level_after=current+count,amount=cost,request_id=key,game_at=game_now()))

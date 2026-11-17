@@ -299,7 +299,7 @@
     const p=state.profile;
     $('paga2-state-profile').textContent=`Autonomia: ${p.autonomyEnabled?'włączona':'wyłączona'} · charakter: ${p.categories.map(c=>catalog.categories[c]?.label||c).join(', ')||'—'} · priorytety: ${p.priorities.map(k=>catalog.priorities[k]||k).join(' › ')||'—'}`;
     const f=state.finance,fin=$('paga2-state-finance');fin.replaceChildren();
-    const dl=make('dl',null,'paga2-dl');for(const [k,v] of [['Rezerwa skarbu',mld(f.reserve)],...(f.budget?[['Budżet półrocza',`${f.budget.year}/${f.budget.period}`],['Dochody podatkowe',mld(f.budget.tax)],['Budżet łącznie',mld(f.budget.total)],['Wydatki',mld(f.budget.expenditure)],['Rezerwa na koniec',mld(f.budget.closing)],['Tryb zatwierdzenia',f.budget.mode]]:[['Budżet','brak zatwierdzonego budżetu']])])dl.append(make('dt',k),make('dd',v));fin.append(dl);
+    const dl=make('dl',null,'paga2-dl');for(const [k,v] of [['Rezerwa skarbu',mld(f.reserve)],...(f.budget?[['Okres budżetu',`${f.budget.year}/${f.budget.period}`],['Dochody podatkowe',mld(f.budget.tax)],['Budżet łącznie',mld(f.budget.total)],['Wydatki',mld(f.budget.expenditure)],['Rezerwa na koniec',mld(f.budget.closing)],['Tryb zatwierdzenia',f.budget.mode]]:[['Budżet','brak zatwierdzonego budżetu']])])dl.append(make('dt',k),make('dd',v));fin.append(dl);
     const budget=$('paga2-state-budget');budget.replaceChildren();
     if(f.budget?.allocations?.length){const remaining=Object.fromEntries((f.remaining||[]).map(r=>[r.code,r.remaining]));budget.append(table(['Sektor','Udział','Kwota','Pozostało'],f.budget.allocations.map(a=>[a.label,a.share===null?'—':number.format(a.share)+'%',mld(a.amount),mld(remaining[a.code])])));}
     else budget.append(make('p','Brak ustalonego budżetu.'));

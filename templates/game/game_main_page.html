@@ -12,12 +12,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_dashboard.css', v='20261113-panel-2') }}">
 
 {% if config.get('GAME_FINANCE_ENABLED', false) %}
-<link rel="stylesheet"
-      href="{{ url_for(
-          'static',
-          filename='css/game_finanse.css',
-          v='20261113-pie-7'
-      ) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finanse.css', v='20261116-mobile-1') }}">
+{# 16 Nov 2026: okno zatwierdzania budżetu w nowym (granatowym) stylu — jak strona Finansów #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261116-modal-1') }}">
 {% endif %}
 
 {% endblock %}
@@ -120,7 +117,7 @@
 {% if config.get('GAME_FINANCE_ENABLED', false) %}
 <script src="{{ url_for(
     'static',
-    filename='js/game_finanse.js', benefit_version='20261106',
+    filename='js/game_finanse.js', benefit_version='20261116-period',
     v='20261113-pie-7'
 ) }}" defer></script>
 {% endif %}

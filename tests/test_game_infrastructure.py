@@ -256,6 +256,22 @@ class ConstructionTests(InfrastructureTests):
             self.assertTrue(response.location.endswith('/game/infrastruktura'))
             self.assertEqual(self.client.get('/game/forum/powiadomienia').json['unread_count'], 0)
 
+    def test_production_stop_notifications_open_infrastructure_screen(self):
+        # 16 Nov 2026: zatrzymanie fabryki, kopalni lub elektrowni — powiadomienie prowadzi do „Infrastruktura i energetyka”.
+        from game.forum_models import GameNotification
+        texts = ['Fabryka amunicji #3: produkcja została wstrzymana — brak energii w sieci (deficyt energii).',
+                 'Elektrownia węglowa #4: produkcja energii została wstrzymana — brak paliwa lub uszkodzenie.',
+                 'Elektrownia #9: produkcja energii wstrzymana po trafieniu.',
+                 'Kopalnia węgla #2: wydobycie zatrzymane — wyczerpano złoże w regionie.']
+        rows = [GameNotification(user_id=1, notification_type='SYSTEM', system_text=text) for text in texts]
+        other = GameNotification(user_id=1, notification_type='SYSTEM', system_text='Państwo X przeprowadziło atak na cel: baza.')
+        db.session.add_all(rows + [other]); db.session.commit()
+        for row in rows:
+            response = self.post(f'/game/forum/powiadomienia/{row.id}/otworz')
+            self.assertEqual(response.status_code, 303)
+            self.assertTrue(response.location.endswith('/game/infrastruktura'), row.system_text)
+        self.assertFalse(self.post(f'/game/forum/powiadomienia/{other.id}/otworz').location.endswith('/game/infrastruktura'))
+
     def test_completion_notification_rollback(self):
         from datetime import datetime
         from game.forum_models import GameNotification

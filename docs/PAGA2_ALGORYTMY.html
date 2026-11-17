@@ -102,7 +102,7 @@
  E --&gt; F[W każdej grupie required pozostaw najlepszy wykonalny wariant]
  F --&gt; R[Wykonaj decyzje wymagane poza limitem zwykłych działań]
  R --&gt; P{Są zwykłe opcje powyżej progu i wolny limit?}
- P --&gt;|tak| W[Wybierz najlepszą; przy różnicy poniżej 2 pkt losuj]
+ P --&gt;|tak| W[Wybierz najlepszą; przy równych ocenach losuj]
  W --&gt; X[Operacja przez endpoint gracza]
  X --&gt; Y{Status odpowiedzi poniżej 400?}
  Y --&gt;|tak| Z[Zapisz sukces, koszty, zasoby; zamknij grupę]

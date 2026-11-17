@@ -43,6 +43,12 @@ class MilitaryMaintenance(db.Model):
     budget_id = db.Column(db.BigInteger, index=True)
     amount = db.Column(db.Numeric(30,2), nullable=False)
     assessed_at = db.Column(db.DateTime, nullable=False, default=utc_now)
+    # 16 Nov 2026: opłata za żołnierzy w służbie czynnej (game.military_recruitment) — naliczana raz na okres, wliczona w amount.
+    soldier_count = db.Column(db.BigInteger, nullable=False, default=0, server_default=db.text('0'))
+    soldier_rate = db.Column(db.Numeric(30,2), nullable=False, default=0, server_default=db.text('0'))
+    soldier_fee = db.Column(db.Numeric(30,2), nullable=False, default=0, server_default=db.text('0'))
+    soldiers_assessed_at = db.Column(db.DateTime)
+    soldiers_recruited = db.Column(db.BigInteger, nullable=False, default=0, server_default=db.text('0'))   # rekruci okresu przed naliczeniem opłaty
     __table_args__ = (db.UniqueConstraint('panstwo_id','game_year','period',name='uq_military_maintenance_period'),db.CheckConstraint('amount >= 0'),{'mysql_engine':'InnoDB'})
 
 

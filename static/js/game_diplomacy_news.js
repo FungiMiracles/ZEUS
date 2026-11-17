@@ -21,7 +21,20 @@
     window.addEventListener('scroll',positionDropdown,true);
     let busy=false,next=null;
     const shown=new Set();
-    function count(value){badge.textContent=String(value);badge.hidden=value===0;toggle.setAttribute('aria-label',`Powiadomienia dyplomatyczne ze świata: ${value} nieprzeczytanych`);}
+    const readAll=root.querySelector('[data-news-read-all]');
+    function count(value){badge.textContent=String(value);badge.hidden=value===0;if(readAll)readAll.hidden=value===0;toggle.setAttribute('aria-label',`Powiadomienia dyplomatyczne ze świata: ${value} nieprzeczytanych`);}
+    // 16 Nov 2026: „Oznacz wszystkie jako przeczytane” — także powiadomienia na niewczytanych jeszcze stronach listy.
+    if(readAll)readAll.addEventListener('click',async()=>{
+        readAll.disabled=true;
+        try{
+            const body=new FormData();body.set('csrf_token',root.dataset.csrf);body.set('all','1');
+            const response=await fetch(root.dataset.readUrl,{method:'POST',credentials:'same-origin',body});
+            if(!response.ok)throw new Error();
+            count((await response.json()).unread_count);
+            list.querySelectorAll('.unread').forEach(item=>item.classList.remove('unread'));
+        }catch(error){status.hidden=false;status.textContent='Nie udało się oznaczyć powiadomień.';}
+        finally{readAll.disabled=false;}
+    });
     async function load(page=1,countOnly=false){
         if(busy)return;
         busy=true;more.disabled=true;

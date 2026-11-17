@@ -67,7 +67,7 @@ ACTION_HELP={
     'game_forum.page:POST':{'post':'content(obowiązkowe 1–1000 znaków), reply_to_id lub recipient_id opcjonalne'},
     'game_messages.send:POST':{'send':'content(obowiązkowe), recipient_id albo reply_to_id własnej otrzymanej wiadomości'},
     'game_loans.change:POST':{'request':'lender_id, amount_mld','accept':'loan_id','reject':'loan_id','cancel':'loan_id','repay':'loan_id'},
-    'game_diplomacy.create_action:POST':{'RELATION':'kind=RELATION, target_id, relation_id','WAR':'kind=WAR, target_id (wymaga wcześniej wrogiej relacji)','PEACE':'kind=PEACE, target_id (podczas wojny)','CEASEFIRE':'kind=CEASEFIRE, target_id (podczas wojny)'},
+    'game_diplomacy.create_action:POST':{'RELATION':'kind=RELATION, target_id, relation_id','WAR':'kind=WAR, target_id (wymaga wcześniej wrogiej relacji)','PEACE':'kind=PEACE, target_id (podczas wojny)','CEASEFIRE':'kind=CEASEFIRE, target_id, days (1–180 dni Entendy; podczas wojny)'},
 }
 
 def action_help(names):
@@ -170,7 +170,7 @@ def finance_view(result):
     if paid:
         view['paid_children_benefits_mld']=to_mld(paid.get('children') or 0);view['paid_seniors_benefits_mld']=to_mld(paid.get('seniors') or 0)
         view['benefits_coverage_percent']=float((total_paid*100/total_expected).quantize(Decimal('0.1'))) if total_expected else None
-    if state.get('approved'):view['uwaga']='Budżet tego półrocza jest zatwierdzony. Nie zatwierdzaj go ponownie.'
+    if state.get('approved'):view['uwaga']='Budżet tego okresu jest zatwierdzony. Nie zatwierdzaj go ponownie.'
     return {key:value for key,value in view.items() if value not in (None,{},[])}
 
 
@@ -434,7 +434,7 @@ def _game_now():
 
 GOALS={
     'strategic_review':'Okresowy przegląd strategiczny: oceń sytuację, swoje cele i postępy; kontynuuj, zmień priorytety albo zainicjuj nowe działania w dowolnym obszarze. Bezczynność jest dozwolona, jeśli świadomie ją wybierasz.',
-    'budget':'Przygotuj i zatwierdź budżet bieżącego półrocza jedną decyzją budget.plan.',
+    'budget':'Przygotuj i zatwierdź budżet bieżącego okresu (kwartału) jedną decyzją budget.plan.',
     'private_message':'Otrzymano wiadomość prywatną: zdecyduj, czy i jak odpowiedzieć lub działać.',
     'forum_reply':'Wpis na forum skierowany do nas lub odpowiedź na nasz wpis: zdecyduj o reakcji.',
     'forum_mention':'Nasze państwo zostało wspomniane na forum: zdecyduj, czy zająć stanowisko.',

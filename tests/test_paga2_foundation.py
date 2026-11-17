@@ -166,7 +166,10 @@ class Paga2Tests(Paga2Fixture,unittest.TestCase):
             key,drawn=randomizer.resolve(db.session,1,[('a',70),('b',50)],reason='test')
             self.assertEqual((key,drawn),('a',False))
             self.assertEqual(randomizer.calls(db.session),0)
-            key,drawn=randomizer.resolve(db.session,1,[('a',70),('b',69.5),('c',40)],reason='konflikt',rng=Random(1))
+            # 17 Nov 2026: różnica 0,5 pkt nie jest już remisem — wygrywa lepsza opcja bez losowania.
+            self.assertEqual(randomizer.resolve(db.session,1,[('a',70),('b',69.5)],reason='test'),('a',False))
+            self.assertEqual(randomizer.calls(db.session),0)
+            key,drawn=randomizer.resolve(db.session,1,[('a',70),('b',70.0001),('c',40)],reason='konflikt',rng=Random(1))
             self.assertTrue(drawn);self.assertIn(key,('a','b'))
             self.assertEqual(randomizer.calls(db.session),1);self.assertEqual(randomizer.calls(db.session,country_id=2),0)
             row=db.session.scalar(select(Paga2RandomDraw))

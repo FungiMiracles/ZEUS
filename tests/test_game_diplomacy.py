@@ -47,6 +47,10 @@ class DiplomacyTests(unittest.TestCase):
         InfrastructureProject.__table__.create(db.engine, checkfirst=True)
         from game.intelligence_models import IntelligenceAgent,CounterIntelligence,IntelligenceMission
         for model in (IntelligenceAgent,CounterIntelligence,IntelligenceMission):model.__table__.create(db.engine,checkfirst=True)
+        import game.finance_models   # noqa: F401 — tabele docelowe kluczy obcych armii lądowych
+        from game.military_models import MilitaryBase
+        from game.land_war_models import LandArmy,Occupation   # 17 Nov 2026: zawarcie pokoju kończy okupację
+        for model in (MilitaryBase,LandArmy,Occupation):model.__table__.create(db.engine,checkfirst=True)
         db.session.add_all([
             *[Panstwo(PANSTWO_ID=i, panstwo_nazwa=f'Państwo {i}') for i in range(1, 5)],
             *[GameUser(id=i, username=f'Gracz{i}', username_normalized=f'gracz{i}',
@@ -94,6 +98,43 @@ class DiplomacyTests(unittest.TestCase):
 
     def decide(self, action_id, decision='accept'):
         return self.post(f'/game/dyplomacja/propozycje/{action_id}/decyzja', decision=decision)
+
+    def test_peace_grace_period_blocks_war_for_30_entenda_days_both_ways(self):
+        # 16 Nov 2026: po zawarciu pokoju przez 30 dni Entendy żadna ze stron nie może wypowiedzieć drugiej wojny.
+        from datetime import datetime, timedelta
+        from game.diplomacy_service import create_action, DiplomacyError, peace_grace_until
+        signed = datetime(2990, 3, 1, 12, 0)
+        self.hostile()
+        with patch('game.diplomacy.get_current_entenda_datetime', return_value=signed):
+            self.create('WAR'); self.create('PEACE'); peace = self.action()
+            self.login(2)
+            self.assertEqual(self.decide(peace.id).status_code, 200)
+            self.login(1)
+            self.assertEqual(self.create('RELATION', relation_id=10).status_code, 201)      # jednostronne pogorszenie relacji
+            response = self.create('WAR')
+            self.assertEqual(response.status_code, 409)
+            self.assertIn('karencji', response.json['error'])
+            self.assertIn('31.03.2990 12:00', response.json['error'])
+            data = []
+            with template_rendered.connected_to(lambda sender, template, context, **kw: data.append(context), self.app):
+                self.client.get('/game/dyplomacja')
+            country = data[-1]['diplomacy_map']['countries']['2']
+            self.assertFalse(country['canWar']); self.assertEqual(country['peaceGraceUntil'], '31.03.2990 12:00')
+        self.assertEqual(peace_grace_until(db.session, 2, 1, signed + timedelta(days=29)), signed + timedelta(days=30))
+        with self.assertRaises(DiplomacyError):create_action(db.session, 2, 1, 'WAR', None, signed + timedelta(days=29, hours=23), sender_user_id=2)
+        db.session.rollback()
+        action = create_action(db.session, 2, 1, 'WAR', None, signed + timedelta(days=30), sender_user_id=2)
+        self.assertEqual(action.status, 'APPLIED')
+
+    def test_overview_counts_all_wars_in_the_world(self):
+        # 16 Nov 2026: „Trwające konflikty” — wojny kinetyczne wszystkich państw, nie tylko gracza.
+        db.session.add_all([Stosunki(PANSTWO_ID=1,PANSTWO_ID2=2,relacja_id=10,stan_id=8),Stosunki(PANSTWO_ID=3,PANSTWO_ID2=4,relacja_id=10,stan_id=8),
+                            Stosunki(PANSTWO_ID=2,PANSTWO_ID2=3,relacja_id=10,stan_id=2)]);db.session.commit()
+        contexts = []
+        with template_rendered.connected_to(lambda sender, template, context, **kw: contexts.append(context), self.app):
+            response = self.client.get('/game/dyplomacja')
+        self.assertEqual(contexts[-1]['world_wars'], 2)
+        self.assertIn('<span>Trwające konflikty</span><strong>2</strong>', response.get_data(as_text=True))
 
     def test_map_default_relations_and_inactive_or_unassigned_targets(self):
         contexts = []
@@ -152,20 +193,54 @@ class DiplomacyTests(unittest.TestCase):
 
     def test_ceasefire_and_rejection(self):
         self.hostile()
-        self.assertEqual(self.create('CEASEFIRE').status_code, 409)
+        self.assertEqual(self.create('CEASEFIRE', days=30).status_code, 409)
         self.create('WAR')
-        self.create('CEASEFIRE')
+        self.create('CEASEFIRE', days=30)
         first = self.action().id
         self.login(2)
         self.assertEqual(self.decide(first, 'reject').status_code, 200)
         self.assertEqual(self.relation().stan_id, 8)
         self.assertEqual(self.count(AudytStosunki), 1)
         self.login(1)
-        self.assertEqual(self.create('CEASEFIRE').status_code, 201)
+        self.assertEqual(self.create('CEASEFIRE', days=30).status_code, 201)
         self.login(2)
         self.assertEqual(self.decide(self.action().id).status_code, 200)
         self.assertEqual(self.relation().stan_id, 2)
         self.assertEqual(self.count(AudytStosunki), 2)
+
+    def test_ceasefire_duration_required_and_blocks_war_until_it_ends(self):
+        # 17 Nov 2026: proponujący podaje czas zawieszenia broni (1–180 dni Entendy); po przyjęciu żadna ze stron
+        # nie może wypowiedzieć drugiej wojny do końca tego okresu.
+        from datetime import datetime, timedelta
+        from game.diplomacy import proposal_label, notification_text
+        start = datetime(2990, 3, 1, 12, 0)
+        self.hostile()
+        with patch('game.diplomacy.get_current_entenda_datetime', return_value=start):
+            self.create('WAR')
+            for days in (None, 0, 181, 'abc'):
+                response = self.create('CEASEFIRE', **({} if days is None else {'days': days}))
+                self.assertEqual(response.status_code, 400, days)
+                self.assertIn('od 1 do 180 dni', response.get_json()['error'])
+            self.assertEqual(self.create('CEASEFIRE', days=45).status_code, 201)
+            ceasefire = self.action()
+            self.assertEqual(ceasefire.params, {'days': 45})
+            self.assertEqual(proposal_label(ceasefire, {}), 'Zawieszenie broni na 45 dni Entendy')
+            self.assertIn('na 45 dni Entendy', notification_text(ceasefire, 2))
+            self.login(2)
+            self.assertEqual(self.decide(ceasefire.id).status_code, 200)
+        db.session.expire_all()
+        ceasefire = db.session.get(DiplomaticAction, ceasefire.id)
+        self.assertEqual(ceasefire.params['until'], (start + timedelta(days=45)).isoformat())
+        self.relation().relacja_id = 10; db.session.commit()   # relacja wroga — wojna byłaby dozwolona bez rozejmu
+        for user in (1, 2):
+            self.login(user)
+            with patch('game.diplomacy.get_current_entenda_datetime', return_value=start + timedelta(days=44, hours=23)):
+                response = self.post('/game/dyplomacja/akcje', kind='WAR', target_id=2 if user == 1 else 1)
+            self.assertEqual(response.status_code, 409)
+            self.assertIn('zawieszenie broni', response.get_json()['error'])
+        self.login(1)
+        with patch('game.diplomacy.get_current_entenda_datetime', return_value=start + timedelta(days=45, minutes=1)):
+            self.assertEqual(self.create('WAR').status_code, 201)
 
     def test_sender_is_notified_when_player_answers_any_proposal(self):
         # 14 Nov 2026: odpowiedź gracza (przyjęcie lub odrzucenie) trafia do panelu powiadomień nadawcy.
@@ -182,7 +257,7 @@ class DiplomacyTests(unittest.TestCase):
         db.session.refresh(peace)
         self.assertIn('odrzuciło Twoją propozycję zawarcia pokoju', notification_text(peace, 1))
         self.login(1)
-        self.create('CEASEFIRE')
+        self.create('CEASEFIRE', days=30)
         ceasefire = self.action()
         self.login(2)
         self.assertEqual(self.decide(ceasefire.id).status_code, 200)
@@ -218,10 +293,12 @@ class DiplomacyTests(unittest.TestCase):
         self.create('WAR')
         self.create('PEACE')
         peace_id = self.action().id
-        self.create('CEASEFIRE')
+        self.create('CEASEFIRE', days=30)
         ceasefire_id = self.action().id
         self.login(2)
         self.assertEqual(self.decide(peace_id).status_code, 200)
+        # 16 Nov 2026: po zawarciu pokoju relacja „neutralne”, stan „pokój”.
+        self.assertEqual((self.relation().relacja_id, self.relation().stan_id), (6, 1))
         self.assertEqual(self.decide(ceasefire_id).status_code, 409)
         self.login(1)
         self.create('RELATION', relation_id=1)

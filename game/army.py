@@ -47,11 +47,14 @@ def page():
     from game.military_training import BRANCHES,ARMY_FIELDS,MAX_LEVEL,levels
     training={'levels':levels(army),'prices':{branch:str(price) for branch,(_,_,price) in BRANCHES.items()},'labels':{branch:label for branch,(_,label,_) in BRANCHES.items()},
               'max':MAX_LEVEL,'available':str(available),'url':url_for('game_army.train'),'csrf':session['game_csrf_token']}
+    from game.military_recruitment import summary as recruitment_summary
+    recruitment=recruitment_summary(db.session,country.PANSTWO_ID,army)
+    recruitment.update(url=url_for('game_army.recruit'),csrf=session['game_csrf_token'])
     rendered=render_template(
         "game/army.html", game_user=user, game_country=country_summary(country),
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
         game_active_page="army", army=army, weapon_parameters=weapon_parameters, active=active, military_budget_total=total,interceptor_ammunition=ammunition,
-        training=training,training_fields=ARMY_FIELDS,
+        training=training,training_fields=ARMY_FIELDS,recruitment=recruitment,
         nuclear_total=__import__('game.nuclear',fromlist=['total']).total(db.session,country.PANSTWO_ID),
     )
     db.session.commit()
@@ -75,3 +78,21 @@ def train():
     try:level=buy_training(user.id,data)
     except FinanceError as exc:return jsonify(error=str(exc)),400
     return jsonify(ok=True,level=level)
+
+
+@army_bp.post("/rekrutacja")
+def recruit():
+    """16 Nov 2026: rekrutacja żołnierzy do służby czynnej albo zwolnienie z rezerwy (JSON: action, branch, count)."""
+    from game.forum import player
+    from game.military import csrf_valid
+    from game.finance_service import FinanceError
+    from game.military_recruitment import change_for_user
+    user,country=player()
+    if user is None:return jsonify(error='Zaloguj się ponownie.'),401
+    if not csrf_valid():return jsonify(error='Sesja formularza wygasła. Odśwież stronę.'),403
+    data=request.get_json(silent=True)
+    if not isinstance(data,dict):return jsonify(error='Nieprawidłowe dane.'),400
+    db.session.rollback()
+    try:result=change_for_user(user.id,data)
+    except FinanceError as exc:return jsonify(error=str(exc)),400
+    return jsonify(ok=True,recruitment=result)

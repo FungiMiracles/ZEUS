@@ -581,17 +581,20 @@
 
                 <div class="game-field">
                     <label for="game-login">
-                        Login
+                        Login / adres e-mail
                     </label>
 
                     <input
                         type="text"
                         id="game-login"
                         name="game_login"
-                        placeholder="Wprowadź login"
+                        placeholder="Wprowadź login lub adres e-mail"
                         autocomplete="username"
+                        inputmode="email"
+                        autocapitalize="none"
+                        spellcheck="false"
                         required
-                        maxlength="50"
+                        maxlength="254"
                     >
                 </div>
 

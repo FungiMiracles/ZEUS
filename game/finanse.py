@@ -176,13 +176,15 @@ def _approved_details(database_session, budget_id, country_id):
     if assessment is None or not complete(allocations):
         raise FinanceError("Historia budżetu ma niekompletne dane.")
 
-    from game.budget_transfers import sector_balances,public_trust,TRANSFER_TRUST_THRESHOLD
+    from game.budget_transfers import sector_balances,public_trust,TRANSFER_TRUST_THRESHOLD,defensive_war
     from game.finance_service import game_now,period_key
     balances=sector_balances(database_session,budget)
     trust=public_trust(database_session,budget.panstwo_id)
     from game.social_benefits import details
+    from game.crime_funding import details as crime_details
     return {
         "benefits":details(database_session,budget),
+        "crime":crime_details(database_session,budget),
         "balances":balances,
         "revenue_basis":(assessment.general_tax_basis or {}).get("basis"),
         "revenue_components":(assessment.general_tax_basis or {}).get("components"),
@@ -191,6 +193,8 @@ def _approved_details(database_session, budget_id, country_id):
         # Sector-to-sector transfers need public trust above the threshold; the reserve is not affected (10 Nov 2026).
         "public_trust":trust,"transfer_trust_threshold":TRANSFER_TRUST_THRESHOLD,
         "sector_transfers_allowed":trust is None or trust>TRANSFER_TRUST_THRESHOLD,
+        # 17 Nov 2026: w wojnie obronnej przesunięcia do sił zbrojnych nie wymagają progu zaufania.
+        "defense_transfers_allowed":defensive_war(database_session,budget.panstwo_id) if (budget.game_year,budget.period)==period_key(game_now()) else False,
         "approved": True,
         "budget_id": budget.id,
         "year": budget.game_year,
@@ -450,7 +454,7 @@ def approve():
         or not isinstance(period, int)
         or isinstance(period, bool)
     ):
-        raise FinanceError("Nieprawidłowy rok lub półrocze.")
+        raise FinanceError("Nieprawidłowy rok lub okres budżetowy.")
 
     basis_token = data.get("basis_token")
 
@@ -465,6 +469,7 @@ def approve():
         period=period,
         expected_basis=basis_token,
         benefits=data.get("benefits"),
+        crime_funding=data.get("crime_funding"),
         repeat_previous=_repeat_flag(data),
         pit_rate=data.get("pit_rate"),
         cit_rate=0,

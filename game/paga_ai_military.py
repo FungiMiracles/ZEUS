@@ -100,7 +100,8 @@ def variants(operation,relation_ids):
             action('defense_upgrade',{'defense_id':INT},['defense_id']),action('defense_refill',{'defense_id':INT,'ammunition':INT},['defense_id','ammunition']),
             action('defense_repair',{'defense_id':INT,'count':{'type':'integer','minimum':1,'maximum':100}},['defense_id','count'])]}
     if operation=='game_diplomacy.create_action:POST':
-        options=[_object({'kind':{'type':'string','enum':[kind]},'target_id':INT},['kind','target_id']) for kind in ('WAR','PEACE','CEASEFIRE')]
+        options=[_object({'kind':{'type':'string','enum':[kind]},'target_id':INT},['kind','target_id']) for kind in ('WAR','PEACE')]
+        options.append(_object({'kind':{'type':'string','enum':['CEASEFIRE']},'target_id':INT,'days':{'type':'integer','minimum':1,'maximum':180}},['kind','target_id','days']))   # 17 Nov 2026
         relation={'type':'integer','enum':sorted(relation_ids)} if relation_ids else INT
         options.append(_object({'kind':{'type':'string','enum':['RELATION']},'target_id':INT,'relation_id':relation},['kind','target_id','relation_id']))
         return {'anyOf':options}

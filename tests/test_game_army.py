@@ -31,7 +31,7 @@ class GameArmyTests(FeatureTestCase):
         self.assertEqual(contexts[-1]['army'].panstwo_id, 1)
         html = response.get_data(as_text=True)
         self.assertIn('12 345', html)
-        self.assertIn('Budżet sił zbrojnych na bieżące półrocze', html)
+        self.assertIn('Budżet sił zbrojnych na bieżący okres', html)   # 16 Nov 2026: nazwa okresu z game_period (w teście bez niej — „okres”)
         self.assertIn('W służbie czynnej',html)
         self.assertNotIn('2.5 %',html)
         self.assertNotIn('999 999', html)

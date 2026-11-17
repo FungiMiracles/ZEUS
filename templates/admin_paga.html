@@ -137,7 +137,7 @@
 <p id="paga2-control-status" role="status" aria-live="polite"></p><p id="paga2-control-error" class="paga-error" role="alert"></p>
 <p class="paga-note">Wyłączenie zatrzymuje wszystkie kolejne decyzje PAGA2 — także te w trakcie przygotowania. Tryby doraźny (reakcja na zagrożenia i wiadomości) i budżetowy działają tylko przy włączonym PAGA2.</p>
 </section>
-<section class="paga-card"><h2>Randomizer</h2><p class="paga-note">Moduł losujący rozstrzyga konflikt, gdy dwie lub więcej opcji ma niemal równą ocenę (różnica poniżej 2 punktów).</p>
+<section class="paga-card"><h2>Randomizer</h2><p class="paga-note">Moduł losujący rozstrzyga konflikt, gdy dwie lub więcej opcji ma równą ocenę (z dokładnością do 0,001 punktu).</p>
 <div id="paga2-random-stats" class="paga-stats" role="status"></div>
 <div class="paga-monitor-table"><table><caption class="paga-note">Najczęściej losujące państwa</caption><thead><tr><th>Państwo</th><th>Wywołania</th></tr></thead><tbody id="paga2-random-countries"></tbody></table></div>
 <h3>Ostatnie losowania</h3><div id="paga2-random-recent" class="paga-decision-list"></div></section>
@@ -189,7 +189,7 @@
 <script type="application/json" id="paga-config">{{ paga_config|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga.js',v='20261112-paga2-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261114-stats-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261116-period-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga_relationships.js',v='20261108-1') }}" defer></script>
 {% if paga_config.monitoringUrl %}<script src="{{ url_for('static',filename='js/wiki_paga_monitoring.js',v='20261110-multiai-1') }}" defer></script>{% endif %}
 {% endblock %}

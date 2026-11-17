@@ -41,6 +41,10 @@ html body.game-app.game-navy :is(#world-map){background:radial-gradient(ellipse 
 .world-layer-toggle input{width:16px;height:16px;margin:0;accent-color:#ffcf6b;cursor:pointer}
 .world-layer-toggle:has(input:checked){background:#fff;color:#1E3A5F;border-color:#fff}
 .world-layer-toggle:has(input:focus-visible){outline:2px solid #ffcf6b;outline-offset:2px}
+/* 16 Nov 2026: tekst przełączników warstw biały jak na pozostałych przyciskach (nadpisuje ogólne kolory etykiet motywu). */
+html body.game-app.game-navy.game-civic .world-layer-toggle,html body.game-app.game-navy.game-civic .world-layer-toggle span{color:#fff;background:transparent}
+html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked){background:#fff;border-color:#fff}
+html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked) span{color:#1E3A5F}
 .legend-waters i{display:inline-block;width:14px;height:10px;border-radius:2px}
 .legend-waters-own{background:#ffcf6b80;border:1px solid #ffcf6b}
 .legend-waters-foreign{margin-left:10px;background:#8fd3ff55;border:1px solid #9fd8ff}

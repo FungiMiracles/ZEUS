@@ -15,6 +15,7 @@
   <div class="game-notification-dropdown">
     <strong>Dyplomacja państw trzecich</strong>
     <p data-news-status role="status">Ładowanie powiadomień…</p>
+    <button type="button" class="game-notification-read-all" data-news-read-all hidden>Oznacz wszystkie jako przeczytane</button>
     <div data-news-list></div>
     <button type="button" data-news-more hidden>Pokaż starsze</button>
   </div>
@@ -22,7 +23,7 @@
 {% endif %}
 <a href="{{ url_for('game_forum.page') }}">Forum międzynarodowe ↗</a>{% endblock %}
 {% block content %}
-<section class="diplomacy-overview" aria-label="Przegląd stosunków międzynarodowych"><div><span>Państwa na mapie</span><strong>{{ diplomacy_map.countries|length }}</strong></div><div><span>Państwa innych graczy</span><strong>{{ diplomacy_map.countries.values()|selectattr('canAct')|list|length }}</strong></div><div><span>Trwające konflikty</span><strong>{{ diplomacy_map.countries.values()|rejectattr('own')|selectattr('war')|list|length }}</strong></div></section>
+<section class="diplomacy-overview" aria-label="Przegląd stosunków międzynarodowych"><div><span>Państwa na mapie</span><strong>{{ diplomacy_map.countries|length }}</strong></div><div><span>Państwa innych graczy</span><strong>{{ diplomacy_map.countries.values()|selectattr('canAct')|list|length }}</strong></div><div><span>Trwające konflikty</span><strong>{{ world_wars }}</strong></div></section>
 <div class="diplomacy-layout">
 <div class="diplomacy-map-column">
 {# 13 Nov 2026: mapa w układzie ekranu „Świat” — granatowy pasek, legenda pod paskiem, ocean #}
@@ -61,6 +62,11 @@
                 <option value="CEASEFIRE">Zaproponuj zawieszenie broni</option>
                 <option value="JOIN_WAR">Poproś o dołączenie do wojny</option>
             </select>
+            {# 17 Nov 2026: czas zawieszenia broni (1–180 dni Entendy) #}
+            <div id="diplomacy-ceasefire-field" hidden>
+                <label for="diplomacy-ceasefire-days">Czas zawieszenia broni (dni Entendy, 1–180)</label>
+                <input type="number" name="days" id="diplomacy-ceasefire-days" min="1" max="180" step="1" value="30" inputmode="numeric">
+            </div>
             <div id="diplomacy-enemy-field" hidden>
                 <label for="diplomacy-enemy">Wojna, do której ma dołączyć</label>
                 <select name="enemy_id" id="diplomacy-enemy"></select>
@@ -85,6 +91,6 @@
 {% block extra_js %}
 <script src="{{ url_for('static',filename='js/game_diplomacy_proposals.js',v='20261106-1') }}" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/game_diplomacy.js', v='20261113-dipl-1') }}" defer></script>
-{% if config.get('DIPLOMACY_NEWS_ENABLED') %}<script src="{{ url_for('static',filename='js/game_diplomacy_news.js',v='20261106-2') }}" defer></script>{% endif %}
+<script src="{{ url_for('static', filename='js/game_diplomacy.js', v='20261117-ceasefire-1') }}" defer></script>
+{% if config.get('DIPLOMACY_NEWS_ENABLED') %}<script src="{{ url_for('static',filename='js/game_diplomacy_news.js',v='20261116-1') }}" defer></script>{% endif %}
 {% endblock %}

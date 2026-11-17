@@ -20,6 +20,7 @@ from game.paga2.finance import request_id,result
 DEFENSE='/game/obrona-panstwa/zmien'
 RADAR='/game/obrona-panstwa/radar'
 TRAIN='/game/sily-zbrojne/wyszkol'
+RECRUIT='/game/sily-zbrojne/rekrutacja'
 KIND_LABELS={'land':'Baza lądowa','air':'Baza powietrzna','naval':'Baza morska','nuclear':'Silos atomowy'}
 
 
@@ -50,6 +51,11 @@ class Forces:
         self.capital=session.scalar(select(Miasto.miasto_id).where(Miasto.panstwo_id.in_(scope),Miasto.miasto_typ_id==1).limit(1))
         budget,total,available=military_budget(session,country_id)
         self.budget_available=float(available);self.budget_total=float(total);self.has_budget=budget is not None
+        # 16 Nov 2026: służba czynna — rezerwa, limit 30% ludności 18–64, stawka i opłata za żołnierzy.
+        try:
+            from game.military_recruitment import summary as recruitment_summary
+            self.recruitment=recruitment_summary(session,country_id,army,self.bases) if army else None
+        except Exception:self.recruitment=None
         self.ammunition=0
         from game.research_models import ResearchAccount
         account=session.get(ResearchAccount,country_id)
@@ -290,14 +296,58 @@ def training_options(ctx,forces):
     t=ctx.traits
     if ctx.situation.get('level')=='peace' and t.get('militarism',50)<60:return []
     levels={branch:forces.army.get(field) if forces.army.get(field) is not None else 100 for branch,(field,_,_) in BRANCHES.items()}
-    branch=min(levels,key=levels.get)
+    war=ctx.situation.get('level')=='war'
+    # 17 Nov 2026: w czasie wojny priorytetem jest wyszkolenie wojsk lądowych (mnoży siłę w bitwach lądowych),
+    # na szkolenie można przeznaczyć większą część limitu jednej akcji, a opcja ma wyższą wagę bazową.
+    branch='land' if war and levels['land']<MAX_LEVEL else min(levels,key=levels.get)
     if levels[branch]>=MAX_LEVEL:return []
     price=float(BRANCHES[branch][2])
-    count=int(min(MAX_LEVEL-levels[branch],max(0,.4*ctx.limits['per_action']*forces.budget_available//price)))
+    count=int(min(MAX_LEVEL-levels[branch],max(0,(.9 if war else .4)*ctx.limits['per_action']*forces.budget_available//price)))
     if count<1:return []
     return [Option(key=f'train:{branch}',domain='army',action='TRAINING',label=f'Szkolenie: {BRANCHES[branch][1]} +{count} (poziom {levels[branch]})',cost=count*price,sector='armed_forces',
-                   effects={'defensive_army':.7,'offensive_army':.7},traits={'militarism':.7,'loss_tolerance':-.3},base=threat_bonus(ctx)/2,
+                   effects={'defensive_army':1.0 if war else .7,'offensive_army':.7},traits={'militarism':.7,'loss_tolerance':-.3},
+                   base=threat_bonus(ctx)+(2.0 if war else 0) if war else threat_bonus(ctx)/2,
+                   notes=[f'Siła w bitwie lądowej rośnie proporcjonalnie do wyszkolenia (obecnie {levels[branch]}); koszt {price/1e9:.1f} MLD za poziom.'] if war else [],
                    payload={'branch':branch,'levels':count,'group':'train'})]
+
+
+def soldier_budget_share(ctx):
+    """Część budżetu sił zbrojnych, którą państwo przeznacza na opłatę za żołnierzy (militaryzm, zagrożenie, wojna)."""
+    return .2+.25*ctx.traits.get('militarism',50)/100+{'war':.2,'threat':.1}.get(ctx.situation.get('level'),0.0)
+
+
+def recruitment_options(ctx,forces):
+    """16 Nov 2026: rekrutacja żołnierzy do rezerwy służby czynnej (pod nowe garnizony) albo zwolnienie nadmiaru rezerwy,
+    gdy opłata za żołnierzy w następnym okresie przekroczyłaby część budżetu sił zbrojnych przeznaczoną na żołnierzy."""
+    from game.military_service import CAPACITIES
+    r=getattr(forces,'recruitment',None)
+    if not r or not forces.has_budget or forces.budget_total<=0:return []
+    rate=float(r['rate']);total=int(r['total']);limit=r['limit']
+    cap=soldier_budget_share(ctx)*forces.budget_total;fee=total*rate;options=[]
+    if rate>0 and fee>cap*1.15:
+        excess=int((fee-cap)/rate)+1
+        branch=max(r['branches'],key=lambda b:r['branches'][b]['reserve'])
+        count=min(excess,r['branches'][branch]['reserve'])
+        if count>=1:
+            options.append(Option(key=f'army:dismiss:{branch}',domain='army',action='DISMISS',label=f'Zwolnienie {count} żołnierzy z rezerwy ({r["branches"][branch]["label"]})',
+                                  effects={'financial_stability':.6,'defensive_army':-.3},traits={'militarism':-.4,'strategic_patience':.2},base=2.0,
+                                  notes=[f'Opłata za żołnierzy w następnym okresie {fee:,.0f} ROI przekracza zakładane {cap:,.0f} ROI budżetu sił zbrojnych.'],
+                                  payload={'action':'dismiss','branch':branch,'count':count,'group':'army:soldiers'}))
+        return options
+    if limit is None:return []
+    level=ctx.situation.get('level');multiplier={'war':3,'threat':2}.get(level,1)*(.5+ctx.traits.get('militarism',50)/100)
+    money_room=(cap-fee)/rate if rate>0 else float('inf')
+    room=min(limit-total,money_room)
+    for branch in sorted(r['branches'],key=lambda b:r['branches'][b]['reserve']):
+        target=int(CAPACITIES[branch][0]['soldiers']*multiplier);reserve=r['branches'][branch]['reserve']
+        count=int(min(target-reserve,room))
+        if count<min(1000,max(1,target-reserve)):continue
+        options.append(Option(key=f'army:recruit:{branch}',domain='army',action='RECRUIT',label=f'Rekrutacja {count} żołnierzy ({r["branches"][branch]["label"]})',
+                              effects={'defensive_army':.9,'offensive_army':.5,'financial_stability':-.2},traits={'militarism':.6},base=1.0+threat_bonus(ctx)/2,
+                              notes=[f'Rezerwa {reserve} wobec docelowej {target}; opłata od następnego okresu: {count*rate:,.0f} ROI.'],
+                              payload={'action':'recruit','branch':branch,'count':count,'group':'army:soldiers'}))
+        break
+    return options
 
 
 def propose(ctx):
@@ -305,7 +355,7 @@ def propose(ctx):
     if not forces.army:return []
     threats,_=threat_map(ctx,_world(ctx))
     ctx._threats=threats
-    return base_options(ctx,forces,threats)+missile_defense_options(ctx,forces,threats)+radar_options(ctx,forces,threats)+training_options(ctx,forces)+nuclear_production_options(ctx)
+    return base_options(ctx,forces,threats)+missile_defense_options(ctx,forces,threats)+radar_options(ctx,forces,threats)+training_options(ctx,forces)+recruitment_options(ctx,forces)+nuclear_production_options(ctx)
 
 
 def nuclear_production_options(ctx):
@@ -372,6 +422,8 @@ def execute(ctx,option):
         status,data=ctx.call(INDUSTRY,json={'action':'order','category':'factory','object_id':p['factory_id'],'count':p['count'],'request_id':rid})
     elif option.action=='TRAINING':
         status,data=ctx.call(TRAIN,json={'branch':p['branch'],'levels':p['levels'],'request_id':rid})
+    elif option.action in ('RECRUIT','DISMISS'):
+        status,data=ctx.call(RECRUIT,json={'action':p['action'],'branch':p['branch'],'count':p['count']})
     else:return {'status':400,'error':'Nieznana operacja obronna.'}
     if status<400:ctx._forces=None;ctx._holdings=None
     return result(status,data)

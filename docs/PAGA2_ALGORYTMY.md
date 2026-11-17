@@ -42,7 +42,7 @@ flowchart TD
  E --> F[W każdej grupie required pozostaw najlepszy wykonalny wariant]
  F --> R[Wykonaj decyzje wymagane poza limitem zwykłych działań]
  R --> P{Są zwykłe opcje powyżej progu i wolny limit?}
- P -->|tak| W[Wybierz najlepszą; przy różnicy poniżej 2 pkt losuj]
+ P -->|tak| W[Wybierz najlepszą; przy równych ocenach losuj]
  W --> X[Operacja przez endpoint gracza]
  X --> Y{Status odpowiedzi poniżej 400?}
  Y -->|tak| Z[Zapisz sukces, koszty, zasoby; zamknij grupę]

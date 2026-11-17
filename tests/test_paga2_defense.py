@@ -79,10 +79,10 @@ class BaseTests(unittest.TestCase):
 class BaseLimitTests(unittest.TestCase):
     """13 Nov 2026: utrzymanie baz ≤ 50% budżetu wojska; priorytet nowej bazy maleje z liczbą baz."""
     def test_upkeep_cap_blocks_new_bases_and_reinforcements(self):
-        heavy=[base(i,garrison={'soldiers':10000,'tanks':100}) for i in range(1,4)]   # 3 × (40 mln + 0,8 mln) ≈ 0,12 MLD
+        heavy=[base(i,garrison={'soldiers':10000,'tanks':100}) for i in range(1,4)]   # 3 × 0,8 mln (16 Nov 2026: żołnierze bez stawki w bazie)
         rich=defense.base_options(ctx('war'),forces(bases=heavy,budget=1e11),{})
         self.assertTrue([o for o in rich if o.action=='BASE_DEPLOY'])
-        poor=defense.base_options(ctx('war'),forces(bases=heavy,budget=2e8),{})              # 50% z 0,2 MLD = 100 mln < utrzymanie istniejących (122 mln)
+        poor=defense.base_options(ctx('war'),forces(bases=heavy,budget=4e6),{})              # 50% z 4 mln = 2 mln < utrzymanie istniejących (2,4 mln)
         self.assertFalse([o for o in poor if o.action in ('BASE_DEPLOY','BASE_REINFORCE')])
 
     def test_priority_of_new_base_falls_with_number_of_bases(self):
@@ -130,9 +130,10 @@ class RadarAndTrainingTests(unittest.TestCase):
         self.assertEqual(defense.training_options(ctx(),forces()),[])
         war=ctx('war')
         [option]=defense.training_options(war,forces(budget=2e10))
-        self.assertEqual(option.payload['branch'],'naval')                       # najsłabiej wyszkolone siły
-        self.assertLessEqual(option.cost,.4*war.limits['per_action']*2e10)          # w granicach rozwagi finansowej
-        self.assertEqual(option.payload['levels'],int(.4*war.limits['per_action']*2e10//1.7e9))
+        # 17 Nov 2026: w czasie wojny priorytetem są siły lądowe (siła w bitwach lądowych), do 90% limitu jednej akcji.
+        self.assertEqual(option.payload['branch'],'land')
+        self.assertLessEqual(option.cost,.9*war.limits['per_action']*2e10)          # w granicach rozwagi finansowej
+        self.assertEqual(option.payload['levels'],int(.9*war.limits['per_action']*2e10//1.5e9))
 
 
 class ExecuteTests(unittest.TestCase):

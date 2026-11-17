@@ -85,7 +85,7 @@ def start_project(user_id, region_id, metric, levels, use_reserve):
         year, period = period_key(now)
         budget = session.scalar(select(StateBudget).where(StateBudget.panstwo_id == country.PANSTWO_ID, StateBudget.game_year == year, StateBudget.period == period).with_for_update())
         if budget is None:
-            raise FinanceError('Najpierw zatwierdź budżet na bieżące półrocze.')
+            raise FinanceError('Najpierw zatwierdź budżet na bieżący okres budżetowy.')
         from game.budget_transfers import infrastructure_balance
         allocated,available=infrastructure_balance(session,budget)
         from_budget = min(cost, max(Decimal(0), available))

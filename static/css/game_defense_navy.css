@@ -205,3 +205,12 @@ html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .mil
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-recipe-sign{color:var(--def-navy);font-size:20px;font-weight:800;line-height:1}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) #military-dialog p.military-recipe-stock{margin:10px 0 0;color:var(--def-muted);font-size:12px}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) #military-dialog p.military-recipe-stock.is-missing{color:#a43426}
+
+/* 16 Nov 2026: notka o regionie za granicą (bazy w regionach z pozwoleniem) */
+html body.game-app .military-region-note{margin:8px 0 4px;padding:8px 10px;border-left:3px solid #1E3A5F;border-radius:6px;background:#eef3fa;color:#24324a;font-size:13px;line-height:1.45}
+
+/* 16 Nov 2026: menu bazy (⋮) w panelu „Zarządzaj obroną” nie może być ucinane przez panel (overflow:hidden z nowego
+   stylu paneli) — panel boczny bez przycinania, zaokrąglenie przeniesione na pasek nagłówka. */
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .game-panel.military-sidebar{overflow:visible}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .game-panel.military-sidebar>.war-panel-bar{border-top-left-radius:9px;border-top-right-radius:9px}
+html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-base-menu[open]{z-index:30}

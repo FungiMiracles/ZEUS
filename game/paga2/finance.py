@@ -32,12 +32,14 @@ def finance_state(ctx):
     if state.get('budget_id'):return state
     from game.finance_models import StateBudget
     from game.finance_service import period_key
-    from game.budget_transfers import public_trust,TRANSFER_TRUST_THRESHOLD
+    from game.budget_transfers import public_trust,TRANSFER_TRUST_THRESHOLD,defensive_war
     year,period=period_key(ctx.now)
     with Session(db.engine) as session:
         budget=session.scalar(select(StateBudget.id).where(StateBudget.panstwo_id==ctx.country_id,StateBudget.game_year==year,StateBudget.period==period))
         trust=public_trust(session,ctx.country_id) if budget else None
-    return {'budget_id':budget,'can_transfer':budget is not None,'public_trust':trust,'sector_transfers_allowed':trust is None or trust>TRANSFER_TRUST_THRESHOLD}
+        defense=defensive_war(session,ctx.country_id) if budget else False
+    return {'budget_id':budget,'can_transfer':budget is not None,'public_trust':trust,'sector_transfers_allowed':trust is None or trust>TRANSFER_TRUST_THRESHOLD,
+            'defense_transfers_allowed':defense}
 
 
 def targets(ctx):
@@ -65,6 +67,7 @@ def transfer_options(ctx):
     budget_id=state.get('budget_id')
     if not budget_id or not state.get('can_transfer',True):return []
     sectors_allowed=bool(state.get('sector_transfers_allowed',True))
+    defense_allowed=bool(state.get('defense_transfers_allowed',False))   # 17 Nov 2026: wojna obronna — do sił zbrojnych bez progu zaufania
     total=sum(ctx.available(s) for s in SECTORS)
     if total<=0 and ctx.available('reserve')<=0:return []
     share=targets(ctx);needs=plan_needs(ctx)
@@ -80,7 +83,7 @@ def transfer_options(ctx):
         for donor in SECTORS:
             if donor==recipient:continue
             surplus=ctx.available(donor)-share[donor]*total*.8
-            if surplus>MIN_TRANSFER and sectors_allowed:donors.append((donor,surplus))
+            if surplus>MIN_TRANSFER and (sectors_allowed or (defense_allowed and recipient=='armed_forces')):donors.append((donor,surplus))
         reserve=ctx.available('reserve')*(.6-.4*ctx.traits.get('fiscal_conservatism',50)/100)
         if reserve>MIN_TRANSFER:donors.append(('reserve',reserve))
         if not donors:continue

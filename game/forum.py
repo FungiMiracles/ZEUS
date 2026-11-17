@@ -1,6 +1,7 @@
 """Publiczne forum: publikowanie, odpowiedzi, adresaci i edycja własnych wpisów."""
 
 import hmac
+import re
 from datetime import timezone
 from zoneinfo import ZoneInfo
 
@@ -199,6 +200,10 @@ def page():
     if error or context_error:
         return render_page(user, country, content=content, error=error or context_error,
                            status=400, **context)
+    # 16 Nov 2026: globalny dobowy limit wpisów PAGA (odpowiedzi na wpisy graczy ludzkich zawsze dozwolone).
+    from game.paga_forum_quota import blocked as paga_quota_blocked
+    if (quota_error := paga_quota_blocked(db.session, user.id, reply)):
+        return render_page(user, country, content=content, error=quota_error, status=429, **context)
     first_recipient = recipient[0] if recipient else None
     message = ForumMessage(
         user_id=user.id, panstwo_id=country.PANSTWO_ID,
@@ -378,6 +383,16 @@ def read_notifications():
     return jsonify(unread_count=count)
 
 
+# 16 Nov 2026: zatrzymanie produkcji w fabryce, wydobycia w kopalni lub produkcji energii w elektrowni
+# (game.industry_service, game.mining_service, game.military_flights) — powiadomienie prowadzi do ekranu
+# „Infrastruktura i energetyka”.
+PRODUCTION_STOPPED = re.compile(r"^[^:\n]+ #\d+: (?:produkcja(?: energii)? (?:została )?wstrzymana|wydobycie zatrzymane)\b")
+
+
+def production_stopped(text):
+    return bool(PRODUCTION_STOPPED.match(text or ""))
+
+
 def notification_icon(item, *, intelligence=False):
     text=(item.system_text or '').casefold() if item.notification_type=='SYSTEM' else ''
     filename=None
@@ -429,6 +444,7 @@ def open_notification(notification_id):
         if " zakupił/a " in (notification.system_text or "") and "Cło portowe:" in (notification.system_text or ""):return redirect("/game/handel",code=303)
         if (notification.system_text or "").startswith("Obywatele nie są zadowoleni z wysokiej stawki podatku."):return redirect("/game/spoleczenstwo",code=303)
         if (notification.system_text or "").startswith("Droga:"):return redirect("/game/infrastruktura?tab=roads",code=303)
+        if production_stopped(notification.system_text):return redirect("/game/infrastruktura",code=303)
         if (notification.system_text or "").startswith("Pożyczka:"):return redirect("/game/finanse#state-loans",code=303)
         from game.intelligence_models import IntelligenceMission
         from game.intelligence_service import mission_details

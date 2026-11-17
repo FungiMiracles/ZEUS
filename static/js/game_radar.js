@@ -39,14 +39,14 @@
         if(!visible())return;
         for(const radar of radars()){
             if(cfg.mode==='defense'&&radar.countryId!==cfg.countryId)continue;
-            const symbol=api.make('div',null,'military-radar-symbol'+(radar.health?'':' military-radar-destroyed'));
+            const symbol=api.make('div',null,'military-radar-symbol military-map-badge'+(radar.health?'':' military-radar-destroyed'));
             if(cfg.mode==='defense'&&api.mapFilters.has('defenses')&&(cfg.defenses||[]).some(item=>item.targetKind==='radar'&&item.targetId===radar.id))symbol.classList.add('military-object-protected');
             symbol.append(api.image(cfg.radarIcon,'Radar'),api.make('span',ROMAN[radar.level],'military-radar-level'));
             if(radar.countryId!==cfg.countryId){const flag=api.image(cfg.flags[String(radar.countryId)]||'','');flag.className='military-radar-flag';flag.onerror=()=>flag.remove();symbol.append(flag);}
             const life=api.make('progress');life.className='map-health-bar';life.max=100;life.value=radar.health;window.GameHealth?.paint(life,radar.health);symbol.append(life);
             const tooltip=api.make('div');tooltip.append(api.make('strong',`${radar.name} · poziom ${ROMAN[radar.level]}`),api.healthBar(radar.health),
                 api.make('p',radar.health?`Zasięg wykrywania: ${api.number(radar.rangeKm)} km`:'Radar zniszczony — nie wykrywa obiektów.'));
-            const marker=api.bindObjectTooltip(L.marker([radar.position[1],radar.position[0]],{icon:L.divIcon({html:symbol,className:'',iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:1650}),tooltip);
+            const marker=api.bindObjectTooltip(L.marker([radar.position[1],radar.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:1650}),tooltip);
             marker.on('mouseover',()=>showRange(radar));marker.on('mouseout',hideRange);
             marker.on('click',()=>{
                 if(api.busy())return;

@@ -156,6 +156,21 @@ class AbroadBaseTests(MilitaryFixture):
         from game.base_permits import BasePermit
         db.session.add(BasePermit(host_country_id=2,guest_country_id=1,region_id=2,status=status));db.session.commit()
 
+    def test_abroad_base_can_be_managed_like_home_base_also_with_frozen_permit(self):
+        # 16 Nov 2026: zarządzanie bazami za granicą (nazwa, garnizon, rozbudowa, wycofanie) — także gdy pozwolenie zawieszono.
+        from game.base_permits import BasePermit
+        self.permit();self.supply_materials('land')
+        id=change_defense(1,'deploy',self.payload());db.session.expire_all()
+        db.session.query(BasePermit).update({'status':'FROZEN'});db.session.commit()
+        change_defense(1,'rename',{'base_id':id,'name':'Baza sojusznicza'})
+        change_defense(1,'garrison',{'base_id':id,'garrison':{'soldiers':200,'tanks':2,'launchers':0,'armored':0}})
+        change_defense(1,'upgrade',{'base_id':id});db.session.expire_all()
+        base=db.session.get(MilitaryBase,id)
+        self.assertEqual((base.name,base.garrison['soldiers'],base.garrison['tanks'],base.level),('Baza sojusznicza',200,2,2))
+        change_defense(1,'withdraw',{'base_id':id});db.session.expire_all()
+        self.assertEqual(db.session.get(MilitaryBase,id).garrison,{})
+        with self.assertRaises(FinanceError):change_defense(1,'deploy',self.payload())   # nowych baz przy zawieszonym pozwoleniu — nie
+
     def test_build_only_with_active_permit_and_double_upkeep(self):
         with self.assertRaises(FinanceError):change_defense(1,'deploy',self.payload())
         self.permit();self.supply_materials('land')
@@ -165,7 +180,7 @@ class AbroadBaseTests(MilitaryFixture):
         from game.base_permits import own_region_ids
         with self.app.test_request_context():
             data=base_data(base,own_region_ids(db.session,1))
-        self.assertTrue(data['abroad']);self.assertEqual(Decimal(data['upkeep']),2*(100*4000+8000))
+        self.assertTrue(data['abroad']);self.assertEqual(Decimal(data['upkeep']),2*8000)   # 16 Nov 2026: żołnierze bez stawki w bazie
         self.supply_materials('land');home=change_defense(1,'deploy',self.payload(1));db.session.expire_all()
         with self.app.test_request_context():
             self.assertFalse(base_data(db.session.get(MilitaryBase,home))['abroad'])

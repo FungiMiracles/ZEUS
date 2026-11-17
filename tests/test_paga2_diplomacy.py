@@ -195,3 +195,21 @@ class JoinWarDecisionTests(unittest.TestCase):
         aloof=base({'alliance_loyalty':10,'interventionism':10},(5000,4,1000))
         weak=base({'alliance_loyalty':95,'interventionism':90},(100,0,5000))
         self.assertGreater(loyal,0);self.assertLess(aloof,0);self.assertGreater(loyal,weak)
+
+
+class JoinWarCapabilityTests(unittest.TestCase):
+    """16 Nov 2026: przyjęcie prośby o dołączenie do wojny wymaga zdolności do wojny z wrogiem (jak wypowiedzenie)."""
+    def test_accept_blocked_without_capability_and_reject_still_possible(self):
+        from game.paga2.scoring import Option
+        c=dctx()
+        accept=Option('a','diplomacy','PROPOSAL_ACCEPT','x',payload={'proposal_id':1,'group':'proposal:1','required':True,'capable':False,'reason':'Brak środków ataku.'})
+        reject=Option('r','diplomacy','PROPOSAL_REJECT','x',payload={'proposal_id':1,'group':'proposal:1','required':True})
+        self.assertIn('Brak zdolności do dołączenia do wojny',diplomacy.check(c,accept))
+        self.assertIsNone(diplomacy.check(c,reject))
+
+    def test_capability_uses_war_rules(self):
+        c=dctx()
+        with patch('game.paga2.defense._forces',return_value='F'),patch('game.paga2.war.war_screen',return_value={}),\
+             patch('game.paga2.war.war_capability',return_value={'able':False,'notes':['n'],'bonus':0.0,'distant':True}) as cap:
+            self.assertFalse(diplomacy.join_capability(c,9)['able'])
+        cap.assert_called_once_with(c,'F',{},9)

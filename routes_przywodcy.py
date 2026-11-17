@@ -29,6 +29,10 @@ def init_przywodcy_routes(app):
     )
     def przywodcy_do_uzupelnienia():
 
+        # 16 Nov 2026: moduł cyklicznego wpisywania przywódców wyłączony na UAT i PREPROD.
+        from flask import current_app
+        if not current_app.config.get("LEADERSHIP_PROMPT_ENABLED", True):
+            return jsonify([])
         data = get_expired_leaders()
         return jsonify(data)
     

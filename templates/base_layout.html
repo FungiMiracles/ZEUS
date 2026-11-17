@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="{{ url_for('static', filename='js/uuid_polyfill.js', v='20261117-1') }}"></script>
 
 <title>{% block title %}ZEUS{% endblock %}</title>
 
@@ -907,6 +908,11 @@ main.container {
                     Procesy roczne i retencja
                 </a>
 
+                {# 16 Nov 2026: zmiana hasła kont graczy ludzkich #}
+                <a href="{{ url_for('wiki_civic.player_accounts') }}">
+                    Konta graczy
+                </a>
+
                 {% else %}
 
                 <a href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">
@@ -1644,6 +1650,7 @@ async function saveLeader() {
 
 }
 
+{% if config.get('LEADERSHIP_PROMPT_ENABLED', true) %}{# 16 Nov 2026: wyłączone na UAT i PREPROD #}
 window.addEventListener("load", async () => {
 
     if (sessionStorage.getItem("leadershipChecked")) {
@@ -1655,6 +1662,7 @@ window.addEventListener("load", async () => {
     await checkExpiredLeaders();
 
 });
+{% endif %}
 </script>
 
 {% endif %}

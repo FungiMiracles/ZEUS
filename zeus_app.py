@@ -120,6 +120,13 @@ def create_app():
         try:return period_label(int(year), int(period))
         except Exception:return f"{period}. okres {year}"
 
+    @app.template_global("game_period")
+    def game_period_global(year=None, period=None):
+        # 16 Nov 2026: nazwa bieżącego okresu budżetowego (kwartał/półrocze) w odmianie
+        from game.finance_service import period_words
+        try:return period_words(int(year) if year is not None else None, int(period) if period is not None else None)
+        except Exception:return {'nom':'okres','gen':'okresu','loc':'okresie','current':'bieżący okres','adj':'okresowe','months':6,'share':50,'per_year':'przy każdym budżecie','label':''}
+
     @app.template_filter("game_money")
     def game_money(value):
         from game.money_display import format_money
@@ -162,6 +169,8 @@ def create_app():
     app.config["PAGA_ENABLED"] = ENV_NAME == "UAT"
     app.config["AUTONOMY_ENABLED"] = ENV_NAME == "UAT"
     app.config["DIPLOMACY_NEWS_ENABLED"] = ENV_NAME == "UAT"
+    # 16 Nov 2026: cykliczne wpisywanie przywódców (okno po wygaśnięciu kadencji) wyłączone na UAT i PREPROD.
+    app.config["LEADERSHIP_PROMPT_ENABLED"] = ENV_NAME not in ("UAT", "PREPROD")
     app.config["ENV_NAME"] = ENV_NAME
     if app.config["PAGA_ENABLED"]:
         from routes_paga import paga_bp
@@ -193,6 +202,8 @@ def create_app():
     from game.player_context import player_context_bp
     app.register_blueprint(player_context_bp)
     app.register_blueprint(forum_bp)
+    from game.tutorial import tutorial_bp   # 15 Nov 2026: samouczek po pierwszym wejściu
+    app.register_blueprint(tutorial_bp)
     app.register_blueprint(messages_bp)
     from game.sovereignty import register as register_sovereignty
     register_sovereignty(app)
@@ -290,7 +301,7 @@ def create_app():
         if request.endpoint is None:
             return
         
-        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world"}:
+        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF
             return
 
         # Blueprint sam sprawdza sesję gracza i token CSRF.

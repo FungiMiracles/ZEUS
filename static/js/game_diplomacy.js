@@ -14,12 +14,26 @@
     function openActions() { if (!actionDialog.open) actionDialog.showModal(); }
     const selection = document.getElementById("diplomacy-selection");
     function isBreak() { return kind.value === "RELATION" && config.relationRanks[relation.value] < config.relationRanks[config.countries[chooser.value]?.relationId]; }
+    // 16 Nov 2026: okres karencji po zawarciu pokoju — gracz dowiaduje się o nim, zanim zaproponuje pokój.
+    function peaceNotice() {
+        return `Ta propozycja wymaga akceptacji drugiej strony. Po zawarciu pokoju obowiązuje okres karencji: przez ${config.peaceGraceDays || 30} dni Entendy ani Twoje państwo, ani to państwo nie będzie mogło wypowiedzieć sobie wojny.`;
+    }
+    // 17 Nov 2026: zawieszenie broni na określony czas — po przyjęciu żadna ze stron nie może wypowiedzieć wojny do jego końca.
+    function ceasefireDays() { return Number(document.getElementById("diplomacy-ceasefire-days")?.value || 0); }
+    function ceasefireNotice() {
+        const [min, max] = config.ceasefireDays || [1, 180];
+        return `Ta propozycja wymaga akceptacji drugiej strony. Podaj czas zawieszenia broni (${min}–${max} dni Entendy): po przyjęciu przez ten czas ani Twoje państwo, ani to państwo nie będzie mogło ponownie wypowiedzieć sobie wojny.`;
+    }
     function updateAction() {
         document.getElementById("diplomacy-relation-field").hidden = kind.value !== "RELATION";
         document.getElementById("diplomacy-enemy-field").hidden = kind.value !== "JOIN_WAR";
+        const ceasefireField = document.getElementById("diplomacy-ceasefire-field");
+        if (ceasefireField) { ceasefireField.hidden = kind.value !== "CEASEFIRE"; ceasefireField.querySelector("input").disabled = kind.value !== "CEASEFIRE"; }
         document.getElementById("diplomacy-action-help").textContent = kind.value === "WAR"
             ? "Wypowiedzenie wojny działa natychmiast i nie wymaga zgody drugiego gracza."
             : kind.value === "JOIN_WAR" ? "Sojusznik zdecyduje, czy dołączy do wybranej wojny. Zgoda oznacza jego natychmiastowy stan wojny z tym państwem."
+            : kind.value === "PEACE" ? peaceNotice()
+            : kind.value === "CEASEFIRE" ? ceasefireNotice()
             : isBreak() ? "Jednostronne pogorszenie relacji. Wybrana relacja zacznie obowiązywać natychmiast, bez zgody drugiej strony." : "Ta propozycja wymaga akceptacji drugiej strony.";
         form.querySelector('button[type="submit"]').textContent = isBreak() ? "Pogorsz relacje" : "Wyślij";
     }
@@ -29,7 +43,9 @@
         form.hidden = !country || !country.canAct;
         if (!country) { selection.textContent = ""; return; }
         selection.textContent = `${country.name}: ${country.relation} · ${country.state}` +
-            (!country.canAct ? " — działania niedostępne: własne państwo lub brak aktywnego gracza lub autonomii." : "");
+            (!country.canAct ? " — działania niedostępne: własne państwo lub brak aktywnego gracza lub autonomii." : "") +
+            (country.peaceGraceUntil ? ` — okres karencji po zawarciu pokoju: wypowiedzenie wojny możliwe od ${country.peaceGraceUntil} (Entenda).` : "") +
+            (country.ceasefireUntil ? ` — zawieszenie broni: wypowiedzenie wojny możliwe od ${country.ceasefireUntil} (Entenda).` : "");
         document.getElementById("diplomacy-target").value = id;
         const enemy = document.getElementById("diplomacy-enemy");
         enemy.replaceChildren(...(country.joinWars || []).map(war => { const option = document.createElement("option"); option.value = war.id; option.textContent = war.name; return option; }));
@@ -51,6 +67,12 @@
         event.preventDefault();
         if (isBreak() && !window.confirm("Czy na pewno chcesz jednostronnie pogorszyć relacje? Relacja zmieni się natychmiast.")) return;
         if (kind.value === "WAR" && !window.confirm("Czy na pewno wypowiedzieć wojnę temu państwu? Zmiana nastąpi natychmiast.")) return;
+        if (kind.value === "PEACE" && !window.confirm(peaceNotice() + "\n\nCzy wysłać propozycję pokoju?")) return;
+        if (kind.value === "CEASEFIRE") {
+            const [min, max] = config.ceasefireDays || [1, 180], days = ceasefireDays();
+            if (!Number.isInteger(days) || days < min || days > max) { result.textContent = `Podaj czas zawieszenia broni: od ${min} do ${max} dni Entendy.`; return; }
+            if (!window.confirm(`Zaproponować zawieszenie broni na ${days} dni Entendy?`)) return;
+        }
         const button = form.querySelector('button[type="submit"]');
         button.disabled = true;
         result.textContent = "Zapisywanie…";
@@ -130,6 +152,7 @@
         const text = document.createElement("p");
         text.textContent = `${country.relation} · ${country.state}`;
         box.append(heading, text);
+        if (country.peaceGraceUntil) { const grace = document.createElement("small"); grace.textContent = `Karencja po pokoju do ${country.peaceGraceUntil}`; box.append(grace); }
         if(country.pagaConfigured){const note=document.createElement("small");note.textContent="Skonfigurowano w PAGA";box.append(note);}
         if (!country.canAct) {
             const note = document.createElement("p");

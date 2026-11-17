@@ -20,6 +20,8 @@ def run_military_tick(app):
         with Session(db.engine) as session:
             ids = sorted(set(session.scalars(select(MilitaryBase.panstwo_id).distinct())) | set(session.scalars(select(Wojsko.panstwo_id).where(Wojsko.bron_atomowa_ilosc>0))))
             ids=sorted(set(ids)|set(session.scalars(select(MilitaryVessel.panstwo_id).where(MilitaryVessel.base_id.is_(None),MilitaryVessel.status.in_(['sailing','stationed','returning'])))))
+            # 16 Nov 2026: opłata za żołnierzy w służbie czynnej — także państwa bez baz.
+            ids=sorted(set(ids)|set(session.scalars(select(Wojsko.panstwo_id).where((Wojsko.wojska_ladowe_ilosc>0)|(Wojsko.wojska_morskie_ilosc>0)|(Wojsko.wojska_powietrzne_ilosc>0)))))
             from game.governance import controller_id
             ids=sorted({owner for id in ids if (owner := controller_id(session,id)) is not None})
         for country_id in ids:

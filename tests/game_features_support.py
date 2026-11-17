@@ -76,6 +76,10 @@ class FeatureTestCase(unittest.TestCase):
         for model in (StateLoan,LoanMovement):model.__table__.create(db.engine,checkfirst=True)
         from game.social_benefits import BenefitPayment,BenefitSettlement,MissedBenefitPeriod
         for model in (BenefitPayment,BenefitSettlement,MissedBenefitPeriod):model.__table__.create(db.engine,checkfirst=True)
+        from game.crime_funding import CrimeFunding   # 16 Nov 2026: walka z przestępczością
+        CrimeFunding.__table__.create(db.engine,checkfirst=True)
+        from game.land_war_models import LandArmy,Occupation   # 17 Nov 2026: zawarcie pokoju kończy okupację
+        for model in (LandArmy,Occupation):model.__table__.create(db.engine,checkfirst=True)
         from game.finance_models import BudgetTransfer
         BudgetTransfer.__table__.create(db.engine)
         from game.intelligence_models import IntelligenceAgent,CounterIntelligence,IntelligenceMission,IntelligenceExpense

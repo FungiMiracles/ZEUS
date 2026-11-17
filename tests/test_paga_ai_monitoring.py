@@ -31,7 +31,7 @@ class MonitoringScenarioTests(scenarios.Scenario,unittest.TestCase):
         self.run_budget()
         data=monitoring.registry(db.session,{})
         row=next(item for item in data['items'] if item['source']=='model')
-        self.assertEqual((row['category'],row['status'],row['name']),('finanse','EXECUTED','Plan budżetu półrocza'))
+        self.assertEqual((row['category'],row['status'],row['name']),('finanse','EXECUTED','Plan budżetu okresu'))
         self.assertEqual(row['reason'],REASON);self.assertEqual(row['model_ms'],1500);self.assertTrue(row['game_at'].startswith('2990'))
         self.assertTrue(row['country']['flag'].endswith('.jpg'));self.assertTrue(row['real_at'].endswith('Z'))
         detail=monitoring.detail(db.session,row['key'])

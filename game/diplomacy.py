@@ -35,6 +35,7 @@ def proposal_label(action, relation_labels):
     if action.kind == 'RELATION': return relation_labels.get(action.proposed_relation_id, 'Brak danych')
     if action.kind == 'JOIN_WAR': return 'Dołączenie do wojny z państwem ' + (params.get('enemy_name') or '?')
     if action.kind == 'BASE_PERMIT': return 'Pozwolenie na bazę w regionie ' + (params.get('region_name') or '?')
+    if action.kind == 'CEASEFIRE' and params.get('days'): return f"Zawieszenie broni na {params['days']} dni Entendy"
     return {'PEACE':'Zawarcie pokoju','CEASEFIRE':'Zawieszenie broni'}[action.kind]
 RELATION_COLORS = {
     "sojusznicze": "#166534", "partnerskiestrategiczne": "#15803d",
@@ -112,7 +113,10 @@ def page():
         from game.diplomacy_service import npc_eligible
         owners=set(owners)|{id for id in paga_ids if npc_eligible(db.session,id)}
     data = {}
-    from game.diplomacy_service import joinable_wars, JOIN_RELATIONS
+    from game.diplomacy_service import joinable_wars, JOIN_RELATIONS, peace_grace_map, PEACE_GRACE_DAYS, ceasefire_map, CEASEFIRE_MIN_DAYS, CEASEFIRE_MAX_DAYS
+    now = get_current_entenda_datetime()
+    grace = peace_grace_map(db.session, country.PANSTWO_ID, now)
+    ceasefires = ceasefire_map(db.session, country.PANSTWO_ID, now)   # 17 Nov 2026: zawieszenie broni na określony czas
     from services.natural_resources import normalized as normalize_relation
     names = {id: name for id, name, status in countries}
     active_ids={id for id,name,status in countries if status=='aktywne'}
@@ -123,11 +127,15 @@ def page():
         state = row.stan_id if row and row.stan_id is not None else state_ids["pokoj"]
         own = owner_id == country.PANSTWO_ID
         war_allowed=can_declare_war(relation_labels.get(relation),state,state_ids['wojnakinetyczna'])
+        grace_until=grace.get(owner_id)
+        if grace_until is not None:war_allowed=False   # 16 Nov 2026: karencja po zawarciu pokoju
+        ceasefire_until=ceasefires.get(owner_id)
+        if ceasefire_until is not None:war_allowed=False
         pact=is_pact(relation_labels.get(relation))
         can_worsen=any(relation_rank(label)<relation_rank(relation_labels.get(relation)) for label in relation_labels.values())
         join_wars = []
         if not own and pact and owner_id in owners and owner_id in active_ids and normalize_relation(relation_labels.get(relation)) in JOIN_RELATIONS:
-            join_wars = [{"id": enemy, "name": names.get(enemy, str(enemy))} for enemy in joinable_wars(db.session, country.PANSTWO_ID, owner_id)]
+            join_wars = [{"id": enemy, "name": names.get(enemy, str(enemy))} for enemy in joinable_wars(db.session, country.PANSTWO_ID, owner_id, now)]
         data[str(country_id)] = {
             "name": name, "own": own, "relationId": relation,
             "pagaConfigured":country_id in paga_ids,
@@ -142,7 +150,13 @@ def page():
             "pact": pact, "canWorsen": can_worsen,
             "canNegotiate": state == state_ids["wojnakinetyczna"],
             "joinWars": join_wars,
+            "peaceGraceUntil": grace_until.strftime('%d.%m.%Y %H:%M') if grace_until is not None else None,
+            "ceasefireUntil": ceasefire_until.strftime('%d.%m.%Y %H:%M') if ceasefire_until is not None else None,
         }
+    # 16 Nov 2026: „Trwające konflikty” — wszystkie wojny kinetyczne na świecie (pary państw), nie tylko wojny gracza.
+    known={id for id,name,status in countries}
+    world_wars=len({tuple(sorted(pair)) for pair in db.session.execute(select(Stosunki.PANSTWO_ID,Stosunki.PANSTWO_ID2).where(
+        Stosunki.stan_id==state_ids["wojnakinetyczna"])).all() if pair[0]!=pair[1] and pair[0] in known and pair[1] in known})
     from game.paga_ai_actor import current_actor
     recipient_condition=DiplomaticAction.recipient_user_id==user.id
     if current_actor() is not None:recipient_condition=or_(recipient_condition,DiplomaticAction.recipient_user_id.is_(None))
@@ -159,9 +173,9 @@ def page():
     return render_template(
         "game/dyplomacja.html", game_user=user, game_country=country_summary(country),
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
-        game_active_page="diplomacy", relations=relations, diplomacy_proposals=proposals,
+        game_active_page="diplomacy", relations=relations, diplomacy_proposals=proposals, world_wars=world_wars,
         legend=[{"name": item.relacja_nazwa, "color": colors[item.relacja_id]} for item in relations],
-        diplomacy_map={"relationRanks": {id:relation_rank(label) for id,label in relation_labels.items()}, "pactRelations": [id for id,label in relation_labels.items() if is_pact(label)], "countries": data, "countriesUrl": url_for('region_sovereignty.country_boundaries'),
+        diplomacy_map={"peaceGraceDays": PEACE_GRACE_DAYS, "ceasefireDays": [CEASEFIRE_MIN_DAYS, CEASEFIRE_MAX_DAYS], "relationRanks": {id:relation_rank(label) for id,label in relation_labels.items()}, "pactRelations": [id for id,label in relation_labels.items() if is_pact(label)], "countries": data, "countriesUrl": url_for('region_sovereignty.country_boundaries'),
                        "actionUrl": url_for("game_diplomacy.create_action")},
     )
 
@@ -175,7 +189,7 @@ def create_action():
     target=controller_id(db.session,request.form.get('target_id',type=int))
     if not target:return fail('Nieprawidłowa akcja lub państwo.',400)
     try:
-        params={'enemy_id':request.form.get('enemy_id',type=int)} if request.form.get('kind')=='JOIN_WAR' else {'region_id':request.form.get('region_id',type=int)} if request.form.get('kind')=='BASE_PERMIT' else None
+        params={'enemy_id':request.form.get('enemy_id',type=int)} if request.form.get('kind')=='JOIN_WAR' else {'region_id':request.form.get('region_id',type=int)} if request.form.get('kind')=='BASE_PERMIT' else {'days':request.form.get('days',type=int)} if request.form.get('kind')=='CEASEFIRE' else None
         action=create_shared(db.session,country.PANSTWO_ID,target,request.form.get('kind'),request.form.get('relation_id',type=int),get_current_entenda_datetime(),sender_user_id=user.id,params=params)
         db.session.commit()
         return jsonify(message='Wypowiedziano wojnę.' if action.kind=='WAR' else 'Jednostronnie pogorszono relacje. Druga strona otrzyma powiadomienie.' if action.status=='APPLIED' else 'Wysłano propozycję dyplomatyczną.'),201
@@ -212,12 +226,19 @@ def notification_text(action,user_id):
         if action.status=='PENDING':return f'Twoja propozycja {proposal} skierowana do państwa {action.target_country_name} oczekuje na odpowiedź.'
     if action.kind=='JOIN_WAR':return f"{action.source_country_name} prosi o dołączenie do wojny z państwem {(action.params or {}).get('enemy_name') or '?'}. Zgoda oznacza natychmiastowy stan wojny z tym państwem."
     if action.kind=='BASE_PERMIT':return f"{action.source_country_name} prosi o pozwolenie na budowę bazy wojskowej w regionie {(action.params or {}).get('region_name') or '?'}."
+    if action.kind=='CEASEFIRE' and (action.params or {}).get('days'):
+        return f"{action.source_country_name} {ACTION_TEXT['CEASEFIRE']} na {action.params['days']} dni Entendy. Do końca tego okresu żadna ze stron nie będzie mogła wypowiedzieć drugiej wojny."
     return action.source_country_name+' '+('jednostronnie pogarsza relacje' if action.kind=='RELATION' and action.status=='APPLIED' else ACTION_TEXT[action.kind])+'.'
 
 
 def action_details(action, user, country):
     relation = db.session.get(DictStosunkiRelacja, action.proposed_relation_id) if action.proposed_relation_id else None
+    # 16 Nov 2026: w oknie propozycji pokazujemy zmianę „z → na” oraz flagę państwa proponującego.
+    previous = db.session.get(DictStosunkiRelacja, action.expected_relation_id) if action.kind == 'RELATION' and action.expected_relation_id else None
     return {
+        "relation_from": previous.relacja_nazwa if previous else None,
+        "source_country": action.source_country_name,
+        "source_flag": url_for("static", filename="flags/" + (action.source_country_name or "").replace(" ", "_") + ".jpg"),
         "title": "Dyplomacja: " + (action.target_country_name if action.sender_user_id==user.id else action.source_country_name),
         "text": notification_text(action,user.id),
         "relation": relation.relacja_nazwa if relation else None,
@@ -247,10 +268,14 @@ def read_world_news():
     if user is None:return jsonify(error='Zaloguj się ponownie.'),401
     if not enabled():abort(404)
     validate_csrf()
-    ids=request.form.getlist('ids')
-    if not ids or len(ids)>20 or any(not value.isdecimal() for value in ids):return jsonify(error='Nieprawidłowa lista powiadomień.'),400
     user_id,country_id=user.id,country.PANSTWO_ID
     allowed=select(NewsEvent.id).where(NewsEvent.a!=country_id,NewsEvent.b!=country_id)
-    db.session.execute(update(NewsNotice).where(NewsNotice.user_id==user.id,NewsNotice.event_id.in_([int(value) for value in ids]),NewsNotice.event_id.in_(allowed),NewsNotice.read_at.is_(None)).values(read_at=utc_now()))
+    if request.form.get('all')=='1':
+        # 16 Nov 2026: „Oznacz wszystkie jako przeczytane” w panelu powiadomień modułu dyplomatycznego.
+        db.session.execute(update(NewsNotice).where(NewsNotice.user_id==user.id,NewsNotice.event_id.in_(allowed),NewsNotice.read_at.is_(None)).values(read_at=utc_now()))
+    else:
+        ids=request.form.getlist('ids')
+        if not ids or len(ids)>20 or any(not value.isdecimal() for value in ids):return jsonify(error='Nieprawidłowa lista powiadomień.'),400
+        db.session.execute(update(NewsNotice).where(NewsNotice.user_id==user.id,NewsNotice.event_id.in_([int(value) for value in ids]),NewsNotice.event_id.in_(allowed),NewsNotice.read_at.is_(None)).values(read_at=utc_now()))
     db.session.commit()
     return jsonify(unread_count=unread_count(user_id,country_id))

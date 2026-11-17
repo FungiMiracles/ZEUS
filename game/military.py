@@ -70,7 +70,9 @@ def render_military(mode):
                            'available':buildable.get(kind) or 0,
                            'label':label}
     from game.trade_navigation import visible_shipments
-    response = render_template('game/military.html', game_user=user,game_country=country_summary(country),
+    from game.military_recruitment import summary as soldier_summary
+    soldier_fee=soldier_summary(db.session,country.PANSTWO_ID,army,bases)
+    response = render_template('game/military.html', game_user=user,game_country=country_summary(country),soldier_fee=soldier_fee,
         game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),
         game_active_page='war' if mode == 'war' else 'defense',mode=mode,
         military_config={

@@ -1,0 +1,21 @@
+/* 16 Nov 2026: panel WIKI — konta graczy (zmiana hasła). Stylistyka jak „Struktura ludności”. */
+.accounts-page{max-width:1100px;margin:0 auto;padding:20px;font-family:"Segoe UI",Tahoma,sans-serif;color:#2c3e50}
+.accounts-header{text-align:center;margin:5px 0 24px}.accounts-header h1{font-size:1.9em;font-weight:700;margin:0 0 10px}.accounts-header p{color:#667788;margin:0 auto;max-width:720px;line-height:1.5}
+.accounts-message{max-width:720px;margin:0 auto 16px;padding:10px 14px;border-radius:8px;font-weight:600}
+.accounts-message.success{background:#e6f4ec;color:#1f6b3f;border:1px solid #9fd0b2}.accounts-message.error{background:#fbeaea;color:#8f2f2f;border:1px solid #e3a9a9}
+.accounts-list{display:grid;gap:14px}
+.accounts-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:end;background:#fff;border:1px solid #d3d7dc;border-radius:12px;padding:18px 20px;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.accounts-card:target{outline:3px solid #91b8e8;outline-offset:2px}
+.accounts-info h2{font-size:1.15rem;margin:0 0 10px;color:#34495e;overflow-wrap:anywhere}
+.accounts-badge{font-size:.75rem;font-weight:700;color:#8f2f2f;background:#fbeaea;border-radius:10px;padding:2px 8px;vertical-align:middle}
+.accounts-info dl{display:grid;gap:4px;margin:0;font-size:.88rem}.accounts-info dl>div{display:flex;gap:8px;min-width:0}
+.accounts-info dt{color:#667788;flex:0 0 130px}.accounts-info dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.accounts-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+.accounts-form label{display:grid;gap:5px;font-weight:700;font-size:.85rem}
+.accounts-form input{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #b4b9be;border-radius:6px;font:inherit;font-size:16px}
+.accounts-form input:focus{outline:2px solid #91b8e8;outline-offset:1px}
+.accounts-form button{padding:10px 16px;border:0;border-radius:6px;background:#1E3A5F;color:#fff;font:inherit;font-weight:700;cursor:pointer;min-height:42px}
+.accounts-form button:hover,.accounts-form button:focus-visible{background:#2b4f7c}
+.accounts-empty{text-align:center;color:#667788}
+@media(max-width:900px){.accounts-card{grid-template-columns:1fr}.accounts-page{padding:10px}}
+@media(max-width:600px){.accounts-form{grid-template-columns:1fr}.accounts-info dt{flex-basis:110px}}

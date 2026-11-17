@@ -43,7 +43,7 @@ def adjust(country_id,data,actor):
             return existing.id
         account=session.scalar(select(StateFinancialAccount).where(StateFinancialAccount.panstwo_id==country_id).with_for_update())
         budget=session.get(StateBudget,account.last_budget_id) if account and account.last_budget_id else None
-        if category!='reserve' and (budget is None or (budget.game_year,budget.period)!=period_key(game_now())):raise FinanceError('Sektory można korygować tylko w zatwierdzonym budżecie bieżącego półrocza.')
+        if category!='reserve' and (budget is None or (budget.game_year,budget.period)!=period_key(game_now())):raise FinanceError('Sektory można korygować tylko w zatwierdzonym budżecie bieżącego okresu budżetowego.')
         if amount<0:
             if category=='reserve':available=account.reserve_balance if account else Decimal(0)
             else:

@@ -23,7 +23,11 @@
         decisionUrl = data.decision_url;
         document.getElementById("game-diplomacy-title").textContent = data.title;
         document.getElementById("game-diplomacy-text").textContent = data.text;
-        document.getElementById("game-diplomacy-relation").textContent = data.relation ? "Proponowana relacja: " + data.relation : "";
+        document.getElementById("game-diplomacy-relation").textContent = data.relation
+            ? (data.relation_from && data.relation_from !== data.relation ? "Zmiana relacji: " + data.relation_from + " → " + data.relation : "Proponowana relacja: " + data.relation) : "";
+        const flag = document.getElementById("game-diplomacy-flag");
+        flag.hidden = !data.source_flag;
+        if (data.source_flag) { flag.onerror = () => { flag.hidden = true; }; flag.src = data.source_flag; flag.alt = "Flaga: " + (data.source_country || ""); }
         document.getElementById("game-diplomacy-date").textContent = data.received_at + " (Polska)";
         dialogStatus.textContent = data.status;
         accept.hidden = reject.hidden = !data.can_decide;

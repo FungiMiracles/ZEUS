@@ -67,7 +67,7 @@ def _refund_materials(session,base,share=Decimal(1)):
 
 
 UPGRADE_COSTS = {level: Decimal(cost) * 1000000000 for level,cost in [(2,1),(3,8),(4,14),(5,23),(6,79),(7,139)]}
-UPKEEP_RATES = dict(soldiers=4000,tanks=8000,launchers=8000,armored=8000,fighters=25000,warships=600000,submarines=650000,warheads=650000000)   # 13 Nov 2026: głowica w silosie — 650 mln ROI / okres
+UPKEEP_RATES = dict(soldiers=0,tanks=8000,launchers=8000,armored=8000,fighters=25000,warships=600000,submarines=650000,warheads=650000000)   # 13 Nov 2026: głowica w silosie — 650 mln ROI / okres
 
 
 def owned(session,army,country_id,field):
@@ -288,7 +288,7 @@ def change_defense(user_id, action, data):
             budget,total,available = military_budget(session,country.PANSTWO_ID)
             cost = UPGRADE_COSTS[target]*(2 if base.kind=='nuclear' else 1)
             if budget is None or available < cost:
-                raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżące półrocze.')
+                raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżący okres budżetowy.')
             base.level = target
             session.add(MilitaryExpense(panstwo_id=country.PANSTWO_ID,budget_id=budget.id,base_id=base.id,level=target,amount=cost))
         elif action == 'cancel_deploy':
@@ -337,11 +337,13 @@ def reconcile_maintenance(session,country_id,now=None):
     army=army_for_country(session, country_id, lock=True)
     heads=sum(int((base.garrison or {}).get('warheads',0)) for base in bases if base.kind=='nuclear')   # 13 Nov 2026: tylko głowice w silosach
     orphans=list(session.scalars(select(MilitaryVessel).where(MilitaryVessel.panstwo_id==country_id,MilitaryVessel.base_id.is_(None),MilitaryVessel.kind!='carriers',MilitaryVessel.status.in_(['sailing','stationed','returning'])).with_for_update()))
-    if not bases and not heads and not orphans:return
+    record=session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.panstwo_id==country_id,MilitaryMaintenance.game_year==year,MilitaryMaintenance.period==period).with_for_update())
+    from game.military_recruitment import totals as soldier_totals,assess as assess_soldiers
+    soldiers=sum(soldier_totals(army).values())
+    if not bases and not heads and not orphans and not soldiers and (record is None or not record.soldier_fee):return
     def notify(text):
         owner=country_user_id(session,country_id)
         if owner is not None:session.add(GameNotification(user_id=owner,notification_type='SYSTEM',system_text=text,created_at=utc_now()))
-    record=session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.panstwo_id==country_id,MilitaryMaintenance.game_year==year,MilitaryMaintenance.period==period).with_for_update())
     budget,total,available=military_budget(session,country_id,moment)
     spent=session.scalar(select(func.coalesce(func.sum(MilitaryExpense.amount),0)).where(MilitaryExpense.budget_id==budget.id)) if budget else Decimal(0)
     if budget:spent+=session.scalar(select(func.coalesce(func.sum(MissileDefenseExpense.amount),0)).where(MissileDefenseExpense.budget_id==budget.id))
@@ -351,6 +353,11 @@ def reconcile_maintenance(session,country_id,now=None):
         from game.radar import spent as radar_spent
         spent+=land_war_spent(session,budget.id)+training_spent(session,budget.id)+radar_spent(session,budget.id)
     affordable=max(Decimal(0),total-spent)
+    # 16 Nov 2026: opłata za żołnierzy w służbie czynnej — raz na okres, przed utrzymaniem silosów, sprzętu i okrętów.
+    if record is None:
+        record=MilitaryMaintenance(panstwo_id=country_id,game_year=year,period=period,amount=0);session.add(record)
+    soldier_fee=assess_soldiers(session,country_id,record,army,bases,affordable,budget,moment,notify)
+    affordable=max(Decimal(0),affordable-soldier_fee)
     # Annual silo maintenance is split equally between two half-years.
     fixed=0
     for base in bases:
@@ -363,7 +370,7 @@ def reconcile_maintenance(session,country_id,now=None):
     from game.base_permits import own_region_ids,ABROAD_UPKEEP
     own=own_region_ids(session,country_id)
     factor={base.id:(ABROAD_UPKEEP if base.region_id is not None and base.region_id not in own else 1) for base in bases}   # baza za granicą: 2× utrzymanie
-    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]*scale) for base in bases for resource,count in base.garrison.items()]
+    items=[(base.id,resource,count,UPKEEP_RATES[resource]*factor[base.id]*scale) for base in bases for resource,count in base.garrison.items() if UPKEEP_RATES[resource]]
     items.extend((-v.id,v.kind,1,UPKEEP_RATES[v.kind]*scale) for v in orphans)
     cost=sum(count*rate for _,_,count,rate in items)
     if cost>affordable:
@@ -385,10 +392,8 @@ def reconcile_maintenance(session,country_id,now=None):
         for vessel in orphans:
             if reduced.get((-vessel.id,vessel.kind),0)==0:vessel.status='docked'
         cost=used
-        notify('Brakuje pieniędzy na utrzymanie wojska. System proporcjonalnie wycofał z baz żołnierzy i sprzęt oraz zmniejszył zapas głowic atomowych, aby koszt mieścił się w budżecie sił zbrojnych.')
-    if record is None:
-        record=MilitaryMaintenance(panstwo_id=country_id,game_year=year,period=period,amount=0);session.add(record)
-    record.budget_id=budget.id if budget else None;record.amount=cost+fixed;record.assessed_at=utc_now()
+        notify('Brakuje pieniędzy na utrzymanie wojska. System proporcjonalnie wycofał z baz sprzęt oraz zmniejszył zapas głowic atomowych, aby koszt mieścił się w budżecie sił zbrojnych.')
+    record.budget_id=budget.id if budget else None;record.amount=cost+fixed+soldier_fee;record.assessed_at=utc_now()
     session.flush()
 
 

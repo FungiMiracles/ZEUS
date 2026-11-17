@@ -84,12 +84,12 @@ class DefenseTests(MilitaryFixture):
         self.set_budget(99999999)
         with self.assertRaises(FinanceError):self.defense()
         self.assertEqual(db.session.query(MissileDefenseExpense).count(),0)
-        self.set_budget(120000000);base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000})
+        self.set_budget(100400000);base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100})
         with self.assertRaises(FinanceError):self.defense()
-        self.change('garrison',base_id=base.id,garrison={'soldiers':5000});self.defense()
+        self.change('garrison',base_id=base.id,garrison={'tanks':50});self.defense()
         reconcile_maintenance(db.session,1,NOW);db.session.commit()
-        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['soldiers'],5000)
-        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,20000000)
+        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['tanks'],50)
+        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,400000)
         self.assertEqual(military_budget(db.session,1)[2],0)
 
 

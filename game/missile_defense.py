@@ -80,7 +80,7 @@ def change_defense_system(session,country_id,action,data):
                 stock.ammunition-=count;cost=0
             else:cost=count*AMMUNITION_PRICE
     budget,total,available=military_budget(session,country_id)
-    if cost and (budget is None or available<cost):raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżące półrocze.')
+    if cost and (budget is None or available<cost):raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżący okres budżetowy.')
     if action=='defense_place':session.add(defense)
     elif action=='defense_repair':defense.health+=count
     elif action=='defense_upgrade':

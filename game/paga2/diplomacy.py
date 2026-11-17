@@ -95,9 +95,10 @@ def relation_options(ctx,ids):
             terms=peace_terms(ctx,other)
             for kind,label,bonus in (('PEACE','Propozycja pokoju',2.0),('CEASEFIRE','Propozycja zawieszenia broni',0.0)):
                 if recently(ctx,kind,other) or kind in pending:continue
-                options.append(Option(key=f'diplomacy:{kind.lower()}:{other}',domain='diplomacy',action=kind,label=f'{label}: państwo {other}',target=other,stance='friendly',
-                                      effects=terms['effects'],traits=terms['traits'],base=terms['base']+bonus,notes=list(terms['notes']),
-                                      payload={'kind':kind,'target_id':other,'group':f'diplomacy:{other}'}))
+                days=ceasefire_length(ctx,other) if kind=='CEASEFIRE' else None
+                options.append(Option(key=f'diplomacy:{kind.lower()}:{other}',domain='diplomacy',action=kind,label=f'{label}: państwo {other}'+(f' na {days} dni' if days else ''),target=other,stance='friendly',
+                                      effects=terms['effects'],traits=terms['traits'],base=terms['base']+bonus,notes=list(terms['notes'])+([f'Proponowany czas zawieszenia broni: {days} dni Entendy.'] if days else []),
+                                      payload={'kind':kind,'target_id':other,'group':f'diplomacy:{other}',**({'days':days} if days else {})}))
         if war:continue
         if rank<len(ORDER)-1 and other in proposals_possible and 'RELATION' not in pending and not recently(ctx,'RELATION_IMPROVE',other):
             better=ORDER[rank+1]
@@ -136,6 +137,15 @@ def peace_terms(ctx,other):
     return dict(effects={'welfare':.8,'financial_stability':.6,'defensive_army':.3,'conquest':-.8,'offensive_army':-.5},
                 traits={'agreeableness':1.0,'revenge':-.6,'loss_tolerance':-.6,'militarism':-.5,'strategic_patience':.3},
                 base=4.0*len(ctx.situation.get('occupied_regions',{}))+2*min(3,attacked)*(100-t.get('loss_tolerance',50))/100+weakness(ctx)+bonus,notes=notes)
+
+
+def ceasefire_length(ctx,other):
+    """17 Nov 2026: proponowany czas zawieszenia broni (1–180 dni Entendy): ugodowość, cierpliwość strategiczna i własne straty
+    wydłużają rozejm; mściwość i militaryzm go skracają."""
+    t=ctx.traits
+    days=20+1.0*t.get('agreeableness',50)+.6*t.get('strategic_patience',50)-.5*t.get('revenge',50)-.4*t.get('militarism',50)
+    days+=10*len(ctx.situation.get('occupied_regions',{}))+weakness(ctx)*3
+    return int(max(7,min(180,round(days))))
 
 
 def weakness(ctx):
@@ -201,6 +211,22 @@ def join_terms(ctx,enemy):
     return {'base':base,'notes':notes}
 
 
+def join_capability(ctx,enemy):
+    """16 Nov 2026: zdolność do dołączenia do wojny z `enemy` — te same kryteria co przy wypowiedzeniu wojny
+    (game.paga2.war.war_capability). Bez danych o siłach decyzja nie jest blokowana."""
+    try:
+        from game.paga2.defense import _forces
+        from game.paga2.war import war_capability,war_screen
+        return war_capability(ctx,_forces(ctx),war_screen(ctx),enemy)
+    except Exception:return {'able':True,'notes':[],'bonus':0.0,'distant':False}
+
+
+def check(ctx,option):
+    if option.action=='PROPOSAL_ACCEPT' and option.payload.get('capable') is False:
+        return 'Brak zdolności do dołączenia do wojny. '+(option.payload.get('reason') or '')
+    return None
+
+
 def join_request_options(ctx):
     """Prośby do sojuszników i partnerów strategicznych o dołączenie do trwającej wojny (gdy wróg jest silny)."""
     enemies=list(ctx.situation.get('at_war',[]))
@@ -211,7 +237,7 @@ def join_request_options(ctx):
         own,_=military_power(session,ctx.country_id)
         for ally,row in ctx.situation.get('relations',{}).items():
             if row.get('relation') not in JOIN_ALLIES or ally not in possible or (ally,'JOIN_WAR') in pending or recently(ctx,'JOIN_WAR',ally):continue
-            for enemy in joinable_wars(session,ctx.country_id,ally):
+            for enemy in joinable_wars(session,ctx.country_id,ally,ctx.now):
                 foe,_=military_power(session,enemy);need=foe/max(1.0,own)
                 options.append(Option(key=f'diplomacy:join:{ally}:{enemy}',domain='diplomacy',action='JOIN_WAR',label=f'Prośba do państwa {ally} o dołączenie do wojny z państwem {enemy}',
                                       target=ally,stance='friendly',effects={'alliances':.6,'defensive_army':.8,'conquest':.4},
@@ -242,9 +268,10 @@ def proposal_options(ctx):
         if row.kind=='JOIN_WAR':
             label=f'dołączenie do wojny z państwem {params.get("enemy_name")}'
             terms=join_terms(ctx,params.get('enemy_id'))
+            cap=join_capability(ctx,params.get('enemy_id'))
             accept=dict(effects={'alliances':1.0,'conquest':.5,'offensive_army':.5,'welfare':-.4,'financial_stability':-.3},
                         traits={'alliance_loyalty':1.0,'interventionism':1.0,'militarism':.4,'isolationism':-.8},categories={'hegemonic':.6,'isolationist':-.8},
-                        base=terms['base'],notes=terms['notes'])
+                        base=terms['base']-(0 if cap['able'] else 8.0),notes=terms['notes']+cap['notes'])
             reject=dict(effects={'alliances':-.6,'financial_stability':.3,'welfare':.2},traits={'isolationism':.6,'alliance_loyalty':-.6,'interventionism':-.6},
                         categories={'isolationist':.6},base=-terms['base'],notes=terms['notes'])
         elif row.kind=='BASE_PERMIT':
@@ -264,8 +291,10 @@ def proposal_options(ctx):
             accept=dict(effects={'alliances':1.0 if pact else .5,'trade':.3},traits={'agreeableness':.8,'solidarity':.3,'isolationism':-.6,'alliance_loyalty':.4 if pact else 0},
                         categories={'hegemonic':.8 if pact else .3,'isolationist':-.6},base=2.0)
             reject=dict(effects={'alliances':-.3},traits={'agreeableness':-.6,'isolationism':.6,'provocation':.3},categories={'isolationist':.6},base=0.0)
+        accept_payload=dict(payload)
+        if row.kind=='JOIN_WAR' and not cap['able']:accept_payload.update(capable=False,reason=' '.join(cap['notes']))
         options.append(Option(key=f'proposal:accept:{row.id}',domain='diplomacy',action='PROPOSAL_ACCEPT',label=f'Przyjęcie propozycji państwa {row.source_country_name}: {label}',
-                              target=other,stance='friendly',payload=dict(payload),**accept))
+                              target=other,stance='friendly',payload=accept_payload,**accept))
         options.append(Option(key=f'proposal:reject:{row.id}',domain='diplomacy',action='PROPOSAL_REJECT',label=f'Odrzucenie propozycji państwa {row.source_country_name}: {label}',
                               target=other,stance='hostile',payload=dict(payload),**reject))
     return options
@@ -287,8 +316,9 @@ def execute(ctx,option):
         if p.get('relation_id'):form['relation_id']=str(p['relation_id'])
         if p.get('enemy_id'):form['enemy_id']=str(p['enemy_id'])
         if p.get('region_id'):form['region_id']=str(p['region_id'])
+        if p.get('days'):form['days']=str(p['days'])   # 17 Nov 2026: czas zawieszenia broni
         status,data=ctx.call(ACTION,form=form)
     return result(status,data)
 
 
-ADAPTER=register(Adapter(name='diplomacy',modes=('CYCLIC','IMMEDIATE'),propose=propose,execute=execute))
+ADAPTER=register(Adapter(name='diplomacy',modes=('CYCLIC','IMMEDIATE'),propose=propose,execute=execute,check=check))

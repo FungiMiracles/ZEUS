@@ -13,6 +13,7 @@ from extensions import db
 
 TICK_SECONDS=30
 BUDGET_RETRY=timedelta(hours=2)
+BUDGET_ERROR='Budżet nie został zatwierdzony.'
 
 
 def eligible_countries(session):
@@ -57,6 +58,10 @@ def process_country(app,country_id,control,now):
         actor_for(session,country_id)  # tożsamość państwa (skrzynka powiadomień) musi istnieć przed kursorami
         state=country_state(session,country_id,control,now)
         needed=budget_needed(session,country_id)
+        # 17 Nov 2026: budżet bieżącego okresu jest zatwierdzony — błąd poprzedniej próby budżetowej jest nieaktualny.
+        if not needed and (state.budget_retry_at is not None or state.last_error==BUDGET_ERROR):
+            state.budget_retry_at=None
+            if state.last_error is not None:state.last_error=None
         retry=state.budget_retry_at
         attempt=None
         if needed and (retry is None or retry<=now):
@@ -69,8 +74,10 @@ def process_country(app,country_id,control,now):
         with Session(db.engine) as session,session.begin():
             row=session.get(Paga2Decision,decision) if decision else None
             state=session.get(Paga2CountryState,country_id)
-            if row is not None and row.status!='EXECUTED':state.budget_retry_at=now+BUDGET_RETRY;state.last_error=row.error or 'Budżet nie został zatwierdzony.'
-            elif row is not None:state.budget_retry_at=None
+            if row is not None and row.status!='EXECUTED':state.budget_retry_at=now+BUDGET_RETRY;state.last_error=row.error or BUDGET_ERROR
+            elif row is not None:
+                if state.budget_retry_at is not None or state.last_error==BUDGET_ERROR:state.last_error=None
+                state.budget_retry_at=None
     # 2. Tryb doraźny: zagrożenia, wiadomości, wpisy forum i powiadomienia od ostatniego przebiegu.
     from game.paga_ai_models import PagaAiIdentity
     with Session(db.engine) as session,session.begin():

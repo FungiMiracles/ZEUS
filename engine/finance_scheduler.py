@@ -529,6 +529,12 @@ def run_finance_tick(app, owner):
                     _heartbeat(session,owner,token)
                     settle_years(session,country_id,target_game_time.year)
 
+            # 16 Nov 2026: rozliczenie finansowania walki z przestępczością (tydzień Entendy przed kolejnym budżetem).
+            from game.crime_funding import settle_due as settle_crime
+            with Session(db.engine) as session, session.begin():
+                _heartbeat(session,owner,token)
+                settle_crime(session,target_game_time)
+
             _complete_tick(
                 owner,
                 token,

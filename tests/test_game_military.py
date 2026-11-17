@@ -83,7 +83,7 @@ class MilitaryTests(MilitaryFixture):
         self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100,'armored':25})
         base=db.session.get(MilitaryBase,base.id)
         self.assertEqual(active_counts([base])['wojska_ladowe_ilosc'],10000)
-        self.assertEqual(upkeep_cost([base]),41000000)
+        self.assertEqual(upkeep_cost([base]),1000000)   # 16 Nov 2026: żołnierze — opłata z game.military_recruitment
         with self.assertRaises(FinanceError): self.change('garrison',base_id=base.id,garrison={'soldiers':10001})
         with self.assertRaises(FinanceError): self.change('garrison',base_id=base.id,garrison={'fighters':1})
         with self.assertRaises(FinanceError): self.change('garrison',base_id=999,garrison={})
@@ -107,12 +107,12 @@ class MilitaryTests(MilitaryFixture):
     def test_proportional_withdrawal_notification_and_no_duplicates(self):
         base=self.base()
         self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100})
-        self.set_budget(20400000)
+        self.set_budget(400000)
         reconcile_maintenance(db.session,1,NOW);db.session.commit()
         base=db.session.get(MilitaryBase,base.id)
-        self.assertEqual(base.garrison['soldiers'],5000)
+        self.assertEqual(base.garrison['soldiers'],10000)     # 16 Nov 2026: żołnierzy dotyczy wyłącznie opłata za służbę czynną
         self.assertEqual(base.garrison['tanks'],50)
-        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,20400000)
+        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,400000)
         notice=db.session.query(GameNotification).one()
         self.assertEqual(notice.user_id,1)
         self.assertIn('proporcjonalnie',notice.system_text)
@@ -121,14 +121,14 @@ class MilitaryTests(MilitaryFixture):
 
     def test_half_years_and_budget_shared_with_upgrades(self):
         base=self.base()
-        self.change('garrison',base_id=base.id,garrison={'soldiers':10000})
-        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,40000000)
+        self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100})
+        self.assertEqual(db.session.query(MilitaryMaintenance).one().amount,800000)
         self.set_budget(1000000000)
         with self.assertRaises(FinanceError):self.change('upgrade',base_id=base.id)
-        self.set_budget(20000000,period=2)
+        self.set_budget(400000,period=2)
         reconcile_maintenance(db.session,1,datetime(2990,7,1));db.session.commit()
         self.assertEqual(db.session.query(MilitaryMaintenance).count(),2)
-        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['soldiers'],5000)
+        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['tanks'],50)
 
     def test_upkeep_rollback(self):
         base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000})

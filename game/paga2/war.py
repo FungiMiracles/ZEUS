@@ -423,16 +423,124 @@ def withdraw_options(ctx,forces,screen):
     return options
 
 
-def reach_means(forces,screen):
-    """Środki ataku na odległość: rakiety średniego i dalekiego zasięgu oraz obsadzone myśliwce, okręty wojenne i podwodne."""
-    missiles={code:int((value or {}).get('count') or 0) for code,value in ((screen or {}).get('missiles') or {}).items()}
-    means={'medium':missiles.get('medium',0),'long':missiles.get('long',0)}
-    for resource in ('fighters','warships','submarines'):
-        means[resource]=sum(int((b.garrison or {}).get(resource,0)) for b in forces.bases if b.health>0 and b.garrison)
+MIN_DEFENSE_RATIO=.6   # 16 Nov 2026: siła własna poniżej 60% siły sąsiada — obrona własnego terytorium niepewna, brak wojny
+
+
+def _ready(b):return b.health>0 and getattr(b,'operational',True) and bool(b.garrison)
+
+
+def _stock(screen):return {code:int((value or {}).get('count') or 0) for code,value in ((screen or {}).get('missiles') or {}).items()}
+
+
+def enemy_geography(ctx,other):
+    """Środki regionów państwa i czy ma wybrzeże (dla oceny zasięgu rakiet, myśliwców i okrętów)."""
+    cache=getattr(ctx,'_enemy_geo',None)
+    if cache is None:cache=ctx._enemy_geo={}
+    if other not in cache:
+        try:
+            from game.paga2.defense import _world
+            world=_world(ctx);regions=world.regions_of(other)
+            cache[other]=([c for r in regions if (c:=world.center(r))],any(world.coastal(r) for r in regions))
+        except Exception:cache[other]=([],True)
+    return cache[other]
+
+
+def strength(ctx,other):
+    """Siła zbrojna własna i przeciwnika (ważona liczba sprzętu); (None, None) gdy brak danych."""
+    cache=getattr(ctx,'_strength',None)
+    if cache is None:cache=ctx._strength={}
+    if other not in cache:
+        try:
+            from game.paga2.diplomacy import powers
+            own,_,foe=powers(ctx,other);cache[other]=(float(own),float(foe))
+        except Exception:cache[other]=(None,None)
+    return cache[other]
+
+
+def reach_means(ctx,forces,screen,other):
+    """16 Nov 2026: środki ataku na odległe państwo — rakiety o zasięgu obejmującym jego terytorium (z baz lądowych
+    z wyrzutniami lub morskich z okrętami), myśliwce w zasięgu 1000 km, a przy państwie z wybrzeżem: okręty wojenne
+    i podwodne oraz lotniskowce (z myśliwcami w bazach powietrznych)."""
+    from game.military_flights import FIGHTER_RANGE
+    stock=_stock(screen);centers,coastal=enemy_geography(ctx,other);means={}
+    fallback=(ctx.world_summary().get('country_distances_km') or {}).get(other)
+    for b in forces.bases:
+        if not _ready(b) or b.map_x is None:continue
+        g=b.garrison;origin=[b.map_x,b.map_y]
+        distances=[d for c in centers if (d:=km(ctx,origin,c)) is not None] or ([fallback] if fallback is not None else [])
+        if (b.kind=='land' and g.get('launchers',0)>0) or (b.kind=='naval' and g.get('warships',0)>0):
+            for d in distances:
+                if (kind:=missile_for(d,stock)):means[kind]=stock[kind]
+        if b.kind=='air' and g.get('fighters',0)>0 and any(stock.values()) and any(d<=FIGHTER_RANGE for d in distances):
+            means['fighters']=means.get('fighters',0)+int(g['fighters'])
+    if coastal:
+        for kind in ('warships','submarines'):
+            count=sum(int(b.garrison.get(kind,0)) for b in forces.bases if _ready(b) and b.kind=='naval')
+            if count:means[kind]=count
+        try:
+            for v in own_vessels(ctx):
+                if v.kind in ('warships','submarines') and v.base_id is None:means[v.kind]=means.get(v.kind,0)+1
+        except Exception:pass
+        carriers=int((forces.army or {}).get('lotniskowce_ilosc',0) or 0)
+        fighters=sum(int(b.garrison.get('fighters',0)) for b in forces.bases if _ready(b) and b.kind=='air')
+        if carriers and fighters and any(_ready(b) and b.kind=='naval' for b in forces.bases):means['carriers']=carriers
     return {k:v for k,v in means.items() if v>0}
 
 
-REACH_LABELS={'medium':'rakiety średniego zasięgu','long':'rakiety dalekiego zasięgu','fighters':'myśliwce','warships':'okręty wojenne','submarines':'okręty podwodne'}
+def offense_means(forces,screen):
+    """Środki ataku na sąsiada: czołgi i wozy opancerzone (z żołnierzami) w bazach lądowych, wyrzutnie i myśliwce (z rakietami)."""
+    missiles=any(_stock(screen).values());means={}
+    for b in forces.bases:
+        if not _ready(b):continue
+        g=b.garrison
+        if b.kind=='land' and g.get('soldiers',0)>0:
+            for kind in ('tanks','armored'):means[kind]=means.get(kind,0)+int(g.get(kind,0))
+        if missiles and b.kind=='land':means['launchers']=means.get('launchers',0)+int(g.get('launchers',0))
+        if missiles and b.kind=='air':means['fighters']=means.get('fighters',0)+int(g.get('fighters',0))
+    return {k:v for k,v in means.items() if v>0}
+
+
+def war_capability(ctx,forces,screen,other):
+    """16 Nov 2026: czy państwo jest zdolne do wojny z `other` (wypowiedzenie lub dołączenie do wojny).
+    Państwo odległe: potrzebne środki ataku na odległość. Sąsiad: środki ataku oraz obrona własnego terytorium
+    (garnizon lądowy i siła zbrojna co najmniej MIN_DEFENSE_RATIO siły sąsiada). Zwraca able, distant, bonus, notes."""
+    cache=getattr(ctx,'_capability',None)
+    if cache is None:cache=ctx._capability={}
+    if other in cache:return cache[other]
+    neighbors=set(ctx.world_summary().get('neighbor_countries',[]))
+    distant=other not in neighbors;notes=[];able=True;bonus=0.0
+    staffed=[b for b in forces.bases if _ready(b)]
+    own,foe=strength(ctx,other)
+    ratio=own/max(1.0,foe) if own is not None else None
+    if not staffed or not forces.has_budget or forces.budget_available<=0:
+        able=False;notes.append('Brak zdolności do prowadzenia wojny (obsadzone bazy, budżet wojska).')
+    elif distant:
+        reach=reach_means(ctx,forces,screen,other)
+        if not reach:
+            able=False;notes.append('Państwo nie jest sąsiadem, a brak środków ataku na odległość (okręty wojenne, lotniskowce, rakiety o odpowiednim zasięgu, myśliwce w zasięgu).')
+        else:
+            notes.append('Cel odległy; środki ataku na odległość: '+', '.join(f'{REACH_LABELS[k]} {v}' for k,v in reach.items())+'.')
+            bonus+=min(3,len(reach))-1.0
+    else:
+        offense=offense_means(forces,screen)
+        defenders=sum(int(b.garrison.get('soldiers',0)) for b in staffed if b.kind=='land')
+        if not offense:
+            able=False;notes.append('Brak środków ataku na sąsiada (czołgi lub wozy opancerzone w obsadzonych bazach lądowych, wyrzutnie lub myśliwce z rakietami).')
+        if not defenders:
+            able=False;notes.append('Brak obsadzonej bazy lądowej do obrony własnego terytorium.')
+        if ratio is not None and ratio<MIN_DEFENSE_RATIO:
+            able=False;notes.append(f'Siły zbyt słabe do obrony własnego terytorium przed sąsiadem (×{ratio:.2f}, wymagane ×{MIN_DEFENSE_RATIO:.2f}).')
+        if able:
+            notes.append('Zdolność do ataku na sąsiada i obrony terytorium potwierdzona: '+', '.join(f'{REACH_LABELS[k]} {v}' for k,v in offense.items())+'.')
+    if ratio is not None:
+        bonus+=3*(min(2.0,ratio)-1)
+        notes.append(f'Siły własne {own:.0f} wobec {foe:.0f} przeciwnika (×{ratio:.2f}).')
+    cache[other]={'able':able,'distant':distant,'bonus':bonus,'notes':notes}
+    return cache[other]
+
+
+REACH_LABELS={'short':'rakiety krótkiego zasięgu','medium':'rakiety średniego zasięgu','long':'rakiety dalekiego zasięgu','fighters':'myśliwce',
+              'warships':'okręty wojenne','submarines':'okręty podwodne','carriers':'lotniskowce','tanks':'czołgi','armored':'wozy opancerzone','launchers':'wyrzutnie rakiet'}
 
 
 def own_vessels(ctx):
@@ -517,34 +625,40 @@ def naval_options(ctx,forces,targets,enemies):
     return options
 
 
+def peace_grace(ctx):
+    """16 Nov 2026: państwa objęte karencją po zawarciu pokoju (30 dni Entendy) — {państwo: koniec karencji}."""
+    if getattr(ctx,'_peace_grace',None) is None:
+        try:
+            from game.diplomacy_service import war_lock_map   # 17 Nov 2026: także trwające zawieszenie broni
+            with Session(db.engine) as session:ctx._peace_grace=war_lock_map(session,ctx.country_id,ctx.now)
+        except Exception:ctx._peace_grace={}
+    return ctx._peace_grace
+
+
 def declare_options(ctx,forces,screen=None):
-    """Wypowiedzenie wojny — tylko w trybie doraźnym, wobec państw o złych lub wrogich relacjach (warunek gry)."""
+    """Wypowiedzenie wojny — tylko w trybie doraźnym, wobec państw o złych lub wrogich relacjach (warunek gry).
+    16 Nov 2026: decyzja uwzględnia zdolność do wojny (war_capability): środki ataku na odległość wobec państw
+    niesąsiadujących, środki ataku i obrony własnego terytorium wobec sąsiadów."""
     if ctx.mode!='IMMEDIATE':return []
-    t=ctx.traits;options=[]
-    staffed=[b for b in forces.bases if b.health>0 and b.garrison]
-    capable=staffed and forces.has_budget and forces.budget_available>0
+    options=[]
     triggers={item.get('from') for item in ctx.triggers if item.get('from')}
-    neighbors=set(ctx.world_summary().get('neighbor_countries',[]))
-    reach=None
+    if screen is None:screen=war_screen(ctx)
     from game.paga2.war_losses import deterrence_map
     deterred=deterrence_map(ctx)   # 13 Nov 2026: pokój po ciężkiej wojnie — mniejsza skłonność do ataku
+    grace=peace_grace(ctx)
     for other,row in ctx.situation.get('relations',{}).items():
         if row.get('relation') not in WAR_RELATIONS or row.get('state')=='wojnakinetyczna':continue
+        if other in grace:continue   # karencja po zawarciu pokoju — gra odrzuciłaby wypowiedzenie wojny
         provoked=ctx.history(other)['hostile_from']
-        distant=other not in neighbors;able=bool(capable)
-        if distant:
-            if reach is None:reach=reach_means(forces,screen if screen is not None else war_screen(ctx))
-            able=able and bool(reach)
-        if not capable:note='Brak zdolności do prowadzenia wojny (obsadzone bazy, budżet wojska).'
-        elif distant and not reach:note='Państwo nie jest sąsiadem, a brak środków ataku na odległość (rakiety średniego/dalekiego zasięgu, okręty, myśliwce).'
-        elif distant:note='Cel odległy; środki ataku na odległość: '+', '.join(f'{REACH_LABELS[k]} {v}' for k,v in reach.items())+'.'
-        else:note='Zdolność wojskowa potwierdzona.'
+        cap=war_capability(ctx,forces,screen,other);distant=cap['distant']
         options.append(Option(key=f'war:declare:{other}',domain='war',action='WAR',label=f'Wypowiedzenie wojny państwu {other}',target=other,stance='hostile',
                               effects={'conquest':1.0,'offensive_army':.7,'welfare':-.6,'financial_stability':-.5,'trade':-.4},
                               traits={'militarism':.8,'expansionism':.8,'provocation':.6,'ambition':.4,'agreeableness':-.8,'strategic_patience':-.3,'predictability':-.2},
                               categories={'imperialist':1.0,'terrorist':.4,'hegemonic':.3,'isolationist':-.5,'welfare':-.6},
-                              base=-16.0+(5.0 if other in neighbors else 0)+4*min(3,provoked)+(6.0 if other in triggers else 0)-min(12.0,deterred.get(other,0.0)),risk=.4+(.2 if distant else 0),
-                              notes=[note]+([f'Odstraszenie: pokój po ciężkiej wojnie z tym państwem lub jego sojusznikiem (−{min(12.0,deterred[other]):.1f}).'] if deterred.get(other) else []),payload={'kind':'WAR','target_id':other,'group':'war:declare','capable':able,**({'distant':True} if distant else {})}))
+                              base=-16.0+(0 if distant else 5.0)+4*min(3,provoked)+(6.0 if other in triggers else 0)-min(12.0,deterred.get(other,0.0))+cap['bonus'],risk=.4+(.2 if distant else 0),
+                              notes=list(cap['notes'])+([f'Odstraszenie: pokój po ciężkiej wojnie z tym państwem lub jego sojusznikiem (−{min(12.0,deterred[other]):.1f}).'] if deterred.get(other) else []),
+                              payload={'kind':'WAR','target_id':other,'group':'war:declare','capable':cap['able'],**({'distant':True} if distant else {}),
+                                       **({} if cap['able'] else {'reason':' '.join(cap['notes'])})}))
     return options
 
 
@@ -572,13 +686,14 @@ def propose(ctx):
 
 def check(ctx,option):
     if option.action=='WAR' and not option.payload.get('capable'):
-        if option.payload.get('distant'):return 'Brak zdolności do wojny z odległym państwem: potrzebne obsadzone bazy, budżet wojska oraz środki ataku na odległość (rakiety średniego/dalekiego zasięgu, okręty wojenne lub podwodne, myśliwce).'
-        return 'Brak zdolności do prowadzenia wojny: brak obsadzonych baz lub środków w budżecie wojska.'
+        reason=option.payload.get('reason') or ''
+        if option.payload.get('distant'):return 'Brak zdolności do wojny z odległym państwem. '+reason
+        return 'Brak zdolności do prowadzenia wojny. '+reason
     return None
 
 
 def execute(ctx,option):
-    p={k:v for k,v in option.payload.items() if k not in ('group','required','capable','plan_id','distant')}
+    p={k:v for k,v in option.payload.items() if k not in ('group','required','capable','plan_id','distant','reason')}
     if option.action=='WAR_PREPARE':
         from game.paga2.models import Paga2Plan
         with Session(db.engine) as session,session.begin():

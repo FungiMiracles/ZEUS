@@ -1,0 +1,44 @@
+{% extends 'base_layout.html' %}
+{% block title %}Konta graczy — WIKI{% endblock %}
+{% block content %}
+{# 16 Nov 2026: zmiana hasła kont graczy ludzkich przez administratora (konta techniczne PAGA nie są wyświetlane) #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wiki_player_accounts.css', v='20261116-1') }}">
+<div class="accounts-page">
+    <header class="accounts-header">
+        <h1>Konta graczy</h1>
+        <p>Gracze ludzcy ENTENDA GAME. Nowe hasło: od {{ password_min }} do {{ password_max }} znaków, dowolne znaki (także cyfry i znaki specjalne). Gracz otrzyma powiadomienie o zmianie hasła.</p>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<p class="accounts-message {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    {% if players %}
+    <div class="accounts-list">
+        {% for player in players %}
+        <section class="accounts-card" id="gracz-{{ player.id }}" aria-labelledby="gracz-{{ player.id }}-nazwa">
+            <div class="accounts-info">
+                <h2 id="gracz-{{ player.id }}-nazwa">{{ player.username }}{% if not player.active %} <span class="accounts-badge">nieaktywne</span>{% endif %}</h2>
+                <dl>
+                    <div><dt>E-mail</dt><dd>{{ player.email }}</dd></div>
+                    <div><dt>Państwo</dt><dd>{{ player.country or '—' }}</dd></div>
+                    <div><dt>Ostatnie logowanie</dt><dd>{{ player.last_login_at.strftime('%d.%m.%Y %H:%M') if player.last_login_at else '—' }}</dd></div>
+                </dl>
+            </div>
+            <form class="accounts-form" method="post" action="{{ url_for('wiki_civic.player_password', user_id=player.id) }}" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                <input type="text" name="username" value="{{ player.username }}" autocomplete="username" hidden>
+                <label>Nowe hasło
+                    <input type="password" name="password" minlength="{{ password_min }}" maxlength="{{ password_max }}" autocomplete="new-password" required>
+                </label>
+                <label>Powtórz hasło
+                    <input type="password" name="password_confirm" minlength="{{ password_min }}" maxlength="{{ password_max }}" autocomplete="new-password" required>
+                </label>
+                <button type="submit">Zmień hasło</button>
+            </form>
+        </section>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="accounts-empty">Brak kont graczy ludzkich.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -112,9 +112,21 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     watersToggle.checked = showWaters; watersToggle.addEventListener('change', () => setWaters(watersToggle.checked));
     if (showWaters) setWaters(true);
   }
-  // --- miasta ---
+  // --- miasta (16 Nov 2026: przełącznik pokaż/ukryj, zapamiętywany w przeglądarce) ---
+  const citiesToggle = document.getElementById('world-cities-toggle'), citiesLegend = document.querySelectorAll('.legend-cities');
+  let citiesLayer = null;
+  const setCities = on => {
+    citiesLegend.forEach(item => { item.hidden = !on; });
+    try { localStorage.setItem('world-cities', on ? '1' : '0'); } catch {}
+    if (citiesLayer) { if (on) citiesLayer.addTo(map); else citiesLayer.remove(); }
+  };
+  if (citiesToggle) {
+    let showCities = true; try { showCities = localStorage.getItem('world-cities') !== '0'; } catch {}
+    citiesToggle.checked = showCities; citiesLegend.forEach(item => { item.hidden = !showCities; });
+    citiesToggle.addEventListener('change', () => setCities(citiesToggle.checked));
+  }
   load(config.citiesUrl).then(cities => {
-    L.geoJSON(cities, { pane: 'worldCities', coordsToLatLng: coordinates, filter: f => !!config.cities[String(f.properties?.miasto_id)],
+    citiesLayer = L.geoJSON(cities, { pane: 'worldCities', coordsToLatLng: coordinates, filter: f => !!config.cities[String(f.properties?.miasto_id)],
       pointToLayer: (feature, latlng) => {
         const city = config.cities[String(feature.properties.miasto_id)], p = Number(city.population) || 0;
         const radius = p > 5e6 ? 6 : p >= 1e6 ? 4 : 2.5;
@@ -123,7 +135,8 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
       onEachFeature: (feature, layer) => {
         const city = config.cities[String(feature.properties.miasto_id)];
         layer.bindTooltip(iconTip(config.cityIcon, city.name, [`Populacja: ${mln(city.population)}`, `Rodzaj: ${city.type || 'brak danych'}`, `Portowe: ${city.port ? 'tak' : 'nie'}`]), { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' });
-      } }).addTo(map);
+      } });
+    if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
   // --- płynące statki towarowe ---
   map.createPane('worldShips'); map.getPane('worldShips').style.zIndex = '640';

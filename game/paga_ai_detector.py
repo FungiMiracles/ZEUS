@@ -81,6 +81,9 @@ def detect(session,control,eligible,identities):
     import game.finance_service as finance
     moment=now();revision=control.revision
     by_user={row.user_id:country for country,row in identities.items()}
+    # 16 Nov 2026: globalny dobowy limit wpisów PAGA na forum — po wyczerpaniu wpisy AI nie wywołują reakcji innych AI.
+    from game.paga_forum_quota import ai_user_ids,exhausted as forum_quota_exhausted
+    ai_authors=ai_user_ids(session);forum_full=forum_quota_exhausted(session,ai_authors)
     country_names=names(session,list(identities))
     # Human takeover or PAGA disabled: open questions and plans of that country end immediately.
     for task in session.scalars(select(PagaAiJob).where(PagaAiJob.status.in_(['PENDING','BLOCKED','QUEUED']),PagaAiJob.country_id.notin_(eligible) if eligible else PagaAiJob.id>0)):
@@ -99,7 +102,14 @@ def detect(session,control,eligible,identities):
             identity.notification_cursor=row.id
             if row.notification_type in IGNORED_NOTIFICATIONS:continue
             kind=None;key=f'note:{row.id}';ref=None;text=row.system_text or row.infrastructure_text or ''
-            if row.notification_type=='FORUM_MESSAGE':kind,key,ref='forum_reply',f'forum:{row.message_id}',row.message_id
+            if row.notification_type=='FORUM_MESSAGE':
+                from game.forum_models import ForumMessage as _Forum
+                from game.paga_forum_quota import reaction_allowed
+                posted=session.get(_Forum,row.message_id)
+                if forum_full and posted is not None and posted.user_id in ai_authors:continue
+                # 16 Nov 2026: naprawa lawiny — AI nie odpowiada na publiczne wpisy innych AI; publiczny wpis gracza — najwyżej 3 państwa.
+                if not reaction_allowed(session,posted,identity.user_id,country_id,ai_authors,list(identities)):continue
+                kind,key,ref='forum_reply',f'forum:{row.message_id}',row.message_id
             elif row.notification_type=='DIPLOMACY':
                 from game.diplomacy_models import DiplomaticAction
                 action=session.get(DiplomaticAction,row.diplomatic_action_id)
@@ -149,6 +159,7 @@ def detect(session,control,eligible,identities):
         if parent and parent.user_id in by_user:targets.add(by_user[parent.user_id])
         ai_parent=session.get(ForumMessage,parent.reply_to_id) if parent and parent.reply_to_id else None
         if message.user_id in by_user and parent and parent.user_id in by_user and ai_parent and ai_parent.user_id in by_user:continue
+        if forum_full and message.user_id in ai_authors:continue   # 16 Nov 2026: limit forum PAGA wyczerpany
         for country_id in targets:
             if country_id!=message.panstwo_id:raise_task(session,country_id,'forum_reply',f'forum:{message.id}',revision,source='forum',object_ref=message.id)
         if message.user_id in by_user:continue  # AI posts never trigger mentions of other AI countries (no endless chains)

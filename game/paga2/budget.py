@@ -1,4 +1,5 @@
-"""PAGA2 — ustalanie budżetu półrocza (tryb BUDGET): podatek, podział na sektory, świadczenia dla dzieci i seniorów.
+"""PAGA2 — ustalanie budżetu półrocza (tryb BUDGET): podatek, podział na sektory, świadczenia dla dzieci i seniorów,
+środki na walkę z przestępczością (16 Nov 2026: oczekiwania społeczne jak u gracza).
 
 Algorytm:
 1. podgląd bazowy gry (ten sam co gracza) — stawka poprzednia, dochody, oczekiwane świadczenia, wskaźniki społeczne,
@@ -141,6 +142,38 @@ def payments(state):
     return {'children':str(children),'seniors':str(seniors)},(children+seniors)/total
 
 
+def crime_target(ctx):
+    """16 Nov 2026: docelowe finansowanie walki z przestępczością względem oczekiwań społecznych (1.0–1.15).
+    Państwa ostrożne i prospołeczne dają lekką nadwyżkę (spadek przestępczości), w czasie wojny pełne pokrycie."""
+    value=1.0+.15*(100-ctx.traits.get('loss_tolerance',50))/100*ctx.traits.get('prosociality',50)/100*2
+    if ctx.situation.get('level')=='war':value=1.0
+    return clip(value,1.0,1.15)
+
+
+def with_crime_floor(shares,state,ratio):
+    """Podnosi udział służb specjalnych i porządkowych, gdy nie wystarcza na docelowe finansowanie walki z przestępczością."""
+    expected=dec((state.get('crime') or {}).get('expected'))
+    budget=dec(state.get('budget_total'))
+    if expected<=0 or budget<=0:return shares,False
+    share=(expected*Decimal(str(ratio))*100/budget).quantize(CENT,rounding=ROUND_HALF_UP)+CENT
+    if share<=shares['security_services']:return shares,False
+    share=min(share,Decimal('40'))
+    others=[s for s in SECTORS if s!='security_services'];rest=sum(shares[s] for s in others)
+    room=sum(shares.values())-share
+    if rest<=0 or room<0:return shares,False
+    scaled={s:(shares[s]*room/rest).quantize(CENT,rounding=ROUND_DOWN) for s in others}
+    return {**scaled,'security_services':share},True
+
+
+def crime_payment(state,ratio):
+    """Kwota na walkę z przestępczością: oczekiwania × cel, ograniczona przydziałem sektora służb."""
+    expected=dec((state.get('crime') or {}).get('expected'))
+    available=dec((state.get('allocations') or {}).get('security_services'))
+    if expected<=0:return '0.00',Decimal(1)
+    paid=min((expected*Decimal(str(ratio))).quantize(CENT,rounding=ROUND_DOWN),available)
+    return str(paid),paid/expected
+
+
 def half(value):
     """Zaokrąglenie stawki do wielokrotności 0,5 pkt proc."""
     return ((Decimal(value)*2).quantize(Decimal('1'),rounding=ROUND_HALF_UP)/2).quantize(Decimal('0.1'))
@@ -186,36 +219,40 @@ def propose(ctx):
     if limit is not None and abs(limit-previous_rate)<=step:rates.add(limit)
     rates=sorted({half(r) for r in rates if Decimal('1')<=half(r)<=Decimal('60')})
     coverage=social_coverage_target(ctx)
+    crime_ratio=crime_target(ctx)
     base_revenue=None;options=[]
     t=ctx.traits;war=ctx.situation.get('level')=='war'
     for rate in rates:
         body={'pit_rate':str(rate),'shares':{k:str(v) for k,v in shares.items()}}
         state=preview(ctx,body)
         adjusted,changed=with_social_floor(shares,state,coverage)
-        if changed:
+        adjusted,crime_changed=with_crime_floor(adjusted,state,crime_ratio)
+        if changed or crime_changed:
             body['shares']={k:str(v) for k,v in adjusted.items()}
             state=preview(ctx,body)
         paid,covered=payments(state)
+        crime_paid,crime_covered=crime_payment(state,crime_ratio)
         revenue=dec(state.get('tax_total'));penalty=int(dec(state.get('tax_penalty')))
         if rate==previous_rate:base_revenue=revenue
-        options.append((rate,body,state,paid,covered,revenue,penalty))
+        options.append((rate,body,state,paid,covered,revenue,penalty,crime_paid,crime_covered))
     base_revenue=base_revenue or max((o[5] for o in options),default=Decimal(1))
     result=[]
-    for rate,body,state,paid,covered,revenue,penalty in options:
+    for rate,body,state,paid,covered,revenue,penalty,crime_paid,crime_covered in options:
         gain=float((revenue-base_revenue)/base_revenue) if base_revenue>0 else 0.0
         # Malejąca użyteczność dodatkowych dochodów (logarytm), aby wzrost wpływów nie przesłonił kosztów społecznych.
         base=(12*math.log1p(max(gain,-.9))*(.6+t.get('fiscal_conservatism',50)/100+(.6 if war else 0))
               -penalty*(3+5*t.get('prosociality',50)/100+4*(100-t.get('loss_tolerance',50))/100)
               -abs(float(rate-previous_rate))*.4*t.get('predictability',50)/100
               +(10*(float(covered)-1)*(t.get('prosociality',50)/100+.3) if covered<1 else 0))
-        notes=[f'Stawka PIT {rate}% (poprzednia {previous_rate}%' + (f', bez kary do {limit}%' if limit is not None else '')+f'; maks. zmiana w półroczu {step} pkt).',
+        notes=[f'Stawka PIT {rate}% (poprzednia {previous_rate}%' + (f', bez kary do {limit}%' if limit is not None else '')+f'; maks. zmiana w okresie {step} pkt).',
                f'Dochody podatkowe: {revenue:,.0f} ROI ({gain*100:+.1f}% wobec poprzedniej stawki).'.replace(',',' '),
-               f'Kara społeczna za wysoki podatek: {penalty} pkt.',f'Pokrycie oczekiwanych świadczeń: {float(covered)*100:.0f}%.']
-        result.append(Option(key=f'budget:{rate}',domain='finance',action='BUDGET_APPROVE',label=f'Budżet półrocza z podatkiem PIT {rate}%',
+               f'Kara społeczna za wysoki podatek: {penalty} pkt.',f'Pokrycie oczekiwanych świadczeń: {float(covered)*100:.0f}%.',
+               f'Walka z przestępczością: {float(crime_covered)*100:.0f}% oczekiwań społecznych.']
+        result.append(Option(key=f'budget:{rate}',domain='finance',action='BUDGET_APPROVE',label=f'Budżet okresu z podatkiem PIT {rate}%',
                              effects={'financial_stability':clip(gain*2,-1,1),'welfare':clip(-penalty/4+(float(covered)-1),-1,1)},
                              base=round(base,3),notes=notes,
                              payload={'group':'budget','year':state.get('year'),'period':state.get('period'),'basis_token':state.get('basis_token'),
-                                      'pit_rate':str(rate),'shares':body['shares'],'benefits':paid,
+                                      'pit_rate':str(rate),'shares':body['shares'],'benefits':paid,'crime_funding':crime_paid,
                                       'summary':{'tax_total':str(revenue),'budget_total':str(state.get('budget_total')),'penalty':penalty,'coverage':round(float(covered),3),
                                                  'allocations':{k:str(v) for k,v in (state.get('allocations') or {}).items()}}}))
     return result
@@ -229,7 +266,8 @@ def check(ctx,option):
 def execute(ctx,option):
     p=option.payload
     status,data=ctx.call(APPROVE,json={'year':p['year'],'period':p['period'],'basis_token':p['basis_token'],'pit_rate':p['pit_rate'],
-                                       'shares':p['shares'],'benefits':p['benefits'],'repeat_previous':False})
+                                       'shares':p['shares'],'benefits':p['benefits'],'repeat_previous':False,
+                                       **({'crime_funding':p['crime_funding']} if p.get('crime_funding') is not None else {})})
     data=data if isinstance(data,dict) else {}
     return {'status':status,'budget_id':data.get('budget_id'),'already_approved':data.get('already_approved'),'error':data.get('error')}
 

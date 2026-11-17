@@ -12,6 +12,10 @@
 #game-notification-more { padding: 8px 12px; cursor: pointer; }
 
 .game-diplomacy-dialog { width: min(560px, calc(100vw - 30px)); border: 1px solid #d8e0e9; border-radius: 12px; padding: 24px; color: #193453; }
+.game-diplomacy-head { display: flex; align-items: center; gap: 12px; }
+.game-diplomacy-head h2 { margin: 0; }
+.game-diplomacy-flag { width: 64px; height: auto; max-height: 44px; object-fit: cover; border: 1px solid #94a3b8; border-radius: 3px; flex: none; }
+.game-diplomacy-flag[hidden] { display: none; }
 .game-diplomacy-dialog::backdrop { background: rgb(0 0 0 / 45%); }
 .game-diplomacy-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .game-diplomacy-buttons button { padding: 9px 14px; border-radius: 6px; border: 1px solid #94a3b8; cursor: pointer; font: inherit; }

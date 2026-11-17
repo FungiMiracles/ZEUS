@@ -34,7 +34,7 @@ class BudgetTransferTests(MilitaryFixture):
         self.assertEqual(effective_allocation(db.session,1,'infrastructure'),Decimal('899.75'))
 
     def test_reserved_military_upkeep_cannot_be_transferred(self):
-        self.set_budget(40000100);base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000})
+        self.set_budget(800100);base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100})
         with self.assertRaises(FinanceError):self.move(source='armed_forces',destination='healthcare',amount='100.01')
         self.move(source='armed_forces',destination='healthcare',amount='100')
         self.assertEqual(military_budget(db.session,1)[2],0)
@@ -86,9 +86,9 @@ class BudgetTransferTests(MilitaryFixture):
         self.assertEqual(Decimal(response.json['state']['balances']['healthcare']['remaining']),Decimal('12.50'))
 
     def test_incoming_transfer_funds_upkeep_before_any_automatic_reduction(self):
-        base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000})
-        self.set_budget(39999900)
+        base=self.base();self.change('garrison',base_id=base.id,garrison={'soldiers':10000,'tanks':100})
+        self.set_budget(799900)
         self.move(amount='100')
         from game.military_models import MilitaryBase
-        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['soldiers'],10000)
+        self.assertEqual(db.session.get(MilitaryBase,base.id).garrison['tanks'],100)
         self.assertEqual(military_budget(db.session,1)[2],0)

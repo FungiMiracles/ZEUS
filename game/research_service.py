@@ -52,7 +52,7 @@ def settle_production(session,country_id,now=None,*,resolve_attacks=True):
 def budget_for(session,country,category,cost):
     year,period=period_key(game_now())
     budget=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==country,StateBudget.game_year==year,StateBudget.period==period).with_for_update())
-    if budget is None or sector_balances(session,budget)[category]['remaining']<cost:raise FinanceError('Za mało środków w budżecie bieżącego półrocza.')
+    if budget is None or sector_balances(session,budget)[category]['remaining']<cost:raise FinanceError('Za mało środków w budżecie bieżącego okresu budżetowego.')
     return budget
 
 

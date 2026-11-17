@@ -1,6 +1,8 @@
 {% set state = finance_state or {} %}
 {% set approved = state.get('approved', false) %}
 {% set required = finance_required | default(false) %}
+{# 16 Nov 2026: teksty zależne od okresu planu (kwartał od 1 października 3001, wcześniej półrocze) #}
+{% set fp = (game_period(state.year, state.period) if state else game_period()) if game_period is defined else {'nom':'okres','gen':'okresu','loc':'okresie','current':'bieżący okres','months':6,'share':50,'per_year':'przy budżecie każdego okresu'} %}
 
 {% if required %}
 <dialog id="finance-modal"
@@ -54,8 +56,8 @@
 
     {% if required %}
     <p class="finance-help">
-        Stopy podatkowe mogą być zmieniane dwa razy do roku:
-        w styczniu i lipcu kalendarza gry. Ustal nowe wysokości
+        Stopy podatkowe ustalasz przy budżecie każdego okresu —
+        {{ fp.per_year }} kalendarza gry. Ustal nowe wysokości
         podatków i podział wydatków budżetowych lub zatwierdź
         budżet bez zmian względem poprzedniego.
     </p>
@@ -98,7 +100,7 @@
                     <dd data-value="annual_pit" data-money>—</dd>
                 </div>
                 <div>
-                    <dt>Półroczne wpływy ogólne</dt>
+                    <dt>Wpływy ogólne okresu ({{ fp.nom }})</dt>
                     <dd data-value="half_year_pit" data-money>—</dd>
                 </div>
             </dl>
@@ -116,7 +118,7 @@
                                 <span>Wpływy roczne: PKB per capita × ludność 18–64 × (1 − bezrobocie / 100) × stawka podatku / 100. Bonus: (stabilność + zadowolenie + edukacja + średnia infrastruktura + zdrowie publiczne − przestępczość) / 100 procent.</span>
                                 <span>Podatek powyżej 20% może obniżyć zadowolenie, stabilność i zaufanie do władzy. Kara jest naliczana przy zatwierdzeniu budżetu. {{ 'Naliczona' if approved else 'Przewidywana' }} kara dla każdego z trzech wskaźników: <strong data-value="tax_penalty">—</strong> pkt (do dolnej granicy 0).</span>
             {% else %}<span>Podstawa roczna: ludność 18–64 × 10 000 ROI × stawka podatku + infrastruktura × 2 mld ROI + zadowolenie × 500 mln ROI + stabilność × 100 mln ROI + edukacja × 200 mln ROI. Stawka dotyczy składnika ludności.</span>{% endif %}{% else %}{% if approved %}<span>Plan historyczny zachowuje wpływy obliczone według zasad obowiązujących podczas zatwierdzenia.</span>{% endif %}{% endif %}
-                                <span>Transza bieżącego półrocza wynosi 50% rocznych wpływów.</span>
+                                <span>Transza bieżącego {{ fp.gen }} wynosi {{ fp.share }}% rocznych wpływów.</span>
                             </span>
                         </span>
                     </span>
@@ -201,7 +203,7 @@
                                     {{ category.name }}
                                 </label>
                             </th>
-                            <td>
+                            <td data-label="Udział (%)">
                                 <input
                                     id="finance-share-{{ category.code }}"
                                     type="number"
@@ -217,18 +219,28 @@
                                     {% endif %}
                                 >
                             </td>
-                            <td data-allocation="{{ category.code }}">—</td>
-                            {% if approved %}{% for field in ["allocated","spent","remaining"] %}<td data-sector="{{ category.code }}" data-balance="{{ field }}">—</td>{% endfor %}{% endif %}
+                            <td data-allocation="{{ category.code }}" data-label="Zatwierdzona kwota">—</td>
+                            {% if approved %}{% for field, label in [("allocated","Po przesunięciach i wpływach"),("spent","Wydane / zobowiązania"),("remaining","Pozostało")] %}<td data-sector="{{ category.code }}" data-balance="{{ field }}" data-label="{{ label }}">—</td>{% endfor %}{% endif %}
                         </tr>
                         {% if category.code == 'social_policy' %}
-                        <tr><td colspan="{{ 6 if approved else 3 }}">
+                        <tr class="finance-benefits-row"><td colspan="{{ 6 if approved else 3 }}">
                             <p data-benefits-expectations></p>
                             {% for kind,label in [('children','Świadczenia na dzieci'),('seniors','Emerytury')] %}
                             <label>{{ label }} (MLD)
                                 <input type="number" data-benefit="{{ kind }}" min="0" step="0.00000000001" value="0" {% if approved %}readonly{% endif %}>
                             </label>
                             {% endfor %}
-                            <p>Wypłata obu świadczeń następuje po zatwierdzeniu budżetu. Pozostałe środki socjalne przechodzą na następne półrocze. Skutki społeczne są rozliczane raz po zakończeniu roku, osobno dla każdego świadczenia.</p>
+                            <p>Wypłata obu świadczeń następuje po zatwierdzeniu budżetu. Pozostałe środki socjalne przechodzą na następny okres budżetowy. Skutki społeczne są rozliczane raz po zakończeniu roku, osobno dla każdego świadczenia.</p>
+                        </td></tr>
+                        {% elif category.code == 'security_services' %}
+                        {# 16 Nov 2026: oczekiwania społeczne wobec środków na walkę z przestępczością #}
+                        <tr class="finance-benefits-row finance-crime-row"><td colspan="{{ 6 if approved else 3 }}">
+                            <p data-crime-expectations></p>
+                            <label>Walka z przestępczością (MLD)
+                                <input type="number" data-crime-funding min="0" step="0.00000000001" value="0" {% if approved %}readonly{% endif %}>
+                            </label>
+                            <p data-crime-result></p>
+                            <p>Środki pochodzą z budżetu służb specjalnych i porządkowych. Społeczeństwo oczekuje kwoty równej liczbie ludności pomnożonej przez poziom przestępczości (zaokrąglonej do setek milionów). Niedofinansowanie podnosi przestępczość: do 35% o 1 pkt, do 60% o 2 pkt, powyżej 60% o 3 pkt. Nadwyżka obniża ją: powyżej 5% o 1 pkt, powyżej 20% o 2 pkt. Rozliczenie następuje tydzień Entendy przed zatwierdzeniem kolejnego budżetu.</p>
                         </td></tr>
                         {% endif %}
                         {% endfor %}
@@ -258,7 +270,7 @@
 
         <p class="finance-help">
             Po zatwierdzeniu stawki podatkowe pozostają bez zmian.
-            Niewydane środki możesz przesuwać między sektorami w bieżącym półroczu.
+            Niewydane środki możesz przesuwać między sektorami w bieżącym {{ fp.loc }}.
         </p>
         {% else %}
         <p class="finance-help">

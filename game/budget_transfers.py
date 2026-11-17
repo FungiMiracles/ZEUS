@@ -71,6 +71,8 @@ def sector_balances(session,budget):
     from game.radar import spent as radar_spent
     spent['armed_forces']+=land_war_spent(session,budget.id)+training_spent(session,budget.id)+radar_spent(session,budget.id)
     spent['security_services']=session.scalar(select(func.coalesce(func.sum(IntelligenceExpense.amount),0)).where(IntelligenceExpense.budget_id==budget.id)) or Decimal(0)
+    from game.crime_funding import CrimeFunding   # 16 Nov 2026: środki na walkę z przestępczością
+    spent['security_services']+=session.scalar(select(func.coalesce(func.sum(CrimeFunding.paid),0)).where(CrimeFunding.budget_id==budget.id)) or Decimal(0)
     spent['infrastructure']+=session.scalar(select(func.coalesce(func.sum(MiningExpense.amount),0)).where(MiningExpense.budget_id==budget.id)) or Decimal(0)
     from game.industry_models import IndustryMovement
     # Industry operations are charged to their sector (filters: environment, since 10 Nov 2026).
@@ -99,6 +101,34 @@ def trust_message(trust):
     return f'Społeczeństwo nie ufa władzy wystarczająco ({trust}/100), by pozwolić na swobodne modyfikowanie budżetu i przesuwanie środków między sektorami.'
 
 
+def defensive_war(session,country_id):
+    """17 Nov 2026 (decyzja administratora): wojna obronna na własnym terytorium — państwo prowadzi wojnę kinetyczną z państwem,
+    które okupuje jego bazy, miasta lub regiony albo prowadzi na nie armię. Wtedy przesunięcia DO sektora sił zbrojnych
+    nie wymagają progu zaufania do władzy (obrona nie może czekać na kolejny budżet)."""
+    from sqlalchemy.exc import SQLAlchemyError
+    from game.land_war_models import LandArmy,Occupation
+    from game.diplomacy_service import at_war,dictionaries,DiplomacyError
+    try:
+        enemies=set(session.scalars(select(Occupation.occupier_id).where(Occupation.owner_id==country_id,Occupation.status=='ACTIVE')))
+        enemies|=set(session.scalars(select(LandArmy.panstwo_id).where(LandArmy.target_country_id==country_id,LandArmy.panstwo_id!=country_id,
+                                                                     LandArmy.status.in_(['MARCHING','OCCUPYING']))))
+        enemies.discard(country_id)
+        if not enemies:return False
+        _,states,neutral=dictionaries(session)
+        return any(at_war(session,country_id,enemy,states,neutral) for enemy in enemies)
+    except (SQLAlchemyError,DiplomacyError):return False   # brak danych wojennych nie może blokować finansów
+
+
+def transfer_needs_trust(session,country_id,source,destination):
+    """Próg zaufania dotyczy przesunięć między sektorami; nie dotyczy rezerwy ani — w wojnie obronnej — zasilenia sił zbrojnych."""
+    if 'reserve' in (source,destination):return False
+    return not (destination=='armed_forces' and defensive_war(session,country_id))
+
+
+def defense_transfer_message():
+    return 'Wojna obronna: przesunięcia do sektora sił zbrojnych są dozwolone bez względu na zaufanie do władzy.'
+
+
 def require_public_trust(session,country_id):
     """Moving money between budget sectors needs public trust in the government above 65 (administrator, 10 Nov 2026).
     Transfers to or from the budget reserve are not affected; missing data does not block (no data is not low trust)."""
@@ -122,8 +152,8 @@ def transfer_funds(user_id,data):
         if isinstance(budget_id,bool) or not isinstance(budget_id,int):raise FinanceError('Nieprawidłowy budżet.')
         budget=session.scalar(select(StateBudget).where(StateBudget.id==budget_id,StateBudget.panstwo_id==country.PANSTWO_ID).with_for_update())
         if budget is None:raise FinanceError('Nie znaleziono budżetu państwa gracza.')
-        if (budget.game_year,budget.period)!=period_key(game_now()):raise FinanceConflict('Można przesuwać środki wyłącznie w bieżącym półroczu.')
-        if 'reserve' not in (source,destination):require_public_trust(session,country.PANSTWO_ID)
+        if (budget.game_year,budget.period)!=period_key(game_now()):raise FinanceConflict('Można przesuwać środki wyłącznie w bieżącym okresie budżetowym.')
+        if transfer_needs_trust(session,country.PANSTWO_ID,source,destination):require_public_trust(session,country.PANSTWO_ID)
         existing=session.scalar(select(BudgetTransfer).where(BudgetTransfer.user_id==user_id,BudgetTransfer.request_id==request_id))
         if existing is not None:
             if (existing.budget_id,existing.source,existing.destination,existing.amount)!=(budget.id,source,destination,amount):raise FinanceConflict('Identyfikator przesunięcia został już wykorzystany.')

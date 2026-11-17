@@ -126,9 +126,15 @@ class CommunicationTests(unittest.TestCase):
             with patch('game.paga2.communication.llm_control',return_value=NS(enabled=True)),patch('game.paga2.communication.used_today',return_value=communication.DAILY_LIMIT):
                 self.assertEqual(communication.propose(c),[])
             with patch('game.paga2.communication.llm_control',return_value=NS(enabled=True)),patch('game.paga2.communication.used_today',return_value=0),\
-                 patch('game.paga2.communication.already',return_value=False),patch('game.paga2.communication.recent_actions',return_value=[]):
+                 patch('game.paga2.communication.already',return_value=False),patch('game.paga2.communication.recent_actions',return_value=[]),\
+                 patch('game.paga_forum_quota.exhausted',return_value=False):   # 16 Nov 2026: globalny limit forum PAGA niewyczerpany
                 [option]=communication.propose(c)
         self.assertEqual(option.action,'FORUM_POST');self.assertEqual(option.payload['group'],'communication')
+        with patch('game.paga2.communication.Session',FakeSession),patch('game.paga2.communication.db',NS(engine=None)),\
+             patch('game.paga2.communication.llm_control',return_value=NS(enabled=True)),patch('game.paga2.communication.used_today',return_value=0),\
+             patch('game.paga2.communication.already',return_value=False),patch('game.paga2.communication.recent_actions',return_value=[]),\
+             patch('game.paga_forum_quota.exhausted',return_value=True):   # 16 Nov 2026: limit forum PAGA wyczerpany — bez zapowiedzi
+            self.assertEqual([o for o in communication.propose(c) if o.action=='FORUM_POST'],[])
 
     def test_open_states_announce_research_they_actually_started(self):
         # 15 Nov 2026: skrytość < 20 — wpis o rozpoczęciu prac nad technologią, tylko dla faktycznie rozpoczętych prac.

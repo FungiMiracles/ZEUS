@@ -76,7 +76,7 @@ def _pay(session, country_id, rule):
         raise FinanceError('Za mało surowców w magazynie: ' + ', '.join(missing) + f' (potrzeba: {rule["chips"]} chip natsytowy, {rule["iron"]} żelaza).')
     budget, _, free = military_budget(session, country_id)
     if budget is None or free < rule['cost']:
-        raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżące półrocze.')
+        raise FinanceError('Za mało środków w budżecie sił zbrojnych na bieżący okres budżetowy.')
     consume(session, country_id, {CHIP: rule['chips'], IRON: rule['iron']})
     return budget
 

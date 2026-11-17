@@ -155,6 +155,9 @@ def propose(ctx):
         if llm_control(session) is None or used_today(session,ctx.country_id)>=DAILY_LIMIT:return []
         names=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all())
         items=[item for item in occasions(ctx,names) if not already(session,ctx.country_id,item[0])]
+        # 16 Nov 2026: globalny dobowy limit wpisów PAGA na forum — po wyczerpaniu bez nowych zapowiedzi (wiadomości prywatne bez zmian).
+        from game.paga_forum_quota import exhausted
+        if any(item[1]=='forum_announcement' for item in items) and exhausted(session):items=[item for item in items if item[1]!='forum_announcement']
     options=[]
     for key,kind,target,text,effects,traits,base in items[:12]:
         options.append(Option(key=f'comm:{key}',domain='communication',action='FORUM_POST' if kind=='forum_announcement' else 'PM_INITIATE',

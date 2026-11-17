@@ -82,7 +82,7 @@ def propose(ctx):
             options.append(Option(key=f'abroad:deploy:{region}:{kind}',domain='defense',action='BASE_DEPLOY_ABROAD',label=f'Baza ({kind}) na terytorium sojusznika {host}, region {region}',
                                   cost=cost,sector='armed_forces',effects={'defensive_army':.8,'offensive_army':1.0,'conquest':.4},traits={'militarism':.8,'expansionism':.3},
                                   categories={'hegemonic':1.0,'imperialist':.5},base=3.0+(3.0 if ctx.situation.get('level')=='war' else 0)+(2.0 if hegemon else 0),
-                                  notes=[f'Utrzymanie za granicą (2×): {cost/1e9:.2f} MLD na półrocze.'],
+                                  notes=[f'Utrzymanie za granicą (2×): {cost/1e9:.2f} MLD na okres budżetowy.'],
                                   payload={'kind':kind,'region_id':region,'garrison':garrison,'group':f'abroad:deploy:{region}'}))
             break
     return options

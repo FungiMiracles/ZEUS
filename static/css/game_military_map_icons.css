@@ -1,0 +1,66 @@
+/* 15 Nov 2026: ikony obiektów na mapie panelu wojennego i obrony w stylu mapy świata (game_world.css):
+   biała plakietka 26 px — obiekty stałe (bazy, budynki, elektrownie, radary, obrona) w kwadracie,
+   ruchome (okręty, statki handlowe) w kółku jak na mapie świata — z granatową obwódką i cieniem, flaga państwa w prawym górnym rogu,
+   okręty wojenne z ciemnoczerwoną obwódką. Dodatkowo (tylko tutaj): pasek życia pod plakietką,
+   mała plakietka zasobu/produktu w prawym dolnym rogu, poziom obrony/radaru jako mała etykieta.
+   Selektory z #military-map i !important tam, gdzie starsze reguły (game_civic.css, game_defense_room.css) ich używają. */
+
+html body.game-app #military-map .military-map-marker { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+
+html body.game-app #military-map .military-map-badge {
+  position: relative; box-sizing: border-box; width: 26px !important; height: 26px !important; padding: 3px !important; margin: 0;
+  border: 1.5px solid #1E3A5F !important; border-radius: 4px !important; background: #fff !important; box-shadow: 0 2px 5px #0006 !important;
+  display: block; gap: 0; outline-offset: 2px;
+}
+html body.game-app #military-map .military-map-badge > img:first-child {
+  display: block; box-sizing: border-box; width: 100% !important; height: 100% !important; max-width: none; margin: 0;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; object-fit: contain;
+}
+/* Obiekty ruchome: okręty i statki handlowe w kółku; okręty wojenne z ciemnoczerwoną obwódką jak .world-vessel */
+html body.game-app #military-map .military-map-badge:is(.military-map-vessel,.trade-cargo-symbol) { border-radius: 50% !important; }
+html body.game-app #military-map .military-map-badge.military-map-vessel { border-color: #7a1f1f !important; background: #f3f6fa !important; }
+
+/* Flaga państwa: prawy górny róg (okręty, statki handlowe, radary, okupowane bazy) */
+html body.game-app #military-map .military-map-badge :is(.military-vessel-flag,.military-radar-flag,.land-occupied-flag) {
+  position: absolute; left: auto; bottom: auto; right: -8px; top: -6px; width: 16px; height: 11px; padding: 0;
+  object-fit: cover; border: 1px solid #fff; border-radius: 0; box-shadow: none; background: transparent;
+}
+html body.game-app #military-map .military-map-badge.land-occupied-symbol { outline: 2px solid #c62828; }
+html body.game-app #military-map .military-map-badge .land-occupied-flag { box-shadow: 0 0 0 1px #c62828; }
+
+/* Zasób kopalni / produkt fabryki: mała okrągła plakietka w prawym dolnym rogu */
+html body.game-app #military-map .military-map-badge > .military-map-subbadge,
+html body.game-app.military-defense #military-map .military-object-protected > img.military-map-subbadge {
+  position: absolute; left: auto !important; top: auto; right: -6px !important; bottom: -4px; width: 14px !important; height: 14px !important;
+  box-sizing: border-box; padding: 1.5px !important; margin: 0; object-fit: contain;
+  background: #fff !important; border: 1px solid #1E3A5F !important; border-radius: 50% !important; box-shadow: none !important;
+}
+
+/* Pasek życia pod plakietką */
+html body.game-app.game-navy.game-civic #military-map .military-map-badge > .map-health-bar {
+  position: absolute; box-sizing: border-box; left: 1px; right: auto; top: calc(100% + 2px); bottom: auto;
+  width: 24px; height: 5px; margin: 0; padding: 0; border: 1px solid #fff; border-radius: 3px; overflow: hidden;
+}
+html body.game-app.game-navy.game-civic #military-map .military-map-badge > .military-mine-progress {
+  position: absolute; left: 1px; top: calc(100% + 8px); bottom: auto; width: 24px; height: 5px; margin: 0;
+}
+
+/* Obrona przeciwrakietowa: plakietka 26 px (region) albo 18 px przy chronionym obiekcie; poziom w małym kółku */
+html body.game-app #military-map .military-defense-symbol.military-map-badge { border-color: #218838 !important; }
+html body.game-app #military-map .military-defense-symbol.military-map-badge > span {
+  position: absolute; right: -6px; bottom: -5px; width: 13px; height: 13px; line-height: 13px; border-radius: 50%;
+  background: #218838; color: #fff; font-size: 9px; font-weight: 700; text-align: center;
+}
+html body.game-app #military-map .military-defense-symbol-compact.military-map-badge { width: 18px !important; height: 18px !important; padding: 2px !important; border-width: 1px !important; border-radius: 3px !important; }
+html body.game-app #military-map .military-defense-symbol-compact.military-map-badge > span { right: -5px; bottom: -4px; width: 11px; height: 11px; line-height: 11px; font-size: 8px; }
+html body.game-app #military-map .military-defense-symbol-compact.military-map-badge > .map-health-bar { display: none; }
+
+/* Radar: numer poziomu w lewym górnym rogu (prawy górny zajmuje flaga) */
+html body.game-app #military-map .military-radar-symbol.military-map-badge > .military-radar-level {
+  position: absolute; right: auto; left: -7px; top: -6px; min-width: 14px; height: 14px; padding: 0 2px; box-sizing: border-box;
+  border-radius: 7px; background: #1E3A5F; color: #fff; font: 700 8.5px/14px system-ui, sans-serif; text-align: center;
+}
+html body.game-app #military-map .military-radar-destroyed.military-map-badge > img:first-child { filter: grayscale(1); opacity: .55; }
+
+/* Wybrany obiekt (panel obrony) — obwódka zgodna z kształtem plakietki */
+html body.game-app.military-defense #military-map .military-map-badge.military-object-selected { outline: 2px solid #2c974b; outline-offset: 3px; box-shadow: 0 0 0 4px #2c974b22, 0 2px 5px #0006 !important; }

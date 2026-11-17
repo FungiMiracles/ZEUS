@@ -121,6 +121,18 @@ def next_period_key(key):
     return (year, 4) if year == QUARTER_START.year else (year + 1, 1)
 
 
+def period_words(year=None, period=None):
+    """16 Nov 2026: odmiana nazwy okresu budżetowego do tekstów gry (kwartał od 1 października 3001, wcześniej półrocze)."""
+    if year is None or period is None:
+        year, period = period_key(game_now())
+    quarterly = is_quarterly(year, period)
+    return {'nom': 'kwartał' if quarterly else 'półrocze', 'gen': 'kwartału' if quarterly else 'półrocza',
+            'loc': 'kwartale' if quarterly else 'półroczu', 'current': 'bieżący kwartał' if quarterly else 'bieżące półrocze', 'adj': 'kwartalne' if quarterly else 'półroczne',
+            'months': period_months(year, period), 'share': 25 if quarterly else 50,
+            'per_year': 'cztery razy do roku: w styczniu, kwietniu, lipcu i październiku' if quarterly else 'dwa razy do roku: w styczniu i lipcu',
+            'label': period_label(year, period)}
+
+
 def period_label(year, period):
     roman = {1: "I", 2: "II", 3: "III", 4: "IV"}[period]
     return f"{roman} kwartał {year}" if is_quarterly(year, period) else f"{roman} półrocze {year}"
@@ -568,6 +580,12 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
 
         from game.social_benefits import expectations,carryover
         result["benefits"]={"expected":expectations(session,country.PANSTWO_ID),"carry_in":carryover(session,previous)}
+        # 16 Nov 2026: oczekiwania społeczne wobec środków na walkę z przestępczością (sektor służb specjalnych i porządkowych).
+        from game.crime_funding import expectations as crime_expectations, CrimeFunding
+        crime=crime_expectations(session,country.PANSTWO_ID)
+        previous_crime=session.get(CrimeFunding,previous.id) if previous is not None else None
+        result["crime"]={"expected":crime["expected"] if crime else None,"level":crime["level"] if crime else None,
+                         "previous_paid":previous_crime.paid if previous_crime is not None else None}
         result.update({
             "approved": False,
             "country_id": country.PANSTWO_ID,
@@ -673,6 +691,7 @@ def approve_in_transaction(
     shares=None,
     expected_basis=None,
     benefits=None,
+    crime_funding=None,
 ):
     """Wspólny mechanizm księgowania.
 
@@ -716,7 +735,7 @@ def approve_in_transaction(
             raise FinanceConflict("Półrocze jeszcze się nie zakończyło.")
     elif (year, period) != current_key:
         raise FinanceConflict(
-            "Zmieniło się półrocze. Odśwież formularz budżetu."
+            "Zmienił się okres budżetowy. Odśwież formularz budżetu."
         )
 
     _validate_categories(session)
@@ -867,6 +886,8 @@ def approve_in_transaction(
 
     from game.social_benefits import record_payments
     record_payments(session,budget,previous,calculation["allocations"]["social_policy"],benefits,repeat_previous)
+    from game.crime_funding import record_funding
+    record_funding(session,budget,previous,calculation["allocations"]["security_services"],crime_funding,repeat_previous)
 
     _post_transaction(
         session, account, budget,
@@ -914,6 +935,7 @@ def approve_manual_budget(
     cit_rate=None,
     shares=None,
     benefits=None,
+    crime_funding=None,
 ):
     """Publiczna operacja ręcznego zatwierdzenia.
 
@@ -943,6 +965,7 @@ def approve_manual_budget(
                 shares=shares,
                 expected_basis=expected_basis,
                 benefits=benefits,
+                crime_funding=crime_funding,
             )
 
         return result

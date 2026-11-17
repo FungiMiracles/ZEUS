@@ -323,7 +323,7 @@ def launch_invasion(user_id,data):
         if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
         offer=quote(session,own,base,units,point)
         budget,_,available=military_budget(session,own)
-        if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżące półrocze.')
+        if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżący okres budżetowy.')
         if available<offer['cost']:raise FinanceError('Za mało środków w budżecie sił zbrojnych na koszt inwazji.')
         take_from_garrison(base,units)
         now=game_now();arrives=now+timedelta(hours=offer['hours'])
@@ -759,3 +759,44 @@ def visible_occupations(session):
     return [{'id':row.id,'kind':row.kind,'baseId':row.base_id,'cityId':row.city_id,'regionId':row.region_id,'ownerId':row.owner_id,'occupierId':row.occupier_id,
              'status':row.status,'startedAt':stamp(row.started_at),'annexAt':stamp(row.started_at+timedelta(days=ANNEX_DAYS)) if row.kind=='region' else None}
             for row in session.scalars(select(Occupation).where(Occupation.status.in_(['ACTIVE','PENDING','DECLINED'])).order_by(Occupation.id))]
+
+
+def end_occupations_on_peace(session,a,b,moment=None):
+    """17 Nov 2026 (decyzja administratora): zawarcie pokoju kończy okupację.
+    Wszystkie okupacje baz, miast i regionów między stronami pokoju (w obu kierunkach) zostają zakończone — obiekty wracają
+    do właściciela, a regiony nie podlegają już aneksji. Armie okupacyjne i maszerujące wracają do swoich baz macierzystych
+    (gdy baza nie istnieje albo jest okupowana, żołnierze wracają do ogólnej puli wojsk państwa). Zwraca liczbę zakończonych okupacji."""
+    moment=moment or game_now()
+    pairs=[(a,b),(b,a)]
+    ended=0
+    for occupier,owner in pairs:
+        objects=list(session.scalars(select(Occupation).where(Occupation.kind.in_(['base','city']),Occupation.occupier_id==occupier,
+                                                             Occupation.owner_id==owner,Occupation.status=='ACTIVE').with_for_update()))
+        released=[]
+        for occupation in objects:
+            object_id=occupation.base_id if occupation.kind=='base' else occupation.city_id
+            for army in _occupiers(session,occupation.kind,object_id):
+                if army.panstwo_id==occupier:_return_home(session,army)
+            occupation.status='ENDED';occupation.ended_at=moment;ended+=1
+            released.append(occupation)
+        regions=list(session.scalars(select(Occupation).where(Occupation.kind=='region',Occupation.occupier_id==occupier,Occupation.owner_id==owner,
+                                                             Occupation.status.in_(['PENDING','DECLINED','ACTIVE'])).with_for_update()))
+        for row in regions:
+            if row.status=='ACTIVE':ended+=1
+            row.status='ENDED';row.ended_at=moment
+        # Armie w marszu na terytorium drugiej strony zawracają.
+        for army in session.scalars(select(LandArmy).where(LandArmy.panstwo_id==occupier,LandArmy.target_country_id==owner,LandArmy.status=='MARCHING').with_for_update()):
+            _return_home(session,army)
+        if released or regions:
+            n=names(session,occupier,owner)
+            places=', '.join(sorted({o.city_id and session.scalar(select(Miasto.miasto_nazwa).where(Miasto.miasto_id==o.city_id)) or f'baza #{o.base_id}' for o in released}))[:500]
+            notify(session,owner,f'Zawarcie pokoju z państwem {n.get(occupier,"?")} zakończyło okupację naszego terytorium. Odzyskane obiekty: {places or "—"}; regiony nie są już okupowane.')
+            notify(session,occupier,f'Zawarcie pokoju z państwem {n.get(owner,"?")} zakończyło naszą okupację jego terytorium. Wojska okupacyjne wróciły do baz.')
+    session.flush()
+    if ended:
+        from game.military_service import reconcile_maintenance
+        for country in (a,b):
+            try:
+                with session.begin_nested():reconcile_maintenance(session,country)
+            except FinanceError:pass   # rozliczenie utrzymania nie może zablokować zawarcia pokoju
+    return ended

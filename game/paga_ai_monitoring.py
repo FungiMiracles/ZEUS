@@ -23,7 +23,7 @@ DOMAIN_CATEGORY={'finance':'finanse','economy':'gospodarka','communication':'kom
 STATUSES={'PENDING':'Oczekuje','RUNNING':'W trakcie','EXECUTED':'Wykonana','PARTIAL':'Wykonana częściowo','REJECTED':'Odrzucona przez walidację','ERROR':'Błąd wykonania',
           'CANCELLED':'Anulowana','SUPERSEDED':'Zastąpiona nowszą','NO_ACTION':'Świadomie bez działania','ALREADY_DONE':'Już zrealizowana','DATA':'Zebranie danych'}
 OPERATIONS={
-    'budget.plan':('finanse','Plan budżetu półrocza'),'game_finance.transfer:POST':('finanse','Przesunięcie środków budżetu'),'game_loans.change:POST':('finanse','Pożyczka'),
+    'budget.plan':('finanse','Plan budżetu okresu'),'game_finance.transfer:POST':('finanse','Przesunięcie środków budżetu'),'game_loans.change:POST':('finanse','Pożyczka'),
     'game_infrastructure.expand:POST':('infrastruktura','Rozbudowa infrastruktury regionu'),'game_infrastructure.roads_change:POST':('infrastruktura','Drogi'),
     'game_infrastructure.industry_change:POST':('gospodarka','Przemysł'),'game_trade.mining_build:POST':('gospodarka','Uruchomienie wydobycia'),
     'game_research.change:POST':('badania','Badania'),'game_trade.change:POST':('handel','Handel'),
@@ -40,7 +40,7 @@ ACTIONS={'deploy':'rozmieszczenie bazy','place':'budowa baz','garrison':'zmiana 
          'reject':'odrzucenie','repay':'spłata','recruit':'rekrutacja agentów','mission':'misja','counter_upgrade':'rozbudowa kontrwywiadu',
          'WAR':'wypowiedzenie wojny','PEACE':'propozycja pokoju','CEASEFIRE':'zawieszenie broni','RELATION':'zmiana relacji',
          'land':'atak lądowy','air':'atak lotniczy','missile':'uderzenie rakietowe','naval':'atak morski'}
-TASK_LABELS={'strategic_review':'Przegląd strategiczny','budget':'Budżet półrocza','private_message':'Reakcja na wiadomość prywatną','forum_reply':'Reakcja na wpis na forum',
+TASK_LABELS={'strategic_review':'Przegląd strategiczny','budget':'Budżet okresu','private_message':'Reakcja na wiadomość prywatną','forum_reply':'Reakcja na wpis na forum',
              'forum_mention':'Reakcja na wzmiankę na forum','diplomatic_proposal':'Propozycja dyplomatyczna','war_declared':'Wypowiedzenie wojny wobec państwa','under_attack':'Reakcja na atak',
              'military_loss':'Straty wojskowe','conditional_plan':'Wykonanie planu warunkowego','plan_result':'Ocena wykonanego planu','intent':'Zapisany zamiar','research_available':'Dostępne punkty badań',
              'production_stopped':'Wstrzymana produkcja','energy_shortage':'Niedobór energii','legacy':'Analiza (poprzednia architektura)'}

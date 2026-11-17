@@ -425,8 +425,12 @@ class StateTaxAssessment(db.Model):
         ),
         CheckConstraint(
             """
-            half_year_pit = ROUND(annual_pit / 2, 2)
-            AND half_year_cit = ROUND(annual_cit / 2, 2)
+            (((game_year > 3001 OR (game_year = 3001 AND period = 4))
+              AND half_year_pit = ROUND(annual_pit / 4, 2)
+              AND half_year_cit = ROUND(annual_cit / 4, 2))
+             OR (NOT (game_year > 3001 OR (game_year = 3001 AND period = 4))
+              AND half_year_pit = ROUND(annual_pit / 2, 2)
+              AND half_year_cit = ROUND(annual_cit / 2, 2)))
             AND total_amount = half_year_pit + half_year_cit
             """,
             name="ck_gsta_half_year_amounts",

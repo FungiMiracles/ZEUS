@@ -1,7 +1,7 @@
 {% extends 'game/game_base_layout.html' %}
 {% block body_class %}{% if mode == 'war' %}military-war{% else %}military-defense{% endif %}{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}">{% if mode == 'defense' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_room.css', v='20261106-game0003-2') }}">{% endif %}{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_navy.css', v='20261113-bases-1') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_defense_navy.css', v='20261116-menu-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_military_map_icons.css', v='20261115-icons-2') }}">{% endblock %}
 {% block title %}{{ 'Panel wojenny' if mode == 'war' else 'Obrona państwa' }} — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -12,9 +12,11 @@
 {% if mode == 'war' %}
 <section class="war-readiness" aria-label="Sytuacja operacyjna"><div><span>Państwa przeciwnika</span><strong>{{ military_config.enemyIds|length }}</strong></div><div><span>Własne bazy</span><strong id="war-base-count">{{ military_config.bases|length }}</strong></div><div><span>Dostępne rakiety</span><strong id="war-missile-count">—</strong></div><div><span>Operacje w toku</span><strong id="war-flight-count">—</strong></div></section>
 {% else %}<section class="war-readiness" aria-label="Zasoby obronne"><div><span>Własne bazy</span><strong id="defense-base-count">{{ military_config.bases|length }}</strong></div><div><span>Bazy na mapie</span><strong id="defense-map-base-count">{{ military_config.bases|selectattr('position')|list|length }}</strong></div><div><span>Systemy przeciwrakietowe</span><strong id="defense-system-count">{{ military_config.defenses|selectattr('countryId', 'equalto', military_config.countryId)|list|length }}</strong></div><div><span>Okręty na morzu</span><strong id="defense-vessel-count">{{ military_config.vessels|selectattr('countryId', 'equalto', military_config.countryId)|list|length }}</strong></div></section>{% endif %}
+{# 16 Nov 2026: opłata za żołnierzy w służbie czynnej (PKB per capita × 0,01 za żołnierza na okres) #}
+<section class="war-readiness military-soldier-fee" aria-label="Żołnierze w służbie czynnej"><div><span>Żołnierze w służbie czynnej</span><strong>{{ soldier_fee.total|spacenum }}</strong></div><div><span>Opłata za żołnierzy · bieżący okres</span><strong id="military-soldier-fee">{% if soldier_fee.assessed %}{{ soldier_fee.periodFee|game_money }}{% else %}—{% endif %}</strong></div><div><span>Opłata za żołnierzy · następny okres</span><strong>{{ soldier_fee.nextFee|game_money }}</strong></div><div><span>Stawka za żołnierza</span><strong>{{ soldier_fee.rate|replace('.', ',') }} ROI</strong></div></section>
 {% if mode == 'defense' %}
 <div class="military-summary">
-<div class="game-panel"><h2>Utrzymanie baz · półrocze</h2><strong id="military-upkeep"></strong></div>
+<div class="game-panel"><h2>Utrzymanie wojska · bieżący okres (z opłatą za żołnierzy)</h2><strong id="military-upkeep"></strong></div>
 </div>
 {% endif %}
 <div class="military-layout">
@@ -47,6 +49,6 @@ window.addEventListener('load',()=>{if(!window.L)show('nie wczytano biblioteki L
 <script src="{{ url_for('static', filename='js/game_military_flight_math.js', v='20261114-heading-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui4') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_land_war.js', v='20261113-war-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_radar.js', v='20261111-radar-3') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_military.js', v='20261115-refresh-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_radar.js', v='20261115-icons-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_military.js', v='20261117-stack-1') }}" defer></script>
 {% endblock %}

@@ -10,7 +10,7 @@ from game.paga2.gateway import call,plain
 # nazwa: (ścieżka, metoda, klucze kontekstu szablonu dla stron HTML)
 SOURCES={
     'finance':('/game/finanse','GET',('finance_state','finance_categories','finance_error','finance_history','game_country')),
-    'army':('/game/sily-zbrojne','GET',('army','active','military_budget_total','interceptor_ammunition','training')),
+    'army':('/game/sily-zbrojne','GET',('army','active','military_budget_total','interceptor_ammunition','training','recruitment')),
     'military':('/game/panel-wojenny/stan','GET',None),
     'infrastructure':('/game/infrastruktura/obiekty/stan','GET',None),
     'mining':('/game/handel/wydobycie/stan','GET',None),

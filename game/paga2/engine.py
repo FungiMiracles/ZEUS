@@ -3,7 +3,7 @@
 Tryby:
 - CYCLIC    — cykliczny przegląd infrastruktury, wydobycia, energii, badań, handlu, obrony i stosunków (bez wypowiadania wojny),
 - IMMEDIATE — natychmiastowa reakcja na zagrożenia (wojna, atak, najazd) oraz na wiadomości, wpisy forum i powiadomienia,
-- BUDGET    — ustalenie budżetu bieżącego półrocza, gdy wymaga tego przebieg gry.
+- BUDGET    — ustalenie budżetu bieżącego okresu budżetowego, gdy wymaga tego przebieg gry.
 
 Wszystkie działania przechodzą przez oryginalne ekrany i operacje gracza (game/paga2/gateway.py), więc państwo PAGA2
 podlega tym samym regułom i ograniczeniom co gracz ludzki. Domeny działań dokładają adaptery (register()).
@@ -236,7 +236,7 @@ def run(app,country_id,mode,trigger,*,request_key=None,triggers=None,adapters=No
 
 
 def _choose(country_id,pool,request_key):
-    """Najwyżej oceniona opcja; przy remisie (różnica < 2 pkt) decyduje randomizer (zapis i licznik wywołań)."""
+    """Najwyżej oceniona opcja; przy remisie (równe oceny — od 17 Nov 2026 bez marginesu 2 pkt) decyduje randomizer (zapis i licznik wywołań)."""
     from game.paga2 import randomizer
     scored=[(o.key,o.score) for o in pool]
     top=randomizer.tied(scored)

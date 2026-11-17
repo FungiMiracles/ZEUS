@@ -50,7 +50,7 @@ def brief(operation,status,validation,result,reason):
         return f"Cel już zrealizowany: budżet {goal.get('year')}/{goal.get('period')} zatwierdzony (budget_id {goal.get('budget_id')})."
     if status>=400:return 'Odrzucono: '+str(reason or '')[:160]
     if operation=='game_finance.approve:POST' and isinstance(result,dict) and result.get('budget_id'):
-        return f"Zatwierdzono budżet (budget_id {result['budget_id']}). Cel budżetu półrocza zrealizowany."
+        return f"Zatwierdzono budżet (budget_id {result['budget_id']}). Cel budżetu okresu zrealizowany."
     if operation=='game_finance.preview:POST':return 'Przeliczono podgląd planu; oceń go i zatwierdź albo popraw.'
     if operation=='finish':return 'Zakończono analizę.'
     if operation.endswith(':GET') or operation.startswith('operations.'):return 'Odczytano dane.'
@@ -151,7 +151,7 @@ def execute(app,actor,command,*,step=0,model_id='Qwen3.5-4B-Q4_K_M',audit=True,r
                     result={'state':summary(captured['state'] or {}),'categories':captured['categories'],'error':captured['error'],
                             'guidance':'Stawki i udziały w procentach. Najpierw preview z planem i uzasadnieniem, potem approve z uzasadnieniem; ZEUS dobiera okres i token.'}
                     goal=completed_budget(captured['state'])
-                    if goal:result['completed_goal']=goal;result['guidance']='Budżet tego półrocza jest zatwierdzony. Możesz analizować dane lub przesuwać środki zwykłymi operacjami, ale nie zatwierdzaj budżetu ponownie.'
+                    if goal:result['completed_goal']=goal;result['guidance']='Budżet tego okresu budżetowego jest zatwierdzony. Możesz analizować dane lub przesuwać środki zwykłymi operacjami, ale nie zatwierdzaj budżetu ponownie.'
                 if operation==PREVIEW and status==200:
                     state=response.get_json().get('state',{})
                     goal=completed_budget(state)

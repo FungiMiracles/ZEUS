@@ -64,6 +64,8 @@ def intelligence_budget(session,country_id,now=None):
     if budget is None:return None,Decimal(0),Decimal(0)
     total=effective_allocation(session,budget.id,'security_services')
     spent=session.scalar(select(func.coalesce(func.sum(IntelligenceExpense.amount),0)).where(IntelligenceExpense.budget_id==budget.id)) or Decimal(0)
+    from game.crime_funding import CrimeFunding   # 16 Nov 2026: środki na walkę z przestępczością są już rozdysponowane
+    spent+=session.scalar(select(func.coalesce(func.sum(CrimeFunding.paid),0)).where(CrimeFunding.budget_id==budget.id)) or Decimal(0)
     return budget,total,max(Decimal(0),total-spent)
 
 
@@ -115,7 +117,7 @@ def operate_in_transaction(session,country_id,data,now=None,*,dry_run=False):
         if kind=='cyber_port' and region.region_polozenie_id in (None,1):raise FinanceError('Cyberatak portowy wymaga regionu nadmorskiego.')
         cost=MISSION_COST
     else:raise FinanceError('Nieprawidłowa operacja wywiadowcza.')
-    if budget is None or available<cost:raise FinanceError('Za mało środków w budżecie służb specjalnych i porządkowych na bieżące półrocze.')
+    if budget is None or available<cost:raise FinanceError('Za mało środków w budżecie służb specjalnych i porządkowych na bieżący okres budżetowy.')
     if dry_run:return {'cost':str(cost),'budget_id':budget.id}
     mission=None
     if action=='recruit':
