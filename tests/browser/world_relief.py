@@ -44,21 +44,7 @@ with sync_playwright() as p:
         window.relief=WorldRelief.createLayer(L,geo,metadata).addTo(map);
         return {ms:performance.now()-started,polygons:WorldRelief.prepare(geo,metadata).length};
     }''', {'geo': geo, 'metadata': metadata})
-    if world and '--cities' in sys.argv:
-        page.add_style_tag(path=str(ROOT/'static/css/game_world.css'))
-        page.add_script_tag(path=str(ROOT/'static/js/world_city_markers.js'))
-        page.evaluate('''({geo,metadata,land})=>{
-            map.createPane('worldCities');map.getPane('worldCities').style.zIndex='600';
-            WorldCityMarkers.createLayer(L,map,geo,metadata,{
-                land,
-                tooltip:city=>{const el=document.createElement('span');el.textContent=city.name;return el;}
-            }).addTo(map);
-        }''',{'geo':json.loads((ROOT/'static/maps/entenda_miasta.geojson').read_text()),'land':geo,
-              'metadata':json.loads(Path('/tmp/world_cities_metadata.json').read_text())})
     page.screenshot(path='/tmp/world-relief-world.png' if world else '/tmp/world-relief-profiles.png')
-    if world and '--cities' in sys.argv:
-        page.evaluate('map.setView([-1750,1020],.5,{animate:false})')
-        page.screenshot(path='/tmp/world-city-pins-detail.png')
     assert result['polygons'] > 0
     assert page.locator('.leaflet-worldRelief-pane canvas').count() > 0
     if not world:
@@ -171,14 +157,13 @@ with sync_playwright() as p:
         page.add_style_tag(path=str(ROOT / 'static/css/game_world.css'))
         page.add_script_tag(path='/tmp/industry-leaflet.js')
         page.add_script_tag(path=str(ROOT / 'static/js/world_relief.js'))
-        page.add_script_tag(path=str(ROOT / 'static/js/world_city_markers.js'))
         page.add_script_tag(path=str(ROOT / 'static/js/game_world.js'))
         page.wait_for_selector('.leaflet-worldRelief-pane canvas')
-        page.wait_for_selector('.world-city-dot, .world-city-footprint')
+        page.wait_for_selector('.leaflet-worldCities-pane path')
         page.uncheck('#world-cities-toggle')
-        assert page.locator('.world-city-dot, .world-city-footprint').count()==0
+        assert page.locator('.leaflet-worldCities-pane path').count()==0
         page.check('#world-cities-toggle')
-        assert page.locator('.world-city-dot, .world-city-footprint').count()==1
+        assert page.locator('.leaflet-worldCities-pane path').count()==1
         assert page.locator('#world-map').evaluate("el=>el.classList.contains('world-map-physical')")
         assert page.locator('#world-map').evaluate("el=>getComputedStyle(el).backgroundColor") == 'rgb(181, 219, 234)'
         for view in ('political', 'regional', 'continents'):

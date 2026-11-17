@@ -183,10 +183,16 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     citiesToggle.addEventListener('change', () => setCities(citiesToggle.checked));
   }
   load(config.citiesUrl).then(cities => {
-    citiesLayer = window.WorldCityMarkers.createLayer(L,map,cities,config.cities,{
-      land:regions,
-      tooltip:city=>iconTip(config.cityIcon,city.name,[`Populacja: ${mln(city.population)}`,`Rodzaj: ${city.type || 'brak danych'}`,`Portowe: ${city.port ? 'tak' : 'nie'}`])
-    });
+    citiesLayer = L.geoJSON(cities, { pane: 'worldCities', coordsToLatLng: coordinates, filter: f => !!config.cities[String(f.properties?.miasto_id)],
+      pointToLayer: (feature, latlng) => {
+        const city = config.cities[String(feature.properties.miasto_id)], p = Number(city.population) || 0;
+        const radius = p > 5e6 ? 6 : p >= 1e6 ? 4 : 2.5;
+        return L.circleMarker(latlng, { pane: 'worldCities', radius, color: C.cityBorder, weight: 1.2, fillColor: city.capital ? C.capital : C.city, fillOpacity: 1 });
+      },
+      onEachFeature: (feature, layer) => {
+        const city = config.cities[String(feature.properties.miasto_id)];
+        layer.bindTooltip(iconTip(config.cityIcon, city.name, [`Populacja: ${mln(city.population)}`, `Rodzaj: ${city.type || 'brak danych'}`, `Portowe: ${city.port ? 'tak' : 'nie'}`]), { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' });
+      } });
     if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
   // --- płynące statki towarowe ---
