@@ -226,3 +226,102 @@ class NaturalResourcesTests(unittest.TestCase):
         self.assertEqual(self.client.post(self.path, data=self.form(amount='321')).status_code, 303)
         self.assertEqual(db.session.get(DictZasob, 1).zasob_kod, 'legacy_coal')
         self.assertEqual(self.count(DictZasob), len(RESOURCES))
+
+    def bulk_form(self, action, **extra):
+        return dict({key: value for key, value in self.form().items() if not key.startswith('quantity_')}, action=action, **extra)
+
+    def test_increase_every_percentage_country_and_region(self):
+        for percentage in (25, 50, 75, 100, 200, 300, 500, 1000):
+            self.client.post(self.path, data=self.form(amount='100', technology='37'))
+            data = self.bulk_form('increase', scope='region', region_id='11', percentage=str(percentage))
+            self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+            for region_id, expected in [(11, 100 + percentage), (12, 100)]:
+                amounts = db.session.scalars(select(RegionZasob.zloze_ilosc).where(RegionZasob.region_id == region_id)).all()
+                self.assertEqual(amounts, [expected] * len(RESOURCES))
+            self.assertEqual(db.session.get(CountryMiningSettings, 1).technology, 37)
+        data = self.bulk_form('increase', scope='country', percentage='100')
+        self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+        self.assertEqual(db.session.scalar(select(RegionZasob.zloze_ilosc).where(RegionZasob.region_id == 12)), 200)
+        self.assertEqual(self.client.post(self.path, data=data).status_code, 409)
+
+    def test_increase_rounding_zero_overflow_and_invalid_scope(self):
+        self.client.post(self.path, data=self.form(amount='2'))
+        data = self.bulk_form('increase', scope='country', percentage='25')
+        self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+        self.assertEqual(db.session.scalar(select(RegionZasob.zloze_ilosc).limit(1)), 3)
+        for extra in ({'scope': 'other', 'percentage': '25'}, {'scope': 'country', 'percentage': '26'},
+                      {'scope': 'region', 'region_id': '21', 'percentage': '50'}):
+            self.assertEqual(self.client.post(self.path, data=self.bulk_form('increase', **extra)).status_code, 400)
+        row = db.session.scalar(select(RegionZasob).where(RegionZasob.region_id == 12, RegionZasob.zasob_id == 10))
+        row.zloze_ilosc = MAX_QUANTITY
+        db.session.commit()
+        self.assertEqual(self.client.post(self.path, data=self.bulk_form('increase', scope='country', percentage='100')).status_code, 400)
+        self.assertEqual(db.session.scalar(select(RegionZasob.zloze_ilosc).where(RegionZasob.region_id == 11).limit(1)), 3)
+        self.client.post(self.path, data=self.form(amount='0'))
+        self.assertEqual(self.client.post(self.path, data=self.bulk_form('increase', scope='country', percentage='1000')).status_code, 303)
+        self.assertEqual(db.session.scalar(select(func.sum(RegionZasob.zloze_ilosc))), 0)
+
+    def distribution_form(self, minimum='101', maximum='101'):
+        data = self.bulk_form('distribute')
+        for code, _ in RESOURCES:
+            data[f'minimum_{code}'] = minimum
+            data[f'maximum_{code}'] = maximum
+        return data
+
+    def test_distribution_preserves_country_totals_and_other_country(self):
+        db.session.add(RegionZasob(region_id=21, zasob_id=1, zloze_ilosc=777))
+        db.session.commit()
+        self.client.post(self.path, data=self.form(amount='500', technology='68'))
+        data = self.distribution_form()
+        with patch('services.natural_resources.secrets.randbelow', side_effect=lambda size: size - 1):
+            self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+        for resource_id in range(1, 11):
+            amounts = db.session.scalars(select(RegionZasob.zloze_ilosc).where(RegionZasob.region_id.in_([11, 12]), RegionZasob.zasob_id == resource_id)).all()
+            self.assertEqual(sorted(amounts), [0, 101])
+        self.assertEqual(db.session.get(CountryMiningSettings, 1).technology, 68)
+        self.assertEqual(db.session.scalar(select(RegionZasob.zloze_ilosc).where(RegionZasob.region_id == 21)), 777)
+        self.assertEqual(self.client.post(self.path, data=data).status_code, 409)
+
+    def test_distribution_ranges_validation_and_integer_limits(self):
+        data = self.distribution_form(minimum='10', maximum='20')
+        with patch('services.natural_resources.secrets.randbelow', return_value=0):
+            self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+        self.assertEqual(db.session.scalar(select(func.sum(RegionZasob.zloze_ilosc))), 100)
+        for minimum, maximum in [('21', '20'), ('-1', '20'), ('1.5', '20'), ('0', str(MAX_QUANTITY + 1))]:
+            self.assertEqual(self.client.post(self.path, data=self.distribution_form(minimum, maximum)).status_code, 400)
+        invalid = self.distribution_form()
+        del invalid['maximum_uran']
+        self.assertEqual(self.client.post(self.path, data=invalid).status_code, 400)
+        self.assertEqual(db.session.scalar(select(func.sum(RegionZasob.zloze_ilosc))), 100)
+        self.assertEqual(self.client.post(self.path, data=self.distribution_form('0', '0')).status_code, 303)
+        self.assertEqual(db.session.scalar(select(func.sum(RegionZasob.zloze_ilosc))), 0)
+        with patch('services.natural_resources.secrets.randbelow', return_value=0):
+            self.assertEqual(self.client.post(self.path, data=self.distribution_form(str(MAX_QUANTITY), str(MAX_QUANTITY))).status_code, 303)
+        for resource_id in range(1, 11):
+            self.assertEqual(db.session.scalar(select(func.sum(RegionZasob.zloze_ilosc)).where(RegionZasob.zasob_id == resource_id)), MAX_QUANTITY)
+
+    def test_new_actions_permissions_csrf_empty_country_and_rollback(self):
+        for action in ('increase', 'distribute'):
+            data = self.bulk_form(action, scope='country', percentage='25') if action == 'increase' else self.distribution_form()
+            self.assertEqual(self.client.post(self.path, data=dict(data, csrf_token='wrong')).status_code, 400)
+            with patch.object(db.session, 'commit', side_effect=SQLAlchemyError('test')):
+                self.assertEqual(self.client.post(self.path, data=data).status_code, 503)
+            self.assertEqual(self.count(RegionZasob), 0)
+            self.assertEqual(self.client.post('/admin/surowce-naturalne?country_id=3', data=dict(data, country_id='3')).status_code, 400)
+        self.role('tworzyciel')
+        self.assertEqual(self.client.post(self.path, data=data).status_code, 403)
+
+    def test_single_region_distribution_and_form_controls(self):
+        db.session.get(Region, 12).panstwo_id = 2
+        db.session.commit()
+        data = self.distribution_form('100', '200')
+        with patch('services.natural_resources.secrets.randbelow', side_effect=lambda size: size - 1):
+            self.assertEqual(self.client.post(self.path, data=data).status_code, 303)
+        self.assertEqual(db.session.scalars(select(RegionZasob.zloze_ilosc)).all(), [200] * len(RESOURCES))
+        html = self.client.get(self.path).get_data(as_text=True)
+        for code, _ in RESOURCES:
+            self.assertIn(f'name="minimum_{code}"', html)
+            self.assertIn(f'name="maximum_{code}"', html)
+        response = self.client.post(self.path, data=self.distribution_form('100', '99'))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('name="minimum_uran" value="100"', response.get_data(as_text=True))

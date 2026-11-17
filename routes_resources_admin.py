@@ -13,7 +13,7 @@ from models import CountryMiningSettings, Panstwo, Region, RegionZasob
 from permissions import wymaga_roli
 from services.natural_resources import (
     integer_value, MAX_QUANTITY, RESOURCES, ResourceError, deposits_for_country, field_name,
-    resource_dictionary, save_allocations,
+    resource_dictionary, save_allocations, INCREASE_PERCENTAGES,
 )
 
 
@@ -94,6 +94,7 @@ def render_panel(country_id, error=None, status=200, form=None, generated=False)
         country_names={str(c.PANSTWO_ID): c.panstwo_nazwa for c in countries},
         generated=generated or submitted.get("action") == "bulk",
         resource_csrf=csrf_token(), max_quantity=MAX_QUANTITY, field_name=field_name,
+        increase_percentages=INCREASE_PERCENTAGES, submitted=submitted,
     ), status
 
 

@@ -1,5 +1,6 @@
 """Przydział złóż i technologii wydobywczych, bez własnego commit."""
 import unicodedata
+import secrets
 
 from sqlalchemy import select
 from sqlalchemy.orm import lazyload
@@ -14,6 +15,7 @@ RESOURCES = (
     ("natsyt", "Natsyt"), ("kerbit", "Kerbit"), ("cemium", "Cemium"), ("uran", "Uran"), ("zelazo", "Żelazo"),
 )
 MAX_QUANTITY = 9223372036854775807
+INCREASE_PERCENTAGES = (25, 50, 75, 100, 200, 300, 500, 1000)
 
 
 class ResourceError(ValueError):
@@ -85,7 +87,7 @@ def save_allocations(country_id, form):
     if form.get("version") != expected_version:
         raise ResourceError("Dane zmieniły się w innej sesji. Zachowano wpisane wartości; odśwież panel przed ponowną edycją.", 409)
     action = form.get("action", "all")
-    if action not in {"all", "technology", "region", "bulk"}:
+    if action not in {"all", "technology", "region", "bulk", "increase", "distribute"}:
         raise ResourceError("Nieprawidłowa operacja.")
     if len(form.getlist("technology")) != 1 or len(form.getlist("version")) != 1:
         raise ResourceError("Nieprawidłowe parametry formularza.")
@@ -101,11 +103,63 @@ def save_allocations(country_id, form):
     regions = db.session.execute(select(Region.region_id, Region.region_nazwa).where(
         Region.panstwo_id == country_id,
     ).order_by(Region.region_id).with_for_update()).all()
-    if action == "region":
+    if action == "region" or action == "increase" and form.get("scope") == "region":
         region_id = integer_value(form.get("region_id", ""), 2147483647, "Region")
         regions = [region for region in regions if region.region_id == region_id]
         if not regions:
             raise ResourceError("Region nie należy do wybranego państwa.")
+    if action in {"increase", "distribute"}:
+        if not regions:
+            raise ResourceError("Wybrane państwo nie ma regionów.")
+        existing = deposits_for_country(country_id, dictionary, lock=True)
+        parsed = {}
+        if action == "increase":
+            if any(len(form.getlist(name)) != 1 for name in ("scope", "percentage")):
+                raise ResourceError("Nieprawidłowe parametry zwiększenia zasobności.")
+            if form.get("scope") not in {"region", "country"}:
+                raise ResourceError("Wybierz region lub całe państwo.")
+            percentage = integer_value(form.get("percentage", ""), 1000, "Procent zwiększenia")
+            if percentage not in INCREASE_PERCENTAGES:
+                raise ResourceError("Wybierz dostępny procent zwiększenia.")
+            for region in regions:
+                for code, label in RESOURCES:
+                    pair = (region.region_id, dictionary[code])
+                    row = existing.get(pair)
+                    amount = ((row.zloze_ilosc or 0) if row else 0)
+                    amount = (amount * (100 + percentage) + 50) // 100
+                    if amount > MAX_QUANTITY:
+                        raise ResourceError(f"{region.region_nazwa} — {label}: zwiększenie przekracza maksymalną ilość {MAX_QUANTITY}.")
+                    parsed[pair] = amount
+        else:
+            ranges = {}
+            for code, label in RESOURCES:
+                names = (f"minimum_{code}", f"maximum_{code}")
+                if any(len(form.getlist(name)) != 1 for name in names):
+                    raise ResourceError(f"{label}: podaj jeden zakres od–do.")
+                minimum, maximum = [integer_value(form[name], MAX_QUANTITY, label) for name in names]
+                if minimum > maximum:
+                    raise ResourceError(f"{label}: wartość od nie może być większa od wartości do.")
+                ranges[code] = (minimum, maximum)
+            for code, _ in RESOURCES:
+                minimum, maximum = ranges[code]
+                total = minimum + secrets.randbelow(maximum - minimum + 1)
+                # Losowe punkty podziału zachowują dokładną sumę również dla BIGINT.
+                cuts = [0, *sorted(secrets.randbelow(total + 1) for _ in range(len(regions) - 1)), total]
+                amounts = [right - left for left, right in zip(cuts, cuts[1:])]
+                secrets.SystemRandom().shuffle(amounts)
+                for region, amount in zip(regions, amounts):
+                    parsed[(region.region_id, dictionary[code])] = amount
+        for pair, amount in parsed.items():
+            row = existing.get(pair)
+            if row is None:
+                row = RegionZasob(region_id=pair[0], zasob_id=pair[1])
+                db.session.add(row)
+            row.zloze_ilosc = amount
+        if settings is None:
+            db.session.add(CountryMiningSettings(panstwo_id=country_id, technology=0))
+        else:
+            settings.version += 1
+        return
     expected = {field_name(region.region_id, code) for region in regions for code, _ in RESOURCES}
     submitted = {name for name in form if name.startswith("quantity_")}
     if expected != submitted or any(len(form.getlist(name)) != 1 for name in expected):

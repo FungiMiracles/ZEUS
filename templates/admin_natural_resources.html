@@ -33,9 +33,9 @@
 {% endif %}
 </div>
 <div class="resources-settings-grid">
-<section class="resources-panel"><h2>Technologie wydobywcze państwa</h2>
+<section class="resources-panel"><h2>Wybór państwa i technologie wydobywcze</h2>
 {% if not countries %}<p>Brak państw pasujących do wyszukiwania.</p>{% endif %}
-<form method="get" class="resources-country-search"><div class="resources-field"><label for="resources-country">Państwo</label><select id="resources-country" name="country_id" required><option value="">Wybierz państwo</option>{% for item in countries %}<option value="{{ item.PANSTWO_ID }}" {% if country and item.PANSTWO_ID == country.PANSTWO_ID %}selected{% endif %}>{{ item.panstwo_nazwa }}</option>{% endfor %}</select></div><button type="submit">Wczytaj współczynnik</button></form>
+<form method="get" class="resources-country-search"><div class="resources-field"><label for="resources-country">Państwo</label><select id="resources-country" name="country_id" required><option value="">Wybierz państwo</option>{% for item in countries %}<option value="{{ item.PANSTWO_ID }}" {% if country and item.PANSTWO_ID == country.PANSTWO_ID %}selected{% endif %}>{{ item.panstwo_nazwa }}</option>{% endfor %}</select></div><button type="submit">Wczytaj państwo</button></form>
 {% if country %}
 <form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="action" value="technology">
 <div class="resources-field"><label for="resources-technology">Współczynnik (0–100)</label><input id="resources-technology" type="number" name="technology" min="0" max="100" step="1" value="{{ technology }}" required></div><div class="resources-actions resources-actions-start">
@@ -43,7 +43,22 @@
 <p>Średnia dostępnych wskaźników infrastruktury wszystkich regionów (portowa tylko dla regionów z dostępem do portów), zaokrąglona do liczby całkowitej. Propozycję możesz zmienić; zapis wymaga zatwierdzenia.</p>
 <div class="resources-actions"><button type="submit">Zatwierdź współczynnik</button></div></form>{% endif %}</section>
 {% if country %}
-<section class="resources-panel resources-generation {% if generated %}resources-generated{% endif %}"><h2>Losowanie złóż — {{ country.panstwo_nazwa }}</h2><p>Zakres obejmuje obie granice. Losowanie przygotuje podgląd dla wszystkich regionów; wybrany minerał zastąpi obecne ilości dopiero po zatwierdzeniu.</p>
+<section class="resources-panel"><h2>Zwiększenie zasobności — {{ country.panstwo_nazwa }}</h2>
+<p>Zwiększ istniejące ilości wszystkich surowców. Złoża zerowe pozostają zerowe. Wyniki są zaokrąglane do najbliższej liczby całkowitej (połówki w górę).</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="technology" value="{{ technology }}"><input type="hidden" name="action" value="increase">
+<fieldset {% if not configuration_ok or not regions %}disabled{% endif %}><legend>Zakres zwiększenia</legend>
+<div class="resources-field"><label for="increase-scope">Obszar</label><select id="increase-scope" name="scope"><option value="country">Całe państwo</option><option value="region" {% if submitted.get('scope') == 'region' or selected_region %}selected{% endif %}>Wybrany region</option></select></div>
+<div class="resources-field"><label for="increase-region">Region (dla opcji „Wybrany region”)</label><select id="increase-region" name="region_id">{% for region in regions %}<option value="{{ region.region_id }}" {% if (submitted.get('region_id') or selected_region) == region.region_id|string %}selected{% endif %}>{{ region.region_nazwa }}</option>{% endfor %}</select></div>
+<div class="resources-field"><label for="increase-percentage">Zwiększ o</label><select id="increase-percentage" name="percentage">{% for percentage in increase_percentages %}<option value="{{ percentage }}" {% if submitted.get('percentage') == percentage|string %}selected{% endif %}>{{ percentage }}%</option>{% endfor %}</select></div>
+<p>Na przykład zwiększenie o 100% podwaja ilości, a o 1000% mnoży je przez 11. Zapis nastąpi po zatwierdzeniu.</p>
+<div class="resources-actions"><button type="submit">Zatwierdź zwiększenie zasobności</button></div></fieldset></form></section>
+<section class="resources-panel"><h2>Losowy podział surowców państwa — {{ country.panstwo_nazwa }}</h2>
+<p>Podaj zakres łącznej ilości każdego surowca dla całego państwa (obie granice włącznie). Po zatwierdzeniu system wylosuje sumy i losowo podzieli je pomiędzy wszystkie regiony, zastępując obecne złoża. Region może otrzymać zero jednostek. Zakres 0–0 usuwa złoża danego surowca.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="technology" value="{{ technology }}"><input type="hidden" name="action" value="distribute">
+<fieldset {% if not configuration_ok or not regions %}disabled{% endif %}><legend>Łączne ilości w państwie</legend><div class="resources-table-scroll"><table class="resources-table"><thead><tr><th>Surowiec</th><th>Od</th><th>Do</th></tr></thead><tbody>
+{% for code, name in resources %}<tr><th>{{ icon(name) }} {{ name }}</th><td><input type="number" name="minimum_{{ code }}" value="{{ submitted.get('minimum_' ~ code, '') }}" min="0" max="{{ max_quantity }}" step="1" required aria-label="{{ name }} — od"></td><td><input type="number" name="maximum_{{ code }}" value="{{ submitted.get('maximum_' ~ code, '') }}" min="0" max="{{ max_quantity }}" step="1" required aria-label="{{ name }} — do"></td></tr>{% endfor %}
+</tbody></table></div><div class="resources-actions"><button type="submit">Zatwierdź losowanie i zastąp złoża państwa</button></div></fieldset></form></section>
+<section class="resources-panel resources-generation {% if generated %}resources-generated{% endif %}"><h2>Losowanie jednego surowca w każdym regionie — {{ country.panstwo_nazwa }}</h2><p>Zakres dotyczy ilości w każdym regionie i obejmuje obie granice. Losowanie przygotuje podgląd dla wszystkich regionów; wybrany minerał zastąpi obecne ilości dopiero po zatwierdzeniu.</p>
 <form method="post"><input type="hidden" name="csrf_token" value="{{ resource_csrf }}"><input type="hidden" name="country_id" value="{{ country.PANSTWO_ID }}"><input type="hidden" name="version" value="{{ version }}"><input type="hidden" name="technology" value="{{ technology }}">
 {% if generated %}
 <div class="resources-table-scroll"><table class="resources-table"><thead><tr><th>Region</th>{% for code, name in resources %}<th>{{ icon(name) }} {{ name }}</th>{% endfor %}</tr></thead><tbody>
