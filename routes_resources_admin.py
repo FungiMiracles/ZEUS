@@ -13,7 +13,7 @@ from models import CountryMiningSettings, DictZasob, Panstwo, Region, RegionZaso
 from permissions import wymaga_roli
 from services.natural_resources import (
     integer_value, MAX_QUANTITY, RESOURCES, ResourceError, deposits_for_country, field_name,
-    resource_dictionary, save_allocations, INCREASE_PERCENTAGES,
+    resource_dictionary, save_allocations, INCREASE_PERCENTAGES, normalized,
 )
 
 
@@ -83,12 +83,18 @@ def render_panel(country_id, error=None, status=200, form=None, generated=False)
     selected_region = request.args.get("region_id", submitted.get("region_id", ""))
     region_index = db.session.execute(select(Region.region_id, Region.region_nazwa, Region.panstwo_id)).all()
     map_deposits = {}
-    for region_id, name, unit, quantity in db.session.execute(
-        select(RegionZasob.region_id, DictZasob.zasob_nazwa, DictZasob.zasob_jednostka, RegionZasob.zloze_ilosc)
+    global_totals = {code: 0 for code, _ in RESOURCES}
+    resource_codes = {normalized(name): code for code, name in RESOURCES}
+    resource_codes.update({normalized(code): code for code, _ in RESOURCES})
+    for region_id, name, unit, quantity, resource_code in db.session.execute(
+        select(RegionZasob.region_id, DictZasob.zasob_nazwa, DictZasob.zasob_jednostka, RegionZasob.zloze_ilosc, DictZasob.zasob_kod)
         .join(DictZasob, DictZasob.zasob_id == RegionZasob.zasob_id)
         .where(RegionZasob.zloze_ilosc > 0).order_by(DictZasob.zasob_id)
     ):
         map_deposits.setdefault(region_id, []).append({'name': name, 'unit': unit or '', 'quantity': str(quantity)})
+        code = resource_codes.get(normalized(resource_code or '')) or resource_codes.get(normalized(name))
+        if code is not None:
+            global_totals[code] += int(quantity)
     return render_template(
         "admin_natural_resources.html", countries=countries, country=country,
         regions=regions, resources=RESOURCES, values=values, technology=technology,
@@ -99,6 +105,7 @@ def render_panel(country_id, error=None, status=200, form=None, generated=False)
         generated=generated or submitted.get("action") == "bulk",
         resource_csrf=csrf_token(), max_quantity=MAX_QUANTITY, field_name=field_name,
         increase_percentages=INCREASE_PERCENTAGES, submitted=submitted,
+        global_totals={code: format(amount, ',').replace(',', '\u00a0') for code, amount in global_totals.items()},
     ), status
 
 
