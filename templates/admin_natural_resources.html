@@ -3,7 +3,7 @@
 {% block title %}Surowce naturalne — administracja ZEUS{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_natural_resources.css', v='20261026-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_natural_resources.css', v='20261117-tooltip-icons') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/section_icons.css', v='20261023-1') }}">
 <div class="resources-admin">
 <header class="resources-header"><h1>Surowce naturalne</h1><p>Zarządzaj złożami regionalnymi i technologią wydobywczą państw.</p></header>
@@ -73,7 +73,8 @@
 <div class="resources-actions"><button name="action" value="generate">Generuj podgląd</button></div></fieldset></form></section>{% endif %}
 </div>
 </div>
-<script type="application/json" id="resource-map-config">{{ {'regions':region_index, 'countries':country_names, 'url':url_for('admin_natural_resources'), 'countriesUrl':url_for('region_sovereignty.country_boundaries'), 'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'), 'selected':selected_region}|tojson }}</script>
+{% set resource_icons = {} %}{% for code, name in resources %}{% set _ = resource_icons.update({name: url_for('static', filename='icons/' ~ icon_files[name])}) %}{% endfor %}
+<script type="application/json" id="resource-map-config">{{ {'regions':region_index, 'countries':country_names, 'resourceIcons':resource_icons, 'url':url_for('admin_natural_resources'), 'countriesUrl':url_for('region_sovereignty.country_boundaries'), 'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'), 'selected':selected_region}|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-deposits-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/admin_natural_resources.js',v='20261117-deposits-2') }}" defer></script>
 {% endblock %}

@@ -41,7 +41,17 @@
                 const format = new Intl.NumberFormat('pl-PL');
                 for (const deposit of region.deposits || []) {
                     const row = document.createElement('div');
-                    row.textContent = `${deposit.name}: ${format.format(BigInt(deposit.quantity))}${deposit.unit ? ' ' + deposit.unit : ''}`;
+                    row.className = 'resources-deposit-row';
+                    const unit = deposit.unit?.trim();
+                    const text = document.createElement('span');
+                    text.textContent = `${deposit.name}: ${format.format(BigInt(deposit.quantity))}${unit && unit.toUpperCase() !== 'RU' ? ' ' + unit : ''}`;
+                    const iconUrl = config.resourceIcons?.[deposit.name];
+                    if (iconUrl) {
+                        const icon = document.createElement('img');
+                        icon.src = iconUrl; icon.width = 24; icon.height = 24; icon.alt = ''; icon.setAttribute('aria-hidden', 'true');
+                        row.append(icon);
+                    }
+                    row.append(text);
                     label.append(row);
                 }
                 if (!region.deposits?.length) {
