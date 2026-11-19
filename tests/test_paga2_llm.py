@@ -61,13 +61,13 @@ class LoanLimitTests(unittest.TestCase):
         db.session.commit()
     def tearDown(self):db.session.remove();db.engine.dispose();self.ctx.pop()
 
-    def test_accept_above_capacity_is_blocked(self):
+    def test_model_cannot_decide_loans_of_paga2_country(self):
+        """19 Nov 2026: o pożyczce udzielanej przez państwo PAGA2 decyduje wyłącznie PAGA2 — model nie przyjmie ani nie odrzuci wniosku."""
         from game.paga_ai_executor import require_loan_capacity
         actor=NS(country_id=1)
-        with patch('game.paga2.finance.loan_capacity',return_value={'max_loan':1e9}),patch('game.finance_service.game_now',return_value=datetime(3000,1,1)):
-            with self.assertRaisesRegex(ValueError,'przekracza zdolność pożyczkową'):require_loan_capacity(actor,5)
-            require_loan_capacity(actor,6)          # w granicach — decyzja należy do modelu
-            require_loan_capacity(NS(country_id=3),5)  # cudza pożyczka — walidację robi gra
+        for loan_id in (5,6):
+            with self.assertRaisesRegex(ValueError,'decyduje algorytm PAGA2'):require_loan_capacity(actor,loan_id)
+        require_loan_capacity(NS(country_id=3),5)  # cudza pożyczka — walidację robi gra
 
 
 class CommunicationTests(unittest.TestCase):

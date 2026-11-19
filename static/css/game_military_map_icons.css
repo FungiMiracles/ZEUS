@@ -1,4 +1,5 @@
-/* 15 Nov 2026: ikony obiektów na mapie panelu wojennego i obrony w stylu mapy świata (game_world.css):
+/* 19 Nov 2026: plakietki 28 px z zaokrągleniem 7 px — ten sam styl i rozmiar co na mapie panelu państwa (game_dashboard.css).
+   15 Nov 2026: ikony obiektów na mapie panelu wojennego i obrony w stylu mapy świata (game_world.css):
    biała plakietka 26 px — obiekty stałe (bazy, budynki, elektrownie, radary, obrona) w kwadracie,
    ruchome (okręty, statki handlowe) w kółku jak na mapie świata — z granatową obwódką i cieniem, flaga państwa w prawym górnym rogu,
    okręty wojenne z ciemnoczerwoną obwódką. Dodatkowo (tylko tutaj): pasek życia pod plakietką,
@@ -8,8 +9,8 @@
 html body.game-app #military-map .military-map-marker { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
 
 html body.game-app #military-map .military-map-badge {
-  position: relative; box-sizing: border-box; width: 26px !important; height: 26px !important; padding: 3px !important; margin: 0;
-  border: 1.5px solid #1E3A5F !important; border-radius: 4px !important; background: #fff !important; box-shadow: 0 2px 5px #0006 !important;
+  position: relative; box-sizing: border-box; width: 28px !important; height: 28px !important; padding: 3px !important; margin: 0;
+  border: 1.5px solid #1E3A5F !important; border-radius: 7px !important; background: #fff !important; box-shadow: 0 2px 5px #0006 !important;
   display: block; gap: 0; outline-offset: 2px;
 }
 html body.game-app #military-map .military-map-badge > img:first-child {
@@ -39,20 +40,21 @@ html body.game-app.military-defense #military-map .military-object-protected > i
 /* Pasek życia pod plakietką */
 html body.game-app.game-navy.game-civic #military-map .military-map-badge > .map-health-bar {
   position: absolute; box-sizing: border-box; left: 1px; right: auto; top: calc(100% + 2px); bottom: auto;
-  width: 24px; height: 5px; margin: 0; padding: 0; border: 1px solid #fff; border-radius: 3px; overflow: hidden;
+  width: 26px; height: 5px; margin: 0; padding: 0; border: 1px solid #fff; border-radius: 3px; overflow: hidden;
 }
 html body.game-app.game-navy.game-civic #military-map .military-map-badge > .military-mine-progress {
-  position: absolute; left: 1px; top: calc(100% + 8px); bottom: auto; width: 24px; height: 5px; margin: 0;
+  position: absolute; left: 1px; top: calc(100% + 8px); bottom: auto; width: 26px; height: 5px; margin: 0;
 }
 
-/* Obrona przeciwrakietowa: plakietka 26 px (region) albo 18 px przy chronionym obiekcie; poziom w małym kółku */
-html body.game-app #military-map .military-defense-symbol.military-map-badge { border-color: #218838 !important; }
+/* Obrona przeciwrakietowa (19 Nov 2026: jak w panelu państwa): okrągła plakietka z czerwoną obwódką — 28 px na środku regionu
+   albo 17 px w prawym górnym rogu chronionego obiektu; poziom w małym kółku */
+html body.game-app #military-map .military-defense-symbol.military-map-badge { border-color: #b3261e !important; border-radius: 50% !important; }
 html body.game-app #military-map .military-defense-symbol.military-map-badge > span {
   position: absolute; right: -6px; bottom: -5px; width: 13px; height: 13px; line-height: 13px; border-radius: 50%;
-  background: #218838; color: #fff; font-size: 9px; font-weight: 700; text-align: center;
+  background: #b3261e; color: #fff; font-size: 9px; font-weight: 700; text-align: center;
 }
-html body.game-app #military-map .military-defense-symbol-compact.military-map-badge { width: 18px !important; height: 18px !important; padding: 2px !important; border-width: 1px !important; border-radius: 3px !important; }
-html body.game-app #military-map .military-defense-symbol-compact.military-map-badge > span { right: -5px; bottom: -4px; width: 11px; height: 11px; line-height: 11px; font-size: 8px; }
+html body.game-app #military-map .military-defense-symbol-compact.military-map-badge { width: 17px !important; height: 17px !important; padding: 1.5px !important; border-width: 1px !important; }
+html body.game-app #military-map .military-defense-symbol-compact.military-map-badge > span { right: -6px; bottom: -4px; width: 10px; height: 10px; line-height: 10px; font-size: 7px; }
 html body.game-app #military-map .military-defense-symbol-compact.military-map-badge > .map-health-bar { display: none; }
 
 /* Radar: numer poziomu w lewym górnym rogu (prawy górny zajmuje flaga) */

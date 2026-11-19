@@ -1,0 +1,16 @@
+{# 18 Nov 2026: zadłużenie w Międzynarodowym Funduszu Walutowym — spłata całości lub części z rezerwy budżetowej. #}
+<section class="game-panel loan-panel imf-debt-panel" id="imf-debt" data-state-url="{{ url_for('game_imf.state') }}" data-change-url="{{ url_for('game_imf.change') }}" data-csrf="{{ game_csrf_token }}">
+  <h2 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/POŻYCZKA.svg') }}" alt="" width="30" height="30">Zadłużenie w MFW</h2>
+  <p>Pożyczki <a href="{{ url_for('game_imf.page') }}">Międzynarodowego Funduszu Walutowego</a> spłacasz z rezerwy budżetowej. Przy każdym zatwierdzeniu budżetu MFW nalicza 5% odsetek od pozostałego długu — wcześniejsza spłata zmniejsza odsetki. Po upływie 4 cykli budżetowych MFW sam pobierze zaległość (najwyżej 65% środków budżetu).</p>
+  <dl class="finance-metrics imf-debt-metrics">
+    <div><dt>Dług w MFW</dt><dd data-imf="outstanding">—</dd></div>
+    <div><dt>Rezerwa budżetowa</dt><dd data-imf="reserve">—</dd></div>
+  </dl>
+  <div id="imf-debt-loans" class="imf-own-list"></div>
+  <form id="imf-repay-form" class="imf-form" hidden>
+    <label>Kwota spłaty (MLD)<input name="amount" type="text" inputmode="decimal" placeholder="np. 12,5" title="Kwota w miliardach ROI, najwyżej 9 miejsc po przecinku."></label>
+    <button type="submit">Spłać część</button>
+    <button type="button" id="imf-repay-all" class="finance-button finance-secondary">Spłać całość</button>
+  </form>
+  <p id="imf-debt-status" class="imf-message" role="status" aria-live="polite"></p>
+</section>

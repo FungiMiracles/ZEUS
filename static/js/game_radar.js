@@ -46,7 +46,7 @@
             const life=api.make('progress');life.className='map-health-bar';life.max=100;life.value=radar.health;window.GameHealth?.paint(life,radar.health);symbol.append(life);
             const tooltip=api.make('div');tooltip.append(api.make('strong',`${radar.name} · poziom ${ROMAN[radar.level]}`),api.healthBar(radar.health),
                 api.make('p',radar.health?`Zasięg wykrywania: ${api.number(radar.rangeKm)} km`:'Radar zniszczony — nie wykrywa obiektów.'));
-            const marker=api.bindObjectTooltip(L.marker([radar.position[1],radar.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:1650}),tooltip);
+            const marker=api.bindObjectTooltip(L.marker([radar.position[1],radar.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:1650}),tooltip);
             marker.on('mouseover',()=>showRange(radar));marker.on('mouseout',hideRange);
             marker.on('click',()=>{
                 if(api.busy())return;

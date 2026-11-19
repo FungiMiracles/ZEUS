@@ -9,7 +9,9 @@
         <div class="finance-tax-fields">
         <label>Z sektora<select name="source" required>{% for category in finance_categories %}<option value="{{ category.code }}">{{ category.name }}</option>{% endfor %}</select></label>
         <label>Do sektora<select name="destination" required>{% for category in finance_categories %}<option value="{{ category.code }}" {% if loop.index == 2 %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
-        <label>Kwota (MLD)<input type="number" name="amount" min="1" step="1" required inputmode="numeric" data-money-input="MLD" title="Podaj pełne miliardy: 1 oznacza 1 miliard ROI."></label>
+        {# 18 Nov 2026: kwota w MLN albo MLD (przełącznik jak na ekranie handlu) #}
+        <div class="finance-transfer-amount"><label>Kwota<input type="text" name="amount" required inputmode="decimal" autocomplete="off" placeholder="np. 250 lub 1,5" title="Kwota w wybranej jednostce (MLN albo MLD), najwyżej 3 miejsca po przecinku; minimum 1 MLN."></label>
+        <div class="finance-unit-switch" role="radiogroup" aria-label="Jednostka kwoty"><label><input type="radio" name="amount_unit" value="MLN"><span>MLN</span></label><label><input type="radio" name="amount_unit" value="MLD" checked><span>MLD</span></label></div></div>
         </div>
         <p data-transfer-available class="finance-help"></p>
         <button class="finance-button finance-primary" type="submit">Przesuń środki</button>

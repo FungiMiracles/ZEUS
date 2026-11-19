@@ -396,7 +396,7 @@ def production_stopped(text):
 def notification_icon(item, *, intelligence=False):
     text=(item.system_text or '').casefold() if item.notification_type=='SYSTEM' else ''
     filename=None
-    if ' zakupił/a ' in text and 'cło portowe:' in text:filename='CARGO SHIP.svg'
+    if ' zakupił/a ' in text and 'cło portowe:' in text:filename='TRANSPORT LĄDOWY.svg' if 'transport lądowy' in text else 'CARGO SHIP.svg'
     elif intelligence or item.notification_type=='INTELLIGENCE_REPORT' or any(word in text for word in ('wywiad','kontrwywiad','hybryd','agent','sabota')):
         filename='WYWIAD WOJSKOWY.svg'
     elif 'pożycz' in text:filename='POŻYCZKA.svg'
@@ -446,6 +446,7 @@ def open_notification(notification_id):
         if (notification.system_text or "").startswith("Droga:"):return redirect("/game/infrastruktura?tab=roads",code=303)
         if production_stopped(notification.system_text):return redirect("/game/infrastruktura",code=303)
         if (notification.system_text or "").startswith("Pożyczka:"):return redirect("/game/finanse#state-loans",code=303)
+        if (notification.system_text or "").startswith("MFW:"):return redirect("/game/mfw",code=303)
         from game.intelligence_models import IntelligenceMission
         from game.intelligence_service import mission_details
         mission=db.session.scalar(select(IntelligenceMission).where(IntelligenceMission.notification_id==notification.id,IntelligenceMission.panstwo_id==country_id))

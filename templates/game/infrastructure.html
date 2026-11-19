@@ -1,7 +1,7 @@
 {% extends "game/game_base_layout.html" %}
 {% block body_class %}infrastructure-room{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_room.css', v='20261110-2') }}">{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261113-infra-3') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261118-infra-4') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
 {% block title %}Infrastruktura i energetyka — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -60,7 +60,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui5') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_region_tooltip.js',v='20261117-tooltip-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_industry.js',v='20261117-tooltip-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_industry.js',v='20261118-tooltip-2') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261110-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_infrastructure.js', v='20261117-tooltip-1') }}" defer></script>
 {% endblock %}

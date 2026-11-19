@@ -107,7 +107,8 @@ class TradeExtensionTests(CommerceFixture):
             self.assertIn(2,data['alliedCountryIds'])
         self.pair();self.assertFalse(port_allows(db.session,1,2))
 
-    def test_seller_notification_once_with_export_fee_ship_icon_and_trade_link(self):
+    @patch('game.military_geography.region_adjacency',return_value={})   # 18 Nov 2026: test opłat — bez sąsiadów lądowych (reguła portu sąsiada: test_trade_neighbor_ports)
+    def test_seller_notification_once_with_export_fee_ship_icon_and_trade_link(self,_adjacency):
         db.session.get(Miasto,101).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'5'})
         id=self.ammo_offer(port_id=103,departure_rate='5');key=str(uuid4());self.buy(id,request_id=key);self.buy(id,request_id=key)
         db.session.expire_all();notice=db.session.scalar(select(GameNotification))

@@ -36,6 +36,14 @@ def goods_catalog():
     return {**resource_catalog(),**{code:{'label':label,'icon':url_for('static',filename='icons/'+file,v='20261108-ui2')} for code,(label,file) in GOODS.items()},AMMUNITION:{'label':AMMUNITION_LABEL,'icon':url_for('static',filename='icons/AMMO.svg')}}
 
 
+def goods_order():
+    """19 Nov 2026: kolejność towarów na ekranach — surowce wydobywalne, produkty fabryk (chipy), sprzęt wojskowy
+    (uzbrojenie i amunicja przeciwrakietowa). Słownik w JSON-ie traci kolejność (tojson sortuje klucze), stąd jawna lista."""
+    from game.industry_catalog import GOODS,ARMY_GOODS
+    return ([code for code,_ in RESOURCES]+[code for code in GOODS if code not in ARMY_GOODS]
+            +[code for code in GOODS if code in ARMY_GOODS]+[AMMUNITION])
+
+
 def settle_own(country_id):
     deliver_shipments(db.session,game_now(),country_id)
     from game.research_service import settle_production
@@ -52,12 +60,24 @@ def mining_state(country_id):
 
 def trade_state(country_id):
     all_ports=ports(db.session);own=any(controller_id(db.session,port.panstwo_id)==country_id for port in all_ports)
+    from game.trade_service import departure_countries
+    senders=departure_countries(db.session,country_id,all_ports)   # 18 Nov 2026: None = własne porty
     tariffs={row.panstwo_id:row.rate for row in db.session.scalars(select(PortTariff))}
     names=dict(db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all())
     cities={city.miasto_id:city for city in all_ports}
     from game.trade_service import expire_offers,offer_expires_at
     expire_offers(db.session)   # 13 Nov 2026: oferty niesprzedane przez 14 dni Entendy wracają do sprzedających
     stamp=lambda value:value.isoformat()+'Z' if value else None
+    # 18 Nov 2026: zakup od sąsiada lądowego jedzie lądem między stolicami (bez portów i opłat portowych).
+    from game.trade_service import land_route,LAND_SPEED
+    land_cache={}
+    def land_for(seller):
+        if seller not in land_cache:
+            route=land_route(db.session,seller,country_id)
+            land_cache[seller]=None if route is None else {'from':names.get(controller_id(db.session,seller),''),'to':names.get(country_id,''),
+                                                           'fromCity':db.session.get(Miasto,route['source']).miasto_nazwa,'toCity':db.session.get(Miasto,route['target']).miasto_nazwa,
+                                                           'distanceKm':round(route['distance'],1),'hours':round(route['distance']/LAND_SPEED,2)}
+        return land_cache[seller]
     offers=[]
     for offer in db.session.scalars(select(TradeOffer).where(TradeOffer.status=='open').order_by(TradeOffer.id.desc())):
         if country_id!=offer.panstwo_id and (country_id in offer.excluded or (AMMUNITION in offer.cargo and not ammunition_allowed(db.session,offer.panstwo_id,country_id))):continue
@@ -66,6 +86,8 @@ def trade_state(country_id):
             'portId':offer.port_id,'portName':city.miasto_nazwa if city else 'Port niedostępny','departureRate':str(offer.departure_rate),'own':offer.panstwo_id==country_id,
             'createdAt':stamp(offer.created_game_at),'priceChangedAt':stamp(offer.price_changed_game_at),'expiresAt':stamp(offer_expires_at(offer)),
             'excluded':offer.excluded if offer.panstwo_id==country_id else [],'usable':city is not None and port_allows(db.session,city.panstwo_id,offer.panstwo_id)})
+        land=land_for(offer.panstwo_id) if offer.panstwo_id!=country_id else None
+        if land:offers[-1].update(land=land,usable=True)
     active=list(db.session.scalars(select(TradeShipment).where(TradeShipment.delivered_at.is_(None),TradeShipment.sunk_at.is_(None),TradeShipment.health>0).order_by(TradeShipment.id)))
     recent=list(db.session.scalars(select(TradeShipment).where(or_(TradeShipment.seller_id==country_id,TradeShipment.buyer_id==country_id),or_(TradeShipment.delivered_at.is_not(None),TradeShipment.sunk_at.is_not(None))).order_by(TradeShipment.id.desc()).limit(20)))
     shipments=[]
@@ -73,7 +95,7 @@ def trade_state(country_id):
         own_shipment=country_id in (shipment.seller_id,shipment.buyer_id)
         item={'id':shipment.id,'sellerId':shipment.seller_id,'buyerId':shipment.buyer_id,'seller':names.get(shipment.seller_id,''),'buyer':names.get(shipment.buyer_id,''),
             'source':[shipment.source_x,shipment.source_y],'target':[shipment.target_x,shipment.target_y],'distanceKm':shipment.distance_km,
-            'route':shipment.route,'health':shipment.health,'sunk':shipment.sunk_at is not None,'originCountryId':shipment.origin_country_id or shipment.seller_id,
+            'route':shipment.route,'transport':shipment.transport or 'sea','health':shipment.health,'sunk':shipment.sunk_at is not None,'originCountryId':shipment.origin_country_id or shipment.seller_id,
             'flag':url_for('static',filename='flags/'+names.get(shipment.origin_country_id or shipment.seller_id,'').replace(' ','_')+'.jpg'),
             'startsAt':shipment.starts_at.isoformat()+'Z','arrivesAt':shipment.arrives_at.isoformat()+'Z','delivered':shipment.delivered_at is not None,'deliveredAt':shipment.delivered_at.isoformat()+'Z' if shipment.delivered_at else None,'own':own_shipment}
         if own_shipment:item.update({'cargo':shipment.cargo,'departureFee':str(shipment.departure_fee),'arrivalFee':str(shipment.arrival_fee)})
@@ -82,7 +104,9 @@ def trade_state(country_id):
     account=db.session.get(StateFinancialAccount,country_id)
     return {'warehouse':trade_warehouse(db.session,country_id),'alliedCountryIds':allied_country_ids(db.session,country_id),'reserve':str(account.reserve_balance if account else 0),'offers':offers,'shipments':shipments,
         'ports':{str(city.miasto_id):{'name':city.miasto_nazwa,'countryId':controller_id(db.session,city.panstwo_id),'country':names.get(city.panstwo_id,''),'position':city_point(city.miasto_id),
-            'rate':str(tariffs.get(controller_id(db.session,city.panstwo_id),0)),'allowed':(controller_id(db.session,city.panstwo_id)==country_id or not own) and port_allows(db.session,city.panstwo_id,country_id),'blocked':not port_allows(db.session,city.panstwo_id,country_id)} for city in all_ports},
+            'rate':str(tariffs.get(controller_id(db.session,city.panstwo_id),0)),'allowed':(controller_id(db.session,city.panstwo_id)==country_id) if senders is None else (controller_id(db.session,city.panstwo_id) in senders and port_allows(db.session,city.panstwo_id,country_id)),   # 18 Nov 2026: odbiór też tylko przez port najbliższego sąsiada
+            'blocked':not port_allows(db.session,city.panstwo_id,country_id),
+            'departureAllowed':(controller_id(db.session,city.panstwo_id)==country_id) if senders is None else (controller_id(db.session,city.panstwo_id) in senders and port_allows(db.session,city.panstwo_id,country_id))} for city in all_ports},
         'portAccess':{'block_foreign':bool(policy.block_foreign) if policy else False,'blocked_countries':policy.blocked_countries or [] if policy else []},
         'ownPorts':own,'ownTariff':str(tariffs.get(country_id,0)),'countries':{str(id):name for id,name in names.items() if controller_id(db.session,id)==id},
         'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
@@ -95,8 +119,8 @@ def page():
     country_id=country.PANSTWO_ID;session.setdefault('game_csrf_token',secrets.token_urlsafe(32))
     settle_own(country_id);config=trade_state(country_id)
     config.update({'countryId':country_id,'csrf':session['game_csrf_token'],'changeUrl':url_for('game_trade.change'),'stateUrl':url_for('game_trade.state'),
-        'resources':goods_catalog(),'priceLimits':__import__('game.trade_prices',fromlist=['all_limits']).all_limits(goods_catalog().keys()),'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
-        'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'shipSpeed':SHIP_SPEED,'kmPerUnit':calibration(db.session).km_per_unit})
+        'resources':goods_catalog(),'resourceOrder':goods_order(),'priceLimits':__import__('game.trade_prices',fromlist=['all_limits']).all_limits(goods_catalog().keys()),'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
+        'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'shipSpeed':SHIP_SPEED,'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'landSpeed':__import__('game.trade_service',fromlist=['LAND_SPEED']).LAND_SPEED,'kmPerUnit':calibration(db.session).km_per_unit})
     response=render_template('game/trade.html',game_user=user,game_country=country_summary(country),game_active_page='trade',game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),trade_config=config)
     db.session.commit();return response
 

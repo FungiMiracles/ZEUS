@@ -6,8 +6,10 @@
 {% block extra_css %}
 <link rel="stylesheet"
       href="{{ url_for('static', filename='css/game_finanse.css', v='20261116-mobile-1') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261116-modal-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261118-units-1') }}">
 {% endblock %}
+
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_imf.css', v='20261118-imf-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
 
 {% block content %}
 
@@ -17,6 +19,7 @@
 {% include "game/_finance_transfer.html" %}
 {% include "game/_loans.html" %}
 </div>
+{% include "game/_imf_debt.html" %}
 
 <section class="game-panel finance-history">
     <div class="game-panel-heading">Historia okresów budżetowych</div>
@@ -111,9 +114,10 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static',filename='js/game_loans.js',v='20261113-history-2') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_imf.js',v='20261118-imf-2') }}" defer></script>
 <script src="{{ url_for(
     'static',
     filename='js/game_finanse.js', benefit_version='20261116-period',
-    v='20261116-crime-1'
+    v='20261118-units-1'
 ) }}" defer></script>
 {% endblock %}

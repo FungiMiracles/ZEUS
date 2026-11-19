@@ -182,16 +182,50 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     citiesToggle.checked = showCities; citiesLegend.forEach(item => { item.hidden = !showCities; });
     citiesToggle.addEventListener('change', () => setCities(citiesToggle.checked));
   }
+  // 18 Nov 2026: znaczniki przy miastach (np. siedziba MFW) — osobna warstwa z przełącznikiem zapamiętywanym w przeglądarce;
+  // kolejne znaczniki wystarczy dodać do cityMarkersLayer.
+  const markersToggle = document.getElementById('world-markers-toggle');
+  if (!map.getPane('worldCityMarkers')) { map.createPane('worldCityMarkers'); map.getPane('worldCityMarkers').style.zIndex = '660'; }
+  const cityMarkersLayer = L.layerGroup();
+  let showMarkers = true; try { showMarkers = localStorage.getItem('world-city-markers') !== '0'; } catch {}
+  if (showMarkers) cityMarkersLayer.addTo(map);
+  if (markersToggle) {
+    markersToggle.checked = showMarkers;
+    markersToggle.addEventListener('change', () => {
+      try { localStorage.setItem('world-city-markers', markersToggle.checked ? '1' : '0'); } catch {}
+      if (markersToggle.checked) cityMarkersLayer.addTo(map); else cityMarkersLayer.remove();
+    });
+  }
+  let imfBadge = null;
   load(config.citiesUrl).then(cities => {
     citiesLayer = L.geoJSON(cities, { pane: 'worldCities', coordsToLatLng: coordinates, filter: f => !!config.cities[String(f.properties?.miasto_id)],
       pointToLayer: (feature, latlng) => {
         const city = config.cities[String(feature.properties.miasto_id)], p = Number(city.population) || 0;
         const radius = p > 5e6 ? 6 : p >= 1e6 ? 4 : 2.5;
-        return L.circleMarker(latlng, { pane: 'worldCities', radius, color: C.cityBorder, weight: 1.2, fillColor: city.capital ? C.capital : C.city, fillOpacity: 1 });
+        const imfCity = config.imf && String(feature.properties.miasto_id) === String(config.imf.cityId);
+        return L.circleMarker(latlng, { pane: 'worldCities', radius, color: C.cityBorder, weight: 1.2, fillColor: city.capital ? C.capital : C.city, fillOpacity: 1, className: imfCity ? 'world-imf-city' : '' });
       },
       onEachFeature: (feature, layer) => {
         const city = config.cities[String(feature.properties.miasto_id)];
-        layer.bindTooltip(iconTip(config.cityIcon, city.name, [`Populacja: ${mln(city.population)}`, `Rodzaj: ${city.type || 'brak danych'}`, `Portowe: ${city.port ? 'tak' : 'nie'}`]), { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' });
+        // 18 Nov 2026: Port Loyab — siedziba Międzynarodowego Funduszu Walutowego; kliknięcie (dotknięcie) otwiera ekran MFW.
+        const imf = config.imf && config.imf.cityId != null && String(feature.properties.miasto_id) === String(config.imf.cityId);
+        const lines = [`Populacja: ${mln(city.population)}`, `Rodzaj: ${city.type || 'brak danych'}`, `Portowe: ${city.port ? 'tak' : 'nie'}`];
+        const tip = iconTip(config.cityIcon, city.name, lines);
+        if (imf) {
+          const link = document.createElement('a'); link.href = config.imf.url; link.className = 'world-imf-link';
+          link.textContent = 'Międzynarodowy Fundusz Walutowy →';
+          const hint = document.createElement('small'); hint.className = 'world-imf-hint'; hint.textContent = 'Kliknij miasto, aby otworzyć ekran MFW';
+          tip.lastChild.append(link, hint);
+          layer.on('click', () => { window.location.href = config.imf.url; });
+          // 18 Nov 2026: półprzezroczysty znacznik siedziby MFW obok miasta (jeden, mimo zdublowanych punktów w danych mapy)
+          if (!imfBadge && config.imf.icon) {
+            const badge = make('div', null, 'world-imf-badge'); const badgeImg = make('img'); badgeImg.src = config.imf.icon; badgeImg.alt = ''; badge.append(badgeImg, make('span', 'MFW'));
+            imfBadge = L.marker(layer.getLatLng(), { pane: 'worldCityMarkers', keyboard: true, title: 'Międzynarodowy Fundusz Walutowy', icon: L.divIcon({ html: badge, className: 'world-imf-badge-marker', iconSize: [68, 28], iconAnchor: [-8, 14] }) })
+              .bindTooltip('Międzynarodowy Fundusz Walutowy — Port Loyab', { direction: 'top', className: 'world-tooltip' })
+              .on('click', () => { window.location.href = config.imf.url; }).addTo(cityMarkersLayer);
+          }
+        }
+        layer.bindTooltip(tip, { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' + (imf ? ' world-imf-tooltip' : ''), interactive: imf });
       } });
     if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
@@ -201,11 +235,13 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   const ships = [];
   for (const ship of config.ships || []) {
     L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(map);
-    const symbol = make('div', null, 'world-ship'); const img = make('img'); img.src = config.shipIcon; img.alt = ''; symbol.append(img);
+    // 18 Nov 2026: transport lądowy (granica lądowa) — ikona TRANSPORT LĄDOWY z flagą państwa sprzedającego.
+    const land = ship.transport === 'land', icon = land ? (config.landIcon || config.shipIcon) : config.shipIcon;
+    const symbol = make('div', null, 'world-ship' + (land ? ' world-land-transport' : '')); const img = make('img'); img.src = icon; img.alt = ''; symbol.append(img);
     if (ship.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = ship.flag; flag.alt = ''; symbol.append(flag); }
     const point = window.GameTradeNavigation?.position(ship, gameTime()); if (!point) continue;
     const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-      .bindTooltip(iconTip(config.shipIcon, 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `Przypłynie: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+      .bindTooltip(iconTip(icon, land ? 'Transport lądowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `${land ? 'Dotrze' : 'Przypłynie'}: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
     ships.push([ship, marker]);
   }
   if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);

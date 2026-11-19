@@ -57,21 +57,17 @@ def brief(operation,status,validation,result,reason):
     return 'Wykonano operację gracza.'
 
 def require_loan_capacity(actor,loan_id):
-    """PAGA2 liczy, czy państwo stać na udzielenie pożyczki; model decyduje wyłącznie w tych granicach (11 Nov 2026)."""
+    """19 Nov 2026: o udzieleniu pożyczki państwa PAGA2 decyduje wyłącznie algorytm PAGA2 (game/paga2/finance.loan_decision) —
+    model językowy nie może przyjąć ani odrzucić wniosku skierowanego do państwa z profilem PAGA2."""
     from game.paga_ai_tasks import legacy_engines
     if legacy_engines() or type(loan_id) is not int:return
     from game.loan_models import StateLoan
     from game.paga2.models import Paga2Profile,table_ready
-    from game.paga2.finance import loan_capacity
-    from game.finance_service import game_now
     with Session(db.engine) as session:
         if not table_ready(session,Paga2Profile) or session.get(Paga2Profile,actor.country_id) is None:return
         loan=session.get(StateLoan,loan_id)
         if loan is None or loan.lender_id!=actor.country_id:return  # zwykła walidacja gry obsłuży błędny numer
-        capacity=loan_capacity(session,actor.country_id,game_now())
-    if float(loan.amount)>capacity['max_loan']:
-        raise ValueError(f'Kwota pożyczki {float(loan.amount):,.0f} ROI przekracza zdolność pożyczkową państwa wyliczoną przez PAGA2 '
-                         f'({capacity["max_loan"]:,.0f} ROI). Odrzuć wniosek albo nie podejmuj działania.'.replace(',',' '))
+    raise ValueError('O udzieleniu pożyczki decyduje algorytm PAGA2 (relacje, rezerwa, konserwatyzm fiskalny, solidarność). Nie podejmuj tej decyzji.')
 
 
 def execute(app,actor,command,*,step=0,model_id='Qwen3.5-4B-Q4_K_M',audit=True,request_id=None):
@@ -116,7 +112,7 @@ def execute(app,actor,command,*,step=0,model_id='Qwen3.5-4B-Q4_K_M',audit=True,r
                     validation='BLOCKED';status=409
                     raise ValueError('Powtórzona odrzucona decyzja bez zmiany danych lub zaobserwowanego stanu. Popraw parametry albo odczytaj zmieniony stan. Poprzedni błąd: '+previous_error)
             check_schema(path,op.path_schema);check_schema(data,op.input_schema)
-            if operation=='game_loans.change:POST' and data.get('action')=='accept':require_loan_capacity(actor,data.get('loan_id'))
+            if operation=='game_loans.change:POST' and data.get('action') in ('accept','reject'):require_loan_capacity(actor,data.get('loan_id'))
             from game.paga_ai_budget import PREVIEW,APPROVE,approval_payload,comparison,summary,prepare_intent
             payload=approval_payload(actor,data) if operation==APPROVE else prepare_intent(data) if operation==PREVIEW else {k:v for k,v in data.items() if k!='rationale'}
             from game.paga_ai_quotes import prepare

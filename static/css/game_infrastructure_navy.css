@@ -69,3 +69,12 @@ html body.game-app.game-navy.game-civic.infrastructure-room #industry-cancel{bac
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-placement{background:var(--inf-soft);border:1px solid var(--inf-line);border-left:3px solid #E8B65C;border-radius:7px;padding:8px 12px;color:var(--inf-text)}
 
 html body.game-app.game-navy.game-civic.infrastructure-room .game-main :is(.war-panel-bar h2,.game-panel-heading,.game-panel-heading *){color:#fff}
+
+/* 18 Nov 2026: tooltip obiektu infrastruktury — mniejsze przyciski o jednakowym rozmiarze (dwie kolumny, także na tablecie) */
+html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button,
+html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button:is([data-industry-action="remove"],[data-industry-action="upgrade"]){display:inline-flex;align-items:center;justify-content:center;align-self:stretch;flex:0 0 calc(50% - 3px);width:calc(50% - 3px);max-width:calc(50% - 3px);min-width:0;height:auto;min-height:28px;margin:0;padding:3px 6px;box-sizing:border-box;font-size:10px;line-height:1.2;letter-spacing:normal;text-align:center;white-space:normal;overflow-wrap:anywhere;border-radius:5px}
+html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>.industry-build-progress img.industry-build-works{width:20px;height:20px;object-fit:contain}
+@media (max-width:900px),(pointer:coarse){
+  html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button,
+  html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button:is([data-industry-action="remove"],[data-industry-action="upgrade"]){min-height:34px;font-size:11px;padding:4px 6px}
+}

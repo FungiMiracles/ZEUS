@@ -215,7 +215,7 @@ def _general_tax_basis(session,country_id):
     return capture_basis(session,country_id)
 
 
-def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5")):
+def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5"), imf_due=ZERO):
     """Czyste obliczenia. Funkcja nie korzysta z bazy."""
 
     with localcontext() as context:
@@ -262,7 +262,10 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
         half_year_cit = money(annual_cit * share, "CIT okresu")
 
         tax_total = money(half_year_pit + half_year_cit)
-        budget_total = money(reserve + tax_total, "Dostępne środki")
+        # 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem — najwyżej 65% środków budżetu (game.imf).
+        from game.imf import collection_amount
+        imf_collection = collection_amount(money(imf_due or ZERO, "Dług w MFW"), reserve + tax_total)
+        budget_total = money(reserve + tax_total - imf_collection, "Dostępne środki")
 
         allocations = {}
 
@@ -297,6 +300,8 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
             "half_year_cit": half_year_cit,
             "tax_total": tax_total,
             "opening_reserve": reserve,
+            "imf_due": money(imf_due or ZERO),
+            "imf_collection": imf_collection,
             "budget_total": budget_total,
             "expenditure_total": expenditure_total,
             "closing_reserve": closing_reserve,
@@ -449,7 +454,8 @@ def _reserve_for_account(account, previous):
         from game.loans import loan_delta
         from game.trade_service import reserve_delta
         from game.admin_finance import adjustment_delta
-        incoming=loan_delta(object_session(account),account.panstwo_id,None)+reserve_delta(object_session(account),account.panstwo_id,None)+adjustment_delta(object_session(account),account.panstwo_id,None)
+        from game.imf import reserve_delta as imf_delta
+        incoming=loan_delta(object_session(account),account.panstwo_id,None)+reserve_delta(object_session(account),account.panstwo_id,None)+adjustment_delta(object_session(account),account.panstwo_id,None)+imf_delta(object_session(account),account.panstwo_id,None)
         if (
             account.last_budget_id is not None
             or account.reserve_balance != incoming
@@ -464,16 +470,17 @@ def _reserve_for_account(account, previous):
     from game.infrastructure_service import reserve_spent
     from game.trade_service import reserve_delta
     from game.budget_transfers import transfer_delta
+    from game.imf import reserve_delta as imf_delta
     if (
         account.last_budget_id != previous.id
-        or account.reserve_balance != previous.closing_reserve + loan_delta(object_session(account),account.panstwo_id,previous.id) + adjustment_delta(object_session(account),account.panstwo_id,previous.id) + transfer_delta(object_session(account),previous.id,"reserve") + reserve_delta(object_session(account),account.panstwo_id,previous.id) - reserve_spent(object_session(account), previous.id)
+        or account.reserve_balance != previous.closing_reserve + imf_delta(object_session(account),account.panstwo_id,previous.id) + loan_delta(object_session(account),account.panstwo_id,previous.id) + adjustment_delta(object_session(account),account.panstwo_id,previous.id) + transfer_delta(object_session(account),previous.id,"reserve") + reserve_delta(object_session(account),account.panstwo_id,previous.id) - reserve_spent(object_session(account), previous.id)
     ):
         raise FinanceError("Saldo rachunku nie odpowiada ostatniemu budżetowi.")
 
     return account.reserve_balance
 
 
-def _basis_token(country, year, period, reserve, previous):
+def _basis_token(country, year, period, reserve, previous, imf_due=ZERO):
     """Znacznik wykrywający zmianę podstaw od ostatniego podglądu."""
 
     from game.civic_models import CountryTaxPolicy
@@ -494,6 +501,8 @@ def _basis_token(country, year, period, reserve, previous):
         "controlled_country_ids": controlled_ids(object_session(country), country.PANSTWO_ID),
         "calculation_version": CALCULATION_VERSION,
     }
+    if imf_due:
+        data["imf_due"] = str(money(imf_due))   # 18 Nov 2026: zmiana zaległości w MFW wymaga odświeżenia podglądu
 
     payload = json.dumps(
         data,
@@ -552,6 +561,8 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
         )
 
         reserve = _reserve_for_account(account, previous)
+        from game.imf import due_amount
+        imf_due = due_amount(session, country.PANSTWO_ID, (year, period))
         from game.admin_finance import tax_plan
         plan = tax_plan(session,country.PANSTWO_ID,_previous_plan(session, previous))
 
@@ -576,6 +587,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             plan["shares"],
             revenue_basis=_general_tax_basis(session,country.PANSTWO_ID),
             share=period_share(year, period),
+            imf_due=imf_due,
         )
 
         from game.social_benefits import expectations,carryover
@@ -594,7 +606,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             "period": period,
             "has_previous": previous is not None,
             "basis_token": _basis_token(
-                country, year, period, reserve, previous
+                country, year, period, reserve, previous, imf_due
             ),
         })
 
@@ -756,10 +768,12 @@ def approve_in_transaction(
     )
 
     reserve = _reserve_for_account(account, previous)
+    from game.imf import due_amount
+    imf_due = due_amount(session, country.PANSTWO_ID, (year, period))
 
     if not automatic:
         actual_basis = _basis_token(
-            country, year, period, reserve, previous
+            country, year, period, reserve, previous, imf_due
         )
 
         if (
@@ -794,6 +808,7 @@ def approve_in_transaction(
         plan["shares"],
         revenue_basis=_general_tax_basis(session,country.PANSTWO_ID),
             share=period_share(year, period),
+            imf_due=imf_due,
     )
 
     financial_period = _get_period(
@@ -833,6 +848,7 @@ def approve_in_transaction(
         opening_reserve=calculation["opening_reserve"],
         tax_total=calculation["tax_total"],
         budget_total=calculation["budget_total"],
+        imf_collection=calculation["imf_collection"],
         expenditure_total=calculation["expenditure_total"],
         closing_reserve=calculation["closing_reserve"],
         approval_mode=approval_mode,
@@ -895,6 +911,21 @@ def approve_in_transaction(
         calculation["half_year_pit"],
         captured_real_time, captured_game_time,
     )
+
+    # 18 Nov 2026: odsetki MFW (5% za cykl) naliczane przy zatwierdzeniu budżetu — przed ewentualnym pobraniem zaległości
+    # (due_amount liczył już dług z odsetkami za ten cykl).
+    from game.imf import accrue_interest
+    accrue_interest(session, country.PANSTWO_ID, (year, period))
+
+    if calculation["imf_collection"] > 0:
+        _post_transaction(
+            session, account, budget,
+            "IMF_COLLECTION", "DEBIT",
+            calculation["imf_collection"],
+            captured_real_time, captured_game_time,
+        )
+        from game.imf import record_collection
+        record_collection(session, country.PANSTWO_ID, budget, calculation["imf_collection"], captured_game_time)
 
     for code in EXPENDITURE_CODES:
         _post_transaction(

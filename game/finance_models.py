@@ -179,6 +179,8 @@ class StateBudget(db.Model):
     opening_reserve = db.Column(db.Numeric(30, 2), nullable=False)
     tax_total = db.Column(db.Numeric(30, 2), nullable=False)
     budget_total = db.Column(db.Numeric(30, 2), nullable=False)
+    # 18 Nov 2026: przymusowa spłata zaległego długu w MFW pobrana przed podziałem środków (game.imf).
+    imf_collection = db.Column(db.Numeric(30, 2), nullable=False, default=0, server_default="0")
     expenditure_total = db.Column(db.Numeric(30, 2), nullable=False)
     closing_reserve = db.Column(db.Numeric(30, 2), nullable=False)
 
@@ -267,12 +269,13 @@ class StateBudget(db.Model):
             AND budget_total >= 0
             AND expenditure_total >= 0
             AND closing_reserve >= 0
+            AND imf_collection >= 0
             """,
             name="ck_gsb_amounts",
         ),
         CheckConstraint(
             """
-            budget_total = opening_reserve + tax_total
+            budget_total = opening_reserve + tax_total - imf_collection
             AND budget_total = expenditure_total + closing_reserve
             """,
             name="ck_gsb_balance",
@@ -633,6 +636,12 @@ class StateFinancialTransaction(db.Model):
                 AND direction = 'DEBIT'
                 AND category_code IS NOT NULL
                 AND category_code <> 'reserve'
+            )
+            OR
+            (
+                operation_type = 'IMF_COLLECTION'
+                AND direction = 'DEBIT'
+                AND category_code IS NULL
             )
             """,
             name="ck_gsft_operation",

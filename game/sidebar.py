@@ -1,8 +1,12 @@
 """Stały lewy pasek gry (13 Nov 2026): flaga, wykres budżetu, wskaźniki państwa i magazyn."""
 from math import cos,sin,pi
 
-WAREHOUSE_KEYS=['wegiel_kamienny','ropa_naftowa','zloto','srebro','kamien','natsyt','kerbit','cemium','uran','zelazo',
-                'chip_simple','chip_kerbit','chip_natsyt','chip_cemium_i','chip_cemium_ii']
+def _warehouse_keys():
+    """19 Nov 2026: najpierw surowce wydobywalne, potem produkty fabryk — bez sprzętu wojskowego i amunicji."""
+    from services.natural_resources import RESOURCES
+    from game.industry_catalog import GOODS,ARMY_GOODS
+    return [code for code,_ in RESOURCES]+[code for code in GOODS if code not in ARMY_GOODS]
+WAREHOUSE_KEYS=_warehouse_keys()
 # Kolory sektorów budżetu — stonowana paleta pasująca do granatu #1E3A5F.
 SECTOR_COLORS={'administration':'#7fa7d9','infrastructure':'#f0b35a','armed_forces':'#d9665b','social_policy':'#9b7fd1','environment':'#5fbf8a',
                'health':'#e889b5','education':'#5ec3d6','research':'#c9d35a','security_services':'#8e9bb0','propaganda':'#e07fdc','reserve':'#f2e6c9'}

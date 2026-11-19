@@ -214,7 +214,7 @@ class IndustryTests(CommerceFixture):
         # Rule changed 10 Nov 2026 (administrator): an energy deficit stops factories, largest consumers first.
         self.operation(kind='interceptor_ammo');self.add_stock('zelazo',5);self.add_stock('ropa_naftowa',5)
         with patch('game.industry_service.economy',return_value={'population':12500000}):
-            balance=energy_balance(db.session,1);self.assertEqual(balance['residents'],'125');self.assertEqual(balance['demand'],'130')
+            balance=energy_balance(db.session,1);self.assertEqual(balance['residents'],'125');self.assertEqual(balance['demand'],'155')   # 18 Nov 2026: fabryka amunicji przeciwrakietowej 30 e/dzień
             self.assertEqual(balance['consumption'],'125');self.assertEqual(balance['stoppedFactories'],1);self.assertFalse(balance['sufficient'])
             settle_industry(db.session,1,NOW+timedelta(days=1));db.session.commit()
         self.assertEqual(db.session.get(ResearchAccount,1).ammunition,0,'no energy, no production')

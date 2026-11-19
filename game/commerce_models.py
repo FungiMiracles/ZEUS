@@ -94,7 +94,9 @@ class TradeShipment(db.Model):
     arrives_at=db.Column(db.DateTime,nullable=False,index=True)
     delivered_at=db.Column(db.DateTime)
     request_id=db.Column(db.String(36),nullable=False)
-    __table_args__=(db.UniqueConstraint('buyer_id','request_id',name='uq_trade_shipment_request'),db.CheckConstraint('health BETWEEN 0 AND 100',name='ck_trade_ship_health'),db.CheckConstraint('distance_km >= 0 AND departure_fee >= 0 AND arrival_fee >= 0 AND arrives_at > starts_at',name='ck_trade_shipment_values'),{'mysql_engine':'InnoDB'})
+    # 18 Nov 2026: 'sea' — statek między portami; 'land' — transport lądowy między stolicami sąsiadów (porty = stolice, bez opłat).
+    transport=db.Column(db.String(8),nullable=False,default='sea',server_default='sea')
+    __table_args__=(db.CheckConstraint("transport IN ('sea','land')",name='ck_trade_shipment_transport'),db.UniqueConstraint('buyer_id','request_id',name='uq_trade_shipment_request'),db.CheckConstraint('health BETWEEN 0 AND 100',name='ck_trade_ship_health'),db.CheckConstraint('distance_km >= 0 AND departure_fee >= 0 AND arrival_fee >= 0 AND arrives_at > starts_at',name='ck_trade_shipment_values'),{'mysql_engine':'InnoDB'})
 
 
 class TradeReserveMovement(db.Model):

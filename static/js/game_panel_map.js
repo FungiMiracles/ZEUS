@@ -40,6 +40,20 @@ document.getElementById('panel-filters-all')?.addEventListener('click', () => { 
 map.createPane('panelRoads'); map.getPane('panelRoads').style.zIndex = '420';
 map.createPane('panelObjects'); map.getPane('panelObjects').style.zIndex = '620';
 map.createPane('panelDefenses'); map.getPane('panelDefenses').style.zIndex = '630';
+const regionDefenses = [];
+// Środek ciężkości największego wielokąta regionu (gdy leży wewnątrz regionu) — punkt dla obrony regionu.
+function regionCenter(geometry) {
+  const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
+  const area = ring => ring.reduce((sum, p, i) => { const q = ring[(i + 1) % ring.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
+  const outer = polygons.filter(p => p?.[0]?.length > 2).sort((a, b) => Math.abs(area(b[0])) - Math.abs(area(a[0])))[0];
+  if (!outer) return null;
+  const ring = outer[0], a = area(ring); if (!a) return null;
+  let x = 0, y = 0;
+  ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length], f = p[0] * q[1] - q[0] * p[1]; x += (p[0] + q[0]) * f; y += (p[1] + q[1]) * f; });
+  const c = [x / (6 * a), y / (6 * a)];
+  const inside = r => { let hit = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [xi, yi] = r[i], [xj, yj] = r[j]; if ((yi > c[1]) !== (yj > c[1]) && c[0] < (xj - xi) * (c[1] - yi) / (yj - yi) + xi) hit = !hit; } return hit; };
+  return inside(ring) && !outer.slice(1).some(inside) ? c : null;
+}
 for (const item of config.objects || []) {
   const layer = layers[item.kind]; if (!layer) continue;
   if (item.path) {
@@ -47,14 +61,16 @@ for (const item of config.objects || []) {
       .bindTooltip(make('span', item.name), { sticky: true, className: 'panel-map-tooltip' }).addTo(layer);
     continue;
   }
-  // Obrona przeciwrakietowa stoi w tym samym punkcie co broniony obiekt — mniejsza plakietka w jego prawym górnym rogu.
-  const defense = item.kind === 'defenses';
-  const symbol = make('div', null, 'panel-map-object' + (defense ? ' is-defense' : '')); const img = make('img'); img.src = item.icon; img.alt = ''; symbol.append(img);
+  // Obrona przeciwrakietowa obiektu stoi w tym samym punkcie co broniony obiekt — mniejsza plakietka w jego prawym górnym rogu,
+  // w warstwie obiektu (widoczna tylko z nim). 19 Nov 2026: obrona regionu — plakietka wyśrodkowana w punkcie regionu.
+  const defense = !!item.defense, regionDefense = item.defense === 'region';
+  const symbol = make('div', null, 'panel-map-object' + (defense ? ' is-defense' : '') + (regionDefense ? ' is-region-defense' : '')); const img = make('img'); img.src = item.icon; img.alt = ''; symbol.append(img);
   if (!defense && item.health != null && item.health < 100) { const bar = make('i', null, 'panel-map-health'); bar.style.width = Math.max(0, Math.min(100, item.health)) + '%'; symbol.append(bar); }
   const tip = make('div'); tip.append(make('strong', item.name)); if (item.health != null) tip.append(make('div', `Życie: ${Math.round(item.health)}/100`));
-  const size = defense ? [17, 17] : [28, 28], anchor = defense ? [-6, 24] : [14, 14];
-  L.marker([item.position[1], item.position[0]], { pane: defense ? 'panelDefenses' : 'panelObjects', icon: L.divIcon({ html: symbol, className: 'panel-map-marker', iconSize: size, iconAnchor: anchor }) })
+  const size = defense && !regionDefense ? [17, 17] : [28, 28], anchor = defense && !regionDefense ? [-6, 24] : [14, 14];
+  const marker = L.marker([item.position[1], item.position[0]], { pane: defense ? 'panelDefenses' : 'panelObjects', icon: L.divIcon({ html: symbol, className: 'panel-map-marker', iconSize: size, iconAnchor: anchor }) })
     .bindTooltip(tip, { direction: 'top', offset: [0, -14], className: 'panel-map-tooltip' }).addTo(layer);
+  if (regionDefense) regionDefenses.push([item.regionId, marker]);
 }
 
 // ---- regiony, ląd, miasta ----
@@ -80,6 +96,8 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
       });
     }
   }).addTo(map);
+  const centers = new Map(regions.features?.map(f => [String(f.properties?.region_id), f.geometry]) || []);
+  for (const [regionId, marker] of regionDefenses) { const c = centers.has(regionId) && regionCenter(centers.get(regionId)); if (c) marker.setLatLng([c[1], c[0]]); }
   function focusCountry() {
     map.invalidateSize();
     const bounds = regionLayer.getBounds();

@@ -101,7 +101,7 @@ def render_military(mode):
             'defenseIcon':url_for('static',filename='icons/OBRONA PRZECIWRAKIETOWA.svg'),
             'coastUrl':url_for('game_military.coastline',region_id=0),
             'flags':{str(id):url_for('static',filename='flags/'+(name or '').replace(' ','_')+'.jpg') for id,name in db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa))},
-            'cargoShipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'tradeShips':visible_shipments(db.session,country.PANSTWO_ID),
+            'cargoShipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'landTransportIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'tradeShips':visible_shipments(db.session,country.PANSTWO_ID),
             'vessels':visible_vessels(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),'vesselSpeed':VESSEL_SPEED,
             'vesselIcons':{kind:url_for('static',filename='icons/'+name) for kind,name in [('warships','OKRĘT WOJENNY.svg'),('submarines','SUBMARINE.svg'),('carriers','LOTNISKOWIEC.svg')]},
             'fighterRange':FIGHTER_RANGE,'carrierCapacity':CARRIER_FIGHTERS,

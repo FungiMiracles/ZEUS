@@ -129,6 +129,31 @@ def with_social_floor(shares,state,coverage):
     return {**scaled,'social_policy':share},True
 
 
+def imf_reserve_target(ctx):
+    """(A) 18 Nov 2026: kwota, którą budżet odkłada w rezerwie na ratę MFW tego cyklu (harmonogram imf_installment).
+    Konserwatyzm fiskalny i niska tolerancja zadłużenia zwiększają odkładaną kwotę (0,8–1,3 raty)."""
+    from game.paga2.finance import imf_installment,imf_loans
+    installment=imf_installment(imf_loans(ctx))
+    if installment<=0:return Decimal(0)
+    t=ctx.traits
+    factor=clip(1+(t.get('fiscal_conservatism',50)-50)/200-(t.get('debt_tolerance',50)-50)/250,.8,1.3)
+    return Decimal(str(installment*factor)).quantize(CENT,rounding=ROUND_DOWN)
+
+
+def with_imf_reserve(shares,state,target,war=False):
+    """Podnosi udział rezerwy (reszta do 100%), aby po zatwierdzeniu w rezerwie była rata MFW; sektory oddają proporcjonalnie.
+    Rezerwa najwyżej 40% budżetu (w wojnie 25%)."""
+    budget=dec(state.get('budget_total'))
+    if target<=0 or budget<=0:return shares,False
+    needed=min((target*100/budget).quantize(CENT,rounding=ROUND_HALF_UP)+CENT,Decimal('25' if war else '40'))
+    current=Decimal(100)-sum(shares.values())
+    if needed<=current:return shares,False
+    total=sum(shares.values());room=Decimal(100)-needed
+    if total<=0:return shares,False
+    adjusted={s:(shares[s]*room/total).quantize(CENT,rounding=ROUND_DOWN) for s in SECTORS}
+    return adjusted,True
+
+
 def payments(state):
     """Wypłaty: pełne oczekiwania, gdy budżet społeczny wystarcza, w przeciwnym razie proporcjonalnie do dostępnych środków."""
     benefits=state.get('benefits') or {};expected=benefits.get('expected') or {}
@@ -222,12 +247,14 @@ def propose(ctx):
     crime_ratio=crime_target(ctx)
     base_revenue=None;options=[]
     t=ctx.traits;war=ctx.situation.get('level')=='war'
+    imf_target=imf_reserve_target(ctx)
     for rate in rates:
         body={'pit_rate':str(rate),'shares':{k:str(v) for k,v in shares.items()}}
         state=preview(ctx,body)
         adjusted,changed=with_social_floor(shares,state,coverage)
         adjusted,crime_changed=with_crime_floor(adjusted,state,crime_ratio)
-        if changed or crime_changed:
+        adjusted,imf_changed=with_imf_reserve(adjusted,state,imf_target,war)
+        if changed or crime_changed or imf_changed:
             body['shares']={k:str(v) for k,v in adjusted.items()}
             state=preview(ctx,body)
         paid,covered=payments(state)
@@ -248,6 +275,7 @@ def propose(ctx):
                f'Dochody podatkowe: {revenue:,.0f} ROI ({gain*100:+.1f}% wobec poprzedniej stawki).'.replace(',',' '),
                f'Kara społeczna za wysoki podatek: {penalty} pkt.',f'Pokrycie oczekiwanych świadczeń: {float(covered)*100:.0f}%.',
                f'Walka z przestępczością: {float(crime_covered)*100:.0f}% oczekiwań społecznych.']
+        if imf_target>0:notes.append(f'Rezerwa na ratę MFW w tym cyklu: {float(imf_target)/1e9:.2f} MLD (rezerwa w planie: {float(dec((state.get("allocations") or {}).get("reserve")))/1e9:.2f} MLD).')
         result.append(Option(key=f'budget:{rate}',domain='finance',action='BUDGET_APPROVE',label=f'Budżet okresu z podatkiem PIT {rate}%',
                              effects={'financial_stability':clip(gain*2,-1,1),'welfare':clip(-penalty/4+(float(covered)-1),-1,1)},
                              base=round(base,3),notes=notes,

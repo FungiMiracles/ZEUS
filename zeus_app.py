@@ -33,6 +33,7 @@ from game.intelligence import intelligence_bp
 from game.world import world_bp
 from game.commerce import trade_bp
 from game.loans import loans_bp
+from game.imf import imf_bp   # 18 Nov 2026: Międzynarodowy Fundusz Walutowy
 from game.public_panels import public_panels_bp
 from game.diplomacy import diplomacy_bp
 from game.forum import forum_bp
@@ -188,6 +189,7 @@ def create_app():
     app.register_blueprint(world_bp)
     app.register_blueprint(trade_bp)
     app.register_blueprint(loans_bp)
+    app.register_blueprint(imf_bp)
     from game.industry_models import PowerPlant,IndustryClock,IndustryMovement
     from game.research import research_bp
     app.register_blueprint(research_bp)
@@ -301,7 +303,7 @@ def create_app():
         if request.endpoint is None:
             return
         
-        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF
+        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial", "game_imf"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF; 18 Nov 2026: game_imf (MFW) też
             return
 
         # Blueprint sam sprawdza sesję gracza i token CSRF.

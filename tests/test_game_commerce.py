@@ -40,6 +40,8 @@ class CommerceFixture(MilitaryFixture):
         route=patch('game.trade_service.shortest_sea_route',side_effect=lambda a,b:[a,b]);route.start();self.addCleanup(route.stop)
         p=patch('game.trade_service.city_point',side_effect=lambda id:[(id-101)*100,0]);p.start();self.addCleanup(p.stop)
         p=patch('game.military_geography.region_contains',return_value=True);p.start();self.addCleanup(p.stop)
+        # 18 Nov 2026: domyślnie bez granic lądowych (handel morski); transport lądowy testuje test_trade_land.
+        p=patch('game.road_projects.region_adjacency',return_value={});p.start();self.addCleanup(p.stop)
 
     def offer(self,**extra):
         return create_offer(1,dict(request_id=str(uuid4()),cargo={'wegiel_kamienny':5},price='1000',port_id=101,departure_rate='0',**extra))
@@ -107,7 +109,8 @@ class CommerceTests(CommerceFixture):
         id=self.offer();db.session.get(StateFinancialAccount,2).reserve_balance=5;db.session.commit()
         with self.assertRaises(FinanceError):self.buy(id)
         db.session.expire_all();self.assertEqual(db.session.get(TradeOffer,id).status,'open');self.assertEqual(self.count(TradeReserveMovement),0)
-    def test_tariff_changes_require_requote(self):
+    @patch('game.military_geography.region_adjacency',return_value={})   # 18 Nov 2026: test opłat — bez sąsiadów lądowych (reguła portu sąsiada: test_trade_neighbor_ports)
+    def test_tariff_changes_require_requote(self,_adjacency):
         db.session.get(Miasto,101).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'5'})
         with self.assertRaises(FinanceError):create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'10','port_id':103,'departure_rate':'0'})
         id=create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'10','port_id':103,'departure_rate':'5'})

@@ -98,3 +98,5 @@ html body.game-app.game-navy.game-civic .panel-map-filters .panel-filter-all{pad
 .leaflet-tooltip.panel-map-tooltip{display:block}
 .leaflet-tooltip.panel-map-tooltip>div>*{display:block}
 .leaflet-tooltip.panel-map-tooltip .panel-city-tip{display:flex}
+/* 19 Nov 2026: obrona regionu — okrągła plakietka 28 px wyśrodkowana na regionie */
+.panel-map-object.is-defense.is-region-defense{width:28px;height:28px;padding:3px;border-width:1.5px}

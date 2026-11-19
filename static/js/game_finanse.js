@@ -304,6 +304,11 @@ function formatRatio(numerator, denominator, digits = 2) {
                 : decimalText(value);
         });
 
+        // 18 Nov 2026: pozycja spłaty zaległości w MFW widoczna tylko, gdy MFW pobiera dług z tego budżetu.
+        root.querySelectorAll("[data-imf-collection-row]").forEach(row => {
+            row.hidden = !((decimalParts(state.imf_collection || "0")?.value ?? 0n) > 0n);
+        });
+
         root.querySelectorAll("[data-allocation]").forEach(element => {
             element.textContent = moneyText(
                 state.allocations?.[element.dataset.allocation]
@@ -842,12 +847,24 @@ function formatRatio(numerator, denominator, digits = 2) {
         function showTransferError(message){if(!transferError)return;transferError.textContent=message||'';transferError.hidden=!message;}
         function trustMessage(trust){return 'Społeczeństwo nie ufa władzy wystarczająco ('+(trust??'—')+'/100), by pozwolić na swobodne modyfikowanie budżetu i przesuwanie środków między sektorami.';}
         transferForm.addEventListener('input',()=>{requestId=null;requestPayload=null;status.textContent='';showTransferError('');updateAvailable();});
+        // 18 Nov 2026: kwota w MLN albo MLD (przełącznik), do 3 miejsc po przecinku; dokładne przeliczenie na ROI (BigInt).
+        function transferAmount(){
+            const unit=transferForm.querySelector('[name="amount_unit"]:checked')?.value||'MLD';
+            const raw=String(amount.value||'').trim().replace(/[\s\u00a0]/g,'').replace(',','.');
+            const m=/^(\d+)(?:\.(\d{1,3}))?$/.exec(raw);
+            if(!m)throw new Error('Podaj kwotę w '+unit+', np. 250 albo 1,5 (najwyżej 3 miejsca po przecinku).');
+            const scale=unit==='MLN'?1000000n:1000000000n;
+            const value=(BigInt(m[1])*1000n+BigInt((m[2]||'').padEnd(3,'0')))*scale/1000n;
+            if(value<1000000n)throw new Error('Najmniejsza kwota przesunięcia to 1 MLN ROI.');
+            return value.toString();
+        }
         transferForm.addEventListener('submit',async event=>{
             event.preventDefault();showError('');status.textContent='';showTransferError('');
             if(source.value===destination.value){showError('Wybierz dwa różne sektory budżetu.');return;}
             // Sector-to-sector transfers need public trust above the threshold; reserve operations stay open.
             if(displayedState.sector_transfers_allowed===false&&source.value!=='reserve'&&destination.value!=='reserve'&&!(destination.value==='armed_forces'&&displayedState.defense_transfers_allowed)){showTransferError(trustMessage(displayedState.public_trust));return;}
-            const payload={budget_id:displayedState.budget_id,source:source.value,destination:destination.value,amount:window.GameMoney.fromBillions(amount.value)};
+            let roi;try{roi=transferAmount();}catch(error){showError(error.message);return;}
+            const payload={budget_id:displayedState.budget_id,source:source.value,destination:destination.value,amount:roi};
             const signature=JSON.stringify(payload);
             if(requestPayload!==signature){requestId=crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=crypto.getRandomValues(new Uint8Array(1))[0]&15;return (c==='x'?r:(r&3)|8).toString(16);});requestPayload=signature;}
             const button=transferForm.querySelector('button[type="submit"]');button.disabled=true;

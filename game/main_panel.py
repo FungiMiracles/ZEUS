@@ -44,16 +44,23 @@ def map_objects(country_id,icon_url):
     from game.mining_service import NAMES
     from game.military_service import BASES
     now=game_now();items=[]
-    def add(kind,name,position,icon,health=None):
+    def add(kind,name,position,icon,health=None,**extra):
         if position and position[0] is not None and position[1] is not None:
-            items.append({'kind':kind,'name':name,'position':[float(position[0]),float(position[1])],'icon':icon_url(icon),'health':health})
+            items.append({'kind':kind,'name':name,'position':[float(position[0]),float(position[1])],'icon':icon_url(icon),'health':health,**extra})
     for b in db.session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id==country_id)):
         icon={'land':'BAZA.svg','air':'MYŚLIWIEC.svg','naval':'OKRĘT WOJENNY.svg','nuclear':'SILOS ATOMOWY.svg'}.get(b.kind,'BAZA.svg')
         add(b.kind,(b.name or f'{BASES[b.kind][0]} #{b.id}')+f' · poziom {b.level}',[b.map_x,b.map_y],icon,b.health)
     try:
         from game.missile_defense import defense_data
+        # 19 Nov 2026: filtr „Obrona przeciwrakietowa” pokazuje tylko obronę regionów (plakietka na środku regionu);
+        # obrona konkretnego obiektu należy do warstwy tego obiektu — widać ją tylko razem z nim (filtr obiektu).
+        bases=dict(db.session.execute(select(MilitaryBase.id,MilitaryBase.kind).where(MilitaryBase.panstwo_id==country_id)).all())
+        layer_of={'region':'defenses','city':'cities','mine':'mines','factory':'factories','power':'power','radar':'radars'}
         for d in db.session.scalars(select(MissileDefense).where(MissileDefense.panstwo_id==country_id)):
-            data=defense_data(d);add('defenses',f'Obrona przeciwrakietowa #{d.id} · poziom {d.level}',data.get('position'),'OBRONA PRZECIWRAKIETOWA.svg',d.health)
+            layer=bases.get(d.target_id) if d.target_kind=='base' else layer_of.get(d.target_kind)
+            if not layer:continue
+            data=defense_data(d);add(layer,f'Obrona przeciwrakietowa #{d.id} · poziom {d.level}',data.get('position'),'OBRONA PRZECIWRAKIETOWA.svg',d.health,
+                                     defense='region' if d.target_kind=='region' else 'object',regionId=str(d.region_id))
     except Exception:pass
     try:
         from game.radar_models import Radar

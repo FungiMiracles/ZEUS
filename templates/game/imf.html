@@ -1,0 +1,54 @@
+{% extends 'game/game_base_layout.html' %}
+{# 18 Nov 2026: ekran Międzynarodowego Funduszu Walutowego (siedziba: Port Loyab, wejście z mapy świata). #}
+{% block title %}Międzynarodowy Fundusz Walutowy — {{ game_country.nazwa }}{% endblock %}
+{% block body_class %}imf-room finance-room{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finanse.css', v='20261116-mobile-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261118-units-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_imf.css', v='20261118-imf-4') }}">
+{% endblock %}
+{% block game_page_actions %}<a href="/game/swiat">← Mapa świata</a> <a href="/game/finanse#imf-debt">Spłata zadłużenia ↗</a>{% endblock %}
+{% block content %}
+<div class="imf-screen" id="imf-root" data-state-url="{{ imf_config.stateUrl }}" data-change-url="{{ imf_config.changeUrl }}" data-csrf="{{ game_csrf_token }}">
+  <p class="imf-intro"><img class="imf-intro-icon" src="{{ url_for('static', filename='icons/MFW.svg') }}" alt="" width="44" height="44">Siedziba funduszu: <strong>Port Loyab</strong>. MFW pożycza państwom środki na <strong>5% odsetek za każdy cykl budżetowy</strong> (od pozostałego długu, naliczane przy zatwierdzeniu budżetu). Pożyczka trafia do rezerwy budżetowej i musi zostać spłacona w ciągu <strong>4 cykli budżetowych</strong>. Państwo może mieć tylko jedną aktywną pożyczkę, a w ciągu roku pożyczyć najwyżej 10% puli. Zaległość MFW pobiera przy zatwierdzaniu budżetu — najwyżej 65% środków budżetu, a resztę z kolejnego.</p>
+  <p id="imf-error" class="imf-message imf-error" role="alert" hidden></p>
+  <div class="imf-grid">
+    <section class="game-panel imf-pool-panel" aria-labelledby="imf-pool-title">
+      <h2 class="game-panel-heading" id="imf-pool-title">Środki MFW w roku <span id="imf-year">—</span></h2>
+      <div class="game-panel-body"><div id="imf-pool-chart" class="imf-pool-chart">Ładowanie…</div></div>
+    </section>
+    <section class="game-panel imf-credit-panel" aria-labelledby="imf-credit-title">
+      <h2 class="game-panel-heading" id="imf-credit-title">Wniosek o pożyczkę</h2>
+      <div class="game-panel-body">
+        <dl class="finance-metrics imf-credit-metrics">
+          <div><dt>25% transzy podatkowej</dt><dd data-imf="base">—</dd></div>
+          <div><dt>Dług w MFW</dt><dd data-imf="imfDebt">—</dd></div>
+          <div><dt>Dług u innych państw</dt><dd data-imf="stateDebt">—</dd></div>
+          <div class="imf-capacity"><dt>Zdolność kredytowa</dt><dd data-imf="capacity">—</dd></div>
+          <div><dt>Limit roczny państwa (10% puli)</dt><dd data-imf="countryLeft">—</dd></div>
+          <div><dt>Odsetki</dt><dd>5% / cykl</dd></div>
+        </dl>
+        <p class="imf-hint">Zdolność kredytowa = 25% transzy podatkowej ostatniego budżetu − dług w MFW − niespłacone pożyczki od innych państw. Maksymalna kwota pożyczki teraz (też w ramach limitu rocznego i puli): <strong data-imf="maxLoan">—</strong>.</p>
+        <form id="imf-request-form" class="imf-form">
+          <label>Kwota (MLD)<input name="amount" type="number" min="1" step="1" required inputmode="numeric" title="Podaj pełne miliardy: 1 oznacza 1 miliard ROI."></label>
+          <button type="submit">Złóż wniosek do MFW</button>
+        </form>
+        <p id="imf-status" class="imf-message" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+  <section class="game-panel imf-borrowers" aria-labelledby="imf-borrowers-title">
+    <h2 class="game-panel-heading" id="imf-borrowers-title">Państwa zadłużone w MFW</h2>
+    <div class="game-panel-body"><div class="finance-table-scroll"><table class="finance-table imf-table">
+      <thead><tr><th scope="col">Państwo</th><th scope="col">Pożyczono w <span data-imf-year>—</span></th><th scope="col">Do spłaty</th></tr></thead>
+      <tbody id="imf-borrowers"><tr><td colspan="3">Ładowanie…</td></tr></tbody>
+    </table></div></div>
+  </section>
+  <section class="game-panel imf-own" aria-labelledby="imf-own-title">
+    <h2 class="game-panel-heading" id="imf-own-title">Wnioski i pożyczki Twojego państwa</h2>
+    <div class="game-panel-body"><div id="imf-own-list" class="imf-own-list"></div>
+      <p class="imf-hint">Zadłużenie spłacisz w całości lub części z rezerwy budżetowej na ekranie <a href="/game/finanse#imf-debt">Podatki i budżet</a>.</p></div>
+  </section>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/game_imf.js', v='20261118-imf-2') }}" defer></script>{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}Świat — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261117-city-dots-restore-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261118-imf-4') }}">
 {% endblock %}
 {% block content %}
 <section class="world-map-card" aria-labelledby="world-map-title">
@@ -15,6 +15,7 @@
     </div>
     <label class="world-layer-toggle"><input type="checkbox" id="world-waters-toggle"><span>Wody terytorialne</span></label>
     <label class="world-layer-toggle"><input type="checkbox" id="world-cities-toggle" checked><span>Miasta</span></label>
+    <label class="world-layer-toggle" title="Oznaczenia instytucji i obiektów przy miastach, np. siedziba MFW w Port Loyab"><input type="checkbox" id="world-markers-toggle" checked><span>Znaczniki miast</span></label>
     <label class="world-layer-toggle"><input type="checkbox" id="world-relief-toggle" checked><span>Rzeźba terenu</span></label>
     <button type="button" id="world-map-reset" class="world-map-reset">Cały świat ⤢</button>
   </div>
@@ -40,5 +41,5 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261025-1') }}"></script>
 <script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-dark-peaks-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261117-city-dots-restore-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261118-markers-1') }}" defer></script>
 {% endblock %}

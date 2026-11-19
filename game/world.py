@@ -64,7 +64,7 @@ def world_data():
         for ship in db.session.scalars(active_shipments(db.session).order_by(TradeShipment.id)):
             ships.append({'id':ship.id,'seller':(countries.get(str(ship.seller_id)) or {}).get('name'),'buyer':(countries.get(str(ship.buyer_id)) or {}).get('name'),
                           'route':ship.route or [[ship.source_x,ship.source_y],[ship.target_x,ship.target_y]],'source':[ship.source_x,ship.source_y],'target':[ship.target_x,ship.target_y],
-                          'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z','health':ship.health,
+                          'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z','health':ship.health,'transport':ship.transport or 'sea',
                           'flag':(countries.get(str(ship.origin_country_id or ship.seller_id)) or {}).get('flag')})
     except Exception:
         current_app.logger.exception('Ekran Świat: statki')
@@ -102,7 +102,10 @@ def page():
             'watersUrl':url_for('game_world.territorial_waters'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
             'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
-            'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
+            'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
+    # 18 Nov 2026: siedziba Międzynarodowego Funduszu Walutowego — tooltip Port Loyab prowadzi do ekranu MFW.
+    from game.imf import imf_city_id
+    config['imf']={'cityId':imf_city_id(db.session),'url':url_for('game_imf.page'),'icon':url_for('static',filename='icons/MFW.svg')}
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
                              game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config)
     db.session.rollback()

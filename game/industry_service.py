@@ -85,7 +85,7 @@ def settle_industry(session,country,now=None):
                if not FACTORIES[f.kind].get('on_demand')]   # produkcja na zamówienie rozliczana w game.nuclear.settle_orders
     # Event times are anchored to each object's own commissioning time.
     from game.mining_service import extract_country
-    resident=resident_demand(session,country)
+    resident=base_demand(session,country)
     while True:
         times=[f.produced_at+DAY for f in factories]+[p.checked_at+DAY for p in plants]
         moment=min(times) if times else now+DAY
@@ -136,6 +136,22 @@ def resident_demand(session,country):
     population=economy(session,country)['population'] or 0
     return Decimal(population)/100000
 
+def on_demand_energy(session,country):
+    """18 Nov 2026: fabryki produkujące na zamówienie (rakiety nuklearne) pobierają energię tylko w trakcie realizacji
+    zamówienia (zbudowana, sprawna fabryka z aktywnym zamówieniem). Pobór ma pierwszeństwo przed pozostałymi fabrykami."""
+    from game.nuclear_models import NuclearOrder
+    from game.nuclear import factory_ready_at
+    now=game_now();total=Decimal(0)
+    for f in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None),AmmunitionFactory.health>0)):
+        if not FACTORIES[f.kind].get('on_demand') or factory_ready_at(f)>now:continue
+        if session.scalar(select(NuclearOrder.id).where(NuclearOrder.factory_id==f.id,NuclearOrder.status=='active').limit(1)) is not None:
+            total+=Decimal(str(FACTORIES[f.kind]['levels'][f.level-1]['energy']))
+    return total
+
+def base_demand(session,country):
+    """Zużycie mieszkańców i fabryk na zamówienie — odejmowane od produkcji przed rozdziałem energii na fabryki."""
+    return resident_demand(session,country)+on_demand_energy(session,country)
+
 def powered_factories(session,factories,production,resident):
     """Energy deficit rule: factories able to work stop from the largest energy consumer until the grid balances."""
     candidates=[f for f in factories if factory_can_work(session,f)]
@@ -153,9 +169,10 @@ def energy_balance(session,country):
     factories=list(session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None))))
     plants=list(session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country,PowerPlant.removed_at.is_(None))))
     production=sum(plant_output(session,p) for p in plants if power_can_work(session,p))
-    powered=powered_factories(session,factories,production,resident)
-    demand=resident+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if factory_can_work(session,f))
-    consumption=resident+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if f.id in powered)
+    special=on_demand_energy(session,country)
+    powered=powered_factories(session,factories,production,resident+special)
+    demand=resident+special+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if factory_can_work(session,f))
+    consumption=resident+special+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if f.id in powered)
     stopped=sum(1 for f in factories if factory_can_work(session,f) and f.id not in powered)
     sources={kind:dict(production=0,consumption=0,extraction=0) for kind in POWER_PLANTS}
     for plant in plants:
@@ -380,7 +397,7 @@ def industry_state(session,country):
         deposits.setdefault(str(region),{})[codes[resource]]=int(amount or 0)
     plants=list(session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country,PowerPlant.removed_at.is_(None))))
     factories=list(session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None))))
-    powered=powered_factories(session,factories,sum(plant_output(session,p) for p in plants if power_can_work(session,p)),resident_demand(session,country))
+    powered=powered_factories(session,factories,sum(plant_output(session,p) for p in plants if power_can_work(session,p)),base_demand(session,country))
     objects=[object_data(row,category,powered) for category,model in [('factory',AmmunitionFactory),('power',PowerPlant),('mine',Mine)] for row in session.scalars(select(model).where(model.panstwo_id==country,model.removed_at.is_(None)).order_by(model.id))]
     from game.foreign_mining import map_regions
     foreign=map_regions(session,country)

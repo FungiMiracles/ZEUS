@@ -311,8 +311,9 @@ class RetiredMechanismTests(unittest.TestCase):
 
     def test_llm_task_scope(self):
         from game.paga_ai_tasks import enqueue,LLM_KINDS,llm_allowed
-        self.assertEqual(LLM_KINDS,{'private_message','forum_reply','forum_mention','loan_event','forum_announcement','private_initiative'})
-        for kind in ('budget','strategic_review','war_declared','under_attack','diplomatic_proposal','intent','conditional_plan','research_available'):
+        # 19 Nov 2026: decyzje o pożyczkach podejmuje wyłącznie PAGA2 — loan_event poza zakresem modeli AI.
+        self.assertEqual(LLM_KINDS,{'private_message','forum_reply','forum_mention','forum_announcement','private_initiative'})
+        for kind in ('loan_event','budget','strategic_review','war_declared','under_attack','diplomatic_proposal','intent','conditional_plan','research_available'):
             with self.subTest(kind=kind):self.assertIsNone(enqueue(db.session,1,kind,'k-'+kind,0));self.assertFalse(llm_allowed(kind))
         for kind in LLM_KINDS:
             with self.subTest(kind=kind):self.assertIsNotNone(enqueue(db.session,1,kind,'k-'+kind,0))

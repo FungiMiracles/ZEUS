@@ -1,5 +1,5 @@
 """PAGA2 — finanse w trakcie półrocza: przesunięcia między sektorami, wnioski o pożyczki, spłaty
-oraz ocena zdolności do udzielenia pożyczki (decyzję o udzieleniu podejmuje model AI — zob. loan_capacity).
+oraz decyzje o udzieleniu pożyczki innym państwom (19 Nov 2026: decyduje wyłącznie PAGA2 — zob. loan_decision).
 """
 from decimal import Decimal,ROUND_DOWN
 from uuid import uuid5,NAMESPACE_URL
@@ -77,6 +77,7 @@ def transfer_options(ctx):
         if deficit>.15*share[sector]*total and ctx.situation.get('level')!='peace' and sector in ('armed_forces','security_services'):
             needs[sector]=max(needs.get(sector,0),deficit)
     weights=priority_weights(ctx.priorities);options=[]
+    protected=imf_installment(imf_loans(ctx))
     for recipient,need in sorted(needs.items(),key=lambda item:-item[1]):
         if need<MIN_TRANSFER or recipient=='reserve':continue
         donors=[]
@@ -84,7 +85,8 @@ def transfer_options(ctx):
             if donor==recipient:continue
             surplus=ctx.available(donor)-share[donor]*total*.8
             if surplus>MIN_TRANSFER and (sectors_allowed or (defense_allowed and recipient=='armed_forces')):donors.append((donor,surplus))
-        reserve=ctx.available('reserve')*(.6-.4*ctx.traits.get('fiscal_conservatism',50)/100)
+        # 18 Nov 2026: rata MFW należna w tym cyklu nie jest dostępna do przesunięć z rezerwy.
+        reserve=max(0.0,ctx.available('reserve')-protected)*(.6-.4*ctx.traits.get('fiscal_conservatism',50)/100)
         if reserve>MIN_TRANSFER:donors.append(('reserve',reserve))
         if not donors:continue
         # Dawca: najmniej ważny dla priorytetów sektor z nadwyżką (rezerwa — gdy brak innych lub mało konserwatywne państwo).
@@ -183,8 +185,175 @@ def loan_capacity(session,country_id,now=None):
             'solidarity':traits['solidarity'],'trade_propensity':traits['trade_propensity']}
 
 
+IMF_REQUEST_EVERY_DAYS=90    # kolejny wniosek do MFW najwcześniej po tylu dniach gry
+IMF_REFUSAL_DAYS=120         # po odmowie MFW państwo czeka dłużej
+IMF_CONSERVATIVE=70          # od tego konserwatyzmu fiskalnego: brak wniosków w pokoju, mała kwota w wojnie
+IMF_MIN_COVERAGE=.3          # pożyczka musi pokryć co najmniej 30% niedoboru
+IMF_MIN_REPAYMENT=1e8        # spłaty poniżej 0,1 MLD pomijane
+
+
+def imf_installment(loans):
+    """18 Nov 2026: rata MFW należna w bieżącym cyklu według harmonogramu (bez odsetek): w cyklu wypłaty brak raty,
+    w trzech kolejnych po 1/3 pożyczki, przed terminem (1 cykl lub mniej) — cała reszta. Liczona od celu „ile może
+    jeszcze zostać do spłaty”, więc ponowne wywołanie w tym samym cyklu nie każe płacić drugi raz."""
+    from game.imf import REPAYMENT_CYCLES
+    due=0.0
+    for loan in loans or []:
+        if loan.get('status')!='active':continue
+        left,amount,outstanding=loan.get('periodsLeft'),float(loan.get('amount') or 0),float(loan.get('outstanding') or 0)
+        target=0.0 if loan.get('overdue') or left is None or left<=1 else amount*min(1.0,(left-1)/(REPAYMENT_CYCLES-1))
+        due+=max(0.0,outstanding-target)
+    return due
+
+
+def imf_loans(ctx):
+    screen=getattr(ctx,'screen',None)
+    if screen is None:return []
+    return ((screen('imf') or {}).get('data') or {}).get('loans') or []
+
+
+def imf_options(ctx):
+    """18 Nov 2026: pożyczki Międzynarodowego Funduszu Walutowego (ekran /game/mfw/stan — to samo, co widzi gracz).
+
+    Wniosek: gdy brakuje środków na plany / bieżące potrzeby (albo na wojnie — na siły zbrojne), a państwo toleruje
+    zadłużenie (próg 35 pkt, wyższy przy izolacjonizmie > 50, niższy o 15 pkt w wojnie). Konserwatyzm fiskalny ≥ 70
+    blokuje wniosek w pokoju i ogranicza kwotę w wojnie. Kwota: najwyżej 50–70% zdolności kredytowej i pula MFW, co
+    najmniej 30% niedoboru. Najwyżej jedna aktywna pożyczka; koszt odsetek (5% za cykl) obniża ocenę wniosku.
+    Spłata: z nadwyżki rezerwy ponad potrzeby planów; pilnie, gdy zbliża się termin (inaczej MFW pobierze do 65% budżetu).
+    """
+    screen=(ctx.screen('imf') or {}).get('data') or {}
+    if not screen:return []
+    t=ctx.traits;options=[]
+    tolerance,conservatism,isolationism=t.get('debt_tolerance',50),t.get('fiscal_conservatism',50),t.get('isolationism',50)
+    war=ctx.situation.get('level')=='war'
+    loans=screen.get('loans') or [];reserve=float(screen.get('reserve') or 0)
+    needs=plan_needs(ctx);planned=sum(needs.values())
+    active=[loan for loan in loans if loan.get('status')=='active']
+    debt=sum(float(loan.get('outstanding') or 0) for loan in active)
+    if debt>0:
+        # (B) 18 Nov 2026: spłata ratalna — co cykl rata z harmonogramu (imf_installment), także bez „nadwyżki”;
+        # potrzeby planów chronią rezerwę tym słabiej, im bliżej terminu (3+ cykle: 50%, 2 cykle: 25%, ostatni: 0%).
+        left=min((loan.get('periodsLeft') if loan.get('periodsLeft') is not None else 0) for loan in active)
+        urgent=any(loan.get('overdue') for loan in active) or left<=1
+        installment=imf_installment(active)
+        keep=planned*(.5 if left>=3 else .25 if left==2 else 0.0)+(0.0 if urgent else reserve*(.15 if war else .05))
+        payable=max(0.0,reserve-keep)
+        spare=reserve-planned-reserve*(.2 if war else .05)
+        willing=conservatism>=55 or tolerance<=45 or spare>=debt*1.5
+        amount=min(debt,max(min(installment,payable),spare if willing else 0.0,min(installment,reserve*.65) if urgent else 0.0))
+        if amount>=IMF_MIN_REPAYMENT:
+            whole=amount>=debt
+            value=Decimal(str(amount)).quantize(CENT,rounding=ROUND_DOWN)
+            notes=[f'Rata według harmonogramu: {installment/1e9:.2f} MLD (do terminu: {left} cykl.).']
+            if urgent:notes.append('Termin spłaty blisko — bez spłaty MFW pobierze zaległość z budżetu (do 65%).')
+            if amount<installment:notes.append(f'Rezerwa pozwala spłacić tylko {float(value)/1e9:.2f} MLD z raty.')
+            options.append(Option(key='imf:repay',domain='finance',action='IMF_REPAY',
+                                  label=f'Spłata MFW: {"całość" if whole else f"{float(value)/1e9:.2f} MLD"} (dług {debt/1e9:.2f} MLD)',
+                                  effects={'financial_stability':.8},traits={'fiscal_conservatism':.8,'debt_tolerance':-.6,'predictability':.3},
+                                  base=(4.0 if installment>0 else 2.0)+(3.0 if urgent else 0.0)-(1.0 if war and not urgent else 0.0),
+                                  notes=notes,payload={'amount':'all' if whole else str(value),'group':'imf_repay'}))
+    if any(o.action=='IMF_REPAY' for o in options):return options   # spłata w tym cyklu — bez nowego wniosku
+    if any(loan_age_days(loan)<IMF_REQUEST_EVERY_DAYS for loan in loans if loan.get('status')!='rejected'):return options
+    if any(loan_age_days(loan)<IMF_REFUSAL_DAYS for loan in loans if loan.get('status')=='rejected'):return options
+    # 18 Nov 2026 (korekty po analizie pierwszych pożyczek):
+    # (1) wysoki konserwatyzm fiskalny blokuje wniosek w pokoju, a w wojnie ogranicza kwotę;
+    if conservatism>=IMF_CONSERVATIVE and not war:return options
+    # (2) izolacjonizm tylko podnosi próg (nie obniża go poniżej 35); wojna nadal obniża próg o 15 pkt;
+    threshold=35+max(0.0,(isolationism-50)*.4)-(15 if war else 0)
+    if tolerance<threshold:return options
+    # 18 Nov 2026: najwyżej jedna aktywna pożyczka w MFW — nowa dopiero po spłacie poprzedniej.
+    if debt>0 or (screen.get('credit') or {}).get('activeLoan'):return options
+    credit=screen.get('credit') or {}
+    capacity,base=float(credit.get('capacity') or 0),float(credit.get('base') or 0)
+    max_loan=float(credit.get('maxLoan') or 0)
+    plan_shortage=planned-sum(ctx.available(s) for s in SECTORS)*.3-reserve*.5
+    army_gap=ctx.sector_start('armed_forces')*.5-ctx.available('armed_forces') if war else 0.0
+    shortage=max(plan_shortage,army_gap)
+    if shortage<1e9 or max_loan<1e9:return options
+    appetite=clip(.5+tolerance/100-conservatism/200+(.3 if war else 0),.3,1.3)
+    if conservatism>=IMF_CONSERVATIVE:appetite=min(appetite,.4)   # (1) wojna: ostrożna kwota
+    # (3) zapas zdolności kredytowej: najwyżej 50–70% zdolności (więcej przy wyższej tolerancji zadłużenia);
+    headroom=capacity*(.5+.2*tolerance/100)
+    amount=int(min(shortage*appetite,max_loan,headroom)//1e9)*Decimal(1000000000)
+    # (4) wniosek tylko, gdy pożyczka pokryje sensowną część niedoboru (≥ 30%).
+    if amount<1000000000 or float(amount)<shortage*IMF_MIN_COVERAGE:return options
+    # (6) osobna notatka dla luki w budżecie sił zbrojnych (wojna) i dla potrzeb planów.
+    notes=[]
+    if plan_shortage>=1e9:notes.append(f'Niedobór środków na plany i bieżące potrzeby: {plan_shortage/1e9:.2f} MLD.')
+    if war and army_gap>=1e9:notes.append(f'Luka w budżecie sił zbrojnych (wojna): {army_gap/1e9:.2f} MLD.')
+    notes.append(f'Kwota {float(amount)/1e9:.0f} MLD pokrywa {float(amount)/shortage*100:.0f}% niedoboru; zdolność kredytowa {capacity/1e9:.2f} MLD.')
+    # 18 Nov 2026: odsetki 5% za cykl — koszt pełnego terminu (4 cykle, procent składany) obniża atrakcyjność pożyczki.
+    rate=float((screen.get('rules') or {}).get('interestRate') or 0)/100
+    cost=float(amount)*((1+rate)**4-1)
+    if cost>0:notes.append(f'Koszt odsetek przy spłacie w terminie: do {cost/1e9:.2f} MLD ({rate*100:.0f}% za cykl).')
+    if war:notes.append('Państwo prowadzi wojnę.')
+    option=Option(key='imf:request',domain='finance',action='IMF_REQUEST',label=f'Wniosek do MFW o pożyczkę {float(amount)/1e9:.0f} MLD',
+                  effects={'financial_stability':-.2-min(.4,rate*4)},traits={'debt_tolerance':1.0,'fiscal_conservatism':-.6-min(.3,rate*4),'isolationism':-.5},
+                  base=2.0+min(8.0,shortage/1e10)+(3.0 if war else 0.0)-min(3.0,rate*30),notes=notes,
+                  payload={'amount':str(amount),'group':'loan'})
+    for sector in needs:
+        key=SECTOR_PRIORITY.get(sector)
+        if key:option.effects[key]=max(option.effects.get(key,0),.6)
+    if war:option.effects['defensive_army']=max(option.effects.get('defensive_army',0),.7)
+    options.append(option)
+    return options
+
+
+# 19 Nov 2026 (decyzja administratora): o udzieleniu pożyczki decyduje wyłącznie PAGA2 — na podstawie relacji z państwem
+# wnioskującym, ilości własnych środków (rezerwy), konserwatyzmu fiskalnego i solidarności międzynarodowej.
+# Wcześniej decyzję podejmował model AI; przy wyczerpanych limitach dostawców wnioski czekały bez końca.
+RELATION_ORDER=('egzystencjalniewrogie','wrogie','napiete','zle','chlodne','neutralne','dobre','przyjazne','partnerskie','partnerskiestrategiczne','sojusznicze')
+LOAN_MIN_RELATION='chlodne'     # przy relacji gorszej niż chłodna pożyczki nie udziela się nikomu
+
+
+def relation_factor(relation):
+    """Relacja z wnioskującym w skali −1 (egzystencjalnie wrogie) … 0 (neutralne) … +1 (sojusznicze)."""
+    from services.natural_resources import normalized
+    name=normalized(relation or 'neutralne')
+    index=RELATION_ORDER.index(name) if name in RELATION_ORDER else RELATION_ORDER.index('neutralne')
+    return (index-5)/5
+
+
+def loan_decision(amount,reserve,relation,fiscal_conservatism,solidarity,at_war=False):
+    """Decyzja o wniosku: (przyjąć?, część rezerwy, którą państwo gotowe jest pożyczyć, uzasadnienie).
+
+    Część rezerwy = 25% + 35% × relacja + 25% × solidarność − 25% × konserwatyzm (cechy 0–100 względem 50), w granicach 0–75%.
+    Wniosek jest przyjmowany, gdy kwota mieści się w tej części rezerwy, a relacja jest co najmniej chłodna i nie trwa wojna."""
+    rel=relation_factor(relation);sol=(float(solidarity)-50)/50;cons=(float(fiscal_conservatism)-50)/50
+    share=clip(.25+.35*rel+.25*sol-.25*cons,0.0,.75)
+    limit=max(0.0,float(reserve))*share
+    from services.natural_resources import normalized
+    name=normalized(relation or 'neutralne')
+    hostile=name in RELATION_ORDER and RELATION_ORDER.index(name)<RELATION_ORDER.index(LOAN_MIN_RELATION)
+    accept=not at_war and not hostile and 0<float(amount)<=limit
+    reason=('wojna z wnioskującym' if at_war else f'relacja „{relation}” gorsza niż chłodna' if hostile
+            else f'kwota {float(amount)/1e9:.2f} MLD mieści się w limicie {limit/1e9:.2f} MLD' if accept
+            else f'kwota {float(amount)/1e9:.2f} MLD przekracza limit {limit/1e9:.2f} MLD')
+    note=(f'Relacja: {relation} ({rel:+.1f}), rezerwa: {float(reserve)/1e9:.2f} MLD, konserwatyzm fiskalny: {float(fiscal_conservatism):.0f}, '
+          f'solidarność: {float(solidarity):.0f} → gotowość pożyczenia {share*100:.0f}% rezerwy; {reason}.')
+    return accept,round(share,3),note
+
+
+def loan_decision_options(ctx):
+    """Odpowiedź na każdy oczekujący wniosek skierowany do tego państwa — decyzja wymagana (zapada zawsze, poza limitem działań)."""
+    screen=(ctx.screen('loans') or {}).get('data') or {}
+    reserve=float(screen.get('reserve') or 0);options=[]
+    t=ctx.traits;relations=ctx.situation.get('relations',{});wars=set(ctx.situation.get('at_war',[]))
+    for loan in screen.get('loans') or []:
+        if loan.get('ownRequest') or loan.get('status')!='pending':continue
+        other=loan.get('borrowerId');amount=float(loan.get('amount') or 0)
+        relation=(relations.get(other) or {}).get('relation_label') or 'neutralne'
+        accept,share,note=loan_decision(amount,reserve,relation,t.get('fiscal_conservatism',50),t.get('solidarity',50),at_war=other in wars)
+        if accept:reserve-=amount   # kolejne wnioski w tym przebiegu liczone od pomniejszonej rezerwy
+        options.append(Option(key=f'loan:{"accept" if accept else "reject"}:{loan["id"]}',domain='finance',action='LOAN_ACCEPT' if accept else 'LOAN_REJECT',
+                              label=f'{"Udzielenie" if accept else "Odmowa udzielenia"} pożyczki #{loan["id"]} ({amount/1e9:.2f} MLD) dla {loan.get("borrower")}',
+                              target=other,stance='friendly' if accept else 'neutral',base=5.0,notes=[note],
+                              payload={'loan_id':loan['id'],'group':f'loan:decide:{loan["id"]}','required':True,'share':share}))
+    return options
+
+
 def propose(ctx):
-    return transfer_options(ctx)+loan_options(ctx)
+    return transfer_options(ctx)+loan_options(ctx)+loan_decision_options(ctx)+imf_options(ctx)
 
 
 def execute(ctx,option):
@@ -197,8 +366,16 @@ def execute(ctx,option):
     if option.action=='LOAN_REQUEST':
         status,data=ctx.call('/game/pozyczki/zmien',json={'action':'request','lender_id':p['lender_id'],'amount':p['amount'],'request_id':request_id(ctx,option)})
         return result(status,data)
+    if option.action in ('LOAN_ACCEPT','LOAN_REJECT'):
+        status,data=ctx.call('/game/pozyczki/zmien',json={'action':'accept' if option.action=='LOAN_ACCEPT' else 'reject','loan_id':p['loan_id']})
+        return result(status,data)
     if option.action=='LOAN_REPAY':
         status,data=ctx.call('/game/pozyczki/zmien',json={'action':'repay','loan_id':p['loan_id'],'request_id':request_id(ctx,option)})
+        return result(status,data)
+    if option.action in ('IMF_REQUEST','IMF_REPAY'):
+        status,data=ctx.call('/game/mfw/zmien',json={'action':'request' if option.action=='IMF_REQUEST' else 'repay','amount':p['amount'],'request_id':request_id(ctx,option)})
+        if status<400 and option.action=='IMF_REQUEST' and isinstance(data,dict) and data.get('status')=='rejected':
+            return result(status,data,note='MFW odrzucił wniosek: '+(data.get('reason') or ''))
         return result(status,data)
     return {'status':400,'error':'Nieznana operacja finansowa.'}
 

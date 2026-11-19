@@ -83,6 +83,15 @@ def sector_balances(session,budget):
     from game.loan_models import LoanMovement
     receipts+=session.scalar(select(func.coalesce(func.sum(LoanMovement.amount),0)).where(LoanMovement.budget_id==budget.id,LoanMovement.panstwo_id==budget.panstwo_id,LoanMovement.amount>0)) or Decimal(0)
     spent['reserve']-=session.scalar(select(func.coalesce(func.sum(LoanMovement.amount),0)).where(LoanMovement.budget_id==budget.id,LoanMovement.panstwo_id==budget.panstwo_id,LoanMovement.amount<0)) or Decimal(0)
+    # 18 Nov 2026: pożyczki MFW — wypłata zasila rezerwę, dobrowolna spłata ją zmniejsza (pobranie przy zatwierdzeniu
+    # budżetu, etap 'collection', jest już ujęte w samym budżecie: imf_collection).
+    from game.imf import ready as imf_ready
+    if imf_ready(session):
+        from game.imf_models import ImfMovement
+        imf=lambda condition:session.scalar(select(func.coalesce(func.sum(ImfMovement.amount),0)).where(ImfMovement.budget_id==budget.id,ImfMovement.panstwo_id==budget.panstwo_id,
+                                                                                                       ImfMovement.stage.in_(('disbursement','repayment')),condition)) or Decimal(0)
+        receipts+=imf(ImfMovement.amount>0)
+        spent['reserve']-=imf(ImfMovement.amount<0)
     return {code:{'approved':approved.get(code,Decimal(0)),'adjustment':adjustments[code],
                   'allocated':approved.get(code,Decimal(0))+adjustments[code]+(receipts if code=='reserve' else 0),'spent':spent[code],
                   'remaining':max(Decimal(0),approved.get(code,Decimal(0))+adjustments[code]+(receipts if code=='reserve' else 0)-spent[code])} for code in CATEGORY_CODES}

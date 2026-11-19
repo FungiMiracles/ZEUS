@@ -19,6 +19,7 @@ from game.trade_goods import AMMUNITION,AMMUNITION_LABEL,change_goods
 from game.trade_diplomacy import allied,ammunition_allowed
 
 SHIP_SPEED=100
+LAND_SPEED=150   # 18 Nov 2026: transport lądowy między stolicami państw sąsiadujących (km/h Entendy)
 from game.industry_catalog import GOODS
 CODES={code for code,_ in RESOURCES}|{AMMUNITION}|set(GOODS)
 
@@ -52,7 +53,46 @@ def set_port_access(user_id,data):
         policy.block_foreign=data['block_foreign'];policy.blocked_countries=blocked
 
 
-def choose_port(session,country_id,port_id):
+def country_graph(session):
+    """Sąsiedztwo państw (suwerennych właścicieli) po granicach regionów; jak road_projects.neighboring_countries
+    — granice liczone od terytorium metropolitalnego państwa."""
+    from models import Region
+    from game.military_geography import region_adjacency
+    rows=list(session.execute(select(Region.region_id,Region.panstwo_id,Region.terytorium_zamorskie)))
+    roots={};root=lambda owner:roots.setdefault(owner,controller_id(session,owner) if owner is not None else None)
+    owners={id:root(owner) for id,owner,_ in rows}
+    graph={}
+    adjacency=region_adjacency()
+    for id,owner,overseas in rows:
+        if overseas or owners[id] is None:continue
+        for neighbor in adjacency.get(id,()):
+            other=owners.get(neighbor)
+            if other is not None and other!=owners[id]:graph.setdefault(owners[id],set()).add(other)
+    return graph
+
+
+def departure_countries(session,country_id,all_ports=None):
+    """18 Nov 2026: państwa, z których portów `country_id` może wysłać ładunek. Państwo z własnym portem — tylko własne
+    porty (None oznacza ten przypadek). Bez portu — porty najbliższych sąsiadów: najpierw bezpośrednich, a gdy żaden
+    sąsiad nie ma dostępnego portu, sąsiadów sąsiadów (i dalej, kolejnymi pierścieniami). Gdy żadne państwo osiągalne lądem nie ma dostępnego portu
+    (np. wyspa bez portu), obowiązuje dotychczasowa reguła — dowolny dostępny port."""
+    all_ports=ports(session) if all_ports is None else all_ports
+    owners={}
+    for port in all_ports:
+        owner=controller_id(session,port.panstwo_id)
+        if owner is not None:owners.setdefault(owner,port.panstwo_id)
+    if country_id in owners:return None
+    usable={owner for owner,raw in owners.items() if port_allows(session,raw,country_id)}
+    graph=country_graph(session);seen={country_id};frontier={country_id}
+    while frontier:
+        frontier={other for country in frontier for other in graph.get(country,())}-seen
+        seen|=frontier
+        found=frontier&usable
+        if found:return found
+    return usable   # żadne osiągalne lądem państwo nie ma dostępnego portu (np. wyspa) — dowolny dostępny port
+
+
+def choose_port(session,country_id,port_id,departure=True):
     from game.military_service import natural
     port_id=natural(port_id,'Miasto portowe',1);all_ports=ports(session)
     own=any(controller_id(session,port.panstwo_id)==country_id for port in all_ports)
@@ -60,7 +100,34 @@ def choose_port(session,country_id,port_id):
     if port is None or controller_id(session,port.panstwo_id) is None:raise FinanceError('Wybierz działające miasto portowe na mapie.')
     if own and controller_id(session,port.panstwo_id)!=country_id:raise FinanceError('Państwo posiada własny port. Wybierz port własnego kraju.')
     if not port_allows(session,port.panstwo_id,country_id):raise FinanceError('Właściciel portu zablokował tranzyt dla tego państwa.')
+    # 18 Nov 2026: reguła najbliższego sąsiada obowiązuje przy wysyłce i (od zgłoszenia Elgia → Izziko) przy odbiorze.
+    if departure and not own and controller_id(session,port.panstwo_id) not in departure_countries(session,country_id,all_ports):
+        raise FinanceError('Państwo bez własnego portu może wysyłać i odbierać ładunki tylko przez port najbliższego sąsiada (lub sąsiada sąsiada, gdy żaden sąsiad nie ma portu).')
     return port
+
+
+def capital_city(session,country_id):
+    """Stolica państwa na mapie (miasto typu 1); bez niej — największe miasto państwa na mapie."""
+    rows=session.execute(select(Miasto.miasto_id,Miasto.miasto_typ_id,Miasto.miasto_populacja).where(Miasto.panstwo_id==country_id,Miasto.czy_na_mapie=='TAK')
+                         .order_by((Miasto.miasto_typ_id==1).desc(),Miasto.miasto_populacja.desc(),Miasto.miasto_id)).all()
+    return next((row.miasto_id for row in rows if city_point(row.miasto_id) is not None),None)
+
+
+def land_neighbors(session,a,b):
+    from game.road_projects import neighboring_countries
+    return b in neighboring_countries(session,a) or a in neighboring_countries(session,b)
+
+
+def land_route(session,seller_id,buyer_id,neighbors=None):
+    """18 Nov 2026: zakup od państwa z granicą lądową — transport lądowy między stolicami (None: transport morski)."""
+    seller,buyer=controller_id(session,seller_id),controller_id(session,buyer_id)
+    if seller is None or buyer is None or seller==buyer:return None
+    if not (buyer in neighbors if neighbors is not None else land_neighbors(session,seller,buyer)):return None
+    source,target=capital_city(session,seller),capital_city(session,buyer)
+    if source is None or target is None:return None
+    from game.military_flights import calibration
+    route=[list(city_point(source)),list(city_point(target))]
+    return {'source':source,'target':target,'route':route,'distance':path_length(route)*calibration(session).km_per_unit}
 
 
 def tariff(session,owner,country_id):
@@ -113,7 +180,7 @@ def create_offer(user_id,data):
             if (existing.cargo,existing.price,existing.excluded,existing.port_id)!=(cargo,price,excluded,data.get('port_id')):raise FinanceConflict('Identyfikator żądania został już wykorzystany.')
             return existing.id
         if len(list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(excluded)))))!=len(excluded):raise FinanceError('Nieprawidłowe wykluczone państwo.')
-        port=choose_port(session,country_id,data.get('port_id'))
+        port=choose_port(session,country_id,data.get('port_id'),departure=True)
         # Port infrastructure of the departure port's region limits the size of an export offer (10 Nov 2026).
         from game.infrastructure_effects import port_export_limit
         from models import Region as PortRegion
@@ -221,44 +288,58 @@ def buy_offer(user_id,data):
         country=_country_for_user(session,user_id);buyer_id=country.PANSTWO_ID
         existing=session.scalar(select(TradeShipment).where(TradeShipment.buyer_id==buyer_id,TradeShipment.request_id==key).with_for_update())
         if existing:
-            if (existing.offer_id,existing.arrival_port_id)!=(offer_id,data.get('port_id')):raise FinanceConflict('Identyfikator żądania został już wykorzystany.')
+            if existing.offer_id!=offer_id or existing.transport=='sea' and existing.arrival_port_id!=data.get('port_id'):raise FinanceConflict('Identyfikator żądania został już wykorzystany.')
             return existing.id
         preview=session.get(TradeOffer,offer_id)
         if preview is None:raise FinanceError('Oferta nie jest dostępna.')
         expires=offer_expires_at(preview)
         if preview.status=='open' and expires is not None and expires<=game_now():raise FinanceError('Oferta wygasła po 14 dniach Entendy i nie jest już dostępna.')
-        arrival=choose_port(session,buyer_id,data.get('port_id'))
-        involved=sorted({buyer_id,preview.panstwo_id,preview.port_country_id,controller_id(session,arrival.panstwo_id)})
+        land=land_route(session,preview.panstwo_id,buyer_id)
+        if land:
+            arrival=session.get(Miasto,land['target'])
+            involved=sorted({buyer_id,preview.panstwo_id})
+        else:
+            arrival=choose_port(session,buyer_id,data.get('port_id'),departure=True)
+            involved=sorted({buyer_id,preview.panstwo_id,preview.port_country_id,controller_id(session,arrival.panstwo_id)})
         list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(involved)).order_by(Panstwo.PANSTWO_ID).with_for_update()))
         existing=session.scalar(select(TradeShipment).where(TradeShipment.buyer_id==buyer_id,TradeShipment.request_id==key).with_for_update())
         if existing:
             if (existing.offer_id,existing.arrival_port_id)!=(offer_id,arrival.miasto_id):raise FinanceConflict('Identyfikator żądania został już wykorzystany.')
             return existing.id
+        if land and land_route(session,preview.panstwo_id,buyer_id) is None:raise FinanceConflict('Zmieniły się granice państw. Odśwież ofertę przed zakupem.')
         offer=session.scalar(select(TradeOffer).where(TradeOffer.id==offer_id).with_for_update().execution_options(populate_existing=True))
         if offer.status!='open' or buyer_id in offer.excluded or offer.panstwo_id==buyer_id:raise FinanceError('Oferta nie jest dostępna dla tego państwa.')
         if AMMUNITION in offer.cargo and not ammunition_allowed(session,offer.panstwo_id,buyer_id,lock=True):raise FinanceError('Relacje lub stan dyplomatyczny państw nie pozwalają na handel amunicją przeciwrakietową.')
-        departure=choose_port(session,offer.panstwo_id,offer.port_id)
-        if controller_id(session,departure.panstwo_id)!=offer.port_country_id:raise FinanceConflict('Zmienił się właściciel portu wysyłki. Sprzedający musi odnowić ofertę.')
-        for port,operator in ((departure,offer.panstwo_id),(arrival,buyer_id)):
-            if not port_allows(session,port.panstwo_id,operator,lock=True):raise FinanceError('Port zablokował tranzyt dla państwa korzystającego z portu. Wybierz inną trasę lub ofertę.')
-        current_rate=tariff(session,arrival.panstwo_id,buyer_id)
-        expected=percentage(data.get('arrival_rate'),'Opłata portu odbioru')
-        if current_rate!=expected:raise FinanceConflict('Opłata portu odbioru zmieniła się. Odśwież ofertę przed zakupem.')
+        if land:
+            # 18 Nov 2026: transport lądowy między stolicami — bez portów i opłat portowych.
+            departure=session.get(Miasto,land['source']);current_rate=Decimal(0)
+        else:
+            departure=choose_port(session,offer.panstwo_id,offer.port_id,departure=True)
+            if controller_id(session,departure.panstwo_id)!=offer.port_country_id:raise FinanceConflict('Zmienił się właściciel portu wysyłki. Sprzedający musi odnowić ofertę.')
+            for port,operator in ((departure,offer.panstwo_id),(arrival,buyer_id)):
+                if not port_allows(session,port.panstwo_id,operator,lock=True):raise FinanceError('Port zablokował tranzyt dla państwa korzystającego z portu. Wybierz inną trasę lub ofertę.')
+            current_rate=tariff(session,arrival.panstwo_id,buyer_id)
+            expected=percentage(data.get('arrival_rate'),'Opłata portu odbioru')
+            if current_rate!=expected:raise FinanceConflict('Opłata portu odbioru zmieniła się. Odśwież ofertę przed zakupem.')
         from game.research_service import settle_production
         for country in sorted((buyer_id,offer.panstwo_id)):settle_production(session,country,game_now())
-        departure_fee=fee(offer.price,offer.departure_rate);arrival_fee=fee(offer.price,current_rate)
+        departure_fee=Decimal(0) if land else fee(offer.price,offer.departure_rate);arrival_fee=fee(offer.price,current_rate)
         accounts={id:account_for(session,id) for id in involved}
         if accounts[buyer_id].reserve_balance<offer.price+arrival_fee:raise FinanceError('Za mało środków w rezerwie na zakup i opłatę portu odbioru.')
-        route=shortest_sea_route(city_point(departure.miasto_id),city_point(arrival.miasto_id));source,target=route[0],route[-1]
-        from game.military_flights import calibration
-        distance=path_length(route)*calibration(session).km_per_unit;now=game_now()
+        if land:
+            route,distance,speed=land['route'],land['distance'],LAND_SPEED
+        else:
+            route=shortest_sea_route(city_point(departure.miasto_id),city_point(arrival.miasto_id))
+            from game.military_flights import calibration
+            distance,speed=path_length(route)*calibration(session).km_per_unit,SHIP_SPEED
+        source,target=route[0],route[-1];now=game_now()
         shipment=TradeShipment(offer_id=offer.id,seller_id=offer.panstwo_id,buyer_id=buyer_id,cargo=offer.cargo,departure_port_id=departure.miasto_id,arrival_port_id=arrival.miasto_id,
-            route=route,origin_country_id=departure.panstwo_id,health=100,departure_fee=departure_fee,arrival_fee=arrival_fee,source_x=source[0],source_y=source[1],target_x=target[0],target_y=target[1],distance_km=distance,
-            starts_at=now,arrives_at=now+timedelta(seconds=max(1,distance/SHIP_SPEED*3600)),request_id=key)
+            route=route,origin_country_id=offer.panstwo_id if land else departure.panstwo_id,transport='land' if land else 'sea',health=100,departure_fee=departure_fee,arrival_fee=arrival_fee,source_x=source[0],source_y=source[1],target_x=target[0],target_y=target[1],distance_km=distance,
+            starts_at=now,arrives_at=now+timedelta(seconds=max(1,distance/speed*3600)),request_id=key)
         session.add(shipment);offer.status='sold';session.flush()
         changes={id:Decimal(0) for id in involved}
         changes[buyer_id]-=offer.price+arrival_fee;changes[offer.panstwo_id]+=offer.price-departure_fee
-        changes[controller_id(session,departure.panstwo_id)]+=departure_fee;changes[controller_id(session,arrival.panstwo_id)]+=arrival_fee
+        if not land:changes[controller_id(session,departure.panstwo_id)]+=departure_fee;changes[controller_id(session,arrival.panstwo_id)]+=arrival_fee
         for id,amount in changes.items():
             if not amount:continue
             account=accounts[id];account.reserve_balance=money(account.reserve_balance+amount,'Saldo rezerwy');account.updated_at=utc_now()
@@ -268,7 +349,7 @@ def buy_offer(user_id,data):
         goods=', '.join(f"{quantity} {names[code]}" for code,quantity in sorted(offer.cargo.items()))
         def roi(value):return format(value,',.2f').replace(',',' ').replace('.',',')+' ROI'
         buyer_name=session.scalar(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID==buyer_id))
-        message=f"{buyer_name} zakupił/a {goods} za {roi(offer.price)}. Cło portowe: {roi(departure_fee)}"
+        message=f"{buyer_name} zakupił/a {goods} za {roi(offer.price)}. Cło portowe: {roi(departure_fee)}"+(' (transport lądowy)' if land else '')
         session.add(GameNotification(user_id=offer.user_id,notification_type='SYSTEM',system_text=message,created_at=utc_now()))
         return shipment.id
 
