@@ -229,6 +229,40 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
       } });
     if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
+  // --- koleje (19 Nov 2026): tory wszystkich państw i pociągi 120 km/h; przełącznik „Koleje” zapamiętywany w przeglądarce ---
+  if (window.GameRailTrains && (config.rails || []).length) {
+    // 20 Nov 2026: koleje pod kropkami miast (worldCities 600) — wcześniej ten sam z-index i tory zasłaniały miasta.
+    for (const [name, z] of [['worldRails', '560'], ['worldTrains', '570'], ['worldRailCranes', '580']]) { if (!map.getPane(name)) { map.createPane(name); map.getPane(name).style.zIndex = z; } }
+    map.getPane('worldTrains').style.pointerEvents = 'none';
+    const railLayer = L.layerGroup(), trainLayer = L.layerGroup();
+    const dateText = v => v ? new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(v)) : '—';
+    for (const line of config.rails) {
+      window.GameRailTrains.track(line.path, { pane: 'worldRails', faded: !line.completed }).addTo(railLayer);
+      const lines = [`${line.countries.filter(Boolean).join(' · ')}`, `${Math.round(Number(line.distanceKm)).toLocaleString('pl-PL')} km`,
+                     line.completed ? 'Linia czynna' : `Budowa torów: ${line.progress}% · ukończenie ${dateText(line.readyAt)}`];
+      const tip = iconTip(config.landIcon, `Kolej: ${line.cityAName} – ${line.cityBName}`, lines);
+      L.polyline(line.path.map(p => [p[1], p[0]]), { pane: 'worldRails', color: '#000', weight: 12, opacity: 0 }).bindTooltip(tip, { sticky: true, className: 'world-tooltip' }).addTo(railLayer);
+      if (!line.completed && config.craneIcon) {
+        const mid = line.path[Math.floor(line.path.length / 2)], box = make('div', null, 'rail-crane'), img = make('img'); img.src = config.craneIcon; img.alt = ''; box.append(img);
+        L.marker([mid[1], mid[0]], { pane: 'worldRailCranes', icon: L.divIcon({ html: box, className: 'rail-crane-marker', iconSize: [20, 20], iconAnchor: [10, 10] }) })
+          .bindTooltip(iconTip(config.craneIcon, `Budowa kolei: ${line.cityAName} – ${line.cityBName}`, [`Postęp: ${line.progress}%`, `Ukończenie: ${dateText(line.readyAt)}`]), { direction: 'top', className: 'world-tooltip' }).addTo(railLayer);
+      }
+    }
+    window.GameRailTrains.trains(map, config.rails, { pane: 'worldTrains', layer: trainLayer, gameNow: config.gameNow, timeMultiplier: config.timeMultiplier, speed: config.trainSpeed });
+    // 20 Nov 2026: osobny filtr „Pociągi” — pociągi widoczne tylko przy włączonych kolejach i włączonym filtrze.
+    const railsToggle = document.getElementById('world-rails-toggle'), trainsToggle = document.getElementById('world-trains-toggle');
+    let showRails = true, showTrains = true;
+    try { showRails = localStorage.getItem('world-rails') !== '0'; showTrains = localStorage.getItem('world-trains') !== '0'; } catch {}
+    const apply = () => {
+      if (showRails) railLayer.addTo(map); else railLayer.remove();
+      if (showRails && showTrains) trainLayer.addTo(map); else trainLayer.remove();
+      if (trainsToggle) { trainsToggle.disabled = !showRails; trainsToggle.closest('label')?.classList.toggle('is-disabled', !showRails); }
+      try { localStorage.setItem('world-rails', showRails ? '1' : '0'); localStorage.setItem('world-trains', showTrains ? '1' : '0'); } catch {}
+    };
+    if (railsToggle) { railsToggle.checked = showRails; railsToggle.addEventListener('change', () => { showRails = railsToggle.checked; apply(); }); }
+    if (trainsToggle) { trainsToggle.checked = showTrains; trainsToggle.addEventListener('change', () => { showTrains = trainsToggle.checked; apply(); }); }
+    apply();
+  } else for (const id of ['world-rails-toggle', 'world-trains-toggle']) document.getElementById(id)?.closest('label')?.setAttribute('hidden', '');
   // --- płynące statki towarowe ---
   map.createPane('worldShips'); map.getPane('worldShips').style.zIndex = '640';
   const anchor = Date.parse(config.gameNow), realAnchor = performance.now(), gameTime = () => anchor + (performance.now() - realAnchor) * (config.timeMultiplier || 1);

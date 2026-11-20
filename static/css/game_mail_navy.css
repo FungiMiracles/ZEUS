@@ -47,3 +47,22 @@ html body.game-app.game-navy dialog#game-mail-dialog #game-mail-more{width:100%}
   html body.game-app.game-navy dialog#game-mail-dialog .game-mail-compose-actions{position:sticky;bottom:0;margin:10px -12px 0;padding:10px 12px;background:#fff;border-top:1px solid var(--mail-line)}
   html body.game-app.game-navy dialog#game-mail-dialog .game-mail-compose-actions button{flex:1 1 0}
 }
+/* 19 Nov 2026: telefon — okno na cały ekran (reguła .game-app .game-mail-dialog z game_theme.css zostawiała 24 px odstępu)
+   i układ lista ↔ wiadomość: najpierw pełnoekranowa lista, po wybraniu wiadomości pełnoekranowa treść z przyciskiem powrotu. */
+html body.game-app dialog#game-mail-dialog .game-mail-back{display:none}
+@media(max-width:650px){
+  html body.game-app dialog#game-mail-dialog{position:fixed;inset:0;width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;padding:0!important;overflow:hidden}
+  html body.game-app dialog#game-mail-dialog[open]{display:flex;flex-direction:column}
+  html body.game-app dialog#game-mail-dialog>:is(.game-mail-heading,.game-mail-toolbar,#game-mail-status){flex:0 0 auto}
+  html body.game-app dialog#game-mail-dialog .game-mail-columns{display:flex!important;flex-direction:column;flex:1 1 auto;min-height:0;padding:10px 12px 0;gap:0;overflow:hidden}
+  html body.game-app dialog#game-mail-dialog .game-mail-inbox{flex:1 1 auto;min-height:0;max-height:none!important;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 12px}
+  html body.game-app dialog#game-mail-dialog .game-mail-detail{display:none;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-bottom:12px}
+  html body.game-app dialog#game-mail-dialog:is(.game-mail-reading,.game-mail-composing) .game-mail-inbox{display:none}
+  html body.game-app dialog#game-mail-dialog:is(.game-mail-reading,.game-mail-composing) .game-mail-detail{display:block}
+  html body.game-app dialog#game-mail-dialog.game-mail-reading .game-mail-toolbar{display:none}
+  html body.game-app dialog#game-mail-dialog.game-mail-reading:not(.game-mail-composing) .game-mail-back{display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin:0 0 12px}
+  html body.game-app dialog#game-mail-dialog .game-mail-detail #game-mail-view>div:last-child,html body.game-app dialog#game-mail-dialog .game-mail-detail #game-mail-view>p:last-child{margin-bottom:0}
+  html body.game-app dialog#game-mail-dialog #game-mail-view button{display:block;width:100%;min-width:0;max-width:100%;margin:8px 0 0;white-space:normal}
+  html body.game-app dialog#game-mail-dialog .game-mail-detail h3{font-size:17px;overflow-wrap:anywhere}
+  html body.game-app dialog#game-mail-dialog .game-mail-detail p{overflow-wrap:anywhere}
+}

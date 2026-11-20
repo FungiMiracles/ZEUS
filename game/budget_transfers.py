@@ -74,6 +74,11 @@ def sector_balances(session,budget):
     from game.crime_funding import CrimeFunding   # 16 Nov 2026: środki na walkę z przestępczością
     spent['security_services']+=session.scalar(select(func.coalesce(func.sum(CrimeFunding.paid),0)).where(CrimeFunding.budget_id==budget.id)) or Decimal(0)
     spent['infrastructure']+=session.scalar(select(func.coalesce(func.sum(MiningExpense.amount),0)).where(MiningExpense.budget_id==budget.id)) or Decimal(0)
+    # 19 Nov 2026: budowa linii kolejowych (game.rail) — także w saldach sektorów (ekran budżetu, PAGA2)
+    from sqlalchemy import inspect as _inspect
+    from game.rail_models import RailExpense
+    if _inspect(session.connection()).has_table(RailExpense.__tablename__):
+        spent['infrastructure']+=session.scalar(select(func.coalesce(func.sum(RailExpense.amount),0)).where(RailExpense.budget_id==budget.id)) or Decimal(0)
     from game.industry_models import IndustryMovement
     # Industry operations are charged to their sector (filters: environment, since 10 Nov 2026).
     for sector,amount in session.execute(select(IndustryMovement.sector,func.sum(IndustryMovement.amount)).where(IndustryMovement.budget_id==budget.id).group_by(IndustryMovement.sector)):
@@ -193,6 +198,11 @@ def infrastructure_balance(session,budget):
     spent=sum((session.scalar(select(func.coalesce(func.sum(column),0)).where(model.budget_id==budget.id)) or Decimal(0) for model,column in [(InfrastructureProject,InfrastructureProject.budget_spent),(MiningExpense,MiningExpense.amount),(Road,Road.cost),(RoadInvestment,RoadInvestment.amount),(AmmunitionFactory,AmmunitionFactory.cost)]),Decimal(0))
     from game.industry_models import IndustryMovement
     spent+=session.scalar(select(func.coalesce(func.sum(IndustryMovement.amount),0)).where(IndustryMovement.budget_id==budget.id,IndustryMovement.sector=='infrastructure')) or Decimal(0)
+    # 19 Nov 2026: budowa linii kolejowych (game.rail) — przed migracją tabeli brak wydatków.
+    from sqlalchemy import inspect as _inspect
+    from game.rail_models import RailExpense
+    if _inspect(session.connection()).has_table(RailExpense.__tablename__):
+        spent+=session.scalar(select(func.coalesce(func.sum(RailExpense.amount),0)).where(RailExpense.budget_id==budget.id)) or Decimal(0)
     return total,max(Decimal(0),total-spent)
 
 

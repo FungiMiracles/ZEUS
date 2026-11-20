@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_tutorial.css', v='20261115-tutorial-3') }}">
 {% block late_css %}{% endblock %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_mobile.css', v='20261113-mobile-2') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_mail_navy.css', v='20261113-mail-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_mail_navy.css', v='20261119-mail-2') }}">
 </head>
 {% set _period = game_period() if game_period is defined else {'nom':'okres','gen':'okresu','loc':'okresie','current':'bieżący okres','months':6,'share':50,'per_year':'przy budżecie każdego okresu'} %}<body class="game-app game-navy game-civic war-room defense-room {% block body_class %}{% endblock %}" data-period-nom="{{ _period.nom }}" data-period-gen="{{ _period.gen }}" data-period-months="{{ _period.months }}">
 {# Backend przekazuje game_user, game_country, game_events i adresy URL. #}
@@ -379,6 +379,7 @@
             <div id="game-mail-list"></div><button type="button" id="game-mail-more" hidden>Pokaż starsze</button>
         </section>
         <section class="game-mail-detail" aria-label="Treść wiadomości">
+            <button type="button" id="game-mail-back" class="game-mail-back">← Wróć do listy</button>
             <div id="game-mail-view"><p>Wybierz wiadomość z listy albo napisz nową.</p></div>
             <form id="game-mail-compose" hidden>
                 <h3 id="game-mail-compose-title">Nowa wiadomość</h3>
@@ -443,7 +444,7 @@
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>
 {# 13 Nov 2026: strefy skażenia atomowego na wszystkich mapach gry (L.Map.addInitHook) #}
 <script src="{{ url_for('static', filename='js/game_nuclear_zones.js', v='20261113-nuclear-2') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_communication.js', v='20261112-mail-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_communication.js', v='20261119-mail-2') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_map_interactions.js',v='20261025-1') }}"></script>
 {% block extra_js %}{% endblock %}
 </body>

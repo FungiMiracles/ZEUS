@@ -1,7 +1,7 @@
 (()=>{'use strict';
 // Tabs of the "Infrastruktura i energetyka" page. Previously handled inside road_builder.js; road building was removed
 // from the game (10 Nov 2026), so the tabs live here. Same behaviour: remembered tab, ?tab=, arrow/Home/End keys.
-const tabs=['regions','factories','mines','power'];
+const tabs=['regions','factories','mines','power','communication'];   // 19 Nov 2026: „Komunikacja” (kolej) po opracowaniu technologii
 const $=id=>document.getElementById(id);
 for(const tab of tabs){
   const button=$('infrastructure-tab-'+tab);if(!button)continue;

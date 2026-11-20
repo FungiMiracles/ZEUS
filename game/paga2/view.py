@@ -19,6 +19,7 @@ SOURCES={
     'intelligence':('/game/wywiad-wojskowy/stan','GET',None),
     'loans':('/game/pozyczki/stan','GET',None),
     'imf':('/game/mfw/stan','GET',None),   # 18 Nov 2026: Międzynarodowy Fundusz Walutowy
+    'rail':('/game/kolej/stan','GET',None),   # 19 Nov 2026: kolej (zakładka „Komunikacja”)
     'diplomacy':('/game/dyplomacja','GET',('diplomacy_map','diplomacy_proposals')),
     'environment':('/game/srodowisko','GET',('metrics','environment_map')),
     'demography':('/game/demografia','GET',('history','metrics','age_structure','demographic_map','game_country')),

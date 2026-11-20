@@ -87,6 +87,8 @@ def technology_layout():
     # Environmental protection branch (10 Nov 2026), straight below the research method.
     place('environment_tech',90,95)
     place('air_filters',70,110,'environment_tech');place('waste_filters',110,110,'environment_tech')
+    # Transport (19 Nov 2026): węzły komunikacyjne w lewo od metody badawczej, kolej dalej w tej samej linii.
+    place('national_hubs',180,95);place('rail_transport',180,80,'national_hubs')
     edges=[]
     for key,rule in RESEARCH_TECHNOLOGIES.items():
         if not rule['parent']:continue

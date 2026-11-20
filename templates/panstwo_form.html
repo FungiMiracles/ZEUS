@@ -737,6 +737,71 @@
                 {% endif %}
             </div>
 
+            {% if kolej %}
+            <!-- ===== SIEĆ KOLEJOWA (20 Nov 2026: linie z gry, game.rail.wiki_network) ===== -->
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+            <style>
+            .wiki-rail-map{width:100%;max-width:700px;height:420px;height:clamp(320px,60vh,520px);min-height:320px;margin:12px auto 10px;border:1px solid #2f4fa3;border-radius:10px;background:#dfe9f5;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+            .wiki-rail-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:0 0 14px;color:#33415c;font-size:13px}
+            .wiki-rail-legend span{display:inline-flex;align-items:center;gap:6px}
+            .wiki-rail-legend i{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #22301f;background:#fff}
+            .wiki-rail-legend i.net{border-color:#1f8a3b;border-width:3px}
+            .wiki-rail-legend i.track{width:26px;height:0;border:0;border-top:2px solid #26313f;border-radius:0}
+            .wiki-rail-legend i.build{width:26px;height:0;border:0;border-top:2px dashed #7a8597;border-radius:0}
+            .wiki-rail-legend i.train{width:16px;height:8px;border-radius:2px;border:1.5px solid #fff;background:#b3261e;box-shadow:0 0 2px #0009}
+            .wiki-rail-lines summary{cursor:pointer;color:#2f4fa3;font-weight:600}
+            .wiki-rail-lines table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+            .wiki-rail-lines th,.wiki-rail-lines td{padding:5px 8px;border-bottom:1px solid #dde4f0;text-align:left;vertical-align:top}
+            .wiki-rail-lines .num{text-align:right;white-space:nowrap}
+            .wiki-rail-scroll{overflow-x:auto}
+            .wiki-rail-crane{box-sizing:border-box;width:20px;height:20px;padding:2px;border:1.5px solid #1E3A5F;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0006}
+            .wiki-rail-crane img{display:block;width:100%;height:100%;object-fit:contain}
+            .wiki-rail-crane-marker{background:transparent;border:0}
+            /* globalne svg{max-width:100%;height:auto} (base_layout) — wyjątek dla własnych warstw Leafleta, jak w mapy_swiata */
+            #wiki-rail-map .leaflet-pane svg{max-width:none!important;max-height:none!important}
+            </style>
+            {% set ks = kolej.summary %}
+            <h3 style="margin-top:30px;">Sieć kolejowa</h3>
+            <hr>
+            <div class="panstwo-grid panstwo-grid-3x2">
+                <div class="panstwo-card"><div class="panstwo-card-label">Linie ukończone</div>
+                    <div class="panstwo-card-value">{{ ks.completed }} · {{ "{:,}".format(ks.completedKm).replace(",", " ") }} km</div></div>
+                <div class="panstwo-card"><div class="panstwo-card-label">Linie w budowie</div>
+                    <div class="panstwo-card-value">{{ ks.building }} · {{ "{:,}".format(ks.buildingKm).replace(",", " ") }} km</div></div>
+                <div class="panstwo-card"><div class="panstwo-card-label">Linie międzynarodowe</div>
+                    <div class="panstwo-card-value">{{ ks.international }}</div></div>
+                <div class="panstwo-card"><div class="panstwo-card-label">Miasta w spójnej sieci</div>
+                    <div class="panstwo-card-value">{{ ks.networkCities }}</div></div>
+                <div class="panstwo-card"><div class="panstwo-card-label">Ludność w spójnej sieci</div>
+                    <div class="panstwo-card-value">{{ "{:,}".format(ks.networkPopulation).replace(",", " ") }}</div></div>
+                <div class="panstwo-card"><div class="panstwo-card-label">Infrastruktura kolejowa</div>
+                    <div class="panstwo-card-value">{{ ks.railInfrastructure }} / 100</div></div>
+            </div>
+            <div id="wiki-rail-map" class="wiki-rail-map" role="img" aria-label="Mapa sieci kolejowej państwa {{ p.panstwo_nazwa }}"></div>
+            <div class="wiki-rail-legend">
+                <span><i class="track"></i> tory ukończone</span><span><i class="build"></i> w budowie</span>
+                <span><i class="net"></i> miasto w spójnej sieci</span><span><i></i> miasto poza siecią</span><span><i class="train"></i> pociąg</span>
+            </div>
+            <details class="wiki-rail-lines">
+                <summary>Wykaz linii ({{ ks.lines }})</summary>
+                <div class="wiki-rail-scroll"><table>
+                    <thead><tr><th>Trasa</th><th class="num">Długość</th><th>Stan</th><th>Państwa</th></tr></thead>
+                    <tbody>
+                    {% for l in kolej.lines|sort(attribute='completed', reverse=True) %}
+                    <tr><td>{{ l.cityAName }} – {{ l.cityBName }}</td>
+                        <td class="num">{{ "{:,}".format(l.distanceKm|float|round|int).replace(",", " ") }} km</td>
+                        <td>{% if l.completed %}ukończona{% else %}budowa {{ l.progress }}%{% endif %}</td>
+                        <td>{{ l.initiator }}{% if l.partner %} + {{ l.partner }}{% endif %}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table></div>
+            </details>
+            <script id="wiki-rail-data" type="application/json">{{ {'rail': kolej, 'countriesUrl': url_for('region_sovereignty.country_boundaries'), 'craneIcon': url_for('static', filename='icons/PRACE BUDOWLANE.svg')}|tojson }}</script>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script src="{{ url_for('static', filename='js/game_rail_trains.js', v='20261119-trains-2') }}"></script>
+            <script src="{{ url_for('static', filename='js/wiki_rail.js', v='20261120-2') }}"></script>
+            {% endif %}
+
             <!-- ===== INFORMACJE O PAŃSTWIE ===== -->
             <h3 style="margin-top:30px;">Informacje o państwie</h3>
             <hr>

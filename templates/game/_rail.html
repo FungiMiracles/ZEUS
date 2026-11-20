@@ -1,0 +1,26 @@
+{# 19 Nov 2026: zakładka „Komunikacja” — linie kolejowe między miastami (game/rail.py, static/js/game_rail.js). #}
+<section class="game-panel rail-panel" aria-labelledby="rail-title">
+  <div class="game-panel-heading rail-heading"><h2 id="rail-title"><img src="{{ url_for('static',filename='icons/KOLEJ.svg') }}" width="26" height="26" alt=""> Komunikacja — kolej</h2></div>
+  <div class="game-panel-body">
+    <dl class="rail-summary">
+      <div><dt>Ludność w spójnej sieci kolejowej</dt><dd id="rail-connected">—</dd></div>
+      <div><dt>Średnia infrastruktura kolejowa</dt><dd id="rail-infrastructure">—</dd></div>
+      <div><dt>Dochody z kolei w następnym cyklu</dt><dd id="rail-bonus">—</dd></div>
+      <div><dt>Środki infrastruktury</dt><dd id="rail-funds">—</dd></div>
+      <div><dt>Koszt i czas budowy</dt><dd>6 mln ROI / km · 1 dzień Entendy na 50 km</dd></div>
+    </dl>
+    <p class="rail-hint">Kliknij na mapie miasto początkowe (własne), a potem miasto docelowe — własne albo bezpośredniego sąsiada. Linię do sąsiada współfinansuje on proporcjonalnie do długości trasy po swojej stronie granicy; budowa rusza po jego akceptacji. Dochody z kolei: PKB per capita × 0,01 × ludność własnych miast w jednej spójnej sieci ukończonych linii (każde miasto liczone raz; przy kilku oddzielnych sieciach liczy się tylko największa — odcinki A–B i C–D nie sumują się, dopóki nie zostaną połączone) × średnia infrastruktura kolejowa / 100, w każdym cyklu budżetowym. Pociągi kursują po ukończonych liniach z prędkością 120 km/h.</p>
+    <p id="rail-no-tech" class="rail-error" hidden>Budowa linii kolejowych wymaga technologii „Transport kolejowy”. Możesz rozpatrywać wnioski sąsiadów o współfinansowanie.</p>
+    <div class="rail-selection" id="rail-selection" aria-live="polite">
+      <p id="rail-selected">Nie wybrano miast.</p>
+      <div id="rail-quote" hidden></div>
+      <p id="rail-error" class="rail-error" role="alert"></p>
+      <div class="rail-actions"><button type="button" id="rail-build" hidden>Zbuduj linię</button><button type="button" id="rail-clear" hidden>Wyczyść wybór</button></div>
+    </div>
+    <div id="rail-map" class="rail-map" aria-label="Mapa połączeń kolejowych"></div>
+    <div class="rail-lists">
+      <section aria-labelledby="rail-requests-title"><h3 id="rail-requests-title">Wnioski o współfinansowanie</h3><div id="rail-requests"><p>Brak wniosków.</p></div></section>
+      <section aria-labelledby="rail-lines-title"><h3 id="rail-lines-title">Linie kolejowe</h3><div id="rail-lines"><p>Brak linii kolejowych.</p></div></section>
+    </div>
+  </div>
+</section>

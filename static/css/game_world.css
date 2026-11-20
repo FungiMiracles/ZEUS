@@ -45,6 +45,8 @@ html body.game-app.game-navy :is(#world-map){background:radial-gradient(ellipse 
 html body.game-app.game-navy.game-civic .world-layer-toggle,html body.game-app.game-navy.game-civic .world-layer-toggle span{color:#fff;background:transparent}
 html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked){background:#fff;border-color:#fff}
 html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked) span{color:#1E3A5F}
+/* 20 Nov 2026: filtr „Pociągi” nieaktywny przy wyłączonych kolejach */
+.world-layer-toggle.is-disabled{opacity:.45;cursor:not-allowed}.world-layer-toggle.is-disabled input{cursor:not-allowed}
 .legend-waters i{display:inline-block;width:14px;height:10px;border-radius:2px}
 .legend-waters-own{background:#ffcf6b80;border:1px solid #ffcf6b}
 .legend-waters-foreign{margin-left:10px;background:#8fd3ff55;border:1px solid #9fd8ff}
@@ -66,3 +68,7 @@ html body.game-app.game-navy.game-civic .world-layer-toggle:has(input:checked) s
 .world-imf-badge:hover,.world-imf-badge:focus-visible{opacity:1;background:#fff}
 .world-imf-badge img{width:20px;height:20px;object-fit:contain;display:block}
 .world-imf-badge span{white-space:nowrap;font:700 10.5px/1 system-ui,sans-serif;color:#1E3A5F;letter-spacing:.04em}
+/* 19 Nov 2026: koleje na mapie świata — żuraw przy budowanej linii (pociągi: static/js/game_rail_trains.js) */
+.rail-crane-marker{background:transparent;border:0}
+.rail-crane{box-sizing:border-box;width:20px;height:20px;padding:2px;border:1.5px solid #1E3A5F;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0006}
+.rail-crane img{display:block;width:100%;height:100%;object-fit:contain}

@@ -181,6 +181,8 @@ class StateBudget(db.Model):
     budget_total = db.Column(db.Numeric(30, 2), nullable=False)
     # 18 Nov 2026: przymusowa spłata zaległego długu w MFW pobrana przed podziałem środków (game.imf).
     imf_collection = db.Column(db.Numeric(30, 2), nullable=False, default=0, server_default="0")
+    # 19 Nov 2026: dochody z kolei (game.rail) — doliczane do środków budżetu.
+    rail_income = db.Column(db.Numeric(30, 2), nullable=False, default=0, server_default="0")
     expenditure_total = db.Column(db.Numeric(30, 2), nullable=False)
     closing_reserve = db.Column(db.Numeric(30, 2), nullable=False)
 
@@ -270,12 +272,13 @@ class StateBudget(db.Model):
             AND expenditure_total >= 0
             AND closing_reserve >= 0
             AND imf_collection >= 0
+            AND rail_income >= 0
             """,
             name="ck_gsb_amounts",
         ),
         CheckConstraint(
             """
-            budget_total = opening_reserve + tax_total - imf_collection
+            budget_total = opening_reserve + tax_total + rail_income - imf_collection
             AND budget_total = expenditure_total + closing_reserve
             """,
             name="ck_gsb_balance",
@@ -626,7 +629,7 @@ class StateFinancialTransaction(db.Model):
         CheckConstraint(
             """
             (
-                operation_type IN ('TAX_PIT', 'TAX_CIT', 'TAX_GENERAL')
+                operation_type IN ('TAX_PIT', 'TAX_CIT', 'TAX_GENERAL', 'RAIL_INCOME')
                 AND direction = 'CREDIT'
                 AND category_code IS NULL
             )

@@ -304,6 +304,10 @@ function formatRatio(numerator, denominator, digits = 2) {
                 : decimalText(value);
         });
 
+        root.querySelectorAll("[data-rail-income-row]").forEach(row => {
+            row.hidden = !((decimalParts(state.rail_income || "0")?.value ?? 0n) > 0n);
+        });
+
         // 18 Nov 2026: pozycja spłaty zaległości w MFW widoczna tylko, gdy MFW pobiera dług z tego budżetu.
         root.querySelectorAll("[data-imf-collection-row]").forEach(row => {
             row.hidden = !((decimalParts(state.imf_collection || "0")?.value ?? 0n) > 0n);

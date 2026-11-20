@@ -22,6 +22,9 @@ tech('environment_tech','Technologie ochrony środowiska',30,'method','environme
 tech('air_filters','Filtr zanieczyszczeń',150,'environment_tech','environment','air_filter')
 tech('waste_filters','Filtr odpadów fabrycznych',120,'environment_tech','environment','waste_filter')
 # Rakieta z głowicą nuklearną (13 Nov 2026): 750 pkt; wymaga rakiet dalekiego zasięgu, wydobycia uranu i chipu cemium I.
+# Kolej (administrator, 19 Nov 2026): krajowe węzły komunikacyjne → transport kolejowy (zakładka „Komunikacja” w infrastrukturze).
+tech('national_hubs','Krajowe węzły komunikacyjne',50,'method','transport','infrastructure')
+tech('rail_transport','Transport kolejowy',200,'national_hubs','transport','rail')
 tech('nuclear_missiles','Rakieta z głowicą nuklearną',750,'long_missiles','military','nuclear_weapon',requires=('long_missiles','mine_uranium','chip_cemium_i'))
 # Descriptions displayed beneath research requirements and progress.
 TECHNOLOGY_DESCRIPTIONS={

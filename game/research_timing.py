@@ -16,6 +16,7 @@ DURATION_DAYS={
     'armored':14,'tanks':21,'short_missiles':7,'medium_missiles':14,'long_missiles':21,'nuclear_missiles':132,'interceptor_ammo':10,
     'drones':7,'fighters':60,'warship':124,'carrier':182,'submarine':166,
     'waste_filters':7,'air_filters':12,
+    'national_hubs':14,'rail_transport':21,   # kolej (19 Nov 2026)
     'radar':30,   # nie podano w wymaganiach — przyjęto 30 dni
 }
 

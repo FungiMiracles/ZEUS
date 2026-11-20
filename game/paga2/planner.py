@@ -30,9 +30,9 @@ PRIORITY_GOALS={
     'defensive_army':['factory:interceptor_ammo','tech:radar','factory:missiles'],
     'production':['factory:chips','mine:zelazo','mine:ropa_naftowa','factory:interceptor_ammo'],
     'research':['tech:it_industry','tech:chip_simple','tech:energy_industry','tech:environment_tech','tech:mining_industry'],
-    'infrastructure':['power:wind','power:solar','mine:kamien','mine:wegiel_kamienny'],
+    'infrastructure':['tech:rail_transport','power:wind','power:solar','mine:kamien','mine:wegiel_kamienny'],   # 19 Nov 2026: kolej
     'environment':['tech:air_filters','tech:waste_filters','power:solar','power:wind'],
-    'trade':['mine:zloto','mine:srebro','mine:kerbit','mine:natsyt','mine:ropa_naftowa'],
+    'trade':['mine:zloto','mine:srebro','mine:kerbit','mine:natsyt','mine:ropa_naftowa','tech:rail_transport'],
 }
 # Powinowactwo cech do rodzajów celów (skala -1..1).
 MILITARY_FACTORIES={'tanks','missiles','armored','drones','fighters','shipyard','interceptor_ammo'}

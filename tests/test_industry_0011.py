@@ -44,7 +44,7 @@ class IndustryTests(CommerceFixture):
     def refresh(self):db.session.expire_all()
 
     def test_catalog_exact_counts_and_iron_dependency(self):
-        self.assertEqual(len(TECHNOLOGIES),38,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026)')
+        self.assertEqual(len(TECHNOLOGIES),40,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026) + Krajowe węzły komunikacyjne, Transport kolejowy (19 Nov 2026)')
         self.assertNotIn('ammunition',TECHNOLOGIES)
         for factory in FACTORIES.values():
             for level in factory['levels']:self.assertNotIn('ammunition',level['technologies'])
@@ -292,7 +292,7 @@ class IndustryTests(CommerceFixture):
         from game.research import technology_layout
         response=self.client.get('/game/badania/stan');self.assertEqual(response.status_code,200)
         layout=technology_layout()
-        self.assertEqual(len(layout['positions']),38);self.assertEqual(len(layout['edges']),37)
+        self.assertEqual(len(layout['positions']),40);self.assertEqual(len(layout['edges']),39)   # 19 Nov 2026: + 2 technologie kolei
         before=db.session.get(ResearchAccount,1).points
         # 10 Nov 2026: the planned 'Filtry powietrza' node became the regular technology 'Filtr zanieczyszczeń'.
         self.assertNotIn('air_filters',PLANNED_TECHNOLOGIES)

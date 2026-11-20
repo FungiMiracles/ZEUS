@@ -1,7 +1,7 @@
 {% extends "game/game_base_layout.html" %}
 {% block body_class %}infrastructure-room{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_room.css', v='20261110-2') }}">{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261118-infra-4') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261120-rail-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
 {% block title %}Infrastruktura i energetyka — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -11,9 +11,10 @@
 {% block content %}
 <div class="industry-energy-panels"><section class="game-panel"><h2 class="game-panel-heading"><img src="{{ url_for('static',filename='icons/ELEKTRYCZNOŚĆ.svg') }}" width="28" height="28" alt=""> Bilans energii</h2><div id="industry-energy" class="game-panel-body" aria-live="polite">Ładowanie bilansu energii…</div></section><section class="game-panel"><h2 class="game-panel-heading">Stabilność produkcji elektryczności</h2><div id="industry-stability" class="game-panel-body" aria-live="polite"></div></section></div>
 
-<div class="civic-tabs" role="tablist" aria-label="Rodzaj infrastruktury"><button id="infrastructure-tab-regions" role="tab" aria-selected="true" aria-controls="infrastructure-regions-panel" type="button">Infrastruktura regionów</button><button id="infrastructure-tab-factories" role="tab" aria-selected="false" aria-controls="infrastructure-factories-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/FABRYKA.svg') }}" width="23" height="23" alt=""> Fabryki</button><button id="infrastructure-tab-mines" role="tab" aria-selected="false" aria-controls="infrastructure-mines-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/KOPALNIA.svg') }}" width="23" height="23" alt=""> Kopalnie</button><button id="infrastructure-tab-power" role="tab" aria-selected="false" aria-controls="infrastructure-power-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/ELEKTROWNIA WĘGLOWA.svg') }}" width="23" height="23" alt=""> Elektrownie</button></div>
+<div class="civic-tabs" role="tablist" aria-label="Rodzaj infrastruktury"><button id="infrastructure-tab-regions" role="tab" aria-selected="true" aria-controls="infrastructure-regions-panel" type="button">Infrastruktura regionów</button><button id="infrastructure-tab-factories" role="tab" aria-selected="false" aria-controls="infrastructure-factories-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/FABRYKA.svg') }}" width="23" height="23" alt=""> Fabryki</button><button id="infrastructure-tab-mines" role="tab" aria-selected="false" aria-controls="infrastructure-mines-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/KOPALNIA.svg') }}" width="23" height="23" alt=""> Kopalnie</button><button id="infrastructure-tab-power" role="tab" aria-selected="false" aria-controls="infrastructure-power-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/ELEKTROWNIA WĘGLOWA.svg') }}" width="23" height="23" alt=""> Elektrownie</button>{% if rail_config %}<button id="infrastructure-tab-communication" role="tab" aria-selected="false" aria-controls="infrastructure-communication-panel" tabindex="-1" type="button"><img src="{{ url_for('static',filename='icons/KOLEJ.svg') }}" width="23" height="23" alt=""> Komunikacja</button>{% endif %}</div>
 <div id="infrastructure-factories-panel" role="tabpanel" aria-labelledby="infrastructure-tab-factories" hidden>{% include 'game/_factories.html' %}</div>
 <div id="infrastructure-mines-panel" role="tabpanel" aria-labelledby="infrastructure-tab-mines" hidden></div><div id="infrastructure-power-panel" role="tabpanel" aria-labelledby="infrastructure-tab-power" hidden></div>
+{% if rail_config %}<div id="infrastructure-communication-panel" role="tabpanel" aria-labelledby="infrastructure-tab-communication" hidden>{% include 'game/_rail.html' %}</div>{% endif %}
 <div id="infrastructure-regions-panel" role="tabpanel" aria-labelledby="infrastructure-tab-regions">
 <section class="war-readiness" aria-label="Przegląd infrastruktury"><div><span>Regiony kraju</span><strong>{{ infrastructure_map.regions|length }}</strong></div><div><span>Rezerwa budżetowa</span><strong id="infrastructure-reserve-summary">—</strong></div><div><span>Prace w toku</span><strong id="infrastructure-project-count">—</strong></div></section>
 <div class="infrastructure-layout"><section class="game-panel" aria-label="Mapa infrastruktury regionów">
@@ -60,7 +61,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui5') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_region_tooltip.js',v='20261117-tooltip-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_industry.js',v='20261118-tooltip-2') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261110-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_industry.js',v='20261119-icons-1') }}" defer></script>
+{% if rail_config %}<script id="rail-config" type="application/json">{{ rail_config|tojson }}</script><script src="{{ url_for('static',filename='js/game_rail_trains.js',v='20261119-trains-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_rail.js',v='20261120-rail-6') }}" defer></script>{% endif %}
+<script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261119-rail-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_infrastructure.js', v='20261117-tooltip-1') }}" defer></script>
 {% endblock %}

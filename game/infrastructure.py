@@ -1,7 +1,7 @@
 """Wskaźniki infrastruktury regionów państwa gracza."""
 
 from game.governance import controlled_ids, controller_id
-from flask import Blueprint, abort, redirect, render_template, session, url_for, request, jsonify
+from flask import Blueprint, abort, redirect, render_template, session, url_for, request, jsonify, current_app
 import hmac
 import secrets
 from game.infrastructure_models import InfrastructureProject
@@ -100,6 +100,7 @@ def page():
         "game/infrastructure.html", game_user=user, game_country=country_summary(country),
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
         game_active_page="infrastructure", metrics=metrics,
+        rail_config=_rail_config(country.PANSTWO_ID),
         infrastructure_map={
             "coastUrl":'/game/obrona-panstwa/wybrzeze/0',"kmPerUnit":calibration(db.session).km_per_unit,
             "funds": funds, "reserve": reserve, "csrf": session["game_csrf_token"], "startUrl": url_for("game_infrastructure.expand"),
@@ -115,6 +116,23 @@ def page():
     )
     db.session.commit()
     return response
+
+
+def _rail_config(country_id):
+    """19 Nov 2026: zakładka „Komunikacja” (kolej) — po opracowaniu technologii „Transport kolejowy” albo przy wniosku sąsiada."""
+    from game.rail import has_technology, pending_requests
+    try:
+        # bez technologii zakładka pojawia się tylko, gdy sąsiad prosi o współfinansowanie (decyzja należy do gracza)
+        if not has_technology(db.session, country_id) and not pending_requests(db.session, country_id):
+            return None
+    except Exception:
+        current_app.logger.exception('Kolej: sprawdzenie technologii')
+        return None
+    return {"stateUrl": url_for("game_rail.state_view"), "quoteUrl": url_for("game_rail.quote_view"), "changeUrl": url_for("game_rail.change_view"),
+            "csrf": session["game_csrf_token"], "countryId": country_id,
+            "regionsUrl": url_for("static", filename="maps/entenda_regiony.geojson"),
+            "countriesUrl": url_for('region_sovereignty.country_boundaries'),
+            "craneIcon": url_for("static", filename="icons/PRACE BUDOWLANE.svg"), "railIcon": url_for("static", filename="icons/KOLEJ.svg")}
 
 
 @infrastructure_bp.post('/rozbuduj')

@@ -78,3 +78,47 @@ html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-act
   html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button,
   html body.game-app.game-navy.game-civic.infrastructure-room .industry-object-actions>button:is([data-industry-action="remove"],[data-industry-action="upgrade"]){min-height:34px;font-size:11px;padding:4px 6px}
 }
+/* 19 Nov 2026: ikony obiektów na mapie infrastruktury jak na mapie panelu państwa (game_dashboard.css .panel-map-object):
+   biała plakietka 28 px, zaokrąglenie 7 px, granatowa obwódka i cień; produkt/surowiec w małym kółku w prawym dolnym rogu,
+   pasek życia pod plakietką. */
+html body.game-app #factory-map .industry-map-marker{background:transparent;border:0}
+html body.game-app #factory-map .industry-map-symbol{position:relative;display:block;width:28px;height:28px}
+html body.game-app #factory-map .industry-map-symbol .industry-object-symbol{display:block;position:relative;box-sizing:border-box;width:28px!important;height:28px!important;padding:3px;border:1.5px solid #1E3A5F;border-radius:7px;background:#fff;box-shadow:0 2px 5px #0006}
+html body.game-app #factory-map .industry-map-symbol .industry-object-symbol>img:first-child{display:block;width:100%!important;height:100%!important;padding:0;border:0!important;border-radius:0!important;background:transparent!important;object-fit:contain}
+html body.game-app #factory-map .industry-map-symbol .industry-object-symbol>.industry-product-badge{position:absolute;left:auto;top:auto;right:-6px;bottom:-4px;transform:none;box-sizing:border-box;width:14px!important;height:14px!important;padding:1.5px;border:1px solid #1E3A5F!important;border-radius:50%!important;background:#fff!important;object-fit:contain}
+html body.game-app #factory-map .industry-map-symbol .industry-object-symbol>:is(.industry-filter-badge,.industry-waste-filter-badge){width:13px!important;height:13px!important;border-radius:50%;border-color:#1E3A5F}
+html body.game-app #factory-map .industry-map-symbol>.map-health-bar{position:absolute;box-sizing:border-box;left:1px;top:calc(100% + 2px);bottom:auto;width:26px;height:5px;margin:0;padding:0;border:1px solid #fff;border-radius:3px;overflow:hidden}
+/* 19 Nov 2026: legenda regionów rozpoznanych przez wywiad */
+html body.game-app #factory-map .industry-intel-legend{display:grid;gap:4px;max-width:250px;padding:6px 9px;border:1px solid #1E3A5F;border-radius:6px;background:#fff;color:#1d2b40;font:600 11px/1.3 system-ui,sans-serif;box-shadow:0 2px 6px #0b1d3340}
+html body.game-app #factory-map .industry-intel-legend div{display:flex;align-items:center;gap:6px}
+html body.game-app #factory-map .industry-intel-legend i{flex:0 0 14px;width:14px;height:10px;border-radius:2px}
+html body.game-app #factory-map .industry-intel-legend i.is-intel{background:#EBD38F;border:1.5px dashed #9a6a12}
+html body.game-app #factory-map .industry-intel-legend i.is-permit{background:#65b96e;border:1px solid #667C63}
+html body.game-app #factory-map .industry-intel-legend small{color:#4a5a70;font-weight:500}
+/* 19 Nov 2026: zakładka „Komunikacja” — kolej */
+.rail-panel .rail-heading h2{display:flex;align-items:center;gap:8px}
+.rail-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px;margin:0 0 12px}
+.rail-summary>div{padding:10px 12px;border:1px solid #c9d6e6;border-left:4px solid #1E3A5F;border-radius:6px;background:#fff}
+.rail-summary dt{color:#4a5a70;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.rail-summary dd{margin:4px 0 0;color:#1E3A5F;font-weight:800;font-size:15px}
+.rail-hint{margin:0 0 12px;color:#4a5a70;font-size:13px;line-height:1.5}
+.rail-selection{margin:0 0 12px;padding:10px 12px;border:1px solid #c9d6e6;border-radius:6px;background:#f7f9fc}
+.rail-selection p{margin:0 0 6px}
+.rail-quote-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr));gap:6px;margin:6px 0}
+.rail-quote-list dt{color:#4a5a70;font-size:11px;font-weight:700;text-transform:uppercase}
+.rail-quote-list dd{margin:2px 0 0;color:#1E3A5F;font-weight:700}
+.rail-error{color:#b3261e;font-weight:600}
+.rail-error:empty{display:none}
+.rail-actions,.rail-row-actions{display:flex;flex-wrap:wrap;gap:8px}
+#rail-build,.rail-primary{background:#1E3A5F;color:#fff;border-color:#1E3A5F}
+/* 20 Nov 2026: awaryjne wysokości — przeglądarki mobilne bez „dvh” odrzucały deklarację i mapa miała 0 px wysokości */
+.rail-map{height:420px;height:clamp(380px,62vh,680px);height:clamp(380px,62dvh,680px);min-height:380px;border:1px solid #1E3A5F;border-radius:6px;background:radial-gradient(ellipse at 50% 40%,#1b3a5c,#0b1d33 75%)}
+.rail-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin-top:14px}
+.rail-lists h3{margin:0 0 8px;color:#1E3A5F;font-size:14px;text-transform:uppercase;letter-spacing:.05em}
+.rail-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-bottom:8px;padding:8px 10px;border:1px solid #c9d6e6;border-radius:6px;background:#fff;font-size:13px}
+.rail-row>strong{flex-basis:100%;color:#1E3A5F}
+.rail-row progress{width:120px;height:8px}
+.rail-done{color:#2c7a3e;font-weight:700}
+.rail-crane-marker{background:transparent;border:0}
+.rail-crane{box-sizing:border-box;width:22px;height:22px;padding:2px;border:1.5px solid #1E3A5F;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0006}
+.rail-crane img{display:block;width:100%;height:100%;object-fit:contain}

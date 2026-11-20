@@ -1,5 +1,6 @@
 """Water-only navigation: shortest grid search, visibility shortcuts and coastal tightening."""
 from functools import lru_cache
+import threading
 from heapq import heappop,heappush
 from math import hypot,ceil
 import numpy as np
@@ -45,12 +46,16 @@ class SeaRouter:
         collect(land)
         self.land=unary_union(polygons).buffer(.02)
         self.resolution=resolution;self.grids={};shapely.prepare(self.land)
+        # 20 Nov 2026: przygotowana geometria GEOS nie jest bezpieczna wątkowo — mapa świata (żądanie) i harmonogram lotów
+        # (detect_incursions) liczyły trasy równocześnie na wspólnym routerze, co kończyło się SIGSEGV workera gunicorna.
+        self.lock=threading.RLock()
 
     def clear(self,a,b):return not shapely.intersects(self.land,LineString([a,b]))
 
     def offshore(self,point):
         p=Point(point)
-        if self.land.covers(p):return list(nearest_points(self.land.buffer(.15).boundary,p)[0].coords[0])
+        with self.lock:
+            if self.land.covers(p):return list(nearest_points(self.land.buffer(.15).boundary,p)[0].coords[0])
         return list(point)
 
     def grid(self,step,points):
@@ -102,6 +107,12 @@ class SeaRouter:
         raise FinanceError('Brak bezpiecznej trasy morskiej między portami.')
 
     def route(self,source,target):
+        with self.lock:return self._route(source,target)
+
+    def covers(self,point):
+        with self.lock:return self.land.covers(Point(point))
+
+    def _route(self,source,target):
         start,end=self.offshore(source),self.offshore(target)
         if hypot(end[0]-start[0],end[1]-start[1])<1e-8:return [start,end]
         if self.clear(start,end):return [start,end]
@@ -146,11 +157,12 @@ def shortest_sea_route(source,target):
 @lru_cache(maxsize=4)
 def _navy_router(modified,km_per_unit):
     router=_world_router(modified)
-    return SeaRouter(router.land.buffer(2/km_per_unit),resolution=router.resolution)
+    with router.lock:land=router.land.buffer(2/km_per_unit)
+    return SeaRouter(land,resolution=router.resolution)
 
 @lru_cache(maxsize=512)
 def naval_sea_route(source,target,km_per_unit):
     router=_navy_router(MAP_PATH.stat().st_mtime_ns,km_per_unit)
-    if router.land.covers(Point(target)):
+    if router.covers(target):
         raise FinanceError('Cel rejsu musi znajdować się na wodzie co najmniej 2 km od wybrzeża.')
     return router.route(source,target)

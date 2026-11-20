@@ -216,6 +216,7 @@ def _approved_details(database_session, budget_id, country_id):
         "opening_reserve": budget.opening_reserve,
         "budget_total": budget.budget_total,
         "imf_collection": getattr(budget, "imf_collection", 0) or 0,
+        "rail_income": getattr(budget, "rail_income", 0) or 0,
         "expenditure_total": budget.expenditure_total,
         "closing_reserve": budget.closing_reserve,
         "shares": normalize((row.category_code,row.share_percent) for row in allocations),

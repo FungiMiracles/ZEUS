@@ -49,7 +49,7 @@ from sqlalchemy import inspect, cast, Float
 from datetime import datetime, timezone
 from sqlalchemy.orm import joinedload
 
-from flask import jsonify
+from flask import jsonify, current_app
 from models import (
     Stosunki,
     DictStosunkiStan,
@@ -374,8 +374,19 @@ def init_panstwa_routes(app):
 
         from services.region_secession import RegionSecession
         secession_media = db.session.query(RegionSecession.id).filter_by(new_country_id=panstwo_id).first()
+
+        # 20 Nov 2026: sieć kolejowa państwa (linie z gry) — mapa w sekcji „Sieć kolejowa”; bez tabel gry sekcji nie ma
+        kolej = None
+        try:
+            from game.rail import wiki_network
+            kolej = wiki_network(db.session, panstwo_id)
+        except Exception:
+            current_app.logger.exception("WIKI: sieć kolejowa państwa %s", panstwo_id)
+            db.session.rollback()
+
         return render_template(
             "panstwo_form.html",
+            kolej=kolej,
             secession_media=secession_media,
             secession_map_missing=bool(secession_media and not os.path.isfile(os.path.join(MAPY_DIR, p.panstwo_nazwa.replace(' ', '_') + '.jpg'))),
             p=p,

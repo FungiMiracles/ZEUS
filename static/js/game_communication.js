@@ -95,6 +95,7 @@
         form.hidden = true;
         view.hidden = false;
         dialog.classList.remove("game-mail-composing");
+        dialog.classList.add("game-mail-reading");   // telefon: pełnoekranowa treść zamiast listy (19 Nov 2026)
         view.replaceChildren();
         const heading = document.createElement("h3");
         heading.textContent = "Wiadomość od: " + message.sender_name;
@@ -142,7 +143,9 @@
         document.getElementById("game-mail-limit").textContent = `${count} / 3000`;
         content.setCustomValidity(count > 3000 ? "Maksymalnie 3000 znaków razem ze spacjami." : !content.value.trim() ? "Wiadomość nie może być pusta." : "");
     }
+    let composeFromMessage = false;
     function compose(source = null) {
+        composeFromMessage = dialog.classList.contains("game-mail-reading");
         ++detailRequest;
         view.hidden = true;
         form.hidden = false;
@@ -171,7 +174,13 @@
             recipient.append(option);
         });
     }
+    function showList() {
+        dialog.classList.remove("game-mail-reading");
+        list.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: false });
+    }
+    document.getElementById("game-mail-back").addEventListener("click", showList);
     toggle.addEventListener("click", async () => {
+        dialog.classList.remove("game-mail-reading", "game-mail-composing");
         dialog.showModal();
         status.textContent = "Ładowanie…";
         try { await loadAddresses(); await loadList(); status.textContent = ""; }
@@ -183,9 +192,10 @@
         form.hidden = true;
         view.hidden = false;
         dialog.classList.remove("game-mail-composing");
-        if (current) renderMessage(current);
+        if (current && composeFromMessage) renderMessage(current);   // telefon: powrót tam, skąd zaczęto pisać
+        else if (current && !window.matchMedia("(max-width: 650px)").matches) renderMessage(current);
     });
-    folder.addEventListener("change", () => { ++detailRequest; loadList(); });
+    folder.addEventListener("change", () => { ++detailRequest; dialog.classList.remove("game-mail-reading"); loadList(); });
     more.addEventListener("click", () => { if (nextPage) loadList(nextPage); });
     content.addEventListener("input", countContent);
     form.addEventListener("submit", async event => {
