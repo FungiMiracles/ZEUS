@@ -192,7 +192,7 @@ def _approved_details(database_session, budget_id, country_id):
         "can_transfer":(budget.game_year,budget.period)==period_key(game_now()),
         # Sector-to-sector transfers need public trust above the threshold; the reserve is not affected (10 Nov 2026).
         "public_trust":trust,"transfer_trust_threshold":TRANSFER_TRUST_THRESHOLD,
-        "sector_transfers_allowed":trust is None or trust>TRANSFER_TRUST_THRESHOLD,
+        "sector_transfers_allowed":True,   # 21 Nov 2026: próg zaufania zniesiony
         # 17 Nov 2026: w wojnie obronnej przesunięcia do sił zbrojnych nie wymagają progu zaufania.
         "defense_transfers_allowed":defensive_war(database_session,budget.panstwo_id) if (budget.game_year,budget.period)==period_key(game_now()) else False,
         "approved": True,

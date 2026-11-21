@@ -141,3 +141,8 @@ html body.game-app.game-navy.game-civic .city-cell.is-readonly:hover{border-colo
 .city-building-list img{grid-row:span 2;width:28px;height:28px;object-fit:contain}
 html body.game-app.game-navy.game-civic .city-building-list strong{color:#1E3A5F}
 .city-building-list span{color:#4d5f78}
+/* 21 Nov 2026 (3): status „Niedofinansowany” — obiekt wyszarzony z czerwonym znacznikiem */
+html body.game-app.game-navy.game-civic .city-cell.is-underfunded{background:#fbefed;border-color:#c0564a}
+.city-cell.is-underfunded .city-cell-icon{opacity:.45;filter:grayscale(1)}
+.city-cell-alert{position:absolute;right:3px;top:3px;display:flex;align-items:center;justify-content:center;width:16px;height:16px;background:#c0392b;color:#fff;border-radius:50%;font-size:11px;font-weight:800;line-height:1}
+.city-building-list li.is-underfunded{border-left-color:#c0392b;background:#fbefed}

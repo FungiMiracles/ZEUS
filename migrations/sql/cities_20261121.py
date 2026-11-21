@@ -7,6 +7,8 @@
 Środowisko wynika z katalogu skryptu: ZEUS_UAT → entenda_uat_db (.env.uat), ZEUS_PREPROD → entenda_preprod_db (.env.preprod).
 Zmiany: wyłącznie nowe tabele game_city_buildings, game_city_expenses, game_city_effects (game/city_models.py);
 istniejące tabele i dane nie są zmieniane, dlatego kopia schematu nie jest potrzebna.
+21 Nov 2026 (2): kolumna game_city_buildings.underfunded_at (status „Niedofinansowany”) — dodawana także w bazach,
+w których tabele już istnieją.
 Uwaga przy wycofaniu: efekty obiektów dodane do wskaźników społecznych (game_city_effects.applied) nie są cofane.
 """
 import argparse, sys
@@ -56,12 +58,16 @@ def main():
             rollback(connection, database)
             return
         tables = missing_tables(connection)
-        print(f'{database}: nowe tabele: {[t.name for t in tables]}')
+        column = not tables and 'underfunded_at' not in {c['name'] for c in inspect(connection).get_columns('game_city_buildings')}
+        print(f'{database}: nowe tabele: {[t.name for t in tables]}; kolumna underfunded_at do dodania: {column}')
         if not args.apply:
             return
         for table in tables:            # kolejność: obiekty, wydatki (klucz obcy do obiektów), efekty
             table.create(connection, checkfirst=True)
+        if column:
+            connection.execute(text('ALTER TABLE game_city_buildings ADD COLUMN underfunded_at DATETIME NULL'))
         assert not missing_tables(connection), 'Weryfikacja schematu nie powiodła się.'
+        assert 'underfunded_at' in {c['name'] for c in inspect(connection).get_columns('game_city_buildings')}, 'Brak kolumny underfunded_at.'
         print(f'{database}: schemat obiektów miejskich zastosowany i zweryfikowany.')
 
 

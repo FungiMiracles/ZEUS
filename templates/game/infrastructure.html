@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure.css', v='20261024-5') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261121-airports-4') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_cities.css', v='20261121-cities-3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_cities.css', v='20261121-cities-4') }}">
 {% endblock %}
 {% block game_page_actions %}<a href="/game/finanse">Przejdź do budżetu ↗</a>{% endblock %}
 {% block content %}
@@ -71,6 +71,6 @@
 {% if rail_config %}<script id="rail-config" type="application/json">{{ rail_config|tojson }}</script><script src="{{ url_for('static',filename='js/game_rail_trains.js',v='20261119-trains-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_rail.js',v='20261120-rail-6') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261121-cities-1') }}" defer></script>
 {% if airport_config %}<script src="{{ url_for('static',filename='js/game_airports.js',v='20261121-airports-3') }}" defer></script>{% endif %}
-{% if city_config %}<script src="{{ url_for('static',filename='js/game_cities.js',v='20261121-cities-3') }}" defer></script>{% endif %}
+{% if city_config %}<script src="{{ url_for('static',filename='js/game_cities.js',v='20261121-cities-4') }}" defer></script>{% endif %}
 <script src="{{ url_for('static', filename='js/game_infrastructure.js', v='20261121-airports-3') }}" defer></script>
 {% endblock %}

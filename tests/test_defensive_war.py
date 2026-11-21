@@ -63,13 +63,14 @@ class DefensiveWarTransferTests(LandWarFixture):
         row=db.session.scalar(select(Stosunki).options(lazyload('*')).where(Stosunki.PANSTWO_ID==1,Stosunki.PANSTWO_ID2==2));row.stan_id=2;db.session.commit()   # zawieszenie broni
         self.assertFalse(defensive_war(db.session,2))
 
-    def test_transfer_to_armed_forces_ignores_trust_in_defensive_war(self):
+    def test_transfers_never_need_trust(self):
+        # 21 Nov 2026: próg zaufania do władzy dla przesunięć między sektorami zniesiony (także poza wojną obronną)
         from game import budget_transfers
-        cases=[(True,'healthcare','armed_forces',False),(True,'healthcare','education',True),(False,'healthcare','armed_forces',True),
-               (False,'reserve','education',False),(True,'armed_forces','healthcare',True)]
-        for defensive,source,destination,expected in cases:
+        cases=[(True,'healthcare','armed_forces'),(True,'healthcare','education'),(False,'healthcare','armed_forces'),
+               (False,'reserve','education'),(True,'armed_forces','healthcare')]
+        for defensive,source,destination in cases:
             with patch.object(budget_transfers,'defensive_war',return_value=defensive):
-                self.assertEqual(budget_transfers.transfer_needs_trust(db.session,2,source,destination),expected,(defensive,source,destination))
+                self.assertFalse(budget_transfers.transfer_needs_trust(db.session,2,source,destination),(defensive,source,destination))
 
 
 class Paga2WarTrainingTests(LandWarFixture):

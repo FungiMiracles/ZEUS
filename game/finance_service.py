@@ -18,6 +18,7 @@ from models import Panstwo
 
 from game.finance_models import (
     BudgetCategory,
+    BudgetTransfer,
     StateBudget,
     StateBudgetAllocation,
     StateFinancialAccount,
@@ -481,13 +482,60 @@ def _reserve_for_account(account, previous):
     from game.trade_service import reserve_delta
     from game.budget_transfers import transfer_delta
     from game.imf import reserve_delta as imf_delta
+    from game.cities import reserve_spent as city_reserve   # 21 Nov 2026: rezerwa wydana na obiekty miejskie
     if (
         account.last_budget_id != previous.id
-        or account.reserve_balance != previous.closing_reserve + imf_delta(object_session(account),account.panstwo_id,previous.id) + loan_delta(object_session(account),account.panstwo_id,previous.id) + adjustment_delta(object_session(account),account.panstwo_id,previous.id) + transfer_delta(object_session(account),previous.id,"reserve") + reserve_delta(object_session(account),account.panstwo_id,previous.id) - reserve_spent(object_session(account), previous.id)
+        or account.reserve_balance != previous.closing_reserve + imf_delta(object_session(account),account.panstwo_id,previous.id) + loan_delta(object_session(account),account.panstwo_id,previous.id) + adjustment_delta(object_session(account),account.panstwo_id,previous.id) + transfer_delta(object_session(account),previous.id,"reserve") + reserve_delta(object_session(account),account.panstwo_id,previous.id) - reserve_spent(object_session(account), previous.id) - city_reserve(object_session(account), previous.id)
     ):
         raise FinanceError("Saldo rachunku nie odpowiada ostatniemu budżetowi.")
 
     return account.reserve_balance
+
+
+SWEEP_EXCLUDED = ("reserve", "social_policy")
+
+
+def unspent_sectors(session, previous):
+    """{sektor: niewydana kwota} poprzedniego budżetu — trafi do rezerwy przy zatwierdzeniu nowego okresu."""
+    if previous is None:
+        return {}
+    from game.budget_transfers import sector_balances
+    balances = sector_balances(session, previous)
+    return {code: money(item["remaining"]) for code, item in balances.items()
+            if code not in SWEEP_EXCLUDED and money(item["remaining"]) > 0}
+
+
+def pending_sweep(session, country_id, previous, account):
+    """Kwota, którą sweep_unspent przeniesie do rezerwy przy zatwierdzeniu (podgląd budżetu musi ją uwzględniać)."""
+    if previous is None or account is None or account.last_budget_id != previous.id:
+        return ZERO
+    from game.paga_ai_actor import country_user_id
+    if country_user_id(session, country_id) is None:
+        return ZERO
+    return sum(unspent_sectors(session, previous).values(), ZERO)
+
+
+def sweep_unspent(session, country_id, previous, account, game_moment):
+    """Przesunięcie niewydanych środków sektorów poprzedniego budżetu do rezerwy (jak przesunięcie gracza do rezerwy:
+    BudgetTransfer w poprzednim budżecie + saldo rachunku). Idempotentne — klucz zależy od budżetu i sektora."""
+    if previous is None or account is None or account.last_budget_id != previous.id:
+        return ZERO
+    from uuid import uuid5, NAMESPACE_URL
+    from game.paga_ai_actor import country_user_id
+    owner = country_user_id(session, country_id)
+    if owner is None:
+        return ZERO
+    total = ZERO
+    for code, amount in unspent_sectors(session, previous).items():
+        key = str(uuid5(NAMESPACE_URL, f"entenda:sweep:{previous.id}:{code}"))
+        if session.scalar(select(BudgetTransfer.id).where(BudgetTransfer.user_id == owner, BudgetTransfer.request_id == key)):
+            continue
+        session.add(BudgetTransfer(budget_id=previous.id, user_id=owner, source=code, destination="reserve", amount=amount,
+                                   request_id=key, created_at=utc_now(), game_datetime=game_moment))
+        account.reserve_balance = money(account.reserve_balance + amount)
+        total += amount
+    session.flush()
+    return total
 
 
 def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO):
@@ -575,7 +623,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             country.PANSTWO_ID,
         )
 
-        reserve = _reserve_for_account(account, previous)
+        reserve = _reserve_for_account(account, previous) + pending_sweep(session, country.PANSTWO_ID, previous, account)
         from game.imf import due_amount
         imf_due = due_amount(session, country.PANSTWO_ID, (year, period))
         from game.rail import connected_population, rail_infrastructure as rail_level
@@ -789,6 +837,10 @@ def approve_in_transaction(
         .where(StateFinancialAccount.panstwo_id == country.PANSTWO_ID)
         .with_for_update()
     )
+
+    # 21 Nov 2026: niewydane środki sektorów poprzedniego okresu przechodzą do rezerwy budżetowej
+    # (wyjątek: polityka socjalna — jej środki przechodzą na świadczenia kolejnego okresu).
+    sweep_unspent(session, country.PANSTWO_ID, previous, account, captured_game_time)
 
     reserve = _reserve_for_account(account, previous)
     from game.imf import due_amount

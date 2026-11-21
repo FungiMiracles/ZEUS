@@ -89,10 +89,10 @@ class TrustTransferTests(unittest.TestCase):
         from models import Spoleczenstwo
         db.session.add(Spoleczenstwo(panstwo_id=1,zaufanie_do_wladzy=value));db.session.commit()
 
-    def test_sector_transfers_need_trust_above_65(self):
-        self.trust(65)
-        with self.assertRaises(FinanceError) as error:self.base.move(amount='10')
-        self.assertEqual(str(error.exception),'Społeczeństwo nie ufa władzy wystarczająco (65/100), by pozwolić na swobodne modyfikowanie budżetu i przesuwanie środków między sektorami.')
+    def test_sector_transfers_allowed_at_any_trust(self):
+        # 21 Nov 2026: próg zaufania 65 zniesiony — przesunięcia działają także przy niskim zaufaniu
+        self.trust(10)
+        self.base.move(amount='10')
         self.base.move(source='infrastructure',destination='reserve',amount='10')
         self.base.move(source='reserve',destination='infrastructure',amount='10')
 

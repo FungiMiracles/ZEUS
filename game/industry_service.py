@@ -291,7 +291,7 @@ def change_industry(user_id,data):
             if action=='remove':
                 if on_demand:value=0   # koszt budowy pokryty z budżetu sił zbrojnych — likwidacja bez zwrotu
                 elif category=='factory':value=FACTORIES[obj.kind]['levels'][obj.level-1]['cost']
-                elif category=='power':value=POWER_PLANTS[obj.kind]['costs'][obj.level-1]
+                elif category=='power':value=min(Decimal(POWER_PLANTS[obj.kind]['costs'][obj.level-1]),Decimal(obj.investment))   # 21 Nov 2026: nie więcej niż faktyczny nakład (podwyżka cen elektrowni)
                 else:value=MINE_RULES[obj.resource][2][obj.level-1]*1000000000
                 cost=0 if host_removal else -Decimal(value)/4;obj.removed_at=now
                 if category in ('factory','power'):obj.running=False
@@ -374,7 +374,7 @@ def object_data(obj,category,powered=None):
     else:
         from game.mining_service import mine_data
         return {**mine_data(obj,game_now()),'category':'mine','kind':obj.resource,'icon':'KOPALNIA.svg','status':'w budowie' if obj.ready_at>game_now() else 'zniszczona' if obj.health<=0 else 'gotowa','refund':str(Decimal(MINE_RULES[obj.resource][2][obj.level-1]*1000000000)/4)}
-    refund=Decimal(FACTORIES[obj.kind]['levels'][obj.level-1]['cost'] if category=='factory' else POWER_PLANTS[obj.kind]['costs'][obj.level-1])/4
+    refund=Decimal(FACTORIES[obj.kind]['levels'][obj.level-1]['cost'] if category=='factory' else min(Decimal(POWER_PLANTS[obj.kind]['costs'][obj.level-1]),Decimal(obj.investment)))/4
     if category=='factory' and FACTORIES[obj.kind].get('on_demand'):
         # 13 Nov 2026: fabryka rakiet z głowicą nuklearną — budowa 31 dni, produkcja na zamówienie
         from sqlalchemy.orm import object_session

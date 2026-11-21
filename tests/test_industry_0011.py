@@ -155,8 +155,8 @@ class IndustryTests(CommerceFixture):
         self.add_stock('wegiel_kamienny',10)
         balance=energy_balance(db.session,1)['sources']
         self.assertEqual(balance['coal'],dict(production=100,consumption=1,extraction=0))
-        self.assertEqual(balance['wind']['production'],10)
-        self.assertEqual(balance['solar']['production'],12)
+        self.assertEqual(balance['wind']['production'],6)    # 21 Nov 2026: wiatrowa 6 e/dzień
+        self.assertEqual(balance['solar']['production'],8)   # słoneczna 8 e/dzień
         mine=db.session.get(Mine,mine_id);mine.starts_at=NOW-timedelta(days=5);mine.ready_at=NOW;mine.level=3;db.session.commit()
         self.assertEqual(energy_balance(db.session,1)['sources']['coal']['extraction'],3)
         db.session.get(PowerPlant,coal).health=2;db.session.commit()
@@ -180,9 +180,9 @@ class IndustryTests(CommerceFixture):
         id=self.operation(category='power',kind='solar')
         with self.assertRaises(FinanceError):self.operation(category='power',kind='solar',level=2)
         self.operation('upgrade',category='power',object_id=id);self.refresh()
-        plant=db.session.get(PowerPlant,id);self.assertEqual(plant.level,2);self.assertEqual(plant.investment,1050000000)
+        plant=db.session.get(PowerPlant,id);self.assertEqual(plant.level,2);self.assertEqual(plant.investment,2500000000)   # 21 Nov 2026: budowa 1,5 mld + rozbudowa 1,0 mld
         plant.health=2;db.session.commit();self.operation('repair',category='power',object_id=id)
-        self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),350000000)
+        self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),Decimal('833333333.33'))
 
     def test_removal_refunds_current_level_and_is_idempotent(self):
         id=self.operation(category='power',kind='solar');self.operation('upgrade',category='power',object_id=id)

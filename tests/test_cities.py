@@ -186,19 +186,32 @@ class CityDataTests(MilitaryFixture):
             db.session.commit()
         db.session.expire_all()
         rows = {r.sector: r for r in db.session.scalars(select(CityExpense).where(CityExpense.budget_id == 2))}
-        # edukacja: 6 mln za półrocze, 1 mln z sektora, 5 mln brakuje, rezerwa 2 mln → szkoła zlikwidowana
+        # edukacja: 6 mln za półrocze, 1 mln z sektora + 2 mln rezerwy → szkoła niedofinansowana (zostaje, bez kosztu)
         self.assertNotIn('education', rows)
         school = db.session.scalar(select(CityBuilding).where(CityBuilding.kind == 'school'))
-        self.assertEqual(school.removal_reason, 'unfunded')
-        # zdrowie: (3×5 + 50) / 2 = 32,5 mln; 10 mln z sektora + 2 mln rezerwy → likwidacja od najtańszych:
-        # kliniki (3 × 2,5 mln) nie wystarczą, szpital (25 mln) też musi zniknąć → zostaje 0 kosztów
-        removed = {b.kind for b in db.session.scalars(select(CityBuilding).where(CityBuilding.removal_reason == 'unfunded'))}
-        self.assertEqual(removed, {'school', 'clinic', 'hospital'})
+        self.assertIsNotNone(school.underfunded_at); self.assertIsNone(school.removed_at)
+        # zdrowie: (3×5 + 50) / 2 = 32,5 mln; 10 mln z sektora + 2 mln rezerwy → od najtańszych: kliniki, potem szpital
+        under = {b.kind for b in db.session.scalars(select(CityBuilding).where(CityBuilding.underfunded_at.is_not(None)))}
+        self.assertEqual(under, {'school', 'clinic', 'hospital'})
+        self.assertEqual(db.session.query(CityBuilding).filter(CityBuilding.removed_at.is_not(None)).count(), 0)   # nic nie zlikwidowano
         self.assertEqual(self.reserve(), Decimal('2000000.00'))
         from game.forum_models import GameNotification
-        self.assertEqual(db.session.query(GameNotification).filter(GameNotification.system_text.like('Miasta: obiekt%zlikwidowany z braku środków%')).count(), 5)
+        self.assertEqual(db.session.query(GameNotification).filter(GameNotification.system_text.like('Miasta: obiekt%jest niedofinansowany%')).count(), 5)
+        self.assertEqual(cities.coverage(db.session, 1, NOW)['targets']['zdrowie_publiczne'], 0)                 # bez efektów
+        # kolejny budżet z pieniędzmi: obiekty odzyskują finansowanie i efekty
+        db.session.execute(text("INSERT INTO game_state_budgets (id,panstwo_id,game_year,period) VALUES (3,1,2991,1)"))
+        db.session.execute(text("INSERT INTO game_state_budget_allocations (id,budget_id,category_code,amount) VALUES "
+                                "(22,3,'healthcare',100000000),(23,3,'education',100000000)"))
+        db.session.commit()
+        with patch('game.cities.period_months', return_value=6):
+            account = db.session.scalar(select(StateFinancialAccount).where(StateFinancialAccount.panstwo_id == 1))
+            cities.charge_maintenance(db.session, 1, db.session.get(StateBudget, 3), account, NOW)
+            db.session.commit()
+        self.assertEqual(db.session.query(CityBuilding).filter(CityBuilding.underfunded_at.is_not(None)).count(), 0)
+        self.assertEqual(db.session.query(GameNotification).filter(GameNotification.system_text.like('Miasta: obiekt%odzyskał finansowanie%')).count(), 5)
+        self.assertEqual(cities.coverage(db.session, 1, NOW)['targets']['zdrowie_publiczne'], 1)
 
-    def test_maintenance_uses_reserve_before_removal(self):
+    def test_maintenance_uses_reserve_before_underfunding(self):
         from game.finance_models import StateBudget, StateFinancialAccount
         self.build('hospital', cell=4)                                                  # 50 mln / rok → 25 mln za półrocze
         self.complete_all()
@@ -214,7 +227,7 @@ class CityDataTests(MilitaryFixture):
         rows = list(db.session.scalars(select(CityExpense).where(CityExpense.budget_id == 2)))
         self.assertEqual([(r.sector, r.amount, r.reserve_amount) for r in rows], [('healthcare', Decimal('20000000.00'), Decimal('5000000.00'))])
         self.assertEqual(self.reserve(), Decimal('295000000.00'))
-        self.assertIsNone(db.session.scalar(select(CityBuilding.removed_at)))
+        self.assertIsNone(db.session.scalar(select(CityBuilding.underfunded_at)))
         from game.budget_transfers import sector_balances
         balances = sector_balances(db.session, db.session.get(StateBudget, 2))
         self.assertEqual((balances['healthcare']['spent'], balances['reserve']['spent']), (Decimal('20000000.00'), Decimal('5000000.00')))
@@ -233,6 +246,33 @@ class CityDataTests(MilitaryFixture):
         self.assertEqual(len(cities.admin_cities(db.session, 1)), 1)
 
 
+class UnspentSweepTests(CityDataTests):
+    for _name in [n for n in dir(CityDataTests) if n.startswith('test_')]:
+        locals()[_name] = None
+    del _name
+
+    def test_unspent_sector_funds_move_to_reserve(self):
+        from game.finance_service import sweep_unspent, pending_sweep, unspent_sectors
+        from game.finance_models import StateBudget, StateFinancialAccount, BudgetTransfer
+        db.session.execute(text('UPDATE game_state_financial_accounts SET last_budget_id=1')); db.session.commit()
+        self.build('school', cell=1)                                   # edukacja: 100 mln − 50 mln
+        previous = db.session.get(StateBudget, 1)
+        account = db.session.scalar(select(StateFinancialAccount).where(StateFinancialAccount.panstwo_id == 1))
+        expected = unspent_sectors(db.session, previous)
+        self.assertEqual(expected['education'], Decimal('50000000.00'))
+        self.assertNotIn('social_policy', expected); self.assertNotIn('reserve', expected)
+        before = Decimal(account.reserve_balance)
+        self.assertEqual(pending_sweep(db.session, 1, previous, account), sum(expected.values()))
+        moved = sweep_unspent(db.session, 1, previous, account, NOW); db.session.commit()
+        self.assertEqual(moved, sum(expected.values()))
+        self.assertEqual(self.reserve(), before + moved)
+        self.assertEqual(sweep_unspent(db.session, 1, db.session.get(StateBudget, 1), db.session.scalar(select(StateFinancialAccount)), NOW), Decimal('0.00'))   # idempotentne
+        from game.budget_transfers import sector_balances
+        balances = sector_balances(db.session, db.session.get(StateBudget, 1))
+        self.assertEqual(balances['education']['remaining'], 0)
+        self.assertEqual(db.session.query(BudgetTransfer).filter_by(destination='reserve').count(), len(expected))
+
+
 class CityPreviewTests(CityDataTests):
     def test_preview_own_and_foreign_city(self):
         self.build('clinic', cell=7)
@@ -246,6 +286,7 @@ class CityPreviewTests(CityDataTests):
     # testy klasy bazowej nie są tu powtarzane
     for _name in [n for n in dir(CityDataTests) if n.startswith('test_')]:
         locals()[_name] = None
+    del _name
 
 
 class ResourceIntelligenceExpiryTests(MilitaryFixture):

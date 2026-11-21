@@ -43,7 +43,7 @@ class EnergyTests(unittest.TestCase):
         self.base.operation(category='power',kind='solar');self.base.operation(category='power',kind='wind');self.base.refresh()
         self.region(region_stan_infra_energetycznej=70)
         sources=energy_balance(db.session,1)['sources']
-        self.assertEqual((sources['solar']['production'],sources['wind']['production']),(10,8),'12×0.8=9.6→10, 10×0.8=8')
+        self.assertEqual((sources['solar']['production'],sources['wind']['production']),(7,5),'21 Nov 2026: 8×0.8=6.4→7, 6×0.8=4.8→5 (zaokrąglenie w górę)')
         self.region(region_stan_infra_energetycznej=5)
         self.assertEqual(energy_balance(db.session,1)['production'],'0')
         from game.industry_service import industry_state

@@ -170,7 +170,7 @@
   function renderControl(data){
     control=data;
     if(!controlEdited){$('paga2-enabled').checked=data.enabled;$('paga2-interval').value=data.intervalMinutes;$('paga2-interval').min=data.intervalRange[0];$('paga2-interval').max=data.intervalRange[1];}
-    $('paga2-control-status').textContent=`PAGA2 ${data.enabled?'WŁĄCZONE':'WYŁĄCZONE'} · państwa z autonomią: ${data.autonomousCountries} · ostatni cykl: ${date(data.lastCycleAt)} · zmiana: ${date(data.updatedAt)} (${data.actor}) · wersja ${data.revision}`;
+    $('paga2-control-status').textContent=`PAGA2 ${data.enabled?'WŁĄCZONE':'WYŁĄCZONE'} · państwa z autonomią: ${data.autonomousCountries} · tempo zegara ×${data.clockSpeed} → cykl co ${number.format(data.effectiveIntervalMinutes)} min (interwał dotyczy tempa ×${data.baseSpeed}) · ostatni cykl: ${date(data.lastCycleAt)} · zmiana: ${date(data.updatedAt)} (${data.actor}) · wersja ${data.revision}`;
     const r=data.randomizer,stats=$('paga2-random-stats');stats.replaceChildren();
     for(const [value,label] of [[r.total,'wywołań łącznie'],[r.last24h,'w ostatnich 24 h'],[r.last7d,'w ostatnich 7 dniach']]){const box=make('div',null,'paga-stat');box.append(make('strong',number.format(value)),make('span',label));stats.append(box);}
     const body=$('paga2-random-countries');body.replaceChildren();
@@ -313,7 +313,7 @@
       for(const city of state.cities||[]){
         const item=make('details',null,'paga-analysis'),built=city.buildings.filter(b=>b.completed).length;
         item.append(make('summary',`${city.name}${city.capital?' (stolica)':''} · ludność ${number.format(city.population)} · obiekty: ${city.buildings.length}${built<city.buildings.length?` (w budowie: ${city.buildings.length-built})`:''}`));
-        item.append(table(['Obiekt','Kratka','Stan','Utrzymanie / rok'],city.buildings.map(b=>[b.label,`${Math.floor(b.cell/8)+1}–${b.cell%8+1}`,b.completed?'działa':`budowa ${b.progress}% (do ${date(b.readyAt)})`,number.format(Number(b.maintenance)/1e6)+' mln ROI'])));
+        item.append(table(['Obiekt','Kratka','Stan','Utrzymanie / rok'],city.buildings.map(b=>[b.label,`${Math.floor(b.cell/8)+1}–${b.cell%8+1}`,b.underfunded?'niedofinansowany':b.completed?'działa':`budowa ${b.progress}% (do ${date(b.readyAt)})`,number.format(Number(b.maintenance)/1e6)+' mln ROI'])));
         cityBox.append(item);
       }
       if(!(state.cities||[]).length)cityBox.append(make('p','Państwo nie postawiło jeszcze obiektów miejskich.'));

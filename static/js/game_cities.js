@@ -156,7 +156,7 @@
         const size = state.grid || 8, taken = new Map((city.buildings || []).map(b => [b.cell, b]));
         for (let cell = 0; cell < size * size; cell++) {
             const building = taken.get(cell);
-            const box = make('button', null, 'city-cell' + (building ? ' is-built' + (building.completed ? '' : ' is-building') : '') + (picked && !building ? ' is-target' : '') + (readonly && !building ? ' is-readonly' : ''));
+            const box = make('button', null, 'city-cell' + (building ? ' is-built' + (building.completed ? '' : ' is-building') + (building.underfunded ? ' is-underfunded' : '') : '') + (picked && !building ? ' is-target' : '') + (readonly && !building ? ' is-readonly' : ''));
             box.type = 'button'; box.dataset.cell = String(cell); box.setAttribute('role', 'gridcell');
             const label = `Kratka ${Math.floor(cell / size) + 1}–${cell % size + 1}`;
             if (building) {
@@ -165,7 +165,8 @@
                     box.append(image(cfg.craneIcon, 'city-cell-crane'));
                     const bar = make('span', null, 'city-cell-progress'); bar.style.setProperty('--progress', `${building.progress}%`); box.append(bar);
                 }
-                box.title = `${building.label}${building.completed ? '' : ` — budowa ${building.progress}%, ukończenie ${dateText(building.readyAt)} (Entenda)`}`;
+                if (building.underfunded) box.append(make('span', '!', 'city-cell-alert'));
+                box.title = `${building.label}${building.underfunded ? ' — niedofinansowany (brak efektów)' : ''}${building.completed ? '' : ` — budowa ${building.progress}%, ukończenie ${dateText(building.readyAt)} (Entenda)`}`;
                 box.setAttribute('aria-label', `${label}: ${box.title}`);
                 box.addEventListener('click', () => openDemolish(building));
             } else if (readonly) {
@@ -183,8 +184,8 @@
         const list = $('city-building-list'); list.replaceChildren(); list.hidden = !readonly;
         if (readonly) {
             for (const b of city.buildings || []) {
-                const row = make('li', null, b.completed ? 'is-done' : 'is-building'); row.append(image(cfg.icons[b.kind]), make('strong', b.label),
-                    make('span', b.completed ? 'działa' : `budowa ${b.progress}% · ukończenie ${dateText(b.readyAt)}`));
+                const row = make('li', null, b.underfunded ? 'is-underfunded' : b.completed ? 'is-done' : 'is-building'); row.append(image(cfg.icons[b.kind]), make('strong', b.label),
+                    make('span', b.underfunded ? 'niedofinansowany — bez efektów' : b.completed ? 'działa' : `budowa ${b.progress}% · ukończenie ${dateText(b.readyAt)}`));
                 list.append(row);
             }
             if (!(city.buildings || []).length) list.append(make('li', 'Brak obiektów miejskich w tym mieście.', 'is-empty'));
@@ -239,7 +240,9 @@
         const item = rule(building.kind) || {};
         $('city-demolish-icon').src = cfg.icons[building.kind];
         $('city-demolish-title').textContent = building.label;
-        $('city-demolish-info').textContent = building.completed
+        $('city-demolish-info').textContent = building.underfunded
+            ? `Status: Niedofinansowany — obiekt istnieje, ale nie daje efektów. Odzyska finansowanie przy kolejnym zatwierdzeniu budżetu, jeśli w budżecie „${item.sectorLabel || ''}” i rezerwie wystarczy środków na roczne utrzymanie ${money(building.maintenance)}.`
+            : building.completed
             ? `Obiekt działa. Roczne utrzymanie: ${money(building.maintenance)} (${(item.sectorLabel || '').toLowerCase()}). ${item.effect || ''}`
             : `Budowa: ${building.progress}% · ukończenie ${dateText(building.readyAt)} (Entenda).`;
         $('city-demolish-refund').textContent = `Likwidacja zwraca 25% kosztu budowy — ${money(building.refund)} — do budżetu „${item.sectorLabel || ''}”. Efekty obiektu zostaną usunięte.`;

@@ -143,9 +143,9 @@ def defensive_war(session,country_id):
 
 
 def transfer_needs_trust(session,country_id,source,destination):
-    """Próg zaufania dotyczy przesunięć między sektorami; nie dotyczy rezerwy ani — w wojnie obronnej — zasilenia sił zbrojnych."""
-    if 'reserve' in (source,destination):return False
-    return not (destination=='armed_forces' and defensive_war(session,country_id))
+    """21 Nov 2026 (decyzja administratora): próg zaufania do władzy dla przesunięć między sektorami zniesiony —
+    przesunięcia są dozwolone przy każdym poziomie zaufania. Funkcja zostaje dla zgodności wywołań."""
+    return False
 
 
 def defense_transfer_message():

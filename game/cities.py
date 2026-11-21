@@ -9,8 +9,9 @@ Zasady:
   budżetowa (gracz widzi podział w oknie potwierdzenia); jedna budowla na kratkę;
 - utrzymanie: przy zatwierdzeniu budżetu (game.finance_service.approve_in_transaction) roczne koszty działających
   obiektów, przeliczone na długość okresu (kwartał — ¼, półrocze — ½), są pobierane z budżetów sektorów; brakującą część
-  pokrywa rezerwa budżetowa, a gdy i jej brakuje — obiekty sektora są likwidowane od najtańszego w utrzymaniu, aż koszt
-  zmieści się w środkach (efekty zlikwidowanych obiektów znikają, gracz dostaje powiadomienie);
+  pokrywa rezerwa budżetowa, a gdy i jej brakuje — obiekty sektora przechodzą (od najtańszego w utrzymaniu) w status
+  „Niedofinansowany”, aż koszt zmieści się w środkach: obiekt zostaje, ale nie daje efektów i nie jest opłacany; przy
+  kolejnym zatwierdzeniu budżetu odzyskuje finansowanie, jeśli wystarczy środków (21 Nov 2026; wcześniej likwidacja);
 - likwidacja przez gracza: zwrot 25% kosztu budowy do budżetu sektora, z którego obiekt był finansowany (bieżący okres);
 - efekty (liczone z działających obiektów w miastach państwa; obsłużeni mieszkańcy w mieście nie więcej niż ludność
   miasta): zdrowie publiczne +1 za każdy 1 mln objętych opieką (klinika, szpital); poziom edukacji +1 za każdy 1 mln
@@ -119,6 +120,11 @@ def operational(building, now):
     return building.removed_at is None and building.ready_at <= now
 
 
+def effective(building, now):
+    """Obiekt daje efekty: działa i nie jest niedofinansowany."""
+    return operational(building, now) and getattr(building, 'underfunded_at', None) is None
+
+
 # ---------- efekty ----------
 
 def coverage(session, country, now=None, cities=None, buildings=None):
@@ -130,7 +136,7 @@ def coverage(session, country, now=None, cities=None, buildings=None):
     served = {}
     counts = {kind: 0 for kind in CATALOG}
     for b in buildings:
-        if b.miasto_id not in population or not operational(b, now):
+        if b.miasto_id not in population or not effective(b, now):
             continue
         counts[b.kind] += 1
         amount = CATALOG[b.kind][5] or 0
@@ -269,6 +275,13 @@ def spent_by_sector(session, budget_id):
     return {sector: Decimal(amount or 0) for sector, amount, _ in rows}, sum((Decimal(reserve or 0) for _, _, reserve in rows), Decimal(0))
 
 
+def reserve_spent(session, budget_id):
+    """Rezerwa budżetowa wydana na obiekty miejskie w danym budżecie (kontrola salda w finance_service)."""
+    if not tables_ready(session):
+        return Decimal(0)
+    return Decimal(session.scalar(select(func.coalesce(func.sum(CityExpense.reserve_amount), 0)).where(CityExpense.budget_id == budget_id)) or 0)
+
+
 def upkeep_summary(session, country, now=None):
     """Roczne utrzymanie działających obiektów miast z rozbiciem na okres budżetowy (ekran „Podatki i budżet”)."""
     now = now or game_now()
@@ -301,20 +314,26 @@ def charge_maintenance(session, country, budget, account, now):
         return
     scale = Decimal(period_months(budget.game_year, budget.period)) / 12
     funds = sector_funds(session, budget)
-    removed = False
+    changed = False
     for sector in SECTORS:
         items = sorted([b for b in buildings if b.sector == sector], key=lambda b: (Decimal(b.maintenance), Decimal(b.cost), b.id))
         if not items:
             continue
-        cost = lambda: _money(sum((Decimal(b.maintenance) for b in items), Decimal(0)) * scale)
+        funded = list(items)                       # niedofinansowane obiekty próbują odzyskać finansowanie
+        cost = lambda: _money(sum((Decimal(b.maintenance) for b in funded), Decimal(0)) * scale)
         available = Decimal(funds.get(sector) or 0)
-        # Brak środków w sektorze i rezerwie — likwidacja od najtańszego w utrzymaniu.
-        while items and cost() > available + Decimal(account.reserve_balance or 0):
-            victim = items.pop(0)
-            victim.removed_at, victim.removal_reason = now, 'unfunded'
-            removed = True
-            notify(session, country, f'obiekt „{CATALOG[victim.kind][0]}” w mieście {names.get(victim.miasto_id, "")} został zlikwidowany z braku środków na utrzymanie '
-                                     f'(budżet: {SECTORS[sector].lower()}, rezerwa budżetowa).')
+        # Brak środków w sektorze i rezerwie — status „Niedofinansowany” od najtańszego w utrzymaniu.
+        while funded and cost() > available + Decimal(account.reserve_balance or 0):
+            funded.pop(0)
+        for b in items:
+            now_under = b not in funded
+            if now_under and b.underfunded_at is None:
+                b.underfunded_at = now; changed = True
+                notify(session, country, f'obiekt „{CATALOG[b.kind][0]}” w mieście {names.get(b.miasto_id, "")} jest niedofinansowany: brak środków na utrzymanie '
+                                         f'(budżet: {SECTORS[sector].lower()}, rezerwa budżetowa). Obiekt nie daje efektów do czasu odzyskania finansowania.')
+            elif not now_under and b.underfunded_at is not None:
+                b.underfunded_at = None; changed = True
+                notify(session, country, f'obiekt „{CATALOG[b.kind][0]}” w mieście {names.get(b.miasto_id, "")} odzyskał finansowanie i znów działa.')
         total = cost()
         if total <= 0:
             continue
@@ -324,7 +343,7 @@ def charge_maintenance(session, country, budget, account, now):
             account.reserve_balance = _money(Decimal(account.reserve_balance) - from_reserve)
         session.add(CityExpense(panstwo_id=country, budget_id=budget.id, kind='maintenance', sector=sector, amount=from_budget, reserve_amount=from_reserve, created_at=utc_now()))
     session.flush()
-    if removed:
+    if changed:
         sync_effects(session, country, now)
 
 
@@ -420,11 +439,8 @@ def demolish(user_id, data):
         if budget is not None:
             session.add(CityExpense(panstwo_id=country, budget_id=budget.id, building_id=building.id, kind='refund', sector=building.sector,
                                     amount=-refund, reserve_amount=0, created_at=utc_now()))
-        else:                                   # bez budżetu okresu zwrot trafia do rezerwy budżetowej
-            from game.finance_models import StateFinancialAccount
-            account = session.scalar(select(StateFinancialAccount).where(StateFinancialAccount.panstwo_id == country).with_for_update())
-            if account is not None:
-                account.reserve_balance = _money(Decimal(account.reserve_balance) + refund)
+        else:                                   # bez zatwierdzonego budżetu okresu nie ma dokąd zwrócić środków
+            refund = Decimal('0.00')
         building.removed_at, building.removal_reason = now, 'demolished'
         session.flush()
         sync_effects(session, country, now)
@@ -440,6 +456,7 @@ def building_data(b, now):
     progress = 100 if b.ready_at <= now else max(0, min(99, int((now - b.starts_at).total_seconds() / total * 100))) if total > 0 else 0
     return {'id': b.id, 'cityId': b.miasto_id, 'kind': b.kind, 'label': CATALOG[b.kind][0], 'cell': b.cell, 'cost': str(b.cost),
             'maintenance': str(b.maintenance), 'sector': b.sector, 'completed': b.ready_at <= now, 'progress': progress,
+            'underfunded': getattr(b, 'underfunded_at', None) is not None,
             'startsAt': b.starts_at.isoformat() + 'Z', 'readyAt': b.ready_at.isoformat() + 'Z', 'refund': str(_money(Decimal(b.cost) * REFUND_SHARE))}
 
 

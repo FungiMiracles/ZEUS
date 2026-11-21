@@ -111,7 +111,14 @@ def control_data(session):
     recent=[{'id':draw.id,'countryId':draw.country_id,'country':names.get(draw.country_id),'reason':draw.reason,'candidates':draw.candidates,'chosen':draw.chosen,'at':stamp(draw.created_at)}
             for draw in session.scalars(select(Paga2RandomDraw).order_by(Paga2RandomDraw.id.desc()).limit(20))]
     active=session.scalar(select(func.count()).select_from(Paga2Profile).where(Paga2Profile.autonomy_enabled.is_(True)))
+    from engine.paga2_scheduler import cycle_minutes,BASE_SPEED
+    try:
+        from engine.clock import get_time_multiplier
+        speed=get_time_multiplier()
+    except Exception:
+        speed=BASE_SPEED
     return {'enabled':row.enabled,'intervalMinutes':row.interval_minutes,'revision':row.revision,'lastCycleAt':stamp(row.last_cycle_at),
+            'clockSpeed':speed,'baseSpeed':BASE_SPEED,'effectiveIntervalMinutes':round(cycle_minutes(row,speed),2),   # 21 Nov 2026
             'updatedAt':stamp(row.updated_at),'actor':row.actor,'intervalRange':list(INTERVAL_RANGE),'autonomousCountries':active,
             'randomizer':{'total':randomizer.calls(session),'last24h':randomizer.calls(session,since=now-timedelta(hours=24)),
                           'last7d':randomizer.calls(session,since=now-timedelta(days=7)),'perCountry':per_country,'recent':recent}}

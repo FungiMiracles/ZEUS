@@ -38,7 +38,7 @@ def finance_state(ctx):
         budget=session.scalar(select(StateBudget.id).where(StateBudget.panstwo_id==ctx.country_id,StateBudget.game_year==year,StateBudget.period==period))
         trust=public_trust(session,ctx.country_id) if budget else None
         defense=defensive_war(session,ctx.country_id) if budget else False
-    return {'budget_id':budget,'can_transfer':budget is not None,'public_trust':trust,'sector_transfers_allowed':trust is None or trust>TRANSFER_TRUST_THRESHOLD,
+    return {'budget_id':budget,'can_transfer':budget is not None,'public_trust':trust,'sector_transfers_allowed':True,
             'defense_transfers_allowed':defense}
 
 

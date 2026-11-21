@@ -2,7 +2,9 @@
 
 - `CityBuilding` — obiekt postawiony na kratce (0–63) siatki 8×8 miasta. Budowa trwa od `starts_at` do `ready_at`
   (czas gry); obiekt działa (efekty, utrzymanie), gdy `ready_at <= teraz` i `removed_at IS NULL`. Likwidacja przez
-  gracza (`removal_reason='demolished'`, zwrot 25% kosztu budowy) albo z braku środków na utrzymanie (`'unfunded'`).
+  gracza (`removal_reason='demolished'`, zwrot 25% kosztu budowy). Brak środków na utrzymanie: do 21 Nov 2026 likwidacja
+  (`'unfunded'`), od 21 Nov 2026 status „Niedofinansowany” (`underfunded_at`) — obiekt zostaje, nie daje efektów
+  i odzyskuje finansowanie przy kolejnym zatwierdzeniu budżetu, jeśli wystarczy środków.
 - `CityExpense` — ruchy pieniężne obiektów miejskich w budżecie okresu: budowa ('build'), utrzymanie przy zatwierdzeniu
   budżetu ('maintenance') i zwrot przy likwidacji ('refund', kwota ujemna). `amount` obciąża sektor `sector`,
   `reserve_amount` — rezerwę budżetową (game.budget_transfers.sector_balances).
@@ -28,6 +30,7 @@ class CityBuilding(db.Model):
     completed_notified = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text('0'))
     removed_at = db.Column(db.DateTime)
     removal_reason = db.Column(db.String(16))
+    underfunded_at = db.Column(db.DateTime)   # 21 Nov 2026: „Niedofinansowany” — obiekt istnieje, ale nie daje efektów
     user_id = db.Column(db.Integer, db.ForeignKey('game_users.id'))
     request_id = db.Column(db.String(36), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=utc_now)

@@ -2,6 +2,8 @@
 
 Nic nie robi, gdy PAGA2 jest globalnie wyłączone (game_paga2_control.enabled). Jeden przebieg naraz (blokada pliku),
 każde państwo osobno — błąd jednego nie zatrzymuje pozostałych.
+21 Nov 2026: odstęp trybu cyklicznego skaluje się z tempem zegara Entendy — interwał administratora dotyczy tempa ×12;
+przy ×24 cykle są 2× częstsze, przy ×36 — 3× częstsze, przy ×6 — 2× rzadsze (zegar zatrzymany: interwał bez zmian).
 """
 import fcntl
 from datetime import timedelta
@@ -12,6 +14,20 @@ from sqlalchemy.orm import Session
 from extensions import db
 
 TICK_SECONDS=30
+BASE_SPEED=12   # tempo zegara, dla którego administrator ustala interwał cykli PAGA2
+
+
+def cycle_minutes(control,multiplier=None):
+    """Odstęp cykli w minutach rzeczywistych: interwał administratora × 12 / tempo zegara."""
+    if multiplier is None:
+        try:
+            from engine.clock import get_time_multiplier
+            multiplier=get_time_multiplier()
+        except Exception:
+            multiplier=BASE_SPEED
+    base=float(control.interval_minutes)
+    if not multiplier or multiplier<=0:return base
+    return max(1.0,base*BASE_SPEED/float(multiplier))
 BUDGET_RETRY=timedelta(hours=2)
 BUDGET_ERROR='Budżet nie został zatwierdzony.'
 
@@ -42,7 +58,7 @@ def country_state(session,country_id,control,now):
         identity=session.get(PagaAiIdentity,country_id)
         notes,messages=initial_cursors(session,country_id,identity.user_id) if identity else (0,0)
         # Rozłożenie pierwszych cykli państw w czasie (stałe przesunięcie w granicach jednego interwału).
-        offset=int(sha256(f'paga2:{country_id}'.encode()).hexdigest()[:8],16)%max(60,control.interval_minutes*60)
+        offset=int(sha256(f'paga2:{country_id}'.encode()).hexdigest()[:8],16)%max(60,int(cycle_minutes(control)*60))
         state=Paga2CountryState(panstwo_id=country_id,next_cycle_at=now+timedelta(seconds=offset),notification_cursor=notes,message_cursor=messages,updated_at=now)
         session.add(state);session.flush()
     return state
@@ -91,10 +107,12 @@ def process_country(app,country_id,control,now):
     # 3. Tryb cykliczny.
     with Session(db.engine) as session,session.begin():
         state=session.get(Paga2CountryState,country_id,with_for_update=True)
-        due=state.next_cycle_at is None or state.next_cycle_at<=now
+        minutes=cycle_minutes(control)
+        # Po przyspieszeniu zegara wcześniej zaplanowany cykl nie czeka: liczy się też ostatni cykl + nowy odstęp.
+        due=state.next_cycle_at is None or state.next_cycle_at<=now or (state.last_cycle_at is not None and state.last_cycle_at+timedelta(minutes=minutes)<=now)
         key=f'CYCLIC:{country_id}:{(state.next_cycle_at or now).isoformat()}'
         if due:
-            state.last_cycle_at=now;state.next_cycle_at=now+timedelta(minutes=control.interval_minutes);state.updated_at=now
+            state.last_cycle_at=now;state.next_cycle_at=now+timedelta(minutes=minutes);state.updated_at=now
     if due:run(app,country_id,'CYCLIC','przegląd cykliczny',request_key=key)
 
 
