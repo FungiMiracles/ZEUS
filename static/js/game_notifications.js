@@ -61,10 +61,15 @@
 
     const eventDialog = document.getElementById("game-event-dialog");
     document.getElementById("game-event-close").addEventListener("click", () => eventDialog.close());
+    // 21 Nov 2026: etykiety negatywne — czerwone, pozytywne — zielone (biały tekst). Dla wskaźników, których wzrost
+    // szkodzi państwu (przestępczość, napięcia, zanieczyszczenie…), wzrost jest negatywny.
+    const HARMFUL_EFFECTS = new Set(["Nierówności", "Napięcia religijne", "Napięcia etniczne", "Napięcia klasowe", "Przestępczość",
+        "Radykalizacja", "Spożycie alkoholu", "Spożycie narkotyków", "Degradacja środowiska", "Zanieczyszczenie powietrza"]);
     function appendEffects(container, effects) {
         effects.forEach(effect => {
             const badge = document.createElement("span");
-            badge.className = "game-event-effect " + (effect.value >= 0 ? "positive" : "negative");
+            const good = HARMFUL_EFFECTS.has(effect.label) ? effect.value <= 0 : effect.value >= 0;
+            badge.className = "game-event-effect " + (good ? "positive" : "negative");
             badge.textContent = effect.label + " " + (effect.value > 0 ? "+" : "") + effect.value + (effect.suffix || "");
             container.append(badge);
         });
@@ -125,7 +130,7 @@
                 const icon = document.createElement("span");
                 icon.className = "game-notification-icon";
                 icon.setAttribute("aria-hidden", "true");
-                if(item.icon_url){const image=document.createElement("img");image.src=item.icon_url;image.alt="";icon.append(image);}else icon.textContent = item.severity === "war" ? "❗" : "i";
+                if(item.icon_url){const image=document.createElement("img");image.src=item.icon_url;image.alt="";icon.append(image);if(item.icon_white)icon.classList.add("game-notification-icon-white");}else icon.textContent = item.severity === "war" ? "❗" : "i";
                 button.append(icon, document.createTextNode(item.text));
                 if (item.unread) {
                     const fresh = document.createElement("span");

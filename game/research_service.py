@@ -95,7 +95,10 @@ def change_research(user_id,data):
             if state['maximum'] or count>state['required']-state['progress']:raise FinanceError('Możesz uzupełnić punkty do najbliższego poziomu.')
             nodes[node]=current+count;account.nodes=nodes;account.points-=count
             from game.research_timing import funded,start
-            if funded(nodes,node):account.timers=start(timers,node,now)   # rozpoczęcie czasu rozwoju
+            if funded(nodes,node):   # rozpoczęcie czasu rozwoju; 21 Nov 2026: krótszy przy poziomie edukacji powyżej 50
+                from game.research_timing import education_bonus
+                from game.cities import education_level
+                account.timers=start(timers,node,now,education_bonus(education_level(session,country)))
             session.add(ResearchInvestment(panstwo_id=country,node=node,points=count,request_id=key))
             from game.nuclear import TECHNOLOGY as NUCLEAR_TECHNOLOGY
             if node==NUCLEAR_TECHNOLOGY and not current:

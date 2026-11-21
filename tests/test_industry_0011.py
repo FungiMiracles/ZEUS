@@ -44,7 +44,7 @@ class IndustryTests(CommerceFixture):
     def refresh(self):db.session.expire_all()
 
     def test_catalog_exact_counts_and_iron_dependency(self):
-        self.assertEqual(len(TECHNOLOGIES),40,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026) + Krajowe węzły komunikacyjne, Transport kolejowy (19 Nov 2026)')
+        self.assertEqual(len(TECHNOLOGIES),41,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026) + Transport i komunikacja, Transport kolejowy (19 Nov 2026) + Transport lotniczy (20 Nov 2026)')
         self.assertNotIn('ammunition',TECHNOLOGIES)
         for factory in FACTORIES.values():
             for level in factory['levels']:self.assertNotIn('ammunition',level['technologies'])
@@ -292,14 +292,18 @@ class IndustryTests(CommerceFixture):
         from game.research import technology_layout
         response=self.client.get('/game/badania/stan');self.assertEqual(response.status_code,200)
         layout=technology_layout()
-        self.assertEqual(len(layout['positions']),40);self.assertEqual(len(layout['edges']),39)   # 19 Nov 2026: + 2 technologie kolei
+        self.assertEqual(len(layout['positions']),41);self.assertEqual(len(layout['edges']),40)   # 19 Nov 2026: + 2 technologie kolei; 20 Nov 2026: + transport lotniczy (nieaktywny)
         before=db.session.get(ResearchAccount,1).points
         # 10 Nov 2026: the planned 'Filtry powietrza' node became the regular technology 'Filtr zanieczyszczeń'.
         self.assertNotIn('air_filters',PLANNED_TECHNOLOGIES)
         self.assertEqual((TECHNOLOGIES['air_filters']['label'],TECHNOLOGIES['air_filters']['cost'],TECHNOLOGIES['air_filters']['parent']),('Filtr zanieczyszczeń',150,'environment_tech'))
         self.assertIn('air_filters',LEVELS);self.assertIn('air_filters',layout['positions'])
         # 13 Nov 2026: „Rakieta z głowicą nuklearną” jest aktywna — 750 pkt, wymaga trzech technologii
+        # 20 Nov 2026: „Transport lotniczy” — aktywna technologia za transportem kolejowym (400 pkt, ikona samolotu); brak gałęzi nieaktywnych.
         self.assertEqual(PLANNED_TECHNOLOGIES,{})
+        air=response.json['technologies']['air_transport']
+        self.assertEqual((air['label'],air['parent'],air['cost'],air['icon']),('Transport lotniczy','rail_transport',400,'airplane'))
+        self.assertNotIn('available',air);self.assertIn('air_transport',LEVELS)
         rule=TECHNOLOGIES['nuclear_missiles']
         self.assertEqual((rule['cost'],rule['parent'],rule['requires']),(750,'long_missiles',['long_missiles','mine_uranium','chip_cemium_i']))
         self.assertNotIn('available',response.json['technologies']['nuclear_missiles']);self.assertIn('nuclear_missiles',LEVELS)   # wymagania: tests/test_nuclear.py

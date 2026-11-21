@@ -86,6 +86,23 @@ def _log_city_population_change(
 # REGION DEMOGRAPHY
 # =====================================================
 
+_NURSERY_CACHE = {}
+
+
+def _nursery_bonus(country_id):
+    """Dodatek żłobków do rocznego przyrostu (punkty procentowe, Decimal); błąd modułu miast nie blokuje demografii."""
+    if country_id is None:
+        return Decimal(0)
+    if country_id not in _NURSERY_CACHE:
+        try:
+            from game.cities import nursery_growth_bonus
+            from game.governance import controller_id
+            _NURSERY_CACHE[country_id] = Decimal(str(nursery_growth_bonus(db.session, controller_id(db.session, country_id) or country_id)))
+        except Exception:
+            _NURSERY_CACHE[country_id] = Decimal(0)
+    return _NURSERY_CACHE[country_id]
+
+
 def _apply_region_demography(region, data_entenda):
 
     # ==========================================
@@ -119,6 +136,10 @@ def _apply_region_demography(region, data_entenda):
         region.roczny_przyrost_wies_pct or 0
     )
 
+    # 21 Nov 2026: żłobki (game.cities) — +0,01 pkt proc. rocznego przyrostu za każdy żłobek w kraju, najwyżej +0,20
+    nursery_bonus = _nursery_bonus(region.panstwo_id)
+    rural_growth_pct = rural_growth_pct + nursery_bonus
+
     rural_growth = _round_population(
         rural_population * (rural_growth_pct / 100)
     )
@@ -145,7 +166,7 @@ def _apply_region_demography(region, data_entenda):
 
     city_growth_pct = (
         region.roczny_przyrost_miasto_pct or 0
-    )
+    ) + nursery_bonus
 
     city_growth_total = _round_population(
         total_city_population
@@ -393,6 +414,8 @@ def apply_global_population_regeneration():
         regions = Region.query.filter(Region.panstwo_id.in_(
             Panstwo.query.with_entities(Panstwo.PANSTWO_ID).filter(Panstwo.status == 'aktywne')
         )).all()
+
+        _NURSERY_CACHE.clear()   # 21 Nov 2026: żłobki liczone od nowa przy każdym rocznym przeliczeniu
 
         for region in regions:
 

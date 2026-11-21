@@ -217,6 +217,7 @@ def _approved_details(database_session, budget_id, country_id):
         "budget_total": budget.budget_total,
         "imf_collection": getattr(budget, "imf_collection", 0) or 0,
         "rail_income": getattr(budget, "rail_income", 0) or 0,
+        "air_income": getattr(budget, "air_income", 0) or 0,
         "expenditure_total": budget.expenditure_total,
         "closing_reserve": budget.closing_reserve,
         "shares": normalize((row.category_code,row.share_percent) for row in allocations),
@@ -417,12 +418,26 @@ def page():
             "finance_categories": categories,
             "finance_history": json_safe(history),
             "finance_notifications": json_safe(notifications),
+            "city_upkeep": _city_upkeep(database_session, country.PANSTWO_ID),
         }
 
     return render_template(
         "game/finanse.html",
         **context,
     )
+
+
+def _city_upkeep(database_session, country_id):
+    """21 Nov 2026: roczne utrzymanie obiektów miejskich (edukacja, ochrona zdrowia, komunikacja miejska) i jego część
+    w bieżącym okresie budżetowym — game.cities.upkeep_summary."""
+    try:
+        from game.cities import tables_ready, upkeep_summary
+        if not tables_ready(database_session):
+            return None
+        return upkeep_summary(database_session, country_id)
+    except Exception:
+        current_app.logger.exception("Miasta: utrzymanie na ekranie budżetu")
+        return None
 
 
 @finance_bp.post("/podglad")

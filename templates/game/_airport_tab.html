@@ -1,0 +1,17 @@
+{# 21 Nov 2026: zakładka „Transport lotniczy” — mapa państwa z miastami i portami lotniczymi (static/js/game_airports.js).
+   Wcześniej budowa lotnisk odbywała się z tooltipa miasta na mapie infrastruktury regionów. #}
+<section class="game-panel airport-panel" aria-labelledby="airport-panel-title">
+  <div class="game-panel-heading airport-panel-heading"><h2 id="airport-panel-title"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" width="26" height="26" alt=""> Transport lotniczy</h2></div>
+  <div class="game-panel-body">
+    <dl class="airport-summary">
+      <div><dt>Porty lotnicze państwa</dt><dd id="airport-count">—</dd></div>
+      <div><dt>Czynne lotniska świata</dt><dd id="airport-world">—</dd></div>
+      <div><dt>Dochody z połączeń w cyklu</dt><dd id="airport-income">—</dd></div>
+      <div><dt>Środki infrastruktury</dt><dd id="airport-funds-summary">—</dd></div>
+    </dl>
+    <p class="airport-hint">Najedź na miasto, aby sprawdzić możliwość budowy portu lotniczego, a na ikonę samolotu, aby zarządzać lotniskiem i jego połączeniami. Port lotniczy można zbudować w mieście powyżej 100 000 mieszkańców (państwo bez takich miast — w swoim największym mieście).</p>
+    <p id="airport-no-tech" class="airport-hint airport-no-tech" hidden>Budowa portów lotniczych wymaga technologii „Transport lotniczy”. Istniejące lotniska działają dalej.</p>
+    <div id="airport-map" class="airport-map" aria-label="Mapa portów lotniczych państwa"></div>
+    <p id="airport-map-status" role="status" hidden></p>
+  </div>
+</section>

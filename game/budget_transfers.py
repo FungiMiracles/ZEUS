@@ -79,6 +79,15 @@ def sector_balances(session,budget):
     from game.rail_models import RailExpense
     if _inspect(session.connection()).has_table(RailExpense.__tablename__):
         spent['infrastructure']+=session.scalar(select(func.coalesce(func.sum(RailExpense.amount),0)).where(RailExpense.budget_id==budget.id)) or Decimal(0)
+    # 20 Nov 2026: budowa lotnisk (game.airports)
+    from game.airport_models import AirportExpense
+    if _inspect(session.connection()).has_table(AirportExpense.__tablename__):
+        spent['infrastructure']+=session.scalar(select(func.coalesce(func.sum(AirportExpense.amount),0)).where(AirportExpense.budget_id==budget.id)) or Decimal(0)
+    # 21 Nov 2026: obiekty miejskie (game.cities) — budowa, utrzymanie i zwroty w sektorach; część z rezerwy budżetowej
+    from game.cities import spent_by_sector as city_spent
+    city_sectors,city_reserve=city_spent(session,budget.id)
+    for sector,amount in city_sectors.items():spent[canonical(sector)]+=amount
+    spent['reserve']+=city_reserve
     from game.industry_models import IndustryMovement
     # Industry operations are charged to their sector (filters: environment, since 10 Nov 2026).
     for sector,amount in session.execute(select(IndustryMovement.sector,func.sum(IndustryMovement.amount)).where(IndustryMovement.budget_id==budget.id).group_by(IndustryMovement.sector)):
@@ -203,6 +212,13 @@ def infrastructure_balance(session,budget):
     from game.rail_models import RailExpense
     if _inspect(session.connection()).has_table(RailExpense.__tablename__):
         spent+=session.scalar(select(func.coalesce(func.sum(RailExpense.amount),0)).where(RailExpense.budget_id==budget.id)) or Decimal(0)
+    # 20 Nov 2026: budowa lotnisk (game.airports)
+    from game.airport_models import AirportExpense
+    if _inspect(session.connection()).has_table(AirportExpense.__tablename__):
+        spent+=session.scalar(select(func.coalesce(func.sum(AirportExpense.amount),0)).where(AirportExpense.budget_id==budget.id)) or Decimal(0)
+    # 21 Nov 2026: obiekty miejskie finansowane z budżetu infrastruktury (komunikacja miejska, monumenty)
+    from game.cities import spent_by_sector as city_spent
+    spent+=city_spent(session,budget.id)[0].get('infrastructure',Decimal(0))
     return total,max(Decimal(0),total-spent)
 
 

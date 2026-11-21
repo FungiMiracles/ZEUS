@@ -11,7 +11,7 @@ LIMIT=18
 INFRASTRUCTURE=['road','rail','energy','housing','port','connection']
 MISSILES=['short','medium','long']
 BASE_KINDS=['land','air','naval','nuclear']
-TARGET_FIELDS=['city_id','target_base_id','target_vessel_id','target_factory_id','target_power_id','target_mine_id','target_defense_id','target_shipment_id']
+TARGET_FIELDS=['city_id','target_base_id','target_vessel_id','target_factory_id','target_power_id','target_airport_id','target_mine_id','target_defense_id','target_shipment_id']
 
 
 def _config(result):
@@ -96,7 +96,7 @@ def variants(operation,relation_ids):
             action('upgrade',{'base_id':INT},['base_id']),action('withdraw',{'base_id':INT},['base_id']),
             action('sail',{'base_id':INT,'vessel_kind':{'type':'string','enum':['warships','submarines']},'x':{'type':'number'},'y':{'type':'number'}},['base_id','vessel_kind','x','y']),
             action('return_vessel',{'vessel_id':INT,'base_id':INT},['vessel_id','base_id']),
-            action('defense_place',{'target_kind':{'type':'string','enum':['region','city','base','mine','factory','power']},'target_id':INT},['target_kind','target_id']),
+            action('defense_place',{'target_kind':{'type':'string','enum':['region','city','base','mine','factory','power','airport']},'target_id':INT},['target_kind','target_id']),
             action('defense_upgrade',{'defense_id':INT},['defense_id']),action('defense_refill',{'defense_id':INT,'ammunition':INT},['defense_id','ammunition']),
             action('defense_repair',{'defense_id':INT,'count':{'type':'integer','minimum':1,'maximum':100}},['defense_id','count'])]}
     if operation=='game_diplomacy.create_action:POST':

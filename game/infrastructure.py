@@ -101,6 +101,8 @@ def page():
         game_home_url=url_for("game_main_page"), game_logout_url=url_for("game_logout"),
         game_active_page="infrastructure", metrics=metrics,
         rail_config=_rail_config(country.PANSTWO_ID),
+        airport_config=_airport_config(country.PANSTWO_ID),
+        city_config=_city_config(country.PANSTWO_ID),
         infrastructure_map={
             "coastUrl":'/game/obrona-panstwa/wybrzeze/0',"kmPerUnit":calibration(db.session).km_per_unit,
             "funds": funds, "reserve": reserve, "csrf": session["game_csrf_token"], "startUrl": url_for("game_infrastructure.expand"),
@@ -133,6 +135,51 @@ def _rail_config(country_id):
             "regionsUrl": url_for("static", filename="maps/entenda_regiony.geojson"),
             "countriesUrl": url_for('region_sovereignty.country_boundaries'),
             "craneIcon": url_for("static", filename="icons/PRACE BUDOWLANE.svg"), "railIcon": url_for("static", filename="icons/KOLEJ.svg")}
+
+
+def _airport_config(country_id):
+    """20 Nov 2026: porty lotnicze — przycisk „Zbuduj port lotniczy” w tooltipie miasta (po opracowaniu technologii
+    „Transport lotniczy”) i ikony lotnisk przy miastach (także po utracie technologii — istniejące lotniska działają).
+    21 Nov 2026: wszystko w osobnej zakładce „Transport lotniczy” z własną mapą (nie na mapie regionów)."""
+    from game.airports import state as airport_state
+    if "game_airports" not in current_app.blueprints:
+        return None
+    try:
+        from sqlalchemy.orm import Session as OrmSession
+        with OrmSession(db.engine) as orm:
+            data = airport_state(orm, country_id)
+    except Exception:
+        current_app.logger.exception('Lotniska: stan ekranu infrastruktury')
+        return None
+    icon = lambda name: url_for("static", filename="icons/" + name)
+    return {**data, "stateUrl": url_for("game_airports.state_view"), "changeUrl": url_for("game_airports.change_view"),
+            "csrf": session["game_csrf_token"], "airplaneIcon": icon("SAMOLOT.svg"), "craneIcon": icon("PRACE BUDOWLANE.svg"),
+            "countriesUrl": url_for('region_sovereignty.country_boundaries'),   # 21 Nov 2026: mapa w zakładce „Transport lotniczy”
+            "materialIcons": {item["code"]: icon(item["icon"]) for item in data["materials"]}}
+
+
+def _city_config(country_id):
+    """21 Nov 2026: zakładka „Miasta” — mapa miast państwa i okno zarządzania miastem (game.cities, static/js/game_cities.js)."""
+    if "game_cities" not in current_app.blueprints:
+        return None
+    try:
+        from sqlalchemy.orm import Session as OrmSession
+        from game.cities import state as city_state, settle, tables_ready
+        with OrmSession(db.engine) as orm:
+            with orm.begin():
+                if not tables_ready(orm):
+                    return None
+                settle(orm, country_id)
+            data = city_state(orm, country_id)
+    except Exception:
+        current_app.logger.exception('Miasta: stan ekranu infrastruktury')
+        return None
+    icon = lambda name: url_for("static", filename="icons/" + name)
+    return {**data, "stateUrl": url_for("game_cities.state_view"), "quoteUrl": url_for("game_cities.quote_view"), "changeUrl": url_for("game_cities.change_view"),
+            "csrf": session["game_csrf_token"], "countriesUrl": url_for('region_sovereignty.country_boundaries'),
+            "cityIcon": icon("MIASTO.svg"), "craneIcon": icon("PRACE BUDOWLANE.svg"),
+            "icons": {item["kind"]: icon(item["icon"]) for item in data["catalog"]},
+            "sectorIcons": {"healthcare": icon("SZPITAL.svg"), "education": icon("SZKOŁA.svg"), "infrastructure": icon("INFRASTRUKTURA.svg"), "social_policy": icon("NURSERY.svg")}}
 
 
 @infrastructure_bp.post('/rozbuduj')

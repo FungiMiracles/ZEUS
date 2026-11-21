@@ -24,8 +24,21 @@ def state_data(session,country):
     return {'points':row.points if row else 0,'ammunition':row.ammunition if row else 0,
         'nodes':{**{key:node_state((row.nodes if row else {}).get(key,0),key,getattr(row,'timers',None) if row else None,game_now()) for key in TECHNOLOGIES},**{key:dict(invested=0,level=0,progress=0,required=0,maximum=False) for key in PLANNED_TECHNOLOGIES}},
         'budget':str(balances.get('research',{}).get('remaining',0)),'infrastructureBudget':str(balances.get('infrastructure',{}).get('remaining',0)),
-        'year':year,'period':period,'gameNow':game_now().isoformat(),'timeMultiplier':__import__('engine.clock',fromlist=['get_time_multiplier']).get_time_multiplier(),'durations':__import__('game.research_timing',fromlist=['DURATION_DAYS']).DURATION_DAYS,'pointPrice':POINT_PRICE,'factoryPrice':FACTORY_PRICE, 'technologies':RESEARCH_TECHNOLOGIES,
+        'year':year,'period':period,'gameNow':game_now().isoformat(),'timeMultiplier':__import__('engine.clock',fromlist=['get_time_multiplier']).get_time_multiplier(),'durations':_durations(session,country),'educationBonus':_education_bonus(session,country),'pointPrice':POINT_PRICE,'factoryPrice':FACTORY_PRICE, 'technologies':RESEARCH_TECHNOLOGIES,
         'factories':[{'id':f.id,'regionId':str(f.region_id),'position':[f.map_x,f.map_y],'level':f.level,'dailyProduction':__import__('game.industry_catalog',fromlist=['FACTORIES']).FACTORIES[f.kind]['levels'][f.level-1]['quantity'] if f.health>0 and not f.paused else 0,'health':f.health} for f in session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country,AmmunitionFactory.removed_at.is_(None)))]}
+
+
+def _education_bonus(session,country):
+    from game.research_timing import education_bonus
+    from game.cities import education_level
+    return education_bonus(education_level(session,country))
+
+
+def _durations(session,country):
+    """21 Nov 2026: czas rozwoju technologii po bonusie za poziom edukacji powyżej 50."""
+    from game.research_timing import DURATION_DAYS,effective_days
+    bonus=_education_bonus(session,country)
+    return {node:effective_days(node,bonus) for node in DURATION_DAYS}
 
 
 @research_bp.get('')
@@ -87,8 +100,10 @@ def technology_layout():
     # Environmental protection branch (10 Nov 2026), straight below the research method.
     place('environment_tech',90,95)
     place('air_filters',70,110,'environment_tech');place('waste_filters',110,110,'environment_tech')
-    # Transport (19 Nov 2026): węzły komunikacyjne w lewo od metody badawczej, kolej dalej w tej samej linii.
+    # Transport (19 Nov 2026): transport i komunikacja w lewo od metody badawczej, kolej dalej w tej samej linii.
     place('national_hubs',180,95);place('rail_transport',180,80,'national_hubs')
+    # Transport lotniczy (20 Nov 2026, nieaktywny): kolejny bąbel w tej samej linii, za koleją.
+    place('air_transport',180,80,'rail_transport')
     edges=[]
     for key,rule in RESEARCH_TECHNOLOGIES.items():
         if not rule['parent']:continue

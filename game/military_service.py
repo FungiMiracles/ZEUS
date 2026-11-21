@@ -414,9 +414,9 @@ def land_targets(session,country_id):
 def create_order(user_id,data):
     from game.military_models import MilitaryOrder
     from game.infrastructure_service import FIELDS
-    if sum(data.get(key) is not None for key in ('city_id','target_base_id','target_vessel_id','target_mine_id','target_defense_id','target_shipment_id','target_factory_id','target_power_id','target_radar_id'))>1:raise FinanceError('Wybierz dokładnie jeden obiekt celu.')
+    if sum(data.get(key) is not None for key in ('city_id','target_base_id','target_vessel_id','target_mine_id','target_defense_id','target_shipment_id','target_factory_id','target_power_id','target_radar_id','target_airport_id'))>1:raise FinanceError('Wybierz dokładnie jeden obiekt celu.')
     with Session(db.engine) as session, session.begin():
-        country = _country_for_user(session,user_id,lock=data.get('target_shipment_id') is None and data.get('target_factory_id') is None and data.get('target_power_id') is None)
+        country = _country_for_user(session,user_id,lock=data.get('target_shipment_id') is None and data.get('target_factory_id') is None and data.get('target_power_id') is None and data.get('target_airport_id') is None)
         if data.get('target_shipment_id') is not None:
             from game.commerce_models import TradeShipment
             target_id=natural(data.get('target_shipment_id'),'Statek handlowy',1)
@@ -438,6 +438,12 @@ def create_order(user_id,data):
             involved=sorted({country.PANSTWO_ID,owner})
             list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(involved)).order_by(Panstwo.PANSTWO_ID).with_for_update()))
             country=_country_for_user(session,user_id,lock=True)
+        if data.get('target_airport_id') is not None:
+            # 20 Nov 2026: lotnisko przeciwnika — bez rozpoznania wywiadu (lotniska są jawne dla państw w stanie wojny)
+            from game.airport_models import Airport
+            airport_owner=session.scalar(select(Airport.panstwo_id).where(Airport.id==natural(data.get('target_airport_id'),'Lotnisko celu',1)))
+            if airport_owner is None:raise FinanceError('Nie znaleziono lotniska.')
+            list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(sorted({country.PANSTWO_ID,airport_owner}))).order_by(Panstwo.PANSTWO_ID).with_for_update()))
         if data.get('target_radar_id') is not None:
             from game.radar_models import Radar
             radar_owner=session.scalar(select(Radar.panstwo_id).where(Radar.id==natural(data.get('target_radar_id'),'Radar celu',1)))
@@ -453,6 +459,7 @@ def create_order(user_id,data):
             from game.trade_navigation import target_country
             shipment_target=session.scalar(select(TradeShipment).where(TradeShipment.id==target_id).with_for_update())
             if shipment_target is None or shipment_target.health<=0 or shipment_target.sunk_at is not None or shipment_target.delivered_at is not None or not shipment_target.starts_at<=game_now()<shipment_target.arrives_at:raise FinanceError('Statek handlowy nie znajduje się już w rejsie.')
+            if shipment_target.transport=='air':raise FinanceError('Samolotu towarowego w locie nie można zaatakować.')   # 20 Nov 2026
             target_country(session,shipment_target,country.PANSTWO_ID)
             port=session.scalar(select(Miasto).options(lazyload('*')).where(Miasto.miasto_id==shipment_target.departure_port_id))
             if port is None:raise FinanceError('Brak portu macierzystego statku.')
@@ -461,6 +468,11 @@ def create_order(user_id,data):
             from game.radar_models import Radar
             special_target=session.scalar(select(Radar).where(Radar.id==natural(data.get('target_radar_id'),'Radar celu',1)).with_for_update())
             if special_target is None or special_target.health<=0:raise FinanceError('Wybierz istniejący, sprawny radar.')
+            region_id=special_target.region_id
+        elif data.get('target_airport_id') is not None:
+            from game.airport_models import Airport
+            special_target=session.scalar(select(Airport).where(Airport.id==natural(data.get('target_airport_id'),'Lotnisko celu',1)).with_for_update())
+            if special_target is None or special_target.health<=0 or special_target.removed_at is not None:raise FinanceError('Wybierz istniejące lotnisko.')
             region_id=special_target.region_id
         elif data.get('target_power_id') is not None:
             from game.industry_models import PowerPlant
@@ -502,7 +514,7 @@ def create_order(user_id,data):
             host=session.get(Region,special_target.region_id)
             if controller_id(session,host.panstwo_id)!=country.PANSTWO_ID and special_target.id not in known_ids(session,country.PANSTWO_ID,'mines'):raise FinanceError('Brak informacji wywiadowczych o położeniu tej kopalni.')
         if special_target is not None and controller_id(session,special_target.panstwo_id) not in enemy_ids:raise FinanceError('Cel nie należy do państwa, z którym trwa wojna.')
-        if sum(data.get(key) is not None for key in ('city_id','target_base_id','target_vessel_id','target_mine_id','target_defense_id','target_shipment_id','target_factory_id','target_power_id','target_radar_id'))>1:raise FinanceError('Wybierz dokładnie jeden obiekt celu.')
+        if sum(data.get(key) is not None for key in ('city_id','target_base_id','target_vessel_id','target_mine_id','target_defense_id','target_shipment_id','target_factory_id','target_power_id','target_radar_id','target_airport_id'))>1:raise FinanceError('Wybierz dokładnie jeden obiekt celu.')
         target = session.scalar(select(Region).options(lazyload('*')).where(Region.region_id == region_id))
         if target is None or (shipment_target is None and not isinstance(special_target,Mine) and controller_id(session,target.panstwo_id) not in enemy_ids):
             raise FinanceError('Wybrany region nie należy do państwa, z którym trwa wojna.')
@@ -536,7 +548,7 @@ def create_order(user_id,data):
             if data.get('is_nuclear') is not True and count > (getattr(army,MISSILES[missile_type][0]) or 0):   # rakieta atomowa: zapas sprawdza silos (13 Nov 2026)
                 raise FinanceError('Brak wystarczającego zapasu wybranych rakiet.')
             infrastructure = data.get('infrastructure')
-            if data.get('city_id') is None and data.get('target_base_id') is None and data.get('target_vessel_id') is None and data.get('target_mine_id') is None and data.get('target_defense_id') is None and data.get('target_shipment_id') is None and data.get('target_factory_id') is None and data.get('target_power_id') is None and data.get('target_radar_id') is None and (not isinstance(infrastructure,str) or infrastructure not in FIELDS):
+            if data.get('city_id') is None and data.get('target_base_id') is None and data.get('target_vessel_id') is None and data.get('target_mine_id') is None and data.get('target_defense_id') is None and data.get('target_shipment_id') is None and data.get('target_factory_id') is None and data.get('target_power_id') is None and data.get('target_radar_id') is None and data.get('target_airport_id') is None and (not isinstance(infrastructure,str) or infrastructure not in FIELDS):
                 raise FinanceError('Wybierz rodzaj infrastruktury.')
             payload = dict(missile_type=missile_type,missiles=count,infrastructure=infrastructure)
         order=MilitaryOrder(panstwo_id=country.PANSTWO_ID,user_id=user_id,region_id=region_id,kind=kind,payload=payload)

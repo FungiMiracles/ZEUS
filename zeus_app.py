@@ -192,6 +192,10 @@ def create_app():
     app.register_blueprint(imf_bp)
     from game.rail import rail_bp   # 19 Nov 2026: kolej
     app.register_blueprint(rail_bp)
+    from game.airports import airports_bp   # 20 Nov 2026: transport lotniczy
+    app.register_blueprint(airports_bp)
+    from game.cities import cities_bp   # 21 Nov 2026: obiekty miejskie (zakładka „Miasta”)
+    app.register_blueprint(cities_bp)
     from game.industry_models import PowerPlant,IndustryClock,IndustryMovement
     from game.research import research_bp
     app.register_blueprint(research_bp)
@@ -305,7 +309,7 @@ def create_app():
         if request.endpoint is None:
             return
         
-        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_rail", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial", "game_imf"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF; 18 Nov 2026: game_imf (MFW) też
+        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_rail", "game_airports", "game_cities", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial", "game_imf"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF; 18 Nov 2026: game_imf (MFW) też
             return
 
         # Blueprint sam sprawdza sesję gracza i token CSRF.

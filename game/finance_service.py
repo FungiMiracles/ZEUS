@@ -215,7 +215,7 @@ def _general_tax_basis(session,country_id):
     return capture_basis(session,country_id)
 
 
-def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5"), imf_due=ZERO, rail_population=0, rail_infrastructure=100):
+def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5"), imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO):
     """Czyste obliczenia. Funkcja nie korzysta z bazy."""
 
     with localcontext() as context:
@@ -266,10 +266,12 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
         # kolejowa / 100 (game.rail), w każdym cyklu.
         from game.rail import bonus as rail_bonus
         rail_income = money(rail_bonus(gdp, population, rail_population or 0, rail_infrastructure), "Dochody z kolei")
+        # 20 Nov 2026: dochody z połączeń lotniczych — (ludność A + ludność B) × 10 ROI za czynne połączenie (game.airports).
+        air_income = money(air_income or ZERO, "Dochody z lotnictwa")
         # 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem — najwyżej 65% środków budżetu (game.imf).
         from game.imf import collection_amount
-        imf_collection = collection_amount(money(imf_due or ZERO, "Dług w MFW"), reserve + tax_total + rail_income)
-        budget_total = money(reserve + tax_total + rail_income - imf_collection, "Dostępne środki")
+        imf_collection = collection_amount(money(imf_due or ZERO, "Dług w MFW"), reserve + tax_total + rail_income + air_income)
+        budget_total = money(reserve + tax_total + rail_income + air_income - imf_collection, "Dostępne środki")
 
         allocations = {}
 
@@ -309,6 +311,7 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
             "rail_population": int(rail_population or 0),
             "rail_infrastructure": rail_infrastructure,
             "rail_income": rail_income,
+            "air_income": air_income,
             "budget_total": budget_total,
             "expenditure_total": expenditure_total,
             "closing_reserve": closing_reserve,
@@ -487,7 +490,7 @@ def _reserve_for_account(account, previous):
     return account.reserve_balance
 
 
-def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100):
+def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO):
     """Znacznik wykrywający zmianę podstaw od ostatniego podglądu."""
 
     from game.civic_models import CountryTaxPolicy
@@ -513,6 +516,8 @@ def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_po
     if rail_population:
         data["rail_population"] = int(rail_population)   # 19 Nov 2026: ukończona linia kolejowa zmienia dochody z kolei
         data["rail_infrastructure"] = str(rail_infrastructure)
+    if air_income:
+        data["air_income"] = str(money(air_income))   # 20 Nov 2026: nowe lub zawieszone połączenie lotnicze zmienia dochody
 
     payload = json.dumps(
         data,
@@ -576,6 +581,8 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
         from game.rail import connected_population, rail_infrastructure as rail_level
         rail_population = connected_population(session, country.PANSTWO_ID)
         rail_infrastructure = rail_level(session, country.PANSTWO_ID)
+        from game.airports import income as air_level
+        air_income = air_level(session, country.PANSTWO_ID)
         from game.admin_finance import tax_plan
         plan = tax_plan(session,country.PANSTWO_ID,_previous_plan(session, previous))
 
@@ -603,6 +610,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             imf_due=imf_due,
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
+            air_income=air_income,
         )
 
         from game.social_benefits import expectations,carryover
@@ -621,7 +629,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             "period": period,
             "has_previous": previous is not None,
             "basis_token": _basis_token(
-                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure
+                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income
             ),
         })
 
@@ -788,10 +796,12 @@ def approve_in_transaction(
     from game.rail import connected_population, rail_infrastructure as rail_level
     rail_population = connected_population(session, country.PANSTWO_ID)
     rail_infrastructure = rail_level(session, country.PANSTWO_ID)
+    from game.airports import income as air_level
+    air_income = air_level(session, country.PANSTWO_ID)
 
     if not automatic:
         actual_basis = _basis_token(
-            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure
+            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income
         )
 
         if (
@@ -829,6 +839,7 @@ def approve_in_transaction(
             imf_due=imf_due,
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
+            air_income=air_income,
     )
 
     financial_period = _get_period(
@@ -870,6 +881,7 @@ def approve_in_transaction(
         budget_total=calculation["budget_total"],
         imf_collection=calculation["imf_collection"],
         rail_income=calculation["rail_income"],
+        air_income=calculation["air_income"],
         expenditure_total=calculation["expenditure_total"],
         closing_reserve=calculation["closing_reserve"],
         approval_mode=approval_mode,
@@ -941,6 +953,14 @@ def approve_in_transaction(
             captured_real_time, captured_game_time,
         )
 
+    if calculation["air_income"] > 0:
+        _post_transaction(
+            session, account, budget,
+            "AIR_INCOME", "CREDIT",
+            calculation["air_income"],
+            captured_real_time, captured_game_time,
+        )
+
     # 18 Nov 2026: odsetki MFW (5% za cykl) naliczane przy zatwierdzeniu budżetu — przed ewentualnym pobraniem zaległości
     # (due_amount liczył już dług z odsetkami za ten cykl).
     from game.imf import accrue_interest
@@ -970,6 +990,11 @@ def approve_in_transaction(
 
     account.last_budget_id = budget.id
     account.updated_at = captured_real_time
+
+    # 21 Nov 2026: utrzymanie obiektów miejskich (game.cities) — z budżetów sektorów, brakująca część z rezerwy,
+    # a bez środków likwidacja obiektów od najtańszego w utrzymaniu.
+    from game.cities import charge_maintenance
+    charge_maintenance(session, country.PANSTWO_ID, budget, account, captured_game_time)
 
     financial_period.status = "APPROVED"
     financial_period.resolved_at = captured_real_time

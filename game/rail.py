@@ -1,6 +1,6 @@
 """Kolej (administrator, 19 Nov 2026).
 
-- technologie: „Krajowe węzły komunikacyjne” (50 pkt, 14 dni) → „Transport kolejowy” (200 pkt, 21 dni); po opracowaniu
+- technologie: „Transport i komunikacja” (50 pkt, 14 dni) → „Transport kolejowy” (200 pkt, 21 dni); po opracowaniu
   kolei na ekranie „Infrastruktura i energetyka” pojawia się zakładka „Komunikacja”;
 - gracz łączy dwa miasta (widoczne na mapie) torami; koszt 6 mln ROI za km trasy, pobierany z budżetu infrastruktury;
 - budowa trwa 1 dzień Entendy na każde pełne 50 km trasy (230 km → 4 dni), najmniej 1 dzień;

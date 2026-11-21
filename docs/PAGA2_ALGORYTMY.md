@@ -143,6 +143,9 @@ Od **1 października 3001 czasu Entendy** okresy są kwartalne. Starsze komentar
 | war | CYCLIC, IMMEDIATE | Uderzenia konwencjonalne, najazdy, okupacje, odbijanie; wypowiadanie wojny tylko w IMMEDIATE. |
 | communication | CYCLIC, IMMEDIATE | Wybór okazji do wystąpienia i zlecenie wypowiedzi AI. |
 | bases_abroad | CYCLIC, IMMEDIATE | Zezwolenia i bazy zagraniczne. |
+| rail | CYCLIC, IMMEDIATE | Kolej (19 Nov 2026): decyzje o współfinansowaniu linii sąsiadów, budowa linii krajowych. |
+| airports | CYCLIC | Porty lotnicze (20 Nov 2026): budowa lotniska w najludniejszym dozwolonym mieście bez lotniska — jedna budowa naraz, najwyżej 3 lotniska, komplet surowców i chipów, koszt ≤ 60% środków infrastruktury i rozsądny zwrot z dochodów z połączeń. Technologię „Transport lotniczy” rozwija planer (cele infrastruktury i handlu); zakup ofert lotniczych — adapter `trade`; lotniska przeciwników są celami adaptera `war`. |
+| cities | CYCLIC | Obiekty miejskie (21 Nov 2026): jedna budowa na przebieg (najwyżej 2 w toku) w mieście z największą liczbą mieszkańców bez dostępu do usługi — kliniki, szpitale, żłobki i szkoły (priorytet „Rozwój państwa opiekuńczego”, cecha prospołeczności), komunikacja autobusowa, tramwajowa, metro i monumenty (priorytet „Rozwój infrastruktury”), szkoły i uniwersytety (priorytety produkcji i badań). Koszt ≤ 50% środków sektora, roczne utrzymanie sektora / 4 ≤ 35% jego środków (ochrona przed likwidacją z braku środków). |
 
 PAGA2 czyta ekrany przez `view.py` i wykonuje operacje przez `gateway.py` w tożsamości państwa. Endpointy stosują reguły gracza. Planer i historia mają też własne zapisy w bazie; nie wszystko w systemie jest wywołaniem HTTP.
 

@@ -12,10 +12,12 @@
     const smoothScroll=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
     const regionBounds=new Map();
     let focusedObject=null,framedRegion=null,activeObjectMarker=null;
-    const mapFilterKinds=['air','naval','land','nuclear','defenses','mines','factories','power','radars','cities'];
-    const mapFiltersKey=`military-map-filters:v3:${config.countryId}:${config.mode}`;
+    const mapFilterKinds=['air','naval','land','nuclear','defenses','mines','factories','power','airports','radars','cities'];
+    const mapFiltersKey=`military-map-filters:v4:${config.countryId}:${config.mode}`;
     function restoreMapFilters(){
         try{const saved=JSON.parse(sessionStorage.getItem(mapFiltersKey));if(Array.isArray(saved)&&saved.every(kind=>mapFilterKinds.includes(kind)))return new Set(saved);}catch{}
+        // Filtry zapisane przed dodaniem lotnisk (20 Nov 2026): zachowujemy je i pokazujemy lotniska.
+        try{const v3=JSON.parse(sessionStorage.getItem(`military-map-filters:v3:${config.countryId}:${config.mode}`));if(Array.isArray(v3)&&v3.every(kind=>mapFilterKinds.includes(kind)))return new Set([...v3,'airports']);}catch{}
         // Filtry zapisane przed dodaniem miast (12 Nov 2026): zachowujemy je i pokazujemy miasta.
         try{const v2=JSON.parse(sessionStorage.getItem(`military-map-filters:v2:${config.countryId}:${config.mode}`));if(Array.isArray(v2)&&v2.every(kind=>mapFilterKinds.includes(kind)))return new Set([...v2,'cities']);}catch{}
         // Filters saved before radars existed (11 Nov 2026): keep them and show radars.
@@ -207,7 +209,7 @@
         const region = config.regions[id];
         document.getElementById('military-region-name').textContent = selectedTarget ? (selectedTarget.kind==='vessel'?selectedTarget.name:`${selectedTarget.name} — ${region.name}`) : selectedCity ? `${config.cities[selectedCity].name} — ${region.name}` : region?.name || 'Wybierz region na mapie';
         if (!region) return;
-        if(config.mode!=='defense'&&['base','mine','factory','power'].includes(selectedTarget?.kind)&&selectedTarget.countryId===config.countryId&&(selectedTarget.kind!=='factory'||selectedTarget.health>0))defenseActions(selectedTarget.kind,selectedTarget.id,actions);
+        if(config.mode!=='defense'&&['base','mine','factory','power','airport'].includes(selectedTarget?.kind)&&selectedTarget.countryId===config.countryId&&(selectedTarget.kind!=='factory'||selectedTarget.health>0))defenseActions(selectedTarget.kind,selectedTarget.id,actions);
         if(own(id)&&!selectedTarget)defenseActions(selectedCity?'city':'region',selectedCity?Number(selectedCity):Number(id),actions);
         if (config.mode === 'defense' && manageable(id)) {
             if(own(id)||permitRegion(id)){button('Rozmieść bazę', () => deployDialog(id),actions,config.baseIcon);lockButton(actions.lastElementChild);}
@@ -248,6 +250,8 @@
                     card.append(make('p',`Utrzymanie: ${500*months/6} mln ROI / ${period}. Rakieta z głowicą nuklearną w silosie: ${650*months/6} mln ROI / ${period}.`));}
                 card.append(menu); bases.append(card);
             }
+            // 20 Nov 2026: porty lotnicze regionu — obrona przeciwrakietowa na wszystkich poziomach
+            for(const airport of (config.visibleAirports||[]).filter(a=>a.countryId===config.countryId&&a.regionId===String(id))){const card=make('section',null,'military-base military-airport-card'),title=make('h3',airport.name);card.id=`military-airport-${airport.id}`;title.prepend(image(config.airportIcon));card.append(title,healthBar(airport.health),make('p',airport.completed?`Port lotniczy w mieście ${airport.cityName} — czynny.`:`Budowa portu lotniczego: ${airport.progress}%.`));if(airport.health>0)defenseActions('airport',airport.id,card);button('Pokaż lotnisko',()=>map.setView([airport.position[1],airport.position[0]],Math.max(map.getZoom(),3)),card,config.airportIcon);bases.append(card);}
             for(const plant of (config.visiblePower||[]).filter(p=>p.countryId===config.countryId&&p.regionId===String(id))){const card=make('section',null,'military-base military-power-card'),title=make('h3',plant.name);card.id=`military-power-${plant.id}`;title.prepend(image('/static/icons/'+plant.icon));card.append(title,healthBar(plant.health,false),make('p',plant.status+` · ${plant.dailyProduction} e/dzień przy sprawnej elektrowni i dostępnym paliwie`));if(plant.health>0)defenseActions('power',plant.id,card);button('Pokaż elektrownię',()=>map.setView([plant.position[1],plant.position[0]],Math.max(map.getZoom(),3)),card);bases.append(card);}
             for(const factory of (config.visibleFactories||[]).filter(f=>f.countryId===config.countryId&&f.regionId===String(id))){
                 const card=make('section',null,'military-base military-factory-card'),title=make('h3',factory.name);card.id=`military-factory-${factory.id}`;title.prepend(image(config.factoryIcon));card.append(title,healthBar(factory.health),make('p',factory.health?`Produkcja: ${factory.dailyProduction} szt. / cykl produkcji Entendy`:'Fabryka zniszczona — produkcja zatrzymana.'));
@@ -262,6 +266,7 @@
             }
             window.GameRadar?.regionPanel(id,actions,bases);
             if(focusedObject?.kind==='power'){const chosen=document.getElementById(`military-power-${focusedObject.id}`);if(chosen)bases.prepend(chosen);}
+            if(focusedObject?.kind==='airport'){const chosen=document.getElementById(`military-airport-${focusedObject.id}`);if(chosen)bases.prepend(chosen);}
             highlightSelection();
         } else if (config.mode === 'war') {
             const ownBase=selectedTarget?.kind==='base'&&config.bases.find(base=>base.id===selectedTarget.id);
@@ -314,7 +319,7 @@
                     }
                 }, async data => {
                     const payload = {kind,region_id:Number(id),is_nuclear:nuclear};
-                    if(selectedTarget)payload[selectedTarget.kind==='base'?'target_base_id':selectedTarget.kind==='mine'?'target_mine_id':selectedTarget.kind==='defense'?'target_defense_id':selectedTarget.kind==='shipment'?'target_shipment_id':selectedTarget.kind==='power'?'target_power_id':selectedTarget.kind==='factory'?'target_factory_id':selectedTarget.kind==='radar'?'target_radar_id':'target_vessel_id']=selectedTarget.id;
+                    if(selectedTarget)payload[selectedTarget.kind==='base'?'target_base_id':selectedTarget.kind==='mine'?'target_mine_id':selectedTarget.kind==='defense'?'target_defense_id':selectedTarget.kind==='shipment'?'target_shipment_id':selectedTarget.kind==='power'?'target_power_id':selectedTarget.kind==='airport'?'target_airport_id':selectedTarget.kind==='factory'?'target_factory_id':selectedTarget.kind==='radar'?'target_radar_id':'target_vessel_id']=selectedTarget.id;
                     if (kind === 'land') for (const resource of ['soldiers','tanks','armored']) payload[resource]=Number(data.get(resource));
                     else {
                         const carrierChoice=kind==='air'&&String(data.get('source_base_id')).startsWith('c');
@@ -452,7 +457,16 @@
     async function load(url) { const response = await fetch(url); if (!response.ok) throw new Error('map'); return response.json(); }
     const baseLayer=L.layerGroup().addTo(map),missionLayers=new Map(),explosionLayer=L.layerGroup().addTo(map);
     let flights=[],gameAnchor=Date.parse(config.gameNow),realAnchor=performance.now(),refreshing=false;
-    const mineLayer=L.layerGroup().addTo(map),factoryLayer=L.layerGroup().addTo(map),powerLayer=L.layerGroup().addTo(map);
+    const mineLayer=L.layerGroup().addTo(map),factoryLayer=L.layerGroup().addTo(map),powerLayer=L.layerGroup().addTo(map),airportLayer=L.layerGroup().addTo(map);
+    // 20 Nov 2026: porty lotnicze — ikona samolotu obok miasta (w budowie: żuraw i postęp); w panelu wojennym lotniska przeciwnika są celem bez wywiadu
+    function drawAirports(){airportLayer.clearLayers();if(!mapFilters.has('airports'))return;for(const airport of config.visibleAirports||[]){
+        if(config.mode==='defense'&&airport.countryId!==config.countryId)continue;
+        const symbol=make('div',null,'military-airport-symbol military-map-badge');symbol.style.position='relative';if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='airport'&&item.targetId===airport.id))symbol.classList.add('military-object-protected');symbol.append(image(config.airportIcon));
+        if(!airport.completed){const crane=image(config.craneIcon);crane.className='military-map-subbadge';symbol.append(crane);const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=airport.progress;bar.setAttribute('aria-label',`Budowa lotniska: ${airport.progress}%`);symbol.append(bar);}
+        const life=make('progress');life.className='map-health-bar';life.max=100;life.value=airport.health;window.GameHealth?.paint(life,airport.health);life.setAttribute('aria-label',`Życie lotniska: ${airport.health} / 100`);symbol.append(life);
+        const tip=make('div');tip.append(make('strong',airport.name),make('p',`${airport.cityName} · ${airport.country}`),make('p',airport.completed?'Port lotniczy czynny.':`Budowa: ${airport.progress}%`),healthBar(airport.health));
+        bindObjectTooltip(L.marker([airport.position[1],airport.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[-6,14]}),zIndexOffset:900}),tip).on('click',()=>{if(locating||sailing)return;if(config.mode==='defense'){selectObject('airport',airport);return;}if(airport.health>0)showRegion(airport.regionId,null,{kind:'airport',id:airport.id,countryId:airport.countryId,name:airport.name,point:airport.position,health:airport.health});}).addTo(airportLayer);
+    }}
     function drawMines(){mineLayer.clearLayers();if(!mapFilters.has('mines'))return;for(const mine of config.visibleMines||[]){const symbol=make('div',null,'military-mine-symbol military-map-badge');symbol.style.position='relative';if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='mine'&&item.targetId===mine.id))symbol.classList.add('military-object-protected');const main=image(config.mineIcon);const badge=image(config.mineralIcons[mine.resource].icon);badge.className='military-map-subbadge';symbol.append(main,badge);const life=make('progress');life.className='map-health-bar';life.max=100;life.value=mine.health;window.GameHealth?.paint(life,mine.health);symbol.append(life);if(!mine.ready){const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=mine.progress;bar.setAttribute('aria-label',`Budowa kopalni: ${mine.progress}%`);symbol.append(bar);}const tip=make('div');tip.append(make('strong',mine.name),healthBar(mine.health));bindObjectTooltip(L.marker([mine.position[1],mine.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-map-marker'})}),tip).on('click',()=>{if(!locating&&!sailing&&config.mode==='defense'){selectObject('mine',mine);return;}if(!locating&&!sailing)showRegion(mine.regionId,null,{kind:'mine',id:mine.id,countryId:mine.countryId,name:mine.name,point:mine.position});}).addTo(mineLayer);}}
     function drawPower(){powerLayer.clearLayers();if(!mapFilters.has('power'))return;for(const plant of config.visiblePower||[]){const symbol=make('div',null,'military-power-symbol military-map-badge');symbol.append(image('/static/icons/'+plant.icon));const bar=make('progress');bar.className='map-health-bar';bar.max=100;bar.value=plant.health;bar.setAttribute('aria-label','Życie elektrowni');window.GameHealth?.paint(bar,plant.health);symbol.append(bar);const tip=make('div');tip.append(make('strong',plant.name),make('p',plant.status),healthBar(plant.health,false));bindObjectTooltip(L.marker([plant.position[1],plant.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tip).on('click',()=>{if(!locating&&!sailing){if(config.mode==='defense')selectObject('power',plant);else if(plant.health>0)showRegion(plant.regionId,null,{kind:'power',id:plant.id,countryId:plant.countryId,name:plant.name,point:plant.position,health:plant.health});}}).addTo(powerLayer);}}
     function drawFactories(){factoryLayer.clearLayers();if(!mapFilters.has('factories'))return;for(const factory of config.visibleFactories||[]){
@@ -486,8 +500,8 @@
     const allFilters=document.getElementById('military-filters-all');
     for(const control of document.querySelectorAll('[data-map-filter]'))control.setAttribute('aria-pressed',String(mapFilters.has(control.dataset.mapFilter)));
     if(allFilters)allFilters.textContent=mapFilters.size===mapFilterKinds.length?'Odznacz wszystkie':'Zaznacz wszystkie';
-    if(allFilters)allFilters.onclick=()=>{const select=mapFilters.size!==document.querySelectorAll('[data-map-filter]').length;for(const control of document.querySelectorAll('[data-map-filter]')){if(select)mapFilters.add(control.dataset.mapFilter);else mapFilters.delete(control.dataset.mapFilter);control.setAttribute('aria-pressed',String(select));}allFilters.textContent=select?'Odznacz wszystkie':'Zaznacz wszystkie';saveMapFilters();drawBases();drawDefenses();drawMines();drawFactories();window.GameRadar?.draw();drawPower();if(selectedTarget)showRegion(selected);};
-    document.querySelectorAll('[data-map-filter]').forEach(control=>control.addEventListener('click',()=>{const kind=control.dataset.mapFilter;if(mapFilters.has(kind))mapFilters.delete(kind);else mapFilters.add(kind);control.setAttribute('aria-pressed',String(mapFilters.has(kind)));saveMapFilters();if(allFilters)allFilters.textContent=mapFilters.size===document.querySelectorAll('[data-map-filter]').length?'Odznacz wszystkie':'Zaznacz wszystkie';drawBases();drawDefenses();drawMines();drawFactories();window.GameRadar?.draw();drawPower();if(selectedTarget&&['base','mine','defense','factory','power'].includes(selectedTarget.kind)&&!mapFilters.has(selectedTarget.kind==='base'?config.visibleBases.find(base=>base.id===selectedTarget.id)?.kind:selectedTarget.kind==='mine'?'mines':selectedTarget.kind==='defense'?'defenses':selectedTarget.kind==='power'?'power':selectedTarget.kind==='factory'?'factories':null))showRegion(selected);}));
+    if(allFilters)allFilters.onclick=()=>{const select=mapFilters.size!==document.querySelectorAll('[data-map-filter]').length;for(const control of document.querySelectorAll('[data-map-filter]')){if(select)mapFilters.add(control.dataset.mapFilter);else mapFilters.delete(control.dataset.mapFilter);control.setAttribute('aria-pressed',String(select));}allFilters.textContent=select?'Odznacz wszystkie':'Zaznacz wszystkie';saveMapFilters();drawBases();drawDefenses();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();if(selectedTarget)showRegion(selected);};
+    document.querySelectorAll('[data-map-filter]').forEach(control=>control.addEventListener('click',()=>{const kind=control.dataset.mapFilter;if(mapFilters.has(kind))mapFilters.delete(kind);else mapFilters.add(kind);control.setAttribute('aria-pressed',String(mapFilters.has(kind)));saveMapFilters();if(allFilters)allFilters.textContent=mapFilters.size===document.querySelectorAll('[data-map-filter]').length?'Odznacz wszystkie':'Zaznacz wszystkie';drawBases();drawDefenses();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();if(selectedTarget&&['base','mine','defense','factory','power','airport'].includes(selectedTarget.kind)&&!mapFilters.has(selectedTarget.kind==='base'?config.visibleBases.find(base=>base.id===selectedTarget.id)?.kind:selectedTarget.kind==='mine'?'mines':selectedTarget.kind==='defense'?'defenses':selectedTarget.kind==='power'?'power':selectedTarget.kind==='airport'?'airports':selectedTarget.kind==='factory'?'factories':null))showRegion(selected);}));
     const vesselName=vessel=>vessel.name||`${vessel.kind==='carriers'?'Lotniskowiec':config.resources[vessel.kind].label} #${vessel.id}`;
     // 12 Nov 2026: lotniskowiec — wybór bazy powietrznej i liczby myśliwców (najwyżej 5), potem punkt na morzu.
     // 16 Nov 2026: deklaracje funkcji (hoisting) — carrierButton bywa wywoływany przy przywracaniu regionu podczas startu skryptu.
@@ -558,8 +572,8 @@
         cargoLayer.clearLayers();cargoMarkers.clear();   // 18 Nov 2026: ładunki widoczne także na mapie obrony (atak tylko w panelu wojennym)
         for(const ship of config.tradeShips||[]){
             const point=window.GameTradeNavigation.position(ship,currentGameTime());if(!point||Date.parse(ship.arrivesAt)<=currentGameTime())continue;
-            const land=ship.transport==='land',label=land?'Transport lądowy':'Statek handlowy',attackable=config.mode==='war'&&ship.canAttack;
-            const symbol=make('div',null,'military-vessel-symbol trade-cargo-symbol military-map-badge'+(land?' trade-land-symbol':''));symbol.append(image(land?(config.landTransportIcon||config.cargoShipIcon):config.cargoShipIcon));
+            const land=ship.transport==='land',air=ship.transport==='air',label=air?'Samolot towarowy':land?'Transport lądowy':'Statek handlowy',attackable=config.mode==='war'&&ship.canAttack;
+            const symbol=make('div',null,'military-vessel-symbol trade-cargo-symbol military-map-badge'+(land||air?' trade-land-symbol':''));symbol.append(image(air?config.airportIcon:land?(config.landTransportIcon||config.cargoShipIcon):config.cargoShipIcon));
             const flag=image(config.flags[String(ship.originCountryId)],land?'Państwo sprzedające':'Kraj wypłynięcia');flag.className='military-vessel-flag';symbol.append(flag);
             const life=make('progress');life.className='map-health-bar';life.max=100;life.value=ship.health;window.GameHealth?.paint(life,ship.health);symbol.append(life);
             const route=L.polyline(ship.route.map(p=>[p[1],p[0]]),{color:attackable?'#c07b6d':'#7e9d75',weight:2,dashArray:'6 7',interactive:false}).addTo(cargoLayer);
@@ -668,9 +682,10 @@
         try {
             const response=await fetch(config.stateUrl,{credentials:'same-origin',cache:'no-store',signal:abort?.signal});
             if(!response.ok)throw new Error('state');const state=await response.json();
-            config.visiblePower=state.power||[];config.visibleFactories=state.factories||[];config.tradeShips=state.tradeShips||[];config.visibleMines=state.mines;config.visibleBases=state.bases;config.bases=state.bases.filter(base=>base.countryId===config.countryId);config.missiles=state.missiles;config.vessels=state.vessels;config.defenses=state.defenses;
-            config.gameNow=state.gameNow;config.timeMultiplier=state.timeMultiplier;updateReadiness(state.flights);window.GameLandWar?.update(state);if(state.radars)config.radars=state.radars;drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();updateFlights(state.flights,state.gameNow);drawShips();drawCargoShips();drawDefenses();
+            config.visiblePower=state.power||[];config.visibleAirports=state.airports||[];config.visibleFactories=state.factories||[];config.tradeShips=state.tradeShips||[];config.visibleMines=state.mines;config.visibleBases=state.bases;config.bases=state.bases.filter(base=>base.countryId===config.countryId);config.missiles=state.missiles;config.vessels=state.vessels;config.defenses=state.defenses;
+            config.gameNow=state.gameNow;config.timeMultiplier=state.timeMultiplier;updateReadiness(state.flights);window.GameLandWar?.update(state);if(state.radars)config.radars=state.radars;drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();updateFlights(state.flights,state.gameNow);drawShips();drawCargoShips();drawDefenses();
             if(selectedTarget?.kind==='power'){const plant=(config.visiblePower||[]).find(p=>p.id===selectedTarget.id);if(plant){selectedTarget.health=plant.health;selectedTarget.point=plant.position;}else{selectedTarget=null;focusedObject=null;}}
+            if(selectedTarget?.kind==='airport'){const airport=(config.visibleAirports||[]).find(a=>a.id===selectedTarget.id);if(airport&&airport.health>0){selectedTarget.health=airport.health;selectedTarget.point=airport.position;}else{selectedTarget=null;focusedObject=null;if(config.mode==='war')actions.replaceChildren();}}
             if(selectedTarget?.kind==='factory'){const factory=config.visibleFactories.find(f=>f.id===selectedTarget.id);if(factory){selectedTarget.health=factory.health;selectedTarget.point=factory.position;if(config.mode==='war'&&factory.health<=0)selectedTarget=null;}else selectedTarget=null;}
             if(selectedTarget?.kind==='radar'){const radar=(config.radars||[]).find(r=>r.id===selectedTarget.id);if(radar&&radar.health>0)selectedTarget.health=radar.health;else{selectedTarget=null;if(config.mode==='war')actions.replaceChildren();}}
             if(selectedTarget?.kind==='shipment'){const ship=config.tradeShips.find(s=>s.id===selectedTarget.id);if(ship&&ship.canAttack)selectedTarget.point=window.GameTradeNavigation.position(ship,currentGameTime());else{selectedTarget=null;actions.replaceChildren();document.getElementById('military-feedback').textContent='Statek zakończył rejs lub został zatopiony.';}}
@@ -767,7 +782,7 @@
         if(config.mode==='defense'&&pendingBase&&!pendingBase.position){showRegion(pendingBase.regionId);startLocation(pendingBase);}else if(pendingId)sessionStorage.removeItem('military-pending-location-'+config.countryId);
         if (results.some(result=>result.status==='rejected')) { status.hidden=false; status.textContent='Nie udało się wczytać wszystkich warstw mapy.'; }
     }).catch(()=>{status.hidden=false;status.textContent='Nie udało się wyświetlić mapy.';});
-    drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();
+    drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();
     updateFlights(config.flights,config.gameNow);drawShips();drawCargoShips();drawDefenses();
     const requested=Number(new URLSearchParams(location.search).get('base'));
     const requestedBase=config.bases.find(base=>base.id===requested);if(requestedBase&&config.mode==='defense')selectObject('base',requestedBase);

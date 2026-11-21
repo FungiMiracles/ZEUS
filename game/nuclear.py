@@ -260,10 +260,10 @@ def detonate(session, flight, order, hits):
     if session.scalar(select(NuclearZone.id).where(NuclearZone.flight_id == flight.id)) is None:
         session.add(NuclearZone(attacker_id=flight.panstwo_id, target_country_id=flight.target_country_id, region_id=order.region_id, flight_id=flight.id,
                                 x=cx, y=cy, radius_km=RADIUS_KM, created_game_at=moment, until=contamination_until(moment)))
-    destroyed = {'bases': 0, 'factories': 0, 'power': 0, 'mines': 0, 'radars': 0, 'defenses': 0, 'vessels': 0}
+    destroyed = {'bases': 0, 'factories': 0, 'power': 0, 'airports': 0, 'mines': 0, 'radars': 0, 'defenses': 0, 'vessels': 0}
 
     def strike(kind, owner, **ids):
-        fields = dict(target_defense_id=None, target_base_id=None, target_mine_id=None, target_radar_id=None, target_power_id=None,
+        fields = dict(target_defense_id=None, target_base_id=None, target_mine_id=None, target_radar_id=None, target_power_id=None, target_airport_id=None,
                       target_factory_id=None, target_shipment_id=None, target_vessel_id=None)
         fields.update(ids)
         fake = SimpleNamespace(target_kind=kind, target_country_id=owner, panstwo_id=flight.panstwo_id, impact_at=moment, id=flight.id, **fields)
@@ -281,6 +281,14 @@ def detonate(session, flight, order, hits):
     for plant in list(session.scalars(select(PowerPlant).where(PowerPlant.removed_at.is_(None), PowerPlant.health > 0))):
         if _within(scale, plant.map_x, plant.map_y, cx, cy):
             strike('power', plant.panstwo_id, target_power_id=plant.id); destroyed['power'] += 1
+    # 20 Nov 2026: porty lotnicze w promieniu wybuchu
+    from game.airport_models import Airport
+    from sqlalchemy import inspect as _inspect
+    from game.governance import controller_id as _controller
+    if _inspect(session.connection()).has_table(Airport.__tablename__):
+        for airport in list(session.scalars(select(Airport).where(Airport.removed_at.is_(None), Airport.health > 0))):
+            if _within(scale, airport.map_x, airport.map_y, cx, cy):
+                strike('airport', _controller(session, airport.panstwo_id) or airport.panstwo_id, target_airport_id=airport.id); destroyed['airports'] += 1
     from game.commerce_models import Mine
     for mine in list(session.scalars(select(Mine).where(Mine.removed_at.is_(None), Mine.health > 0))):
         if _within(scale, mine.map_x, mine.map_y, cx, cy):

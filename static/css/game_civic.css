@@ -143,6 +143,9 @@
 .game-budget-overview dt{font-size:12px}.game-budget-overview dd{margin:4px 0 0;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}
 .event-card{display:flex;align-items:flex-start;gap:18px}.event-card-content{flex:1;min-width:0}.event-country-flag{width:64px;height:44px;object-fit:contain;flex:0 0 64px;border:1px solid #d3dacd;background:#fff;border-radius:4px}
 .game-notification-icon img{display:block;width:26px;height:26px;object-fit:contain;background:transparent}.game-notification-icon:has(img){background:transparent;flex:0 0 26px}
+/* 21 Nov 2026: ikony pożyczek, żurawia (współfinansowanie kolei) i miast — na białym tle */
+.game-notification-icon.game-notification-icon-white:has(img){box-sizing:border-box;width:30px;height:30px;flex:0 0 30px;padding:3px;background:#fff;border:1px solid #d3dce9;border-radius:50%}
+.game-notification-icon.game-notification-icon-white img{width:22px;height:22px}
 @media(max-width:520px){.event-card{gap:10px}.event-country-flag{width:40px;height:30px;flex-basis:40px}.game-budget-overview{padding:10px 14px}}
 .game-app.game-navy.game-civic #diplomacy-map .diplomacy-map-popup :is(.leaflet-popup-content-wrapper,.leaflet-popup-tip){background:#fffffc;color:#36503b;border-color:#adbea2;backdrop-filter:none;box-shadow:0 3px 10px #26382e22}
 .game-app.game-navy.game-civic #diplomacy-map :is(.diplomacy-country-popup p,.diplomacy-popup-heading,.leaflet-popup-close-button){color:#566e51}

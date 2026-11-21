@@ -20,6 +20,7 @@ from game.trade_diplomacy import allied,ammunition_allowed
 
 SHIP_SPEED=100
 LAND_SPEED=150   # 18 Nov 2026: transport lądowy między stolicami państw sąsiadujących (km/h Entendy)
+AIR_SPEED=1000   # 20 Nov 2026: samolot towarowy między lotniskami sprzedającego i kupującego (km/h Entendy)
 from game.industry_catalog import GOODS
 CODES={code for code,_ in RESOURCES}|{AMMUNITION}|set(GOODS)
 
@@ -130,6 +131,22 @@ def land_route(session,seller_id,buyer_id,neighbors=None):
     return {'source':source,'target':target,'route':route,'distance':path_length(route)*calibration(session).km_per_unit}
 
 
+def own_airport(session,country_id,city_id,label='Lotnisko'):
+    """20 Nov 2026: czynne lotnisko państwa w mieście city_id — port handlu lotniczego (bez opłat portowych)."""
+    from game.military_service import natural
+    from game.airports import own_operational
+    city_id=natural(city_id,label,1)
+    airport=next((a for a in own_operational(session,country_id) if a.miasto_id==city_id),None)
+    if airport is None:raise FinanceError(f'{label}: wybierz czynny port lotniczy własnego państwa.')
+    return airport
+
+
+def transport_mode(data):
+    mode=data.get('transport','sea') or 'sea'
+    if mode not in ('sea','air'):raise FinanceError('Nieprawidłowy rodzaj transportu.')
+    return mode
+
+
 def tariff(session,owner,country_id):
     owner=controller_id(session,owner)
     return Decimal(0) if owner==country_id else session.scalar(select(PortTariff.rate).where(PortTariff.panstwo_id==owner).with_for_update()) or Decimal(0)
@@ -167,6 +184,7 @@ def create_offer(user_id,data):
     if problem:raise FinanceError(problem)
     if not isinstance(excluded,list) or len(excluded)>1000:raise FinanceError('Nieprawidłowa lista wykluczonych państw.')
     excluded=sorted({natural(id,'Państwo',1) for id in excluded})
+    mode=transport_mode(data)
     with Session(db.engine) as session,session.begin():
         country=_country_for_user(session,user_id,lock=False);country_id=country.PANSTWO_ID
         if AMMUNITION in cargo:
@@ -180,24 +198,29 @@ def create_offer(user_id,data):
             if (existing.cargo,existing.price,existing.excluded,existing.port_id)!=(cargo,price,excluded,data.get('port_id')):raise FinanceConflict('Identyfikator żądania został już wykorzystany.')
             return existing.id
         if len(list(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID.in_(excluded)))))!=len(excluded):raise FinanceError('Nieprawidłowe wykluczone państwo.')
-        port=choose_port(session,country_id,data.get('port_id'),departure=True)
+        if mode=='air':
+            # 20 Nov 2026: oferta drogą lotniczą — wysyłka z własnego czynnego lotniska, bez opłat portowych i limitów portu morskiego
+            airport=own_airport(session,country_id,data.get('port_id'),'Lotnisko wysyłki')
+            port=session.get(Miasto,airport.miasto_id);departure_rate=Decimal(0)
+        else:
+            port=choose_port(session,country_id,data.get('port_id'),departure=True)
         # Port infrastructure of the departure port's region limits the size of an export offer (10 Nov 2026).
         from game.infrastructure_effects import port_export_limit
         from models import Region as PortRegion
         port_region=session.get(PortRegion,port.region_id)
-        limit,only=port_export_limit(port_region.region_stan_infra_portowej if port_region is not None else 0)
+        limit,only=port_export_limit(port_region.region_stan_infra_portowej if port_region is not None else 0) if mode=='sea' else (None,None)
         if only is not None and set(cargo)-{only}:
             raise FinanceError('Infrastruktura portowa tego regionu jest poniżej 10: z tego portu można eksportować wyłącznie węgiel kamienny (najwyżej 100 sztuk).')
         if limit is not None and sum(cargo.values())>limit:
             raise FinanceError(f'Infrastruktura portowa regionu pozwala wystawić w tym porcie ofertę najwyżej na {limit} sztuk towarów.')
-        departure_rate=tariff(session,port.panstwo_id,country_id)
+        if mode=='sea':departure_rate=tariff(session,port.panstwo_id,country_id)
         if departure_rate!=percentage(data.get('departure_rate'),'Opłata portu wysyłki'):raise FinanceConflict('Opłata portu wysyłki zmieniła się. Odśwież formularz.')
         from game.research_service import settle_production
         settle_production(session,country_id,game_now())
         for code,quantity in sorted(cargo.items()):
             change_goods(session,country_id,code,-quantity)
-        offer=TradeOffer(panstwo_id=country_id,user_id=user_id,cargo=cargo,price=price,excluded=excluded,port_id=port.miasto_id,port_country_id=controller_id(session,port.panstwo_id),departure_rate=departure_rate,request_id=key,status='open',
-                         created_game_at=game_now())
+        offer=TradeOffer(panstwo_id=country_id,user_id=user_id,cargo=cargo,price=price,excluded=excluded,port_id=port.miasto_id,port_country_id=country_id if mode=='air' else controller_id(session,port.panstwo_id),departure_rate=departure_rate,request_id=key,status='open',
+                         created_game_at=game_now(),transport=mode)
         session.add(offer);session.flush();return offer.id
 
 
@@ -294,8 +317,13 @@ def buy_offer(user_id,data):
         if preview is None:raise FinanceError('Oferta nie jest dostępna.')
         expires=offer_expires_at(preview)
         if preview.status=='open' and expires is not None and expires<=game_now():raise FinanceError('Oferta wygasła po 14 dniach Entendy i nie jest już dostępna.')
-        land=land_route(session,preview.panstwo_id,buyer_id)
-        if land:
+        air=(preview.transport or 'sea')=='air'
+        land=None if air else land_route(session,preview.panstwo_id,buyer_id)
+        if air:
+            # 20 Nov 2026: oferta lotnicza — odbiór na własnym czynnym lotnisku kupującego (bez opłat portowych)
+            arrival=session.get(Miasto,own_airport(session,buyer_id,data.get('port_id'),'Lotnisko odbioru').miasto_id)
+            involved=sorted({buyer_id,preview.panstwo_id})
+        elif land:
             arrival=session.get(Miasto,land['target'])
             involved=sorted({buyer_id,preview.panstwo_id})
         else:
@@ -310,7 +338,10 @@ def buy_offer(user_id,data):
         offer=session.scalar(select(TradeOffer).where(TradeOffer.id==offer_id).with_for_update().execution_options(populate_existing=True))
         if offer.status!='open' or buyer_id in offer.excluded or offer.panstwo_id==buyer_id:raise FinanceError('Oferta nie jest dostępna dla tego państwa.')
         if AMMUNITION in offer.cargo and not ammunition_allowed(session,offer.panstwo_id,buyer_id,lock=True):raise FinanceError('Relacje lub stan dyplomatyczny państw nie pozwalają na handel amunicją przeciwrakietową.')
-        if land:
+        if air:
+            departure=session.get(Miasto,own_airport(session,offer.panstwo_id,offer.port_id,'Lotnisko wysyłki sprzedającego').miasto_id);current_rate=Decimal(0)
+            if percentage(data.get('arrival_rate','0'),'Opłata portu odbioru')!=0:raise FinanceConflict('Transport lotniczy nie ma opłat portowych. Odśwież ofertę przed zakupem.')
+        elif land:
             # 18 Nov 2026: transport lądowy między stolicami — bez portów i opłat portowych.
             departure=session.get(Miasto,land['source']);current_rate=Decimal(0)
         else:
@@ -323,10 +354,14 @@ def buy_offer(user_id,data):
             if current_rate!=expected:raise FinanceConflict('Opłata portu odbioru zmieniła się. Odśwież ofertę przed zakupem.')
         from game.research_service import settle_production
         for country in sorted((buyer_id,offer.panstwo_id)):settle_production(session,country,game_now())
-        departure_fee=Decimal(0) if land else fee(offer.price,offer.departure_rate);arrival_fee=fee(offer.price,current_rate)
+        departure_fee=Decimal(0) if land or air else fee(offer.price,offer.departure_rate);arrival_fee=fee(offer.price,current_rate)
         accounts={id:account_for(session,id) for id in involved}
         if accounts[buyer_id].reserve_balance<offer.price+arrival_fee:raise FinanceError('Za mało środków w rezerwie na zakup i opłatę portu odbioru.')
-        if land:
+        if air:
+            from game.military_flights import calibration
+            route=[list(city_point(departure.miasto_id)),list(city_point(arrival.miasto_id))]
+            distance,speed=path_length(route)*calibration(session).km_per_unit,AIR_SPEED
+        elif land:
             route,distance,speed=land['route'],land['distance'],LAND_SPEED
         else:
             route=shortest_sea_route(city_point(departure.miasto_id),city_point(arrival.miasto_id))
@@ -334,12 +369,12 @@ def buy_offer(user_id,data):
             distance,speed=path_length(route)*calibration(session).km_per_unit,SHIP_SPEED
         source,target=route[0],route[-1];now=game_now()
         shipment=TradeShipment(offer_id=offer.id,seller_id=offer.panstwo_id,buyer_id=buyer_id,cargo=offer.cargo,departure_port_id=departure.miasto_id,arrival_port_id=arrival.miasto_id,
-            route=route,origin_country_id=offer.panstwo_id if land else departure.panstwo_id,transport='land' if land else 'sea',health=100,departure_fee=departure_fee,arrival_fee=arrival_fee,source_x=source[0],source_y=source[1],target_x=target[0],target_y=target[1],distance_km=distance,
+            route=route,origin_country_id=offer.panstwo_id if land or air else departure.panstwo_id,transport='air' if air else 'land' if land else 'sea',health=100,departure_fee=departure_fee,arrival_fee=arrival_fee,source_x=source[0],source_y=source[1],target_x=target[0],target_y=target[1],distance_km=distance,
             starts_at=now,arrives_at=now+timedelta(seconds=max(1,distance/speed*3600)),request_id=key)
         session.add(shipment);offer.status='sold';session.flush()
         changes={id:Decimal(0) for id in involved}
         changes[buyer_id]-=offer.price+arrival_fee;changes[offer.panstwo_id]+=offer.price-departure_fee
-        if not land:changes[controller_id(session,departure.panstwo_id)]+=departure_fee;changes[controller_id(session,arrival.panstwo_id)]+=arrival_fee
+        if not land and not air:changes[controller_id(session,departure.panstwo_id)]+=departure_fee;changes[controller_id(session,arrival.panstwo_id)]+=arrival_fee
         for id,amount in changes.items():
             if not amount:continue
             account=accounts[id];account.reserve_balance=money(account.reserve_balance+amount,'Saldo rezerwy');account.updated_at=utc_now()
@@ -349,7 +384,7 @@ def buy_offer(user_id,data):
         goods=', '.join(f"{quantity} {names[code]}" for code,quantity in sorted(offer.cargo.items()))
         def roi(value):return format(value,',.2f').replace(',',' ').replace('.',',')+' ROI'
         buyer_name=session.scalar(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID==buyer_id))
-        message=f"{buyer_name} zakupił/a {goods} za {roi(offer.price)}. Cło portowe: {roi(departure_fee)}"+(' (transport lądowy)' if land else '')
+        message=f"{buyer_name} zakupił/a {goods} za {roi(offer.price)}. Cło portowe: {roi(departure_fee)}"+(' (transport lotniczy)' if air else ' (transport lądowy)' if land else '')
         session.add(GameNotification(user_id=offer.user_id,notification_type='SYSTEM',system_text=message,created_at=utc_now()))
         return shipment.id
 

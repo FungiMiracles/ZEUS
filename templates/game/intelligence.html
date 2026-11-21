@@ -5,7 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_military.css',v='20261024-10') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/game_intelligence.css',v='20261112-agents-2') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/game_intelligence.css',v='20261121-resources-1') }}">
 {% endblock %}
 {% block content %}
 <div class="military-summary">
@@ -24,8 +24,9 @@
 <p id="intel-target"></p><p><span id="intel-mission-quote"></span> Koszt pokrywa budżet służb specjalnych i porządkowych. Szansa powodzenia zależy od poziomu agenta i ochrony kontrwywiadowczej celu. W działaniach hybrydowych niepowodzenie może zakończyć się schwytaniem — taki agent nie wraca do kraju. Ładunek na kolei obniża infrastrukturę kolejową o 2 punkty.</p>
 <button type="submit" id="intel-send">Wyślij na misję</button></form></aside></div>
 <section class="game-panel intel-panel"><h2>Agenci</h2><div id="intel-agents"></div></section>
+<section class="game-panel intel-panel"><h2>Rozpoznane zasoby regionów</h2><p class="intel-resources-note">Dane z udanych misji „Zasoby naturalne regionu” są dostępne przez 180 dni Entendy — tutaj, na mapie wywiadu i na mapie kopalń w module „Infrastruktura i energetyka”.</p><div id="intel-resources"></div></section>
 <section class="game-panel intel-panel"><h2>Misje i raporty</h2><div id="intel-missions"></div></section>
 <dialog id="intel-confirm" class="game-actions-dialog"><h2 class="intel-heading"><img class="intel-heading-icon" id="intel-confirm-icon" hidden src="{{ url_for('static',filename='icons/WYWIAD WOJSKOWY.svg') }}" alt=""><span id="intel-confirm-title"></span></h2><p id="intel-confirm-text"></p><label id="intel-agent-name-label" hidden>Imię i nazwisko<input id="intel-agent-name" maxlength="100" autocomplete="off"></label><p id="intel-confirm-error" role="alert"></p><div class="military-dialog-actions"><button id="intel-confirm-cancel" type="button">Anuluj</button><button id="intel-confirm-submit" type="button">Zatwierdź</button></div></dialog>
 <script id="intelligence-config" type="application/json">{{ intelligence_config|tojson }}</script>
 {% endblock %}
-{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261117-intel-2') }}" defer></script>{% endblock %}
+{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261121-resources-1') }}" defer></script>{% endblock %}

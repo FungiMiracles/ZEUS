@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet"
       href="{{ url_for('static', filename='css/game_finanse.css', v='20261116-mobile-1') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261118-units-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_finance_navy.css', v='20261121-loans-1') }}">
 {% endblock %}
 
 {% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_imf.css', v='20261118-imf-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
@@ -20,6 +20,19 @@
 {% include "game/_loans.html" %}
 </div>
 {% include "game/_imf_debt.html" %}
+{% if city_upkeep %}
+{# 21 Nov 2026: roczne utrzymanie obiektów miejskich z rozbiciem na okres budżetowy (game.cities.upkeep_summary) #}
+<section class="game-panel city-upkeep-panel" aria-labelledby="city-upkeep-title">
+<h2 class="finance-icon-heading" id="city-upkeep-title"><img src="{{ url_for('static',filename='icons/MIASTO.svg') }}" alt="" width="30" height="30">Utrzymanie miast</h2>
+<p class="city-upkeep-note">Roczne koszty utrzymania działających obiektów miejskich. Przy zatwierdzeniu budżetu pobierana jest część za okres budżetowy ({{ city_upkeep.periodLabel }}: {{ city_upkeep.periodMonths }} mies.) z budżetu właściwego sektora; brakującą część pokrywa rezerwa budżetowa.</p>
+<dl class="finance-metrics city-upkeep-metrics">
+{% for item in city_upkeep['items'] %}
+<div><dt>Roczny koszt utrzymania — {{ item.label|lower }}</dt><dd data-city-upkeep="{{ item.annual }}">{{ item.annual }}</dd><small>W okresie ({{ city_upkeep.periodLabel }}): <span data-city-upkeep="{{ item.period }}">{{ item.period }}</span></small></div>
+{% endfor %}
+</dl>
+{% if city_upkeep.other %}<p class="city-upkeep-note">{% for item in city_upkeep.other %}{{ item.label }}: <span data-city-upkeep="{{ item.annual }}">{{ item.annual }}</span> rocznie ({{ city_upkeep.periodLabel }}: <span data-city-upkeep="{{ item.period }}">{{ item.period }}</span>){% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+</section>
+{% endif %}
 
 <section class="game-panel finance-history">
     <div class="game-panel-heading">Historia okresów budżetowych</div>
@@ -101,7 +114,7 @@
     </div>
 </section>
 
-<section class="game-panel"
+<section class="game-panel finance-history-detail"
          id="finance-history-detail"
          data-finance-history-detail
          aria-live="polite"
@@ -113,11 +126,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static',filename='js/game_loans.js',v='20261113-history-2') }}" defer></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{for(const el of document.querySelectorAll('[data-city-upkeep]'))if(window.GameMoney)el.textContent=window.GameMoney.format(el.dataset.cityUpkeep,false);});</script>
+<script src="{{ url_for('static',filename='js/game_loans.js',v='20261121-loans-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_imf.js',v='20261118-imf-2') }}" defer></script>
 <script src="{{ url_for(
     'static',
     filename='js/game_finanse.js', benefit_version='20261116-period',
-    v='20261119-rail-1'
+    v='20261120-air-1'
 ) }}" defer></script>
 {% endblock %}

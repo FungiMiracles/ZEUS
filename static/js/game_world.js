@@ -263,6 +263,23 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     if (trainsToggle) { trainsToggle.checked = showTrains; trainsToggle.addEventListener('change', () => { showTrains = trainsToggle.checked; apply(); }); }
     apply();
   } else for (const id of ['world-rails-toggle', 'world-trains-toggle']) document.getElementById(id)?.closest('label')?.setAttribute('hidden', '');
+  // --- lotnictwo (20 Nov 2026): porty lotnicze przy miastach (warstwa „Znaczniki miast”) i samoloty między nimi (filtr „Samoloty”) ---
+  const air = config.air || {};
+  for (const airport of air.airports || []) {
+    const box = make('div', null, 'world-airport'), img = make('img'); img.src = config.airplaneIcon; img.alt = ''; box.append(img);
+    L.marker([airport.position[1], airport.position[0]], { pane: 'worldCityMarkers', keyboard: false, icon: L.divIcon({ html: box, className: 'world-airport-marker', iconSize: [16, 16], iconAnchor: [-5, 8] }) })
+      .bindTooltip(iconTip(config.airplaneIcon, airport.name, [`${airport.cityName} · ${airport.country}`]), { direction: 'top', className: 'world-tooltip' }).addTo(cityMarkersLayer);
+  }
+  const planesToggle = document.getElementById('world-planes-toggle');
+  if (window.GameAirTraffic && (air.routes || []).length) {
+    if (!map.getPane('worldPlanes')) { map.createPane('worldPlanes'); map.getPane('worldPlanes').style.zIndex = '650'; }
+    const planeLayer = L.layerGroup();
+    window.GameAirTraffic.planes(map, air, { pane: 'worldPlanes', layer: planeLayer, gameNow: config.gameNow, timeMultiplier: config.timeMultiplier, speed: air.speed, icon: config.airplaneIcon });
+    let showPlanes = true; try { showPlanes = localStorage.getItem('world-planes') !== '0'; } catch {}
+    const applyPlanes = () => { if (showPlanes) planeLayer.addTo(map); else planeLayer.remove(); try { localStorage.setItem('world-planes', showPlanes ? '1' : '0'); } catch {} };
+    if (planesToggle) { planesToggle.checked = showPlanes; planesToggle.addEventListener('change', () => { showPlanes = planesToggle.checked; applyPlanes(); }); }
+    applyPlanes();
+  } else planesToggle?.closest('label')?.setAttribute('hidden', '');
   // --- płynące statki towarowe ---
   map.createPane('worldShips'); map.getPane('worldShips').style.zIndex = '640';
   const anchor = Date.parse(config.gameNow), realAnchor = performance.now(), gameTime = () => anchor + (performance.now() - realAnchor) * (config.timeMultiplier || 1);
@@ -270,12 +287,12 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   for (const ship of config.ships || []) {
     L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(map);
     // 18 Nov 2026: transport lądowy (granica lądowa) — ikona TRANSPORT LĄDOWY z flagą państwa sprzedającego.
-    const land = ship.transport === 'land', icon = land ? (config.landIcon || config.shipIcon) : config.shipIcon;
+    const land = ship.transport === 'land', air = ship.transport === 'air', icon = air ? config.airplaneIcon : land ? (config.landIcon || config.shipIcon) : config.shipIcon;
     const symbol = make('div', null, 'world-ship' + (land ? ' world-land-transport' : '')); const img = make('img'); img.src = icon; img.alt = ''; symbol.append(img);
     if (ship.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = ship.flag; flag.alt = ''; symbol.append(flag); }
     const point = window.GameTradeNavigation?.position(ship, gameTime()); if (!point) continue;
     const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-      .bindTooltip(iconTip(icon, land ? 'Transport lądowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `${land ? 'Dotrze' : 'Przypłynie'}: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+      .bindTooltip(iconTip(icon, air ? 'Samolot towarowy' : land ? 'Transport lądowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `${air ? 'Doleci' : land ? 'Dotrze' : 'Przypłynie'}: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
     ships.push([ship, marker]);
   }
   if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);

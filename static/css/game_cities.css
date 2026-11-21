@@ -1,0 +1,116 @@
+/* 21 Nov 2026: zakładka „Miasta” — obiekty miejskie (etap 1). Styl gry: granat #1E3A5F, białe karty, akcent #E8B65C. */
+.city-panel .city-panel-heading h2{display:flex;align-items:center;gap:8px}
+.city-hint{margin:0 0 12px;color:#4a5a70;font-size:13px;line-height:1.5}
+.city-layout{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:14px;align-items:start}
+.city-indicators{display:grid;gap:10px}
+.city-indicator{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:center;padding:10px 12px;background:#fff;border:1px solid #c9d6e6;border-left:4px solid #1E3A5F;border-radius:6px}
+.city-indicator>img{width:40px;height:40px;padding:4px;box-sizing:border-box;object-fit:contain;background:#eef3fa;border:1px solid #d3dce9;border-radius:8px}
+.city-indicator div{display:grid;gap:3px;min-width:0}
+.city-indicator span{color:#4a5a70;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.3}
+.city-indicator strong{color:#1E3A5F;font-size:22px;font-weight:800;font-family:Consolas,monospace}
+.city-indicator progress{width:100%;height:7px;accent-color:#1E3A5F}
+.city-facts{display:grid;gap:4px;margin:0;padding:10px 12px;background:#eef3fa;border:1px solid #d3dce9;border-radius:6px;font-size:12px}
+.city-facts div{display:flex;justify-content:space-between;gap:10px}
+.city-facts dt{color:#4d5f78}
+.city-facts dd{margin:0;color:#1E3A5F;font-weight:700;text-align:right}
+.city-map{height:420px;height:clamp(420px,66vh,720px);height:clamp(420px,66dvh,720px);border:1px solid #1E3A5F;border-radius:6px;background:radial-gradient(ellipse at 50% 40%,#1b3a5c,#0b1d33 75%)}
+#city-map-status{margin:8px 0 0;color:#1E3A5F;font-weight:600}
+@media (max-width:860px){.city-layout{grid-template-columns:minmax(0,1fr)}.city-indicators{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}.city-facts{grid-column:1/-1}}
+
+/* znaczniki miast: ikona MIASTO.svg (kolor z maski) i nazwa, bez kropek; stolica — złota */
+.city-marker-wrap{background:transparent;border:0}
+.city-marker{position:relative;width:24px;height:24px;cursor:pointer}
+.city-marker-icon{display:block;width:24px;height:24px;background:#1E3A5F;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff)}
+.city-marker-name{position:absolute;left:50%;top:24px;transform:translateX(-50%);white-space:nowrap;color:#13253d;font-size:11px;font-weight:800;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none}
+.city-marker-capital .city-marker-icon{width:28px;height:28px;margin:-2px;background:#C99A1E;filter:drop-shadow(0 0 1px #5a3f00) drop-shadow(0 0 2px #fff)}
+.city-marker-capital .city-marker-name{color:#8a6100;font-size:12px}
+.city-marker:hover .city-marker-icon{background:#2b4f7c}.city-marker-capital:hover .city-marker-icon{background:#e0b02a}
+.city-marker-crane{position:absolute;right:-8px;top:-8px;width:14px;height:14px;padding:1px;background:#fff;border:1px solid #c58a16;border-radius:50%}
+.city-map-far .city-marker-name{display:none}
+.city-map-far .city-marker-capital .city-marker-name{display:block}
+.leaflet-tooltip.city-leaflet-tooltip{padding:8px 10px;background:#fff;color:#24324a;border:1px solid #d3dce9;border-top:3px solid #1E3A5F;border-radius:7px;box-shadow:0 6px 18px #0b1d3333;font-size:12px}
+.city-leaflet-tooltip strong{color:#1E3A5F}
+
+/* okna */
+html body.game-app.game-navy.game-civic dialog.city-dialog{box-sizing:border-box;width:min(1040px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow-y:auto;padding:0;background:#F0F4FA;color:#24324a;border:1px solid #d3dce9;border-top:4px solid #1E3A5F;border-radius:10px;box-shadow:0 20px 60px #0b1d3355;color-scheme:light}
+html body.game-app.game-navy.game-civic dialog.city-dialog::backdrop{background:#0b1d2bd6;backdrop-filter:blur(4px)}
+.city-dialog-head{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F)}
+.city-dialog-icon{flex:0 0 56px;width:56px;height:56px;padding:6px;box-sizing:border-box;object-fit:contain;background:#fff;border:2px solid #fff;border-radius:10px}
+.city-dialog-icon.is-capital{border-color:#E8B65C;box-shadow:0 0 0 2px #C99A1E}
+.city-dialog-name{flex:1 1 160px;min-width:0}
+html body.game-app.game-navy.game-civic dialog.city-dialog .city-dialog-name h2{margin:0;color:#fff;font-size:18px;font-weight:800}
+html body.game-app.game-navy.game-civic dialog.city-dialog .city-dialog-name p{margin:2px 0 0;color:#c9d7e8;font-size:12.5px}
+.city-budgets{display:flex;flex-wrap:wrap;gap:8px;flex:2 1 460px}
+.city-budget{display:flex;align-items:center;gap:8px;flex:1 1 140px;min-width:0;padding:7px 10px;background:#fff;border:1px solid #d3dce9;border-left:4px solid #E8B65C;border-radius:7px}
+.city-budget img{flex:0 0 26px;width:26px;height:26px;object-fit:contain}
+.city-budget div{display:grid;min-width:0}
+.city-budget span{color:#4d5f78;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic .city-budget strong{color:#1E3A5F;font-family:Consolas,monospace;font-size:14px;white-space:nowrap}
+html body.game-app.game-navy.game-civic .city-dialog-close{flex:none;width:34px;height:34px;min-width:0;min-height:0;padding:0;background:transparent;color:#fff;border:1.5px solid #ffffff99;border-radius:6px;box-shadow:none;font-size:16px}
+html body.game-app.game-navy.game-civic .city-dialog-close:hover{background:#ffffff26;border-color:#fff}
+.city-section{margin:14px 16px;padding:12px 14px;background:#fff;border:1px solid #d3dce9;border-radius:8px}
+html body.game-app.game-navy.game-civic dialog.city-dialog .city-section-title{text-align:left;margin:0 0 10px;color:#1E3A5F;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.city-catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:8px}
+html body.game-app.game-navy.game-civic .city-object{display:grid;grid-template-columns:44px minmax(0,1fr);gap:9px;align-items:start;padding:8px 10px;background:#eef3fa;color:#24324a;border:1px solid #d3dce9;border-left:3px solid #1E3A5F;border-radius:7px;box-shadow:none;text-align:left;cursor:grab;font-weight:400;min-height:0}
+html body.game-app.game-navy.game-civic .city-object:hover{background:#e3ebf6}
+html body.game-app.game-navy.game-civic .city-object.is-picked{background:#fff6e3;border-color:#E8B65C;border-left-color:#C99A1E;box-shadow:0 0 0 2px #E8B65C}
+.city-object-icon{width:44px;height:44px;padding:4px;box-sizing:border-box;object-fit:contain;background:#fff;border:1px solid #d3dce9;border-radius:7px}
+.city-object-text{display:grid;gap:1px;min-width:0;font-size:11.5px;line-height:1.35}
+html body.game-app.game-navy.game-civic .city-object-text strong{color:#1E3A5F;font-size:12.5px}
+.city-object-text span{color:#4d5f78}
+.city-object-text small{color:#6b7a8f;font-size:10.5px}
+.city-catalog-hint{margin:8px 0 0;color:#4d5f78;font-size:12px}
+.city-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;width:min(100%,460px);margin:0 auto;padding:8px;background:#dfe7f2;border:1px solid #c9d6e6;border-radius:8px}
+html body.game-app.game-navy.game-civic .city-cell{position:relative;aspect-ratio:1;min-width:0;min-height:0;padding:0;background:#fff;border:1px solid #c3cfdf;border-radius:5px;box-shadow:none;cursor:pointer}
+html body.game-app.game-navy.game-civic .city-cell:hover{border-color:#1E3A5F}
+html body.game-app.game-navy.game-civic .city-cell.is-target{background:#fffaf0;border-style:dashed;border-color:#C99A1E}
+html body.game-app.game-navy.game-civic .city-cell.is-over{background:#fff1cc;border:2px solid #C99A1E}
+html body.game-app.game-navy.game-civic .city-cell.is-built{background:#fff;border-color:#1E3A5F}
+html body.game-app.game-navy.game-civic .city-cell.is-building{background:#fff8e6;border-color:#c58a16}
+.city-cell-icon{position:absolute;inset:12%;width:76%;height:76%;object-fit:contain}
+.city-cell.is-building .city-cell-icon{opacity:.55}
+.city-cell-crane{position:absolute;right:2px;top:2px;width:34%;height:34%;object-fit:contain;background:#fff;border-radius:50%}
+.city-cell-progress{position:absolute;left:4px;right:4px;bottom:4px;height:4px;background:#e5d3a8;border-radius:2px;overflow:hidden}
+.city-cell-progress::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--progress,0%);background:#1E3A5F}
+.city-error{margin:8px 0 0;color:#a33e33;font-weight:700}.city-error:empty{display:none}
+html body.game-app.game-navy.game-civic dialog.city-confirm{width:min(560px,calc(100vw - 24px));padding:20px 22px;background:#fff}
+.city-confirm-title{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid #d3dce9}
+html body.game-app.game-navy.game-civic .city-confirm-title span{color:#1E3A5F;font-size:18px;font-weight:800}
+.city-confirm-title img{flex:none;width:48px;height:48px;padding:5px;box-sizing:border-box;object-fit:contain;background:#eef3fa;border:1px solid #d3dce9;border-radius:8px}
+html body.game-app.game-navy.game-civic dialog.city-confirm p{color:#4d5f78;font-size:13px}
+.city-confirm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.city-confirm-grid div{padding:8px 10px;background:#eef3fa;border:1px solid #d3dce9;border-left:3px solid #1E3A5F;border-radius:7px}
+.city-confirm-grid dt{color:#4d5f78;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.city-confirm-grid dd{margin:3px 0 0;color:#1E3A5F;font-family:Consolas,monospace;font-weight:700;font-size:15px}
+.city-confirm-note{padding:8px 10px;background:#f7f9fc;border:1px solid #d3dce9;border-radius:7px}
+.city-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+html body.game-app.game-navy.game-civic .city-actions button{min-height:40px;padding:8px 18px;border-radius:7px;font-weight:700;box-shadow:none}
+html body.game-app.game-navy.game-civic .city-actions .city-primary{background:#1E3A5F;color:#fff;border:1px solid #1E3A5F}
+html body.game-app.game-navy.game-civic .city-actions .city-primary:hover:not(:disabled){background:#2b4f7c}
+html body.game-app.game-navy.game-civic .city-actions button:disabled{background:#c9d3e0;border-color:#c9d3e0;color:#5d6b80;cursor:not-allowed}
+html body.game-app.game-navy.game-civic .city-actions .city-cancel{background:#f6e6e1;color:#85382c;border:1px solid #c8a49b}
+html body.game-app.game-navy.game-civic .city-actions .city-secondary{background:#fff;color:#1E3A5F;border:1px solid #1E3A5F}
+html body.game-app.game-navy.game-civic .city-actions .city-danger{background:#a33e33;color:#fff;border:1px solid #a33e33}
+html body.game-app.game-navy.game-civic .city-actions .city-danger:hover:not(:disabled){background:#8a2f26}
+@media (max-width:600px){.city-confirm-grid{grid-template-columns:minmax(0,1fr)}.city-grid{gap:3px;padding:5px}.city-section{margin:10px;padding:10px}.city-budget{flex-basis:100%}}
+/* telefon: niski nagłówek (budżety w jednym rzędzie, zamknięcie w rogu), katalog w dwóch kolumnach */
+@media (max-width:600px){
+  .city-dialog-head{position:relative;gap:8px;padding:10px 48px 10px 10px}
+  .city-dialog-icon{flex-basis:44px;width:44px;height:44px;padding:4px}
+  html body.game-app.game-navy.game-civic .city-dialog-close{position:absolute;right:10px;top:10px}
+  .city-budgets{flex-basis:100%;gap:5px}
+  .city-budget{flex:1 1 0;padding:5px 6px;gap:4px}
+  .city-budget img{display:none}
+  .city-budget span{font-size:9px;letter-spacing:0}
+  html body.game-app.game-navy.game-civic .city-budget strong{font-size:11.5px}
+  .city-catalog{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  html body.game-app.game-navy.game-civic .city-object{grid-template-columns:minmax(0,1fr);gap:4px;padding:6px}
+  .city-object-icon{width:34px;height:34px}
+  .city-object-text{font-size:10.5px}
+  .city-object-text small{display:none}
+}
+/* kolory tekstu okien miast — mocniejsze niż ogólne reguły motywu ekranu infrastruktury */
+#city-dialog #city-dialog-population{color:#c9d7e8!important}
+#city-dialog #city-dialog-title{color:#fff!important}
+:is(#city-build-dialog,#city-demolish-dialog) p,#city-dialog .city-catalog-hint{color:#4d5f78!important}
+:is(#city-build-dialog,#city-demolish-dialog) .city-error,#city-dialog .city-error{color:#a33e33!important}

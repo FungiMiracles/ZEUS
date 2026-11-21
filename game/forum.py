@@ -5,7 +5,7 @@ import re
 from datetime import timezone
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, session, url_for
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload, lazyload, selectinload
@@ -312,6 +312,11 @@ def notifications():
     from game.intelligence_service import complete_missions
     complete_missions(db.session,game_now(),country_id)
     db.session.commit()
+    try:   # 21 Nov 2026: ukończone budowy obiektów miejskich (powiadomienia także bez harmonogramu)
+        from game.cities import settle as settle_cities
+        settle_cities(db.session,country_id,game_now());db.session.commit()
+    except Exception:
+        db.session.rollback();current_app.logger.exception('Miasta: rozliczenie budów')
     page_number = max(1, request.args.get("page", 1, type=int) or 1)
     result = db.paginate(
         select(GameNotification).where(GameNotification.user_id == user.id, GameNotification.notification_type != "FORUM_MESSAGE")
@@ -346,6 +351,7 @@ def notifications():
             "id": item.id, "text": text, "kind": "INTELLIGENCE_REPORT" if item.id in intelligence_notifications else item.notification_type,
             "severity": ('war' if news_kinds[item.id]=='WAR_STARTED' else 'info') if item.id in news_kinds else notification_severity(item),
             "icon_url": notification_icon(item, intelligence=item.id in intelligence_notifications),
+            "icon_white": item.id not in intelligence_notifications and notification_icon_white(item),
             "effects": item.generated_event.effects if item.notification_type == "GENERATED_EVENT" else [],
             "received_at": real_date(item.created_at), "unread": item.read_at is None,
             "open_url": url_for("game_forum.open_notification", notification_id=item.id),
@@ -400,8 +406,17 @@ def notification_icon(item, *, intelligence=False):
     elif intelligence or item.notification_type=='INTELLIGENCE_REPORT' or any(word in text for word in ('wywiad','kontrwywiad','hybryd','agent','sabota')):
         filename='WYWIAD WOJSKOWY.svg'
     elif 'pożycz' in text:filename='POŻYCZKA.svg'
+    elif text.startswith('kolej:') and 'współfinansowanie zaakceptowane' in text:filename='PRACE BUDOWLANE.svg'   # 21 Nov 2026: żuraw
+    elif text.startswith('miasta:'):filename='MIASTO.svg'   # 21 Nov 2026: obiekty miejskie (game.cities)
     elif item.notification_type=='INFRASTRUCTURE_COMPLETED' or notification_severity(item)=='construction':filename='PRACE BUDOWLANE 2.svg'
     return url_for('static',filename='icons/'+filename) if filename else None
+
+
+def notification_icon_white(item):
+    """21 Nov 2026: ikony z białym tłem — pożyczki, zaakceptowane współfinansowanie kolei (żuraw) i obiekty miejskie."""
+    text=(item.system_text or '').casefold() if item.notification_type=='SYSTEM' else ''
+    return ('pożycz' in text and not any(word in text for word in ('wywiad','kontrwywiad','hybryd','agent','sabota'))) \
+        or (text.startswith('kolej:') and 'współfinansowanie zaakceptowane' in text) or text.startswith('miasta:')
 
 
 def notification_severity(item):

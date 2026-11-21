@@ -1,0 +1,40 @@
+{# 20 Nov 2026: porty lotnicze — budowa z tooltipa miasta i zarządzanie połączeniami (game.airports, static/js/game_airports.js) #}
+<dialog id="airport-build-dialog" class="airport-dialog" aria-labelledby="airport-build-title">
+<form id="airport-build-form" method="dialog">
+<h2 class="infrastructure-modal-title airport-modal-title"><img src="{{ url_for('static',filename='icons/PRACE BUDOWLANE.svg') }}" alt="" width="32" height="32"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="" width="32" height="32"><span id="airport-build-title">Budowa portu lotniczego</span></h2>
+<p id="airport-build-city"></p>
+<label class="airport-name-field">Nazwa portu lotniczego <span class="airport-name-count" id="airport-name-count" aria-live="polite"></span>
+<input id="airport-name" name="name" type="text" maxlength="60" required autocomplete="off"></label>
+<h3 class="airport-section-title">Koszt budowy</h3>
+<ul id="airport-materials" class="airport-materials"></ul>
+<div class="infrastructure-quote-grid">
+<div class="infrastructure-quote-card"><div class="infrastructure-quote-label">Cena — 100 za każdego mieszkańca</div><div class="infrastructure-quote-value" id="airport-cost">—</div></div>
+<div class="infrastructure-quote-card"><div class="infrastructure-quote-label">Dostępny budżet infrastruktury</div><div class="infrastructure-quote-value" id="airport-funds">—</div></div>
+<div class="infrastructure-quote-card"><div class="infrastructure-quote-label">Czas budowy</div><div class="infrastructure-quote-value" id="airport-days">—</div></div>
+</div>
+<p class="infrastructure-effects-note">Po ukończeniu lotnisko automatycznie łączy się ze wszystkimi czynnymi portami lotniczymi świata. Każde połączenie zwiększa budżet do podziału o łączną ludność obu miast × 10 w każdym cyklu budżetowym.</p>
+<p id="airport-build-warning" role="alert" hidden></p>
+<p id="airport-build-error" role="alert"></p>
+<div class="infrastructure-modal-actions"><button type="button" id="airport-build-cancel">Anuluj</button>
+<button type="submit" id="airport-build-confirm">Rozpocznij budowę lotniska</button></div>
+</form></dialog>
+<dialog id="airport-manage-dialog" class="airport-dialog" aria-labelledby="airport-manage-title">
+<h2 class="infrastructure-modal-title airport-modal-title"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="" width="32" height="32"><span id="airport-manage-title">Port lotniczy</span></h2>
+<p id="airport-manage-summary"></p>
+<h3 class="airport-section-title">Połączenia lotnicze</h3>
+<div id="airport-routes" class="airport-routes"></div>
+<p id="airport-manage-error" role="alert"></p>
+<div class="infrastructure-modal-actions"><button type="button" id="airport-manage-rename">Zmień nazwę</button><button type="button" id="airport-manage-close">Zamknij</button></div>
+</dialog>
+<dialog id="airport-rename-dialog" class="airport-dialog" aria-labelledby="airport-rename-title">
+<form id="airport-rename-form" method="dialog">
+<h2 class="infrastructure-modal-title airport-modal-title"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="" width="32" height="32"><span id="airport-rename-title">Zmiana nazwy portu lotniczego</span></h2>
+<p id="airport-rename-current"></p>
+<label class="airport-name-field">Nowa nazwa portu lotniczego <span class="airport-name-count" id="airport-rename-count" aria-live="polite"></span>
+<input id="airport-rename-name" name="name" type="text" maxlength="60" required autocomplete="off"></label>
+<p class="infrastructure-effects-note">Nazwę lotniska można zmienić najwyżej raz na rok Entendy. Nazwa nadana przy budowie się nie liczy.</p>
+<p id="airport-rename-warning" role="alert" hidden></p>
+<p id="airport-rename-error" role="alert"></p>
+<div class="infrastructure-modal-actions"><button type="button" id="airport-rename-cancel">Anuluj</button>
+<button type="submit" id="airport-rename-confirm">Zapisz nazwę</button></div>
+</form></dialog>

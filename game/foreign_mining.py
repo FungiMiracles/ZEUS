@@ -19,9 +19,20 @@ def eligible(session,guest,host):
     return normalized(relations.get(relation) or '') in RELATIONS and state!=states['wojnakinetyczna']
 
 
-def reports(session,country):
+REPORT_DAYS=180   # 21 Nov 2026: rozpoznanie zasobów regionu jest ważne 180 dni Entendy od zakończenia misji
+
+
+def report_expires(mission):
+    return mission.ends_at+timedelta(days=REPORT_DAYS)
+
+
+def reports(session,country,now=None):
+    """Ważne (≤ 180 dni Entendy) udane rozpoznania zasobów regionów: {region_id: misja} — najnowsza misja na region."""
     if not inspect(session.connection()).has_table(IntelligenceMission.__tablename__):return {}
-    return {r.region_id:r for r in session.scalars(select(IntelligenceMission).where(IntelligenceMission.panstwo_id==country,IntelligenceMission.kind=='resources',IntelligenceMission.success.is_(True)).order_by(IntelligenceMission.id)) if not (r.report or {}).get('invalid_target')}
+    if now is None:
+        from game.finance_service import game_now
+        now=game_now()
+    return {r.region_id:r for r in session.scalars(select(IntelligenceMission).where(IntelligenceMission.panstwo_id==country,IntelligenceMission.kind=='resources',IntelligenceMission.success.is_(True),IntelligenceMission.completed_at.is_not(None),IntelligenceMission.ends_at>=now-timedelta(days=REPORT_DAYS)).order_by(IntelligenceMission.ends_at,IntelligenceMission.id)) if not (r.report or {}).get('invalid_target')}
 
 
 def concessions(session,country):
@@ -60,7 +71,7 @@ def map_regions(session,country):
         if host not in relations:relations[host]=eligible(session,country,host)
         report=known.get(region.region_id);report=report if report and report.target_country_id==host else None
         permit=held.get(region.region_id)
-        result[str(region.region_id)]={'name':region.region_nazwa,'countryId':host,'foreign':True,'permit':bool(permit and permit.target_country_id==host),'canRequest':bool(report and relations[host] and region.region_id not in pending and not permit),'pending':region.region_id in pending,'report':(report.report or {}).get('entries',[]) if report else [],'projects':{},'coastal':False}
+        result[str(region.region_id)]={'name':region.region_nazwa,'countryId':host,'foreign':True,'permit':bool(permit and permit.target_country_id==host),'canRequest':bool(report and relations[host] and region.region_id not in pending and not permit),'pending':region.region_id in pending,'report':(report.report or {}).get('entries',[]) if report else [],'reportUntil':report_expires(report).strftime('%d.%m.%Y') if report else None,'projects':{},'coastal':False}
     return result
 
 

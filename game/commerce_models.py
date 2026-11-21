@@ -67,7 +67,9 @@ class TradeOffer(db.Model):
     # 13 Nov 2026: czas gry wystawienia i ostatniej zmiany ceny (wycofanie po 14 dniach Entendy, obniżki ceny PAGA2)
     created_game_at=db.Column(db.DateTime,nullable=True,index=True)
     price_changed_game_at=db.Column(db.DateTime,nullable=True)
-    __table_args__=(db.UniqueConstraint('panstwo_id','request_id',name='uq_trade_offer_request'),db.CheckConstraint("price > 0 AND status IN ('open','sold','cancelled')",name='ck_trade_offer_values'),{'mysql_engine':'InnoDB'})
+    # 20 Nov 2026: 'sea' — port morski wysyłki (port_id); 'air' — własne lotnisko sprzedającego w mieście port_id (game.airports).
+    transport=db.Column(db.String(8),nullable=False,default='sea',server_default='sea')
+    __table_args__=(db.UniqueConstraint('panstwo_id','request_id',name='uq_trade_offer_request'),db.CheckConstraint("price > 0 AND status IN ('open','sold','cancelled')",name='ck_trade_offer_values'),db.CheckConstraint("transport IN ('sea','air')",name='ck_trade_offer_transport'),{'mysql_engine':'InnoDB'})
 
 
 class TradeShipment(db.Model):
@@ -95,8 +97,9 @@ class TradeShipment(db.Model):
     delivered_at=db.Column(db.DateTime)
     request_id=db.Column(db.String(36),nullable=False)
     # 18 Nov 2026: 'sea' — statek między portami; 'land' — transport lądowy między stolicami sąsiadów (porty = stolice, bez opłat).
+    # 20 Nov 2026: 'air' — samolot towarowy między lotniskami sprzedającego i kupującego (porty = miasta lotnisk, bez opłat, 1000 km/h).
     transport=db.Column(db.String(8),nullable=False,default='sea',server_default='sea')
-    __table_args__=(db.CheckConstraint("transport IN ('sea','land')",name='ck_trade_shipment_transport'),db.UniqueConstraint('buyer_id','request_id',name='uq_trade_shipment_request'),db.CheckConstraint('health BETWEEN 0 AND 100',name='ck_trade_ship_health'),db.CheckConstraint('distance_km >= 0 AND departure_fee >= 0 AND arrival_fee >= 0 AND arrives_at > starts_at',name='ck_trade_shipment_values'),{'mysql_engine':'InnoDB'})
+    __table_args__=(db.CheckConstraint("transport IN ('sea','land','air')",name='ck_trade_shipment_transport'),db.UniqueConstraint('buyer_id','request_id',name='uq_trade_shipment_request'),db.CheckConstraint('health BETWEEN 0 AND 100',name='ck_trade_ship_health'),db.CheckConstraint('distance_km >= 0 AND departure_fee >= 0 AND arrival_fee >= 0 AND arrives_at > starts_at',name='ck_trade_shipment_values'),{'mysql_engine':'InnoDB'})
 
 
 class TradeReserveMovement(db.Model):

@@ -332,6 +332,21 @@
 <td>CYCLIC, IMMEDIATE</td>
 <td>Zezwolenia i bazy zagraniczne.</td>
 </tr>
+<tr>
+<td>rail</td>
+<td>CYCLIC, IMMEDIATE</td>
+<td>Kolej (19 Nov 2026): decyzje o współfinansowaniu linii sąsiadów, budowa linii krajowych.</td>
+</tr>
+<tr>
+<td>airports</td>
+<td>CYCLIC</td>
+<td>Porty lotnicze (20 Nov 2026): budowa lotniska w najludniejszym dozwolonym mieście bez lotniska — jedna budowa naraz, najwyżej 3 lotniska, komplet surowców i chipów, koszt ≤ 60% środków infrastruktury i rozsądny zwrot z dochodów z połączeń. Technologię „Transport lotniczy” rozwija planer; zakup ofert lotniczych — adapter <code>trade</code>; lotniska przeciwników są celami adaptera <code>war</code>.</td>
+</tr>
+<tr>
+<td>cities</td>
+<td>CYCLIC</td>
+<td>Obiekty miejskie (21 Nov 2026): jedna budowa na przebieg (najwyżej 2 w toku) w mieście z największą liczbą mieszkańców bez dostępu do usługi — kliniki, szpitale, żłobki i szkoły (priorytet „Rozwój państwa opiekuńczego”, cecha prospołeczności), komunikacja autobusowa, tramwajowa, metro i monumenty (priorytet „Rozwój infrastruktury”), szkoły i uniwersytety (priorytety produkcji i badań). Koszt ≤ 50% środków sektora, roczne utrzymanie sektora / 4 ≤ 35% jego środków.</td>
+</tr>
 </tbody>
 </table>
 <p>PAGA2 czyta ekrany przez <code>view.py</code> i wykonuje operacje przez <code>gateway.py</code> w tożsamości państwa. Endpointy stosują reguły gracza. Planer i historia mają też własne zapisy w bazie; nie wszystko w systemie jest wywołaniem HTTP.</p>

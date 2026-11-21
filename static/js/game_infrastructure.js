@@ -215,6 +215,7 @@
             onEachFeature: (feature, layer) => {
                 const city = config.cities[String(feature.properties.miasto_id)];
                 const name = document.createElement('span'); name.textContent = city.name;
+                // 21 Nov 2026: budowa lotnisk przeniesiona do zakładki „Transport lotniczy” — tu tylko nazwa miasta
                 layer.bindTooltip(name, {direction: 'top'});
                 layer.on('click', () => { if (config.regions[city.regionId]) selectRegion(city.regionId); });
             }

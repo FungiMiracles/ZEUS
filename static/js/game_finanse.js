@@ -308,6 +308,10 @@ function formatRatio(numerator, denominator, digits = 2) {
             row.hidden = !((decimalParts(state.rail_income || "0")?.value ?? 0n) > 0n);
         });
 
+        root.querySelectorAll("[data-air-income-row]").forEach(row => {
+            row.hidden = !((decimalParts(state.air_income || "0")?.value ?? 0n) > 0n);
+        });
+
         // 18 Nov 2026: pozycja spłaty zaległości w MFW widoczna tylko, gdy MFW pobiera dług z tego budżetu.
         root.querySelectorAll("[data-imf-collection-row]").forEach(row => {
             row.hidden = !((decimalParts(state.imf_collection || "0")?.value ?? 0n) > 0n);
@@ -735,13 +739,21 @@ function formatRatio(numerator, denominator, digits = 2) {
         acknowledgeNotifications
     );
 
+    // 21 Nov 2026: szczegóły historycznego budżetu jako karty wskaźników (jak „Podstawy naliczenia”), nie zwykłe akapity.
     function addHistoryMetric(container, label, value) {
-        const paragraph = document.createElement("p");
-        const strong = document.createElement("strong");
-
-        strong.textContent = label + ": ";
-        paragraph.append(strong, document.createTextNode(value));
-        container.append(paragraph);
+        let list = container.querySelector(":scope > .finance-history-metrics");
+        if (!list) {
+            list = document.createElement("dl");
+            list.className = "finance-metrics finance-six-metrics finance-history-metrics";
+            container.append(list);
+        }
+        const item = document.createElement("div");
+        const term = document.createElement("dt");
+        const detail = document.createElement("dd");
+        term.textContent = label;
+        detail.textContent = value;
+        item.append(term, detail);
+        list.append(item);
     }
 
     const historyButtons = [
@@ -818,6 +830,7 @@ function formatRatio(numerator, denominator, digits = 2) {
                 );
 
                 const chart = document.createElement("div");
+                chart.className = "finance-history-chart";
                 renderBudgetBar(chart, state);
                 container.append(chart);
 

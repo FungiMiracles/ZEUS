@@ -22,9 +22,12 @@ tech('environment_tech','Technologie ochrony środowiska',30,'method','environme
 tech('air_filters','Filtr zanieczyszczeń',150,'environment_tech','environment','air_filter')
 tech('waste_filters','Filtr odpadów fabrycznych',120,'environment_tech','environment','waste_filter')
 # Rakieta z głowicą nuklearną (13 Nov 2026): 750 pkt; wymaga rakiet dalekiego zasięgu, wydobycia uranu i chipu cemium I.
-# Kolej (administrator, 19 Nov 2026): krajowe węzły komunikacyjne → transport kolejowy (zakładka „Komunikacja” w infrastrukturze).
-tech('national_hubs','Krajowe węzły komunikacyjne',50,'method','transport','infrastructure')
+# Kolej (administrator, 19 Nov 2026): transport i komunikacja (do 20 Nov 2026 „Krajowe węzły komunikacyjne”) → transport kolejowy
+# (zakładka „Komunikacja” w infrastrukturze).
+tech('national_hubs','Transport i komunikacja',50,'method','transport','gps')
 tech('rail_transport','Transport kolejowy',200,'national_hubs','transport','rail')
+# Transport lotniczy (administrator, 20 Nov 2026): 400 pkt, 28 dni; budowa lotnisk w miastach (game.airports).
+tech('air_transport','Transport lotniczy',400,'rail_transport','transport','airplane')
 tech('nuclear_missiles','Rakieta z głowicą nuklearną',750,'long_missiles','military','nuclear_weapon',requires=('long_missiles','mine_uranium','chip_cemium_i'))
 # Descriptions displayed beneath research requirements and progress.
 TECHNOLOGY_DESCRIPTIONS={
@@ -65,6 +68,7 @@ TECHNOLOGY_DESCRIPTIONS={
     'radar': 'Umożliwia budowę radarów na ekranie „Obrona państwa”. Radar wykrywa obce rakiety i samoloty w promieniu 400 / 800 / 1200 km (poziom I / II / III) i powiadamia o ich liczbie i celu.',
     'chip_cemium_i': 'Pozwala na produkcję chipów z cemium wykorzystywanych m.in. w rakietach przenoszących ładunki jądrowe.',
     'chip_cemium_ii': 'Pozwala na produkcję chipów z cemium II wykorzystywanych m.in. w budowie sztucznej inteligencji i superkomputerów.',
+    'air_transport': 'Umożliwia budowę portów lotniczych w miastach powyżej 100 000 mieszkańców, połączenia lotnicze zwiększające dochody budżetu i transport towarów drogą lotniczą.',
 }
 for key,description in TECHNOLOGY_DESCRIPTIONS.items():TECHNOLOGIES[key]['description']=description
 
@@ -96,7 +100,8 @@ for code,icon in {'mine_coal':'Węgiel kamienny','mine_oil':'Ropa naftowa','mine
     TECHNOLOGIES[code]['icon']=icon
 
 # Visible future branches have no price and cannot receive research investments.
-PLANNED_TECHNOLOGIES={}   # 13 Nov 2026: „Rakieta z głowicą nuklearną” jest aktywną technologią (TECHNOLOGIES)
+# 13 Nov 2026: „Rakieta z głowicą nuklearną” jest aktywną technologią (TECHNOLOGIES); 20 Nov 2026: „Transport lotniczy” również.
+PLANNED_TECHNOLOGIES={}
 RESEARCH_TECHNOLOGIES={**TECHNOLOGIES,**PLANNED_TECHNOLOGIES}
 
 # Air pollution of coal power plants (administrator rules, 10 Nov 2026): each coal plant without a filter adds

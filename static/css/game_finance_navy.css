@@ -61,3 +61,43 @@ html body.game-app.game-navy.game-civic dialog.finance-modal .finance-secondary{
 .finance-unit-switch span{display:flex;align-items:center;min-height:36px;box-sizing:border-box;padding:0 12px;background:#fff;color:var(--fin-navy,#1E3A5F);font-size:12.5px;font-weight:700}
 .finance-unit-switch input:checked+span{background:var(--fin-navy,#1E3A5F);color:#fff}
 .finance-unit-switch input:focus-visible+span{outline:2px solid #E8B65C;outline-offset:-2px}
+
+/* 21 Nov 2026: „Pożyczki między państwami” i „Szczegóły historycznego budżetu” w nowym wyglądzie gry */
+html body.game-app.game-navy.game-civic.finance-room .loan-panel>p{color:var(--fin-muted);font-size:13px;line-height:1.5}
+html body.game-app.game-navy.game-civic.finance-room #loan-request-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px 14px;align-items:end;padding:12px 14px;background:var(--fin-soft);border:1px solid var(--fin-line);border-left:3px solid var(--fin-navy);border-radius:7px}
+html body.game-app.game-navy.game-civic.finance-room #loan-request-form label{margin:0;color:var(--fin-muted);font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+html body.game-app.game-navy.game-civic.finance-room #loan-request-form :is(input,select){display:block;width:100%;box-sizing:border-box;margin-top:5px;min-height:38px;font-size:14px;text-transform:none;letter-spacing:0;font-weight:400}
+html body.game-app.game-navy.game-civic.finance-room #loan-request-form button{grid-column:1/-1;justify-self:start;min-height:38px;padding:8px 16px}
+html body.game-app.game-navy.game-civic.finance-room #loan-status{margin:10px 0 0;color:var(--fin-navy);font-size:13px;font-weight:600}
+html body.game-app.game-navy.game-civic.finance-room #loan-status:empty{display:none}
+html body.game-app.game-navy.game-civic.finance-room #loan-list{display:grid;gap:10px;margin-top:12px}
+html body.game-app.game-navy.game-civic.finance-room #loan-list>p{margin:0;color:var(--fin-muted);font-size:13px}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-card{margin:0;padding:10px 14px;background:#fff;border:1px solid var(--fin-line,#d3dce9);border-left:4px solid #1E3A5F;border-radius:7px;box-shadow:none}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-card h3{margin:0 0 6px;color:#1E3A5F;font-size:14px;font-weight:800}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-card p{margin:0 0 6px;color:#4d5f78;font-size:12.5px;line-height:1.45}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-meta strong{color:#1E3A5F;font-family:Consolas,monospace;font-size:14px}
+.loan-status{display:inline-block;padding:2px 9px;border-radius:10px;background:#eef3fa;border:1px solid #d3dce9;color:#1E3A5F;font-size:11px;font-weight:700}
+.loan-card.loan-pending{border-left-color:#E8B65C!important}.loan-card.loan-pending .loan-status{background:#fff6e3;border-color:#ecd29a;color:#8a5a00}
+.loan-card.loan-accepted .loan-status{background:#e5f4e4;border-color:#b8dcb5;color:#2d6a3a}
+.loan-card.loan-rejected,.loan-card.loan-cancelled{border-left-color:#b8c4d4!important}.loan-card.loan-rejected .loan-status{background:#fbefed;border-color:#e3b9b3;color:#a33e33}
+.loan-card.loan-repaid{border-left-color:#7fae6b!important}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-card label{display:grid;gap:5px;margin:6px 0;color:#4d5f78;font-size:12px}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-actions:empty{display:none}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-action{min-height:32px;padding:5px 14px;border-radius:7px;font-size:12.5px;font-weight:700;box-shadow:none;background:#1E3A5F;color:#fff;border:1px solid #1E3A5F}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) .loan-action:hover:not(:disabled){background:#2b4f7c}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) :is(.loan-action-reject,.loan-action-cancel){background:#f6e6e1;color:#85382c;border-color:#c8a49b}
+html body.game-app.game-navy.game-civic :is(#loan-list,#loan-history-list) :is(.loan-action-reject,.loan-action-cancel):hover:not(:disabled){background:#efd6cf}
+html body.game-app.game-navy.game-civic.finance-room .finance-history-detail{padding:0;overflow:hidden}
+html body.game-app.game-navy.game-civic.finance-room .finance-history-detail>.game-panel-body{padding:16px 18px 18px}
+html body.game-app.game-navy.game-civic.finance-room .finance-history-metrics{margin:0 0 16px}
+html body.game-app.game-navy.game-civic.finance-room .finance-history-chart{padding:14px;background:#fff;border:1px solid var(--fin-line);border-radius:8px}
+/* 21 Nov 2026: „Utrzymanie miast” — roczne koszty obiektów miejskich z rozbiciem na okres */
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-panel{padding:18px;margin:18px 0;border-top:3px solid var(--fin-navy)}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-panel .finance-icon-heading{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 8px}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-note{margin:0 0 12px;color:var(--fin-muted);font-size:13px;line-height:1.5}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px;margin:0 0 10px}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics>div{padding:10px 14px}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics small{display:block;margin-top:4px;color:var(--fin-muted);font-size:12px}
+html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics small span{color:var(--fin-navy);font-family:Consolas,monospace;font-weight:700}

@@ -275,5 +275,11 @@ def country_state(session,country_id):
         for row in session.scalars(select(Paga2Plan).where(Paga2Plan.country_id==country_id).order_by(Paga2Plan.status!='ACTIVE',Paga2Plan.id.desc()).limit(20)):
             plans.append({'id':row.id,'goal':row.goal,'label':goal_label(row.goal),'priority':PRIORITIES.get(row.priority,row.priority),'status':row.status,
                           'reason':row.reason,'steps':row.steps,'createdAt':stamp(row.created_at),'updatedAt':stamp(row.updated_at),'finishedAt':stamp(row.finished_at)})
+    # 21 Nov 2026: obiekty miejskie postawione w miastach państwa (game.cities)
+    try:
+        from game.cities import admin_cities
+        cities=admin_cities(session,country_id)
+    except Exception:
+        cities=[]
     return {'country':header,'profile':profile,'plans':plans,'finance':finance,'counts':counts,'objects':objects,'technologies':technologies,'researchPoints':int(research.points) if research else 0,
-            'relations':relations,'army':forces,'stocks':stocks,'messages':messages,'regions':regions}
+            'relations':relations,'army':forces,'stocks':stocks,'messages':messages,'regions':regions,'cities':cities}

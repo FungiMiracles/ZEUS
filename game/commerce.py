@@ -78,14 +78,30 @@ def trade_state(country_id):
                                                            'fromCity':db.session.get(Miasto,route['source']).miasto_nazwa,'toCity':db.session.get(Miasto,route['target']).miasto_nazwa,
                                                            'distanceKm':round(route['distance'],1),'hours':round(route['distance']/LAND_SPEED,2)}
         return land_cache[seller]
+    # 20 Nov 2026: transport lotniczy — czynne lotniska (porty lotnicze) sprzedających i własne lotniska odbioru
+    from game.airports import active_airports
+    from game.trade_service import AIR_SPEED
+    from game.governance import controlled_ids
+    working=active_airports(db.session)
+    own_ids=set(controlled_ids(db.session,country_id)) or {country_id}
+    airport_cities={a.miasto_id:a for a in working}
+    own_airports=[a for a in working if a.panstwo_id in own_ids]
     offers=[]
     for offer in db.session.scalars(select(TradeOffer).where(TradeOffer.status=='open').order_by(TradeOffer.id.desc())):
         if country_id!=offer.panstwo_id and (country_id in offer.excluded or (AMMUNITION in offer.cargo and not ammunition_allowed(db.session,offer.panstwo_id,country_id))):continue
+        if (offer.transport or 'sea')=='air':
+            airport=airport_cities.get(offer.port_id)
+            offers.append({'id':offer.id,'sellerId':offer.panstwo_id,'seller':names.get(offer.panstwo_id,''),'flag':url_for('static',filename='flags/'+names.get(offer.panstwo_id,'').replace(' ','_')+'.jpg'),'cargo':offer.cargo,'price':str(offer.price),
+                'portId':offer.port_id,'portName':airport.name if airport else 'Lotnisko niedostępne','departureRate':'0','own':offer.panstwo_id==country_id,'transport':'air',
+                'createdAt':stamp(offer.created_game_at),'priceChangedAt':stamp(offer.price_changed_game_at),'expiresAt':stamp(offer_expires_at(offer)),
+                'excluded':offer.excluded if offer.panstwo_id==country_id else [],'usable':airport is not None and bool(own_airports),
+                'air':{'from':airport.name if airport else '','position':[airport.map_x,airport.map_y] if airport else None}})
+            continue
         city=cities.get(offer.port_id)
         offers.append({'id':offer.id,'sellerId':offer.panstwo_id,'seller':names.get(offer.panstwo_id,''),'flag':url_for('static',filename='flags/'+names.get(offer.panstwo_id,'').replace(' ','_')+'.jpg'),'cargo':offer.cargo,'price':str(offer.price),
             'portId':offer.port_id,'portName':city.miasto_nazwa if city else 'Port niedostępny','departureRate':str(offer.departure_rate),'own':offer.panstwo_id==country_id,
             'createdAt':stamp(offer.created_game_at),'priceChangedAt':stamp(offer.price_changed_game_at),'expiresAt':stamp(offer_expires_at(offer)),
-            'excluded':offer.excluded if offer.panstwo_id==country_id else [],'usable':city is not None and port_allows(db.session,city.panstwo_id,offer.panstwo_id)})
+            'excluded':offer.excluded if offer.panstwo_id==country_id else [],'usable':city is not None and port_allows(db.session,city.panstwo_id,offer.panstwo_id),'transport':'sea'})
         land=land_for(offer.panstwo_id) if offer.panstwo_id!=country_id else None
         if land:offers[-1].update(land=land,usable=True)
     active=list(db.session.scalars(select(TradeShipment).where(TradeShipment.delivered_at.is_(None),TradeShipment.sunk_at.is_(None),TradeShipment.health>0).order_by(TradeShipment.id)))
@@ -108,6 +124,8 @@ def trade_state(country_id):
             'blocked':not port_allows(db.session,city.panstwo_id,country_id),
             'departureAllowed':(controller_id(db.session,city.panstwo_id)==country_id) if senders is None else (controller_id(db.session,city.panstwo_id) in senders and port_allows(db.session,city.panstwo_id,country_id))} for city in all_ports},
         'portAccess':{'block_foreign':bool(policy.block_foreign) if policy else False,'blocked_countries':policy.blocked_countries or [] if policy else []},
+        'airports':{str(a.miasto_id):{'name':a.name,'position':[a.map_x,a.map_y],'own':a.panstwo_id in own_ids,'country':names.get(a.panstwo_id,'')} for a in working},
+        'ownAirports':[str(a.miasto_id) for a in own_airports],'airSpeed':AIR_SPEED,
         'ownPorts':own,'ownTariff':str(tariffs.get(country_id,0)),'countries':{str(id):name for id,name in names.items() if controller_id(db.session,id)==id},
         'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
 
@@ -120,7 +138,7 @@ def page():
     settle_own(country_id);config=trade_state(country_id)
     config.update({'countryId':country_id,'csrf':session['game_csrf_token'],'changeUrl':url_for('game_trade.change'),'stateUrl':url_for('game_trade.state'),
         'resources':goods_catalog(),'resourceOrder':goods_order(),'priceLimits':__import__('game.trade_prices',fromlist=['all_limits']).all_limits(goods_catalog().keys()),'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
-        'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'shipSpeed':SHIP_SPEED,'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'landSpeed':__import__('game.trade_service',fromlist=['LAND_SPEED']).LAND_SPEED,'kmPerUnit':calibration(db.session).km_per_unit})
+        'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'shipSpeed':SHIP_SPEED,'airIcon':url_for('static',filename='icons/SAMOLOT.svg'),'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'landSpeed':__import__('game.trade_service',fromlist=['LAND_SPEED']).LAND_SPEED,'kmPerUnit':calibration(db.session).km_per_unit})
     response=render_template('game/trade.html',game_user=user,game_country=country_summary(country),game_active_page='trade',game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),trade_config=config)
     db.session.commit();return response
 

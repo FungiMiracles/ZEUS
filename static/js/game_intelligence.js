@@ -70,10 +70,29 @@
         }
         if(!state.missions.length)list.append(make('p','Brak misji.'));
         collapse(list,[...list.querySelectorAll(':scope>.intel-card')],state.missions.filter(m=>!m.completed).length+6,'missions','misji');
+        renderResources();
         updateQuote();updateProgress();drawMissionMarkers();
     }
+    // 21 Nov 2026: rozpoznane zasoby regionów — ważne 180 dni Entendy (także na mapie wywiadu i mapie kopalń)
+    function renderResources(){
+        const box=document.getElementById('intel-resources');if(!box)return;box.replaceChildren();
+        for(const item of state.resourceReports||[]){
+            const card=make('section');card.className='intel-card is-success intel-resource-card';
+            card.append(make('h3',`${item.region} — ${item.country}`),make('p',`Rozpoznanie: ${item.date} · dane ważne do ${item.until} (Entenda)`));
+            const list=make('dl');list.className='intel-resource-list';
+            for(const entry of item.entries){const row=make('div');row.append(make('dt',entry.label),make('dd',entry.value));list.append(row);}
+            card.append(list);box.append(card);
+        }
+        if(!(state.resourceReports||[]).length)box.append(make('p','Brak aktualnych danych o zasobach. Wyślij agenta z misją „Zasoby naturalne regionu”.'));
+        else collapse(box,[...box.querySelectorAll(':scope>.intel-card')],6,'resources','raportów');
+    }
+    function resourceTip(id,text){
+        const report=(state.resourceReports||[]).find(item=>item.regionId===id),box=make('div');box.append(make('strong',text));
+        if(report){box.append(make('div',`Zasoby (ważne do ${report.until}):`));for(const entry of report.entries)box.append(make('div',`${entry.label}: ${entry.value}`));}
+        return box;
+    }
     // 13 Nov 2026: długie listy agentów i misji zwinięte do najważniejszych pozycji (wygodne przewijanie, także na telefonie)
-    const expanded={agents:false,missions:false};
+    const expanded={agents:false,missions:false,resources:false};
     function collapse(container,cards,limit,key,noun){
         container.classList.toggle('intel-collapsed',!expanded[key]);
         if(cards.length<=limit)return;
@@ -94,7 +113,7 @@
     fetch(config.regionsUrl).then(response=>{if(!response.ok)throw new Error();return response.json();}).then(data=>{
         const regionStyle=feature=>({color:'#7d9178',weight:.7,fillColor:String(feature.properties.region_id)===region.value?'#E8B65C':config.regions[String(feature.properties.region_id)].countryId===config.countryId?'#9fbf8f':'#c9d3c2',fillOpacity:1});
         const layer=regionLayer=L.geoJSON(data,{coordsToLatLng:point=>L.latLng(point[1],point[0]),filter:feature=>!!config.regions[String(feature.properties?.region_id)],style:regionStyle,
-            onEachFeature:(feature,item)=>{const id=String(feature.properties.region_id),info=config.regions[id];item.bindTooltip(make('span',info.name+' — '+(config.countries[String(info.countryId)]||'')),{sticky:true});item.on({mouseover:()=>item.setStyle({weight:2,color:'#1E3A5F',fillColor:'#D5E5C6'}),mouseout:()=>layer.resetStyle(item),click:()=>{if(info.countryId&&info.countryId!==config.countryId){region.value=id;updateTarget();}}});}});
+            onEachFeature:(feature,item)=>{const id=String(feature.properties.region_id),info=config.regions[id];item.bindTooltip(()=>resourceTip(id,info.name+' — '+(config.countries[String(info.countryId)]||'')),{sticky:true});item.on({mouseover:()=>item.setStyle({weight:2,color:'#1E3A5F',fillColor:'#D5E5C6'}),mouseout:()=>layer.resetStyle(item),click:()=>{if(info.countryId&&info.countryId!==config.countryId){region.value=id;updateTarget();}}});}});
         // Group all territory of a controller into one country feature; no regional targets in warehouse mode.
         const grouped=new Map();
         for(const feature of data.features){const owner=config.regions[String(feature.properties?.region_id)]?.countryId;if(!owner)continue;const polygons=feature.geometry?.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry?.type==='MultiPolygon'?feature.geometry.coordinates:[];if(!grouped.has(owner))grouped.set(owner,[]);grouped.get(owner).push(...polygons);}

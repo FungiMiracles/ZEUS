@@ -40,8 +40,9 @@ def _asset_models():
     from game.commerce_models import Mine
     from game.civic_models import Road
     from game.radar_models import Radar
+    from game.airport_models import Airport   # 20 Nov 2026: porty lotnicze
     return {'radars': Radar, 'bases': MilitaryBase, 'vessels': MilitaryVessel, 'missile_defenses': MissileDefense, 'power_plants': PowerPlant,
-            'factories': AmmunitionFactory, 'mines': Mine, 'roads': Road}
+            'factories': AmmunitionFactory, 'mines': Mine, 'roads': Road, 'airports': Airport}
 
 
 def _move_army_totals(session, defeated, annexer):
@@ -150,7 +151,10 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     transferred['cities'] = session.execute(update(Miasto).where(Miasto.panstwo_id == defeated).values(panstwo_id=annexer)
                                             .execution_options(synchronize_session=False)).rowcount
     transferred['army'] = _move_army_totals(session, defeated, annexer)
+    from sqlalchemy import inspect as _inspect
     for label, model in _asset_models().items():
+        if label == 'airports' and not _inspect(session.connection()).has_table(model.__tablename__):
+            continue   # 20 Nov 2026: przed migracją transportu lotniczego (airports_20261120) tabeli lotnisk nie ma
         transferred[label] = session.execute(update(model).where(model.panstwo_id == defeated).values(panstwo_id=annexer)
                                              .execution_options(synchronize_session=False)).rowcount
     transferred['resources'] = _move_resources(session, defeated, annexer)

@@ -21,8 +21,8 @@ OCCUPATION='/game/panel-wojenny/okupacja'
 DECLARE='/game/dyplomacja/akcje'
 RANGES={'short':(0,500),'medium':(500,2000),'long':(2000,10000)}
 WAR_RELATIONS=('zle','napiete','wrogie','egzystencjalniewrogie')
-TARGET_FIELD={'base':'target_base_id','defense':'target_defense_id','power':'target_power_id','factory':'target_factory_id','mine':'target_mine_id','radar':'target_radar_id','city':'city_id','shipment':'target_shipment_id'}
-TARGET_VALUE={'base':10.0,'defense':8.0,'power':7.0,'factory':6.0,'radar':5.0,'mine':4.0,'city':2.0,'shipment':6.5}
+TARGET_FIELD={'airport':'target_airport_id','base':'target_base_id','defense':'target_defense_id','power':'target_power_id','factory':'target_factory_id','mine':'target_mine_id','radar':'target_radar_id','city':'city_id','shipment':'target_shipment_id'}
+TARGET_VALUE={'airport':6.0,'base':10.0,'defense':8.0,'power':7.0,'factory':6.0,'radar':5.0,'mine':4.0,'city':2.0,'shipment':6.5}
 
 
 def rid(ctx,option):return str(uuid5(NAMESPACE_URL,f'paga2:{ctx.request_key}:{option.key}'))
@@ -75,7 +75,7 @@ def enemy_targets(ctx,screen,config,enemies):
     defended={(d.get('targetKind'),d.get('targetId')) for d in screen.get('defenses',[]) if d.get('countryId') in enemies}
     defended_regions={str(d.get('targetId')) for d in screen.get('defenses',[]) if d.get('countryId') in enemies and d.get('targetKind')=='region'}
     targets=[]
-    for kind,key in (('base','bases'),('defense','defenses'),('power','power'),('factory','factories'),('mine','mines'),('radar','radars')):
+    for kind,key in (('base','bases'),('defense','defenses'),('power','power'),('factory','factories'),('mine','mines'),('radar','radars'),('airport','airports')):
         for item in screen.get(key,[]):
             if item.get('countryId') not in enemies or not item.get('position') or (item.get('health') is not None and item.get('health')<=0):continue
             region=str(item.get('regionId') or '')

@@ -31,7 +31,16 @@ def state_data(country_id):
         'missions':[{'id':mission.id,'agentId':mission.agent_id,'agentName':names.get(mission.agent_id,f'Agent #{mission.agent_id}'),'country':countries.get(mission.target_country_id,'Państwo celu'),'region':mission.region_name,'regionId':str(mission.region_id) if mission.region_id is not None else None,'countryId':mission.target_country_id,'scope':'country' if mission.kind=='warehouses' else 'region','kind':MISSIONS[mission.kind],
                      'startsAt':mission.starts_at.isoformat()+'Z','endsAt':mission.ends_at.isoformat()+'Z',
                      'captured':bool((mission.report or {}).get('captured')),'completed':mission.completed_at is not None,'success':mission.success} for mission in ([m for m in missions if m.completed_at is None]+[m for m in missions if m.completed_at is not None][:100])],
+        'resourceReports':resource_reports(country_id,countries),
         'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
+
+
+def resource_reports(country_id,countries):
+    """21 Nov 2026: rozpoznane zasoby regionów — dostępne przez 180 dni Entendy od zakończenia misji."""
+    from game.foreign_mining import reports,report_expires
+    return [{'missionId':mission.id,'regionId':str(region_id),'region':mission.region_name,'country':countries.get(mission.target_country_id,'Państwo celu'),
+             'entries':(mission.report or {}).get('entries',[]),'date':mission.ends_at.strftime('%d.%m.%Y'),'until':report_expires(mission).strftime('%d.%m.%Y')}
+            for region_id,mission in sorted(reports(db.session,country_id).items(),key=lambda item:item[1].ends_at,reverse=True)]
 
 
 @intelligence_bp.get('')

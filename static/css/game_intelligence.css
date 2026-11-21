@@ -24,3 +24,16 @@
 .intel-heading { display:flex; align-items:center; gap:10px; }
 .intel-heading-icon { width:34px; height:34px; flex:0 0 34px; padding:3px; box-sizing:border-box; border-radius:50%; background:#fff; border:1px solid #244984; }
 .intel-heading-icon[hidden] { display:none; }
+
+/* 21 Nov 2026: rozpoznane zasoby regionów (ważne 180 dni Entendy) */
+.intel-resources-note { margin:0 0 8px; color:#4d5f78; font-size:13px; }
+#intel-resources { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr)); gap:10px; }
+#intel-resources > p { grid-column:1 / -1; }
+.intel-resource-card { margin:0; background:#fff; border-left:4px solid #1E3A5F; }
+.intel-resource-card h3 { margin:0 0 4px; color:#1E3A5F; font-size:14px; }
+.intel-resource-card > p { margin:0 0 8px; color:#4d5f78; font-size:12px; }
+.intel-resource-list { display:grid; gap:4px; margin:0; padding:8px 10px; background:#eef3fa; border:1px solid #d3dce9; border-radius:6px; }
+.intel-resource-list div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 12px; font-size:12.5px; }
+.intel-resource-list dt { color:#4d5f78; }
+.intel-resource-list dd { margin:0 0 0 auto; color:#1E3A5F; font-weight:700; font-family:Consolas,monospace; text-align:right; overflow-wrap:normal; word-break:normal; }
+#intel-resources > .intel-more { grid-column:1 / -1; justify-self:start; }

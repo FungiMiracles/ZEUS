@@ -39,5 +39,5 @@ def visible_shipments(session,country_id):
         result.append({'id':ship.id,'countryId':owner,'regionId':str(origin[0]),'originCountryId':ship.origin_country_id or origin[1],
             'sellerId':ship.seller_id,'buyerId':ship.buyer_id,'seller':names.get(ship.seller_id,''),'buyer':names.get(ship.buyer_id,''),'health':ship.health,
             'route':ship.route or [[ship.source_x,ship.source_y],[ship.target_x,ship.target_y]],'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z',
-            'canAttack':not own and bool({ship.seller_id,ship.buyer_id}&enemy),'transport':ship.transport or 'sea'})
+            'canAttack':not own and ship.transport!='air' and bool({ship.seller_id,ship.buyer_id}&enemy),'transport':ship.transport or 'sea'})
     return result

@@ -90,6 +90,9 @@ def render_military(mode):
             'allyRegions':ally_regions(db.session,country.PANSTWO_ID) if mode=='defense' else {},
             'diplomacyActionUrl':url_for('game_diplomacy.create_action'),
             'visiblePower':visible_power(country.PANSTWO_ID,mode=='war'),
+            # 20 Nov 2026: porty lotnicze — własne; w panelu wojennym także wszystkie lotniska przeciwników (bez wywiadu)
+            'visibleAirports':visible_airports(country.PANSTWO_ID,mode=='war'),'airportIcon':url_for('static',filename='icons/SAMOLOT.svg'),
+            'craneIcon':url_for('static',filename='icons/PRACE BUDOWLANE.svg'),
             'visibleFactories':visible_factories(country.PANSTWO_ID,mode=='war'),'factoryIcon':url_for('static',filename='icons/FABRYKA.svg'),
             'visibleMines':visible_mines(country.PANSTWO_ID,mode=='war'),
             'ammunitionStockUrl':'/game/badania/stan',
@@ -242,7 +245,7 @@ def map_state():
     army=army_for_country(db.session, country.PANSTWO_ID, lock=False)
     world=bool(enemies(db.session,country.PANSTWO_ID))
     from game.trade_navigation import visible_shipments
-    response=jsonify(power=visible_power(country.PANSTWO_ID,world),factories=visible_factories(country.PANSTWO_ID,world),tradeShips=visible_shipments(db.session,country.PANSTWO_ID),gameNow=game_now().isoformat()+'Z',timeMultiplier=get_time_multiplier(),flights=visible_flights(country.PANSTWO_ID),
+    response=jsonify(airports=visible_airports(country.PANSTWO_ID,world),power=visible_power(country.PANSTWO_ID,world),factories=visible_factories(country.PANSTWO_ID,world),tradeShips=visible_shipments(db.session,country.PANSTWO_ID),gameNow=game_now().isoformat()+'Z',timeMultiplier=get_time_multiplier(),flights=visible_flights(country.PANSTWO_ID),
         defenses=visible_defenses(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),vessels=visible_vessels(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),bases=visible_base_data(country.PANSTWO_ID,world),mines=visible_mines(country.PANSTWO_ID,world),
         missiles={code:{'label':label,'count':getattr(army,field) or 0 if army else 0} for code,(field,label) in MISSILES.items()},
         armies=visible_armies(db.session,country.PANSTWO_ID),occupations=visible_occupations(db.session),
@@ -333,6 +336,14 @@ def visible_factories(country_id,world=False):
         rule=FACTORIES[factory.kind];recipe=rule['levels'][factory.level-1];product=products[recipe['product']]
         factories.append({'id':factory.id,'countryId':factory.panstwo_id,'regionId':str(factory.region_id),'name':rule['label']+f' #{factory.id}','position':[factory.map_x,factory.map_y],'health':factory.health,'level':factory.level,'dailyProduction':recipe['quantity'] if factory.health>0 and not factory.paused else 0,'product':recipe['product'],'productName':product['label'],'productIcon':product['icon']})
     return factories
+
+
+def visible_airports(country_id,war=False):
+    from game.airports import military_airports
+    try:return military_airports(db.session,country_id,war)
+    except Exception:
+        from flask import current_app
+        current_app.logger.exception('Lotniska na mapie wojskowej');return []
 
 
 def visible_power(country_id,world=False):

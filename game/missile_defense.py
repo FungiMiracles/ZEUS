@@ -40,6 +40,11 @@ def owned_target(session,country_id,kind,target_id):
         from game.radar_models import Radar
         target=session.scalar(select(Radar).where(Radar.id==target_id,Radar.panstwo_id==country_id))
         if target and target.health<=0:raise FinanceError('Nie można dodać obrony do zniszczonego radaru.')
+    elif kind=='airport':
+        # 20 Nov 2026: port lotniczy (game.airports) — obrona na wszystkich poziomach, także w trakcie budowy
+        from game.airport_models import Airport
+        target=session.scalar(select(Airport).where(Airport.id==target_id,Airport.panstwo_id.in_(controlled_ids(session,country_id)),Airport.removed_at.is_(None)))
+        if target and target.health<=0:raise FinanceError('Nie można dodać obrony do zniszczonego lotniska.')
     else:raise FinanceError('Nieprawidłowy rodzaj chronionego obiektu.')
     if target is not None and getattr(target,'removed_at',None) is not None:target=None
     if target is None:raise FinanceError('Chroniony obiekt nie należy do gracza.')
@@ -95,11 +100,11 @@ def intercept(session,flight,region_id,kind,target_id):
     """A hit requires one interceptor; empty launchers cannot intercept."""
     remaining=flight.missiles
     conditions=[(MissileDefense.target_kind=='region')&(MissileDefense.target_id==region_id)]
-    if kind in ('base','city','mine','factory','radar'):conditions.append((MissileDefense.target_kind==kind)&(MissileDefense.target_id==target_id))
+    if kind in ('base','city','mine','factory','power','radar','airport'):conditions.append((MissileDefense.target_kind==kind)&(MissileDefense.target_id==target_id))
     if kind=='defense':
         conditions.append(MissileDefense.id==target_id)
         target=session.get(MissileDefense,target_id)
-        if target and target.target_kind in ('city','base','mine','factory','radar'):
+        if target and target.target_kind in ('city','base','mine','factory','power','radar','airport'):
             conditions.append((MissileDefense.target_kind==target.target_kind)&(MissileDefense.target_id==target.target_id))
     from sqlalchemy import or_
     defenses=list(session.scalars(select(MissileDefense).where(MissileDefense.panstwo_id==flight.target_country_id,MissileDefense.health>0,or_(*conditions)).order_by(MissileDefense.id).with_for_update()))
@@ -127,6 +132,9 @@ def defense_data(defense):
     if owner is not None and defense.target_kind=='radar':
         from game.radar_models import Radar
         base=owner.get(Radar,defense.target_id)
+    if owner is not None and defense.target_kind=='airport':
+        from game.airport_models import Airport
+        base=owner.get(Airport,defense.target_id)
     position=[base.map_x,base.map_y] if base is not None and base.map_x is not None else None
     return {'id':defense.id,'countryId':defense.panstwo_id,'regionId':str(defense.region_id),
         'targetKind':defense.target_kind,'targetId':defense.target_id,'level':defense.level,

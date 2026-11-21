@@ -90,6 +90,7 @@ class MilitaryFlight(db.Model):
     target_defense_id = db.Column(db.Integer, db.ForeignKey('game_missile_defenses.id',ondelete='SET NULL'))
     target_power_id = db.Column(db.Integer,db.ForeignKey('game_power_plants.id',ondelete='SET NULL'))
     target_radar_id = db.Column(db.Integer,db.ForeignKey('game_radars.id',ondelete='SET NULL'))
+    target_airport_id = db.Column(db.Integer,db.ForeignKey('game_airports.id',ondelete='SET NULL'))   # 20 Nov 2026: lotnisko
     target_factory_id = db.Column(db.Integer,db.ForeignKey('game_ammunition_factories.id',ondelete='SET NULL'))
     target_shipment_id = db.Column(db.Integer,db.ForeignKey('game_trade_shipments.id',ondelete='SET NULL'))
     target_mine_id = db.Column(db.Integer, db.ForeignKey('game_mines.id',ondelete='SET NULL'))
@@ -154,7 +155,7 @@ class MissileDefense(db.Model):
     health = db.Column(db.Integer, nullable=False, default=100, server_default=db.text('100'))
     ammunition = db.Column(db.Integer, nullable=False, default=100)
     __table_args__ = (db.UniqueConstraint('target_kind','target_id',name='uq_missile_defense_target'),
-        db.CheckConstraint("target_kind IN ('region','city','base','mine','factory','power','radar')",name='ck_missile_defense_kind'),
+        db.CheckConstraint("target_kind IN ('region','city','base','mine','factory','power','radar','airport')",name='ck_missile_defense_kind'),
         db.CheckConstraint('health BETWEEN 0 AND 100',name='ck_missile_defense_health'),
         db.CheckConstraint('level BETWEEN 1 AND 7 AND ammunition BETWEEN 0 AND 10000',name='ck_missile_defense_values'),{'mysql_engine':'InnoDB'})
 
@@ -172,3 +173,7 @@ class MissileDefenseExpense(db.Model):
 
 # Radar tables are referenced by MilitaryFlight.target_radar_id (11 Nov 2026).
 from game import radar_models  # noqa: E402,F401
+
+
+# 20 Nov 2026: game_military_flights.target_airport_id wskazuje game_airports — model musi być w metadanych razem z lotami.
+from game import airport_models  # noqa: E402,F401

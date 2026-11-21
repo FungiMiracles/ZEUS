@@ -201,27 +201,31 @@ def buy_options(ctx,screen,factors):
     if not need:return []
     port,rate=arrival_port(screen,ctx.country_id)
     # 18 Nov 2026: oferta sąsiada lądowego (offer['land']) jedzie lądem między stolicami — bez portu i opłaty portowej.
-    if port is None and not any(o.get('land') for o in screen.get('offers') or []):return []
+    # 20 Nov 2026: oferta lotnicza (offer['transport']=='air') — odbiór na własnym czynnym lotnisku, bez opłat portowych.
+    own_airports=[int(id) for id in screen.get('ownAirports') or []]
+    if port is None and not own_airports and not any(o.get('land') for o in screen.get('offers') or []):return []
     reserve=float(screen.get('reserve') or 0);ctx._sectors['reserve']=reserve
     avoid=unfriendly(ctx)
     tolerance=1.0+.5*t.get('trade_propensity',50)/100+(.3 if ctx.situation.get('level')=='war' else 0)
     options=[]
     for offer in screen.get('offers') or []:
         if offer.get('own') or not offer.get('usable',True) or offer.get('sellerId') in avoid:continue
-        land=bool(offer.get('land'))
-        if not land and port is None:continue
+        land=bool(offer.get('land'));air=offer.get('transport')=='air'
+        if air and not own_airports:continue
+        if not land and not air and port is None:continue
         cargo=offer.get('cargo') or {}
         useful=set(cargo)&set(need)
         if not useful:continue
         weights={code:(1.0 if code in need else .5) for code in cargo}
         value=pricing.cargo_value(cargo,factors,weights)
-        price=float(offer.get('price') or 0);total=price if land else price*(1+float(rate or 0)/100)
+        price=float(offer.get('price') or 0);total=price if land or air else price*(1+float(rate or 0)/100)
         if total>value*tolerance:continue
         options.append(Option(key=f'trade:buy:{offer["id"]}',domain='trade',action='TRADE_BUY',label=f'Zakup oferty #{offer["id"]} od {offer.get("seller")}: '+', '.join(f'{q} {LABELS.get(c,c)}' for c,q in cargo.items()),
                               target=offer.get('sellerId'),stance='friendly',cost=total,sector='reserve',
                               effects={'production':1.0,'trade':.5},traits={'trade_propensity':.8,'isolationism':-.5},base=4.0+min(6.0,10*(value*tolerance-total)/max(1,total)),
                               notes=[f'Potrzebne: {", ".join(LABELS.get(c,c) for c in sorted(useful))}; cena z opłatą {total/1e9:.2f} MLD, wartość {value/1e9:.2f} MLD.'],
-                              payload={'action':'buy','offer_id':offer['id'],'arrival_rate':'0','group':'trade:buy'} if land else
+                              payload={'action':'buy','offer_id':offer['id'],'port_id':own_airports[0],'arrival_rate':'0','group':'trade:buy'} if air else
+                                      {'action':'buy','offer_id':offer['id'],'arrival_rate':'0','group':'trade:buy'} if land else
                                       {'action':'buy','offer_id':offer['id'],'port_id':port,'arrival_rate':str(rate),'group':'trade:buy'}))
     return sorted(options,key=lambda o:-o.base)[:5]
 

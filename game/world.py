@@ -75,7 +75,14 @@ def world_data():
         rails=world_lines(db.session)
     except Exception:
         current_app.logger.exception('Ekran Świat: koleje')
-    return {'countries':countries,'regions':regions,'occupied':occupied,'cities':cities,'continents':continents,'ships':ships,'rails':rails}
+    # 20 Nov 2026: porty lotnicze i czynne połączenia — animacja samolotów (filtr „Samoloty”)
+    air={'airports':[],'routes':[]}
+    try:
+        from game.airports import world_data as air_world
+        air=air_world(db.session)
+    except Exception:
+        current_app.logger.exception('Ekran Świat: lotniska')
+    return {'countries':countries,'regions':regions,'occupied':occupied,'cities':cities,'continents':continents,'ships':ships,'rails':rails,'air':air}
 
 
 def world_vessels(country):
@@ -110,7 +117,8 @@ def page():
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
             'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
             'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier(),
-            'trainSpeed':__import__('game.rail',fromlist=['TRAIN_SPEED']).TRAIN_SPEED,'craneIcon':url_for('static',filename='icons/PRACE BUDOWLANE.svg')}
+            'trainSpeed':__import__('game.rail',fromlist=['TRAIN_SPEED']).TRAIN_SPEED,'craneIcon':url_for('static',filename='icons/PRACE BUDOWLANE.svg'),
+            'airplaneIcon':url_for('static',filename='icons/SAMOLOT.svg')}
     # 18 Nov 2026: siedziba Międzynarodowego Funduszu Walutowego — tooltip Port Loyab prowadzi do ekranu MFW.
     from game.imf import imf_city_id
     config['imf']={'cityId':imf_city_id(db.session),'url':url_for('game_imf.page'),'icon':url_for('static',filename='icons/MFW.svg')}

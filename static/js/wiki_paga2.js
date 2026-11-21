@@ -307,6 +307,17 @@
     const army=Object.entries(state.army).filter(([k])=>ARMY[k]);$('paga2-state-army').replaceChildren(army.length?table(['Siły','Stan'],army.map(([k,v])=>[ARMY[k],v===null?'—':number.format(v)])):make('p','Brak danych o siłach zbrojnych.'));
     const tech=$('paga2-state-tech');tech.replaceChildren(make('p',`Niewykorzystane punkty rozwoju: ${number.format(state.researchPoints)}`));
     tech.append(state.technologies.length?table(['Technologia','Postęp','Stan'],state.technologies.map(t=>[t.label,`${number.format(t.invested)} / ${number.format(t.cost)}`,t.developed?'rozwinięta':'w toku'])):make('p','Brak rozwiniętych technologii.'));
+    // 21 Nov 2026: obiekty miejskie w miastach państwa (budynki postawione przez PAGA2)
+    const cityBox=$('paga2-state-cities');
+    if(cityBox){cityBox.replaceChildren();
+      for(const city of state.cities||[]){
+        const item=make('details',null,'paga-analysis'),built=city.buildings.filter(b=>b.completed).length;
+        item.append(make('summary',`${city.name}${city.capital?' (stolica)':''} · ludność ${number.format(city.population)} · obiekty: ${city.buildings.length}${built<city.buildings.length?` (w budowie: ${city.buildings.length-built})`:''}`));
+        item.append(table(['Obiekt','Kratka','Stan','Utrzymanie / rok'],city.buildings.map(b=>[b.label,`${Math.floor(b.cell/8)+1}–${b.cell%8+1}`,b.completed?'działa':`budowa ${b.progress}% (do ${date(b.readyAt)})`,number.format(Number(b.maintenance)/1e6)+' mln ROI'])));
+        cityBox.append(item);
+      }
+      if(!(state.cities||[]).length)cityBox.append(make('p','Państwo nie postawiło jeszcze obiektów miejskich.'));
+    }
     const stocks=Object.entries(state.stocks);$('paga2-state-stocks').replaceChildren(stocks.length?table(['Surowiec','Ilość'],stocks.map(([k,v])=>[k,number.format(v)])):make('p','Magazyn jest pusty.'));
     $('paga2-state-relations').replaceChildren(state.relations.length?table(['Państwo','Relacja','Stan'],state.relations.map(r=>[r.country||'#'+r.countryId,r.relation,r.state])):make('p','Brak zapisanych relacji.'));
     const plans=$('paga2-state-plans');plans.replaceChildren();

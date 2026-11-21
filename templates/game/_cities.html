@@ -1,0 +1,65 @@
+{# 21 Nov 2026: zakładka „Miasta” — obiekty miejskie, etap 1 (game/cities.py, static/js/game_cities.js). #}
+<section class="game-panel city-panel" aria-labelledby="city-panel-title">
+  <div class="game-panel-heading city-panel-heading"><h2 id="city-panel-title"><img src="{{ url_for('static',filename='icons/MIASTO.svg') }}" width="26" height="26" alt=""> Miasta</h2></div>
+  <div class="game-panel-body">
+    <p class="city-hint">Kliknij miasto na mapie, aby zarządzać jego obiektami: przeciągnij obiekt na wolną kratkę planu miasta (na telefonie: kliknij obiekt, potem kratkę). Utrzymanie obiektów jest pobierane z budżetów sektorów przy zatwierdzeniu budżetu.</p>
+    <div class="city-layout">
+      <aside class="city-indicators" aria-label="Dostęp ludności miejskiej do usług">
+        <div class="city-indicator" data-indicator="education"><img src="{{ url_for('static',filename='icons/SZKOŁA.svg') }}" alt=""><div><span>Ludność miejska z dostępem do edukacji</span><strong id="city-pct-education">—</strong><progress id="city-bar-education" max="100" value="0" aria-label="Dostęp do edukacji"></progress></div></div>
+        <div class="city-indicator" data-indicator="health"><img src="{{ url_for('static',filename='icons/SZPITAL.svg') }}" alt=""><div><span>Ludność miejska z dostępem do ochrony zdrowia</span><strong id="city-pct-health">—</strong><progress id="city-bar-health" max="100" value="0" aria-label="Dostęp do ochrony zdrowia"></progress></div></div>
+        <div class="city-indicator" data-indicator="transport"><img src="{{ url_for('static',filename='icons/TRAMWAJ.svg') }}" alt=""><div><span>Ludność miejska z dostępem do komunikacji miejskiej</span><strong id="city-pct-transport">—</strong><progress id="city-bar-transport" max="100" value="0" aria-label="Dostęp do komunikacji miejskiej"></progress></div></div>
+        <dl class="city-facts" id="city-facts"></dl>
+      </aside>
+      <div class="city-map-wrap">
+        <div id="city-map" class="city-map" aria-label="Mapa miast państwa"></div>
+        <p id="city-map-status" role="status" hidden></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<dialog id="city-dialog" class="city-dialog" aria-labelledby="city-dialog-title">
+  <header class="city-dialog-head">
+    <img class="city-dialog-icon" id="city-dialog-icon" src="{{ url_for('static',filename='icons/MIASTO.svg') }}" alt="">
+    <div class="city-dialog-name"><h2 id="city-dialog-title">Miasto</h2><p id="city-dialog-population"></p></div>
+    <div class="city-budgets" id="city-budgets" aria-label="Budżet dostępny do wydania"></div>
+    <button type="button" class="city-dialog-close" id="city-dialog-close" aria-label="Zamknij zarządzanie miastem">✕</button>
+  </header>
+  <section class="city-section" aria-labelledby="city-catalog-title">
+    <h3 id="city-catalog-title" class="city-section-title">Obiekty do postawienia</h3>
+    <div class="city-catalog" id="city-catalog" role="list"></div>
+    <p class="city-catalog-hint" id="city-catalog-hint">Przeciągnij obiekt na wolną kratkę albo kliknij obiekt, a potem kratkę.</p>
+  </section>
+  <section class="city-section" aria-labelledby="city-grid-title">
+    <h3 id="city-grid-title" class="city-section-title">Plan miasta</h3>
+    <div class="city-grid" id="city-grid" role="grid" aria-label="Plan miasta 8 × 8 kratek"></div>
+    <p id="city-dialog-error" class="city-error" role="alert"></p>
+  </section>
+</dialog>
+
+<dialog id="city-build-dialog" class="city-dialog city-confirm" aria-labelledby="city-build-title">
+  <form id="city-build-form" method="dialog">
+    <h2 class="city-confirm-title"><img id="city-build-icon" alt="" width="40" height="40"><span id="city-build-title">Budowa obiektu</span></h2>
+    <p id="city-build-city"></p>
+    <dl class="city-confirm-grid">
+      <div><dt>Koszt budowy</dt><dd id="city-build-cost">—</dd></div>
+      <div><dt>Roczny koszt utrzymania</dt><dd id="city-build-upkeep">—</dd></div>
+      <div><dt>Czas budowy</dt><dd id="city-build-days">—</dd></div>
+      <div><dt>Obsługiwani mieszkańcy</dt><dd id="city-build-served">—</dd></div>
+    </dl>
+    <p id="city-build-funding" class="city-confirm-note"></p>
+    <p id="city-build-effect" class="city-confirm-note"></p>
+    <p id="city-build-error" class="city-error" role="alert"></p>
+    <div class="city-actions"><button type="button" id="city-build-cancel" class="city-cancel">Anuluj</button><button type="submit" id="city-build-confirm" class="city-primary">Buduj</button></div>
+  </form>
+</dialog>
+
+<dialog id="city-demolish-dialog" class="city-dialog city-confirm" aria-labelledby="city-demolish-title">
+  <form id="city-demolish-form" method="dialog">
+    <h2 class="city-confirm-title"><img id="city-demolish-icon" alt="" width="40" height="40"><span id="city-demolish-title">Obiekt</span></h2>
+    <p id="city-demolish-info"></p>
+    <p id="city-demolish-refund" class="city-confirm-note"></p>
+    <p id="city-demolish-error" class="city-error" role="alert"></p>
+    <div class="city-actions"><button type="button" id="city-demolish-cancel" class="city-secondary">Zamknij</button><button type="submit" id="city-demolish-confirm" class="city-danger">Zlikwiduj obiekt</button></div>
+  </form>
+</dialog>

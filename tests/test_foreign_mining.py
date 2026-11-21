@@ -14,6 +14,11 @@ from test_game_commerce import CommerceFixture,NOW
 
 
 class ForeignMiningTests(CommerceFixture):
+    def setUp(self):
+        super().setUp()
+        # 21 Nov 2026: raport wywiadu o zasobach jest ważny 180 dni Entendy od zakończenia misji — zegar gry testu
+        clock=patch('game.finance_service.game_now',return_value=NOW);clock.start();self.addCleanup(clock.stop)
+
     def permit(self):
         from game.diplomacy_service import create_action,decide_action
         from game.intelligence_models import IntelligenceMission,IntelligenceAgent

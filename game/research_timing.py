@@ -17,6 +17,7 @@ DURATION_DAYS={
     'drones':7,'fighters':60,'warship':124,'carrier':182,'submarine':166,
     'waste_filters':7,'air_filters':12,
     'national_hubs':14,'rail_transport':21,   # kolej (19 Nov 2026)
+    'air_transport':28,   # transport lotniczy (20 Nov 2026)
     'radar':30,   # nie podano w wymaganiach — przyjęto 30 dni
 }
 
@@ -47,14 +48,34 @@ def researching(nodes,timers,node,now):
     return funded(nodes,node) and not developed(nodes,timers,node,now)
 
 
-def start(timers,node,now):
-    """Wpis rozpoczęcia rozwoju po skompletowaniu punktów."""
-    timers=dict(timers or {})
+EDUCATION_THRESHOLD=50   # 21 Nov 2026: poziom edukacji powyżej 50 przyspiesza rozwój technologii o (poziom / 5)%
+
+
+def education_bonus(level):
+    """Procent skrócenia czasu rozwoju technologii dla poziomu edukacji (np. 60 → 12, 80 → 16; do 50 — 0)."""
+    try:level=float(level or 0)
+    except (TypeError,ValueError):return 0.0
+    return round(min(level,100)/5,2) if level>EDUCATION_THRESHOLD else 0.0
+
+
+def effective_days(node,bonus=0):
     days=DURATION_DAYS.get(node,0)
-    if days>0:timers[node]={'started':now.isoformat(),'ready':(now+timedelta(days=days)).isoformat()}
+    return round(days*(1-float(bonus or 0)/100),2) if days else 0
+
+
+def start(timers,node,now,bonus=0):
+    """Wpis rozpoczęcia rozwoju po skompletowaniu punktów (bonus: % skrócenia za poziom edukacji)."""
+    timers=dict(timers or {})
+    days=effective_days(node,bonus)
+    if days>0:
+        timers[node]={'started':now.isoformat(),'ready':(now+timedelta(days=days)).isoformat()}
+        if bonus:timers[node]['bonus']=bonus
     return timers
 
 
 def timing(timers,node):
     item=(timers or {}).get(node) or {}
-    return {'startedAt':item.get('started'),'readyAt':item.get('ready'),'days':DURATION_DAYS.get(node,0)}
+    days=DURATION_DAYS.get(node,0)
+    started,ready=_parse(item.get('started')),_parse(item.get('ready'))
+    if started and ready:days=round((ready-started).total_seconds()/86400,2)   # 21 Nov 2026: czas po bonusie edukacji
+    return {'startedAt':item.get('started'),'readyAt':item.get('ready'),'days':days}
