@@ -105,6 +105,12 @@ def world_vessels(country):
         return []
 
 
+def _city_config(country_id):
+    """21 Nov 2026: kliknięcie miasta na mapie otwiera okno miasta (obiekty miejskie; cudze miasta tylko do odczytu)."""
+    from game.cities import page_config
+    return page_config(country_id)
+
+
 @world_bp.get('')
 def page():
     user,country=player()
@@ -123,7 +129,8 @@ def page():
     from game.imf import imf_city_id
     config['imf']={'cityId':imf_city_id(db.session),'url':url_for('game_imf.page'),'icon':url_for('static',filename='icons/MFW.svg')}
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
-                             game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config)
+                             game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config,
+                             city_config=_city_config(country.PANSTWO_ID) if country else None)
     db.session.rollback()
     return response
 

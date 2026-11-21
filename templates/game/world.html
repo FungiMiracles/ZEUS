@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261120-trains-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261121-airports-4') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_cities.css', v='20261121-cities-3') }}">
 {% endblock %}
 {% block content %}
 <section class="world-map-card" aria-labelledby="world-map-title">
@@ -40,6 +41,7 @@
   <p id="world-map-status" class="world-map-status" role="status" hidden></p>
 </section>
 <script type="application/json" id="world-config">{{ world_config | tojson }}</script>
+{% if city_config %}{% include 'game/_city_dialogs.html' %}<script type="application/json" id="city-config">{{ city_config|tojson }}</script>{% endif %}
 {% endblock %}
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -47,5 +49,6 @@
 <script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-dark-peaks-1') }}"></script>
 <script src="{{ url_for('static', filename='js/game_rail_trains.js', v='20261119-trains-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_air_traffic.js', v='20261121-orange-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261120-airports-1') }}" defer></script>
+{% if city_config %}<script src="{{ url_for('static', filename='js/game_cities.js', v='20261121-cities-3') }}" defer></script>{% endif %}
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261121-cities-1') }}" defer></script>
 {% endblock %}

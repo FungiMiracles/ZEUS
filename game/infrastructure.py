@@ -159,27 +159,9 @@ def _airport_config(country_id):
 
 
 def _city_config(country_id):
-    """21 Nov 2026: zakładka „Miasta” — mapa miast państwa i okno zarządzania miastem (game.cities, static/js/game_cities.js)."""
-    if "game_cities" not in current_app.blueprints:
-        return None
-    try:
-        from sqlalchemy.orm import Session as OrmSession
-        from game.cities import state as city_state, settle, tables_ready
-        with OrmSession(db.engine) as orm:
-            with orm.begin():
-                if not tables_ready(orm):
-                    return None
-                settle(orm, country_id)
-            data = city_state(orm, country_id)
-    except Exception:
-        current_app.logger.exception('Miasta: stan ekranu infrastruktury')
-        return None
-    icon = lambda name: url_for("static", filename="icons/" + name)
-    return {**data, "stateUrl": url_for("game_cities.state_view"), "quoteUrl": url_for("game_cities.quote_view"), "changeUrl": url_for("game_cities.change_view"),
-            "csrf": session["game_csrf_token"], "countriesUrl": url_for('region_sovereignty.country_boundaries'),
-            "cityIcon": icon("MIASTO.svg"), "craneIcon": icon("PRACE BUDOWLANE.svg"),
-            "icons": {item["kind"]: icon(item["icon"]) for item in data["catalog"]},
-            "sectorIcons": {"healthcare": icon("SZPITAL.svg"), "education": icon("SZKOŁA.svg"), "infrastructure": icon("INFRASTRUKTURA.svg"), "social_policy": icon("NURSERY.svg")}}
+    """21 Nov 2026: zakładka „Miasta” — konfiguracja wspólna z mapą „Świat” (game.cities.page_config)."""
+    from game.cities import page_config
+    return page_config(country_id)
 
 
 @infrastructure_bp.post('/rozbuduj')

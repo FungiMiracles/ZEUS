@@ -233,6 +233,21 @@ class CityDataTests(MilitaryFixture):
         self.assertEqual(len(cities.admin_cities(db.session, 1)), 1)
 
 
+class CityPreviewTests(CityDataTests):
+    def test_preview_own_and_foreign_city(self):
+        self.build('clinic', cell=7)
+        own = cities.preview(db.session, 1, 11, NOW)
+        self.assertEqual((own['own'], own['capital'], [b['cell'] for b in own['buildings']]), (True, True, [7]))
+        foreign = cities.preview(db.session, 2, 11, NOW)                       # to samo miasto oglądane przez inne państwo
+        self.assertEqual((foreign['own'], len(foreign['buildings'])), (False, 1))
+        self.assertNotIn('funds', foreign)                                       # bez budżetów
+        self.assertIsNone(cities.preview(db.session, 1, 999, NOW))
+
+    # testy klasy bazowej nie są tu powtarzane
+    for _name in [n for n in dir(CityDataTests) if n.startswith('test_')]:
+        locals()[_name] = None
+
+
 class ResourceIntelligenceExpiryTests(MilitaryFixture):
     def test_reports_valid_for_180_days(self):
         from game.intelligence_models import IntelligenceMission

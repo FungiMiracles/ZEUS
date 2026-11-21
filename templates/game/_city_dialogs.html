@@ -1,0 +1,49 @@
+{# 21 Nov 2026: okna miasta (zarządzanie, budowa, likwidacja) — zakładka „Miasta” i podgląd z mapy „Świat”. #}
+<dialog id="city-dialog" class="city-dialog" aria-labelledby="city-dialog-title">
+  <header class="city-dialog-head">
+    <div class="city-dialog-top">
+      <img class="city-dialog-icon" id="city-dialog-icon" src="{{ url_for('static',filename='icons/MIASTO.svg') }}" alt="">
+      <div class="city-dialog-name"><h2 id="city-dialog-title">Miasto</h2><p id="city-dialog-population"></p></div>
+      <button type="button" class="city-dialog-close" id="city-dialog-close" aria-label="Zamknij okno miasta">✕</button>
+    </div>
+    <div class="city-budgets" id="city-budgets" aria-label="Budżet dostępny do wydania"></div>
+  </header>
+  <section class="city-section" id="city-catalog-section" aria-labelledby="city-catalog-title">
+    <h3 id="city-catalog-title" class="city-section-title">Obiekty do postawienia</h3>
+    <div class="city-catalog" id="city-catalog" role="list"></div>
+    <p class="city-catalog-hint" id="city-catalog-hint">Przeciągnij obiekt na wolną kratkę albo kliknij obiekt, a potem kratkę.</p>
+  </section>
+  <section class="city-section" aria-labelledby="city-grid-title">
+    <h3 id="city-grid-title" class="city-section-title">Plan miasta</h3>
+    <div class="city-grid" id="city-grid" role="grid" aria-label="Plan miasta 8 × 8 kratek"></div>
+    <ul class="city-building-list" id="city-building-list" hidden></ul>
+    <p id="city-dialog-error" class="city-error" role="alert"></p>
+  </section>
+</dialog>
+
+<dialog id="city-build-dialog" class="city-dialog city-confirm" aria-labelledby="city-build-title">
+  <form id="city-build-form" method="dialog">
+    <h2 class="city-confirm-title"><img id="city-build-icon" alt="" width="40" height="40"><span id="city-build-title">Budowa obiektu</span></h2>
+    <p id="city-build-city"></p>
+    <dl class="city-confirm-grid">
+      <div><dt>Koszt budowy</dt><dd id="city-build-cost">—</dd></div>
+      <div><dt>Roczny koszt utrzymania</dt><dd id="city-build-upkeep">—</dd></div>
+      <div><dt>Czas budowy</dt><dd id="city-build-days">—</dd></div>
+      <div><dt>Obsługiwani mieszkańcy</dt><dd id="city-build-served">—</dd></div>
+    </dl>
+    <p id="city-build-funding" class="city-confirm-note"></p>
+    <p id="city-build-effect" class="city-confirm-note"></p>
+    <p id="city-build-error" class="city-error" role="alert"></p>
+    <div class="city-actions"><button type="button" id="city-build-cancel" class="city-cancel">Anuluj</button><button type="submit" id="city-build-confirm" class="city-primary">Buduj</button></div>
+  </form>
+</dialog>
+
+<dialog id="city-demolish-dialog" class="city-dialog city-confirm" aria-labelledby="city-demolish-title">
+  <form id="city-demolish-form" method="dialog">
+    <h2 class="city-confirm-title"><img id="city-demolish-icon" alt="" width="40" height="40"><span id="city-demolish-title">Obiekt</span></h2>
+    <p id="city-demolish-info"></p><p id="city-demolish-owner" class="city-confirm-note" hidden></p>
+    <p id="city-demolish-refund" class="city-confirm-note"></p>
+    <p id="city-demolish-error" class="city-error" role="alert"></p>
+    <div class="city-actions"><button type="button" id="city-demolish-cancel" class="city-secondary">Zamknij</button><button type="submit" id="city-demolish-confirm" class="city-danger">Zlikwiduj obiekt</button></div>
+  </form>
+</dialog>

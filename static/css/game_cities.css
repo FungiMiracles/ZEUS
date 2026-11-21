@@ -19,12 +19,16 @@
 
 /* znaczniki miast: ikona MIASTO.svg (kolor z maski) i nazwa, bez kropek; stolica — złota */
 .city-marker-wrap{background:transparent;border:0}
-.city-marker{position:relative;width:24px;height:24px;cursor:pointer}
-.city-marker-icon{display:block;width:24px;height:24px;background:#1E3A5F;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff)}
-.city-marker-name{position:absolute;left:50%;top:24px;transform:translateX(-50%);white-space:nowrap;color:#13253d;font-size:11px;font-weight:800;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none}
-.city-marker-capital .city-marker-icon{width:28px;height:28px;margin:-2px;background:#C99A1E;filter:drop-shadow(0 0 1px #5a3f00) drop-shadow(0 0 2px #fff)}
-.city-marker-capital .city-marker-name{color:#8a6100;font-size:12px}
-.city-marker:hover .city-marker-icon{background:#2b4f7c}.city-marker-capital:hover .city-marker-icon{background:#e0b02a}
+.city-marker{position:relative;width:26px;height:26px;cursor:pointer}
+/* 21 Nov 2026 (2): ikona miasta na kwadratowym białym tle */
+.city-marker-tile{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:26px;height:26px;padding:3px;background:#fff;border:1px solid #1E3A5F;border-radius:4px;box-shadow:0 1px 4px #0006}
+.city-marker-icon{display:block;width:100%;height:100%;background:#1E3A5F;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+.city-marker-name{position:absolute;left:50%;top:28px;transform:translateX(-50%);white-space:nowrap;color:#13253d;font-size:11px;font-weight:800;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none}
+.city-marker-capital{width:30px;height:30px;margin:-2px}
+.city-marker-capital .city-marker-tile{width:30px;height:30px;border:2px solid #C99A1E;box-shadow:0 0 0 1px #fff,0 1px 5px #0007}
+.city-marker-capital .city-marker-icon{background:#C99A1E}
+.city-marker-capital .city-marker-name{top:32px;color:#8a6100;font-size:12px}
+.city-marker:hover .city-marker-tile{background:#eef3fa}.city-marker:hover .city-marker-icon{background:#2b4f7c}.city-marker-capital:hover .city-marker-icon{background:#e0b02a}
 .city-marker-crane{position:absolute;right:-8px;top:-8px;width:14px;height:14px;padding:1px;background:#fff;border:1px solid #c58a16;border-radius:50%}
 .city-map-far .city-marker-name{display:none}
 .city-map-far .city-marker-capital .city-marker-name{display:block}
@@ -34,19 +38,23 @@
 /* okna */
 html body.game-app.game-navy.game-civic dialog.city-dialog{box-sizing:border-box;width:min(1040px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow-y:auto;padding:0;background:#F0F4FA;color:#24324a;border:1px solid #d3dce9;border-top:4px solid #1E3A5F;border-radius:10px;box-shadow:0 20px 60px #0b1d3355;color-scheme:light}
 html body.game-app.game-navy.game-civic dialog.city-dialog::backdrop{background:#0b1d2bd6;backdrop-filter:blur(4px)}
-.city-dialog-head{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F)}
+.city-dialog-head{position:sticky;top:0;z-index:2;display:grid;gap:10px;padding:14px 16px;background:linear-gradient(180deg,#2b4f7c,#1E3A5F)}
+/* 21 Nov 2026 (2): nazwa i ludność obok ikony (wyrównane do lewej), pod nimi pięć kontenerów budżetu */
+.city-dialog-top{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center}
+html body.game-app.game-navy.game-civic dialog.city-dialog .city-dialog-name{text-align:left;margin:0;padding:0}
 .city-dialog-icon{flex:0 0 56px;width:56px;height:56px;padding:6px;box-sizing:border-box;object-fit:contain;background:#fff;border:2px solid #fff;border-radius:10px}
 .city-dialog-icon.is-capital{border-color:#E8B65C;box-shadow:0 0 0 2px #C99A1E}
-.city-dialog-name{flex:1 1 160px;min-width:0}
+.city-dialog-name{min-width:0}
 html body.game-app.game-navy.game-civic dialog.city-dialog .city-dialog-name h2{margin:0;color:#fff;font-size:18px;font-weight:800}
 html body.game-app.game-navy.game-civic dialog.city-dialog .city-dialog-name p{margin:2px 0 0;color:#c9d7e8;font-size:12.5px}
-.city-budgets{display:flex;flex-wrap:wrap;gap:8px;flex:2 1 460px}
-.city-budget{display:flex;align-items:center;gap:8px;flex:1 1 140px;min-width:0;padding:7px 10px;background:#fff;border:1px solid #d3dce9;border-left:4px solid #E8B65C;border-radius:7px}
-.city-budget img{flex:0 0 26px;width:26px;height:26px;object-fit:contain}
+.city-budgets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.city-budgets[hidden]{display:none}
+.city-budget{display:flex;align-items:center;gap:6px;min-width:0;padding:5px 8px;background:#fff;border:1px solid #d3dce9;border-left:3px solid #E8B65C;border-radius:6px}
+.city-budget img{flex:0 0 20px;width:20px;height:20px;object-fit:contain}
 .city-budget div{display:grid;min-width:0}
-.city-budget span{color:#4d5f78;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-html body.game-app.game-navy.game-civic .city-budget strong{color:#1E3A5F;font-family:Consolas,monospace;font-size:14px;white-space:nowrap}
-html body.game-app.game-navy.game-civic .city-dialog-close{flex:none;width:34px;height:34px;min-width:0;min-height:0;padding:0;background:transparent;color:#fff;border:1.5px solid #ffffff99;border-radius:6px;box-shadow:none;font-size:16px}
+.city-budget span{color:#4d5f78;font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body.game-app.game-navy.game-civic .city-budget strong{color:#1E3A5F;font-family:Consolas,monospace;font-size:12.5px;white-space:nowrap}
+html body.game-app.game-navy.game-civic .city-dialog-close{align-self:start;width:34px;height:34px;min-width:0;min-height:0;padding:0;background:transparent;color:#fff;border:1.5px solid #ffffff99;border-radius:6px;box-shadow:none;font-size:16px}
 html body.game-app.game-navy.game-civic .city-dialog-close:hover{background:#ffffff26;border-color:#fff}
 .city-section{margin:14px 16px;padding:12px 14px;background:#fff;border:1px solid #d3dce9;border-radius:8px}
 html body.game-app.game-navy.game-civic dialog.city-dialog .city-section-title{text-align:left;margin:0 0 10px;color:#1E3A5F;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
@@ -93,15 +101,15 @@ html body.game-app.game-navy.game-civic .city-actions .city-secondary{background
 html body.game-app.game-navy.game-civic .city-actions .city-danger{background:#a33e33;color:#fff;border:1px solid #a33e33}
 html body.game-app.game-navy.game-civic .city-actions .city-danger:hover:not(:disabled){background:#8a2f26}
 @media (max-width:600px){.city-confirm-grid{grid-template-columns:minmax(0,1fr)}.city-grid{gap:3px;padding:5px}.city-section{margin:10px;padding:10px}.city-budget{flex-basis:100%}}
-/* telefon: niski nagłówek (budżety w jednym rzędzie, zamknięcie w rogu), katalog w dwóch kolumnach */
+/* telefon: budżety w dwóch kolumnach pod nazwą miasta, katalog w dwóch kolumnach */
+@media (max-width:860px){.city-budgets{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:600px){
-  .city-dialog-head{position:relative;gap:8px;padding:10px 48px 10px 10px}
-  .city-dialog-icon{flex-basis:44px;width:44px;height:44px;padding:4px}
-  html body.game-app.game-navy.game-civic .city-dialog-close{position:absolute;right:10px;top:10px}
-  .city-budgets{flex-basis:100%;gap:5px}
-  .city-budget{flex:1 1 0;padding:5px 6px;gap:4px}
+  .city-dialog-head{gap:8px;padding:10px}
+  .city-dialog-top{grid-template-columns:44px minmax(0,1fr) auto;gap:8px}
+  .city-dialog-icon{width:44px;height:44px;padding:4px}
+  .city-budgets{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .city-budget{padding:4px 6px}
   .city-budget img{display:none}
-  .city-budget span{font-size:9px;letter-spacing:0}
   html body.game-app.game-navy.game-civic .city-budget strong{font-size:11.5px}
   .city-catalog{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
   html body.game-app.game-navy.game-civic .city-object{grid-template-columns:minmax(0,1fr);gap:4px;padding:6px}
@@ -109,8 +117,27 @@ html body.game-app.game-navy.game-civic .city-actions .city-danger:hover:not(:di
   .city-object-text{font-size:10.5px}
   .city-object-text small{display:none}
 }
+
 /* kolory tekstu okien miast — mocniejsze niż ogólne reguły motywu ekranu infrastruktury */
 #city-dialog #city-dialog-population{color:#c9d7e8!important}
 #city-dialog #city-dialog-title{color:#fff!important}
 :is(#city-build-dialog,#city-demolish-dialog) p,#city-dialog .city-catalog-hint{color:#4d5f78!important}
 :is(#city-build-dialog,#city-demolish-dialog) .city-error,#city-dialog .city-error{color:#a33e33!important}
+
+/* 21 Nov 2026 (2): podgląd cudzego miasta — wolne kratki nieaktywne */
+html body.game-app.game-navy.game-civic .city-cell.is-readonly{cursor:default;background:#f7f9fc}
+html body.game-app.game-navy.game-civic .city-cell.is-readonly:hover{border-color:#c3cfdf}
+#city-dialog #city-catalog-section[hidden]{display:none}
+.world-tooltip .world-city-hint{display:block;margin-top:4px;color:#4d5f78;font-size:11px}
+/* 21 Nov 2026 (2): nazwa miasta wyrównana do lewej, przy ikonie (motyw wyśrodkowywał h2 okien) */
+#city-dialog #city-dialog-title{margin:0!important;padding:0!important;text-align:left!important;line-height:1.25}
+#city-dialog #city-dialog-population{margin:2px 0 0!important;text-align:left!important}
+@media (max-width:600px){#city-dialog .city-budget:last-child{grid-column:1/-1}}
+.city-building-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:6px;margin:12px 0 0;padding:0;list-style:none}
+.city-building-list[hidden]{display:none}
+.city-building-list li{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:8px;align-items:center;padding:6px 10px;background:#eef3fa;border:1px solid #d3dce9;border-left:3px solid #1E3A5F;border-radius:6px;font-size:12px}
+.city-building-list li.is-building{border-left-color:#c58a16;background:#fff8e6}
+.city-building-list li.is-empty{display:block;border-left-color:#b8c4d4;color:#4d5f78}
+.city-building-list img{grid-row:span 2;width:28px;height:28px;object-fit:contain}
+html body.game-app.game-navy.game-civic .city-building-list strong{color:#1E3A5F}
+.city-building-list span{color:#4d5f78}

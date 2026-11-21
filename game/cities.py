@@ -484,6 +484,46 @@ def admin_cities(session, country):
             for c in sorted(cities, key=lambda c: (-c['population'], c['id'])) if c['id'] in per_city]
 
 
+def page_config(country_id):
+    """Konfiguracja okna miasta (static/js/game_cities.js) — zakładka „Miasta” i mapa „Świat”; None, gdy moduł niedostępny."""
+    from flask import current_app, session as browser, url_for
+    import secrets
+    if 'game_cities' not in current_app.blueprints:
+        return None
+    try:
+        with Session(db.engine) as orm:
+            with orm.begin():
+                if not tables_ready(orm):
+                    return None
+                settle(orm, country_id)
+            data = state(orm, country_id)
+    except Exception:
+        current_app.logger.exception('Miasta: konfiguracja okna miasta')
+        return None
+    browser.setdefault('game_csrf_token', secrets.token_urlsafe(32))
+    icon = lambda name: url_for('static', filename='icons/' + name)
+    return {**data, 'stateUrl': url_for('game_cities.state_view'), 'quoteUrl': url_for('game_cities.quote_view'), 'changeUrl': url_for('game_cities.change_view'),
+            'previewUrl': url_for('game_cities.preview_view', city_id=0), 'csrf': browser['game_csrf_token'],
+            'countriesUrl': url_for('region_sovereignty.country_boundaries'), 'cityIcon': icon('MIASTO.svg'), 'craneIcon': icon('PRACE BUDOWLANE.svg'),
+            'icons': {item['kind']: icon(item['icon']) for item in data['catalog']},
+            'sectorIcons': {'healthcare': icon('SZPITAL.svg'), 'education': icon('SZKOŁA.svg'), 'infrastructure': icon('INFRASTRUKTURA.svg'),
+                            'social_policy': icon('NURSERY.svg'), 'reserve': icon('SKRZYNIA.svg')}}
+
+
+def preview(session, country, city_id, now=None):
+    """Podgląd obiektów dowolnego miasta (mapa „Świat”): bez budżetów; edycja tylko dla miasta własnego państwa."""
+    from game.governance import controller_id
+    now = now or game_now()
+    row = session.get(Miasto, city_id)
+    if row is None:
+        return None
+    owner = controller_id(session, row.panstwo_id) or row.panstwo_id
+    buildings = _buildings(session, [city_id]) if tables_ready(session) else []
+    return {'id': row.miasto_id, 'name': row.miasto_nazwa, 'population': int(row.miasto_populacja or 0), 'capital': row.miasto_typ_id == 1,
+            'own': owner == country, 'country': session.scalar(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID == owner)) or '',
+            'buildings': [building_data(b, now) for b in buildings]}
+
+
 # ---------- trasy HTTP ----------
 
 def _player():
@@ -506,6 +546,20 @@ def state_view():
         with session.begin():
             settle(session, country.PANSTWO_ID)
         response = jsonify(state(session, country.PANSTWO_ID))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@cities_bp.get('/podglad/<int:city_id>')
+def preview_view(city_id):
+    user, country, error = _player()
+    if error:
+        return error
+    with Session(db.engine) as session:
+        data = preview(session, country.PANSTWO_ID, city_id)
+    if data is None:
+        return jsonify(error='Nie znaleziono miasta.'), 404
+    response = jsonify(city=data)
     response.headers['Cache-Control'] = 'no-store'
     return response
 

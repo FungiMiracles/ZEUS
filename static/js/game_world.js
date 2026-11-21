@@ -225,6 +225,12 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
               .on('click', () => { window.location.href = config.imf.url; }).addTo(cityMarkersLayer);
           }
         }
+        // 21 Nov 2026: kliknięcie miasta otwiera okno obiektów miejskich (game_cities.js; cudze miasta tylko do odczytu)
+        if (!imf && window.GameCities) {
+          const hint = document.createElement('small'); hint.className = 'world-city-hint'; hint.textContent = 'Kliknij, aby zobaczyć obiekty miejskie';
+          tip.lastChild.append(hint);
+          layer.on('click', () => window.GameCities.open(feature.properties.miasto_id));
+        }
         layer.bindTooltip(tip, { direction: 'auto', offset: L.point(10, 0), className: 'world-tooltip' + (imf ? ' world-imf-tooltip' : ''), interactive: imf });
       } });
     if (!citiesToggle || citiesToggle.checked) citiesLayer.addTo(map);

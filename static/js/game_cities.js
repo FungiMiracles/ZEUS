@@ -2,13 +2,15 @@
    - mapa państwa: miasta jako ikony MIASTO.svg z nazwą (bez kropek), stolica na złoto; kliknięcie otwiera zarządzanie;
    - okno miasta: budżety sektorów, katalog obiektów, plan 8×8 kratek (przeciąganie albo klik obiektu, potem kratki);
    - po upuszczeniu obiektu: okno z kosztem budowy i rocznym utrzymaniem („Buduj” / „Anuluj”);
-   - kliknięcie zbudowanego obiektu: szczegóły i likwidacja (zwrot 25% kosztu budowy do budżetu sektora). */
+   - kliknięcie zbudowanego obiektu: szczegóły i likwidacja (zwrot 25% kosztu budowy do budżetu sektora).
+   21 Nov 2026 (2): pięć kontenerów pod nazwą miasta (ochrona zdrowia, edukacja, infrastruktura, polityka socjalna, rezerwa);
+   mapa „Świat” — GameCities.open(id): własne miasto jak w zakładce, cudze tylko do odczytu (bez budżetów i katalogu). */
 (() => {
     'use strict';
     const node = document.getElementById('city-config');
     if (!node) return;
     let state = JSON.parse(node.textContent);
-    const cfg = {stateUrl: state.stateUrl, quoteUrl: state.quoteUrl, changeUrl: state.changeUrl, csrf: state.csrf, countriesUrl: state.countriesUrl,
+    const cfg = {stateUrl: state.stateUrl, quoteUrl: state.quoteUrl, changeUrl: state.changeUrl, previewUrl: state.previewUrl, csrf: state.csrf, countriesUrl: state.countriesUrl,
                  cityIcon: state.cityIcon, craneIcon: state.craneIcon, icons: state.icons || {}, sectorIcons: state.sectorIcons || {}};
     const $ = id => document.getElementById(id);
     const make = (tag, text, cls) => { const el = document.createElement(tag); if (text != null) el.textContent = text; if (cls) el.className = cls; return el; };
@@ -18,10 +20,12 @@
     const pct = value => `${Number(value || 0).toLocaleString('pl-PL', {maximumFractionDigits: 1})}%`;
     const dateText = value => value ? new Intl.DateTimeFormat('pl-PL', {timeZone: 'UTC', dateStyle: 'short'}).format(new Date(value)) : '—';
     const uuid = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = crypto.getRandomValues(new Uint8Array(1))[0] & 15; return (c === 'x' ? r : r & 3 | 8).toString(16); });
-    const say = text => { const el = $('city-map-status'); el.textContent = text || ''; el.hidden = !text; };
+    const say = text => { const el = $('city-map-status'); if (!el) return; el.textContent = text || ''; el.hidden = !text; };
     const rule = kind => (state.catalog || []).find(item => item.kind === kind);
     const cityOf = id => (state.cities || []).find(city => city.id === id);
     let map = null, markers = null, fitted = false, current = null, picked = null, pending = null, busy = false, demolishing = null;
+    let viewed = null;   // miasto innego państwa oglądane z mapy „Świat” (tylko do odczytu)
+    const dialogCity = () => viewed || cityOf(current);
 
     async function api(url, body) {
         const options = body ? {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': cfg.csrf}, body: JSON.stringify(body)} : {cache: 'no-store'};
@@ -34,11 +38,12 @@
         const data = await api(cfg.stateUrl);
         state = {...state, ...data};
         renderIndicators(); drawCities();
-        if (current && $('city-dialog').open) renderDialog();
+        if (current && !viewed && $('city-dialog').open) renderDialog();
     }
 
     // ---------- kontenery wskaźników (lewa strona mapy) ----------
     function renderIndicators() {
+        if (!$('city-facts')) return;
         const percent = state.coverage?.percent || {};
         for (const code of ['education', 'health', 'transport']) {
             $('city-pct-' + code).textContent = pct(percent[code]);
@@ -55,14 +60,16 @@
 
     // ---------- mapa ----------
     function cityMarker(city) {
+        // 21 Nov 2026 (2): ikona miasta na kwadratowym białym tle; stolica — złota ikona i złota ramka
         const box = make('div', null, 'city-marker' + (city.capital ? ' city-marker-capital' : ''));
         const icon = make('span', null, 'city-marker-icon'); const mask = `url("${cfg.cityIcon}")`;
         icon.style.webkitMaskImage = mask; icon.style.maskImage = mask;
+        const tile = make('span', null, 'city-marker-tile'); tile.append(icon);
         const building = (city.buildings || []).some(b => !b.completed);
-        box.append(icon, make('span', city.name, 'city-marker-name'));
+        box.append(tile, make('span', city.name, 'city-marker-name'));
         if (building) box.append(image(cfg.craneIcon, 'city-marker-crane'));
         return L.marker([city.point[1], city.point[0]], {pane: 'cityMarkers', keyboard: true, title: city.name, alt: city.name, riseOnHover: true,
-            icon: L.divIcon({html: box, className: 'city-marker-wrap', iconSize: [24, 24], iconAnchor: [12, 12]})});
+            icon: L.divIcon({html: box, className: 'city-marker-wrap', iconSize: [26, 26], iconAnchor: [13, 13]})});
     }
     function drawCities() {
         if (!map) return;
@@ -102,24 +109,27 @@
     // ---------- okno zarządzania miastem ----------
     const dialog = $('city-dialog');
     $('city-dialog-close').onclick = () => dialog.close();
-    dialog.addEventListener('close', () => { picked = null; current = null; });
+    dialog.addEventListener('close', () => { picked = null; current = null; viewed = null; });
     function openCity(id) {
-        current = id; picked = null;
+        current = id; picked = null; viewed = null;
         $('city-dialog-error').textContent = '';
         renderDialog(); dialog.showModal();
     }
     function renderDialog() {
-        const city = cityOf(current);
+        const city = dialogCity();
         if (!city) { dialog.close(); return; }
+        const readonly = !!viewed;
         $('city-dialog-title').textContent = city.capital ? `${city.name} — stolica` : city.name;
-        $('city-dialog-population').textContent = `Ludność: ${number(city.population)}`;
+        $('city-dialog-population').textContent = `Ludność: ${number(city.population)}` + (readonly ? ` · ${city.country}` : '');
         $('city-dialog-icon').classList.toggle('is-capital', !!city.capital);
-        // budżety: ochrona zdrowia, edukacja, infrastruktura (dostępne do wydania w bieżącym okresie)
-        const budgets = $('city-budgets'); budgets.replaceChildren();
-        for (const code of ['healthcare', 'education', 'infrastructure']) {
+        // budżety pod nazwą miasta: ochrona zdrowia, edukacja, infrastruktura, polityka socjalna, rezerwa budżetowa
+        const budgets = $('city-budgets'); budgets.replaceChildren(); budgets.hidden = readonly;
+        $('city-catalog-section').hidden = readonly;
+        for (const code of ['healthcare', 'education', 'infrastructure', 'social_policy', 'reserve']) {
             const box = make('div', null, 'city-budget');
             if (cfg.sectorIcons[code]) box.append(image(cfg.sectorIcons[code]));
-            const text = make('div'); text.append(make('span', state.sectors?.[code] || code), make('strong', money(state.funds?.[code] || '0')));
+            const label = code === 'reserve' ? 'Rezerwa budżetowa' : code === 'social_policy' ? 'Polityka socjalna' : (state.sectors?.[code] || code);
+            const text = make('div'); text.append(make('span', label), make('strong', money(code === 'reserve' ? state.reserve : state.funds?.[code] || '0')));
             box.append(text); budgets.append(box);
         }
         // katalog obiektów
@@ -146,7 +156,7 @@
         const size = state.grid || 8, taken = new Map((city.buildings || []).map(b => [b.cell, b]));
         for (let cell = 0; cell < size * size; cell++) {
             const building = taken.get(cell);
-            const box = make('button', null, 'city-cell' + (building ? ' is-built' + (building.completed ? '' : ' is-building') : '') + (picked && !building ? ' is-target' : ''));
+            const box = make('button', null, 'city-cell' + (building ? ' is-built' + (building.completed ? '' : ' is-building') : '') + (picked && !building ? ' is-target' : '') + (readonly && !building ? ' is-readonly' : ''));
             box.type = 'button'; box.dataset.cell = String(cell); box.setAttribute('role', 'gridcell');
             const label = `Kratka ${Math.floor(cell / size) + 1}–${cell % size + 1}`;
             if (building) {
@@ -158,6 +168,8 @@
                 box.title = `${building.label}${building.completed ? '' : ` — budowa ${building.progress}%, ukończenie ${dateText(building.readyAt)} (Entenda)`}`;
                 box.setAttribute('aria-label', `${label}: ${box.title}`);
                 box.addEventListener('click', () => openDemolish(building));
+            } else if (readonly) {
+                box.setAttribute('aria-label', `${label}: wolna`); box.disabled = true;
             } else {
                 box.setAttribute('aria-label', `${label}: wolna`);
                 box.addEventListener('click', () => { if (picked) askBuild(picked, cell); else $('city-dialog-error').textContent = 'Najpierw wybierz obiekt do postawienia.'; });
@@ -166,6 +178,16 @@
                 box.addEventListener('drop', event => { event.preventDefault(); box.classList.remove('is-over'); const kind = event.dataTransfer.getData('text/plain') || picked; if (kind) askBuild(kind, cell); });
             }
             grid.append(box);
+        }
+        // podgląd z mapy „Świat”: lista obiektów miasta (zbudowane i w budowie)
+        const list = $('city-building-list'); list.replaceChildren(); list.hidden = !readonly;
+        if (readonly) {
+            for (const b of city.buildings || []) {
+                const row = make('li', null, b.completed ? 'is-done' : 'is-building'); row.append(image(cfg.icons[b.kind]), make('strong', b.label),
+                    make('span', b.completed ? 'działa' : `budowa ${b.progress}% · ukończenie ${dateText(b.readyAt)}`));
+                list.append(row);
+            }
+            if (!(city.buildings || []).length) list.append(make('li', 'Brak obiektów miejskich w tym mieście.', 'is-empty'));
         }
     }
 
@@ -223,6 +245,11 @@
         $('city-demolish-refund').textContent = `Likwidacja zwraca 25% kosztu budowy — ${money(building.refund)} — do budżetu „${item.sectorLabel || ''}”. Efekty obiektu zostaną usunięte.`;
         $('city-demolish-error').textContent = '';
         $('city-demolish-confirm').disabled = false;
+        // podgląd cudzego miasta: tylko informacja, bez likwidacji
+        const foreign = !!viewed;
+        $('city-demolish-confirm').hidden = foreign; $('city-demolish-refund').hidden = foreign;
+        $('city-demolish-owner').hidden = !foreign;
+        if (foreign) $('city-demolish-owner').textContent = `Obiekt w mieście państwa ${viewed.country} — podgląd bez możliwości zmian.`;
         demolishDialog.showModal();
     }
     $('city-demolish-form').addEventListener('submit', async event => {
@@ -238,7 +265,22 @@
         finally { busy = false; }
     });
 
+    // mapa „Świat”: okno dowolnego miasta (własne — pełne zarządzanie, cudze — tylko do odczytu)
+    async function openAny(id) {
+        id = Number(id);
+        if (cityOf(id)) { openCity(id); return; }
+        try {
+            const data = await api(cfg.previewUrl.replace(/0$/, id));
+            if (data.city.own) { await refresh().catch(() => {}); if (cityOf(id)) { openCity(id); return; } }
+            current = null; picked = null; viewed = data.city;
+            $('city-dialog-error').textContent = '';
+            renderDialog(); dialog.showModal();
+        } catch (error) { say(error.message); }
+    }
+    window.GameCities = {open: openAny};
+
     renderIndicators();
+    if (!$('city-map')) return;   // mapa „Świat” — bez mapy zakładki
     const open = () => requestAnimationFrame(() => { init(); map?.invalidateSize(); fit(); });
     $('infrastructure-tab-cities')?.addEventListener('click', open);
     if ($('infrastructure-cities-panel') && !$('infrastructure-cities-panel').hidden) open();
