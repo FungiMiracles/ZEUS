@@ -7,6 +7,8 @@ Zasady zatwierdzone przez administratora:
   zasoby wojska (Wojsko), elektrownie, fabryki, kopalnie, drogi i magazyn surowców;
 * konto gracza pozostaje aktywne, ale działa tylko forum i wiadomości prywatne (oraz konto); pozostałe funkcje państwa są zablokowane.
 Historia wydatków, budżety i skarbiec pokonanego państwa nie są przenoszone (zostają jako archiwum).
+* 21 Nov 2026: stolica pokonanego państwa przestaje być stolicą państwa — zostaje „stolicą regionu”, gdy jej region
+  nie ma innej stolicy regionu, w przeciwnym razie zwykłym „miastem” (anektujące państwo ma jedną stolicę).
 """
 from sqlalchemy import select, update
 from models import Panstwo, Region, Miasto, Wojsko
@@ -137,6 +139,26 @@ def _settle_war(session, defeated, annexer, moment):
     return armies
 
 
+CAPITAL, REGION_CAPITAL, CITY = 1, 2, 3   # dict_miasto_typ: stolica państwa, stolica regionu, miasto
+
+
+def demote_capitals(session, country_id, capital_region_id=None):
+    """Stolice państwa `country_id` → stolica regionu (region bez innej stolicy regionu) albo miasto. Zwraca {miasto_id: nowy typ}.
+    `capital_region_id` — region stołeczny: jego miasta przechodzą do anektującego już przy aneksji regionu (game.land_war)."""
+    from sqlalchemy import or_
+    where = Miasto.panstwo_id == country_id
+    if capital_region_id is not None:
+        where = or_(where, Miasto.region_id == capital_region_id)
+    changed = {}
+    for city in session.scalars(select(Miasto).where(where, Miasto.miasto_typ_id == CAPITAL).with_for_update()):
+        other = session.scalar(select(Miasto.miasto_id).where(Miasto.region_id == city.region_id, Miasto.miasto_id != city.miasto_id,
+                                                               Miasto.miasto_typ_id == REGION_CAPITAL).limit(1)) if city.region_id is not None else None
+        city.miasto_typ_id = CITY if other is not None else REGION_CAPITAL
+        changed[city.miasto_id] = city.miasto_typ_id
+    session.flush()
+    return changed
+
+
 def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_id, moment):
     """The annexer takes over the whole country of `defeated` (inside the annexation transaction)."""
     from game import land_war
@@ -146,6 +168,7 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     for region_id in session.scalars(select(Region.region_id).where(Region.panstwo_id==defeated)):
         seize(session,region_id,annexer,moment)
     transferred = {}
+    transferred['capitals'] = {str(k): v for k, v in demote_capitals(session, defeated, capital_region_id).items()}   # 21 Nov 2026
     transferred['regions'] = session.execute(update(Region).where(Region.panstwo_id == defeated).values(panstwo_id=annexer)
                                              .execution_options(synchronize_session=False)).rowcount
     transferred['cities'] = session.execute(update(Miasto).where(Miasto.panstwo_id == defeated).values(panstwo_id=annexer)

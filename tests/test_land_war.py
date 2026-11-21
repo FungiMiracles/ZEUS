@@ -417,6 +417,17 @@ class SovereigntyTests(LandWarFixture):
         self.assertGreater(new.wojska_ladowe_ilosc,before+40000,'the defeated army joins the annexer')
         self.assertEqual(new.wyszkolenie_ladowe,300,'the annexer keeps its own training')
         self.assertTrue(any('utraciło suwerenność' in (n.system_text or '') for n in db.session.query(GameNotification)))
+        # 21 Nov 2026: region 2 nie ma innej stolicy regionu — dawna stolica państwa zostaje stolicą regionu
+        self.assertEqual(db.session.get(Miasto,10).miasto_typ_id,2)
+        self.assertEqual(loss.transferred['capitals'],{'10':2})
+
+    def test_capital_becomes_city_when_region_has_regional_capital(self):
+        from game.sovereignty import demote_capitals
+        db.session.get(Miasto,10).miasto_typ_id=1
+        db.session.add(Miasto(miasto_id=13,panstwo_id=2,miasto_nazwa='Stolica regionu',region_id=2,czy_na_mapie='TAK',miasto_populacja=5,miasto_typ_id=2))
+        db.session.commit()
+        self.assertEqual(demote_capitals(db.session,2),{10:3})
+        self.assertEqual((db.session.get(Miasto,10).miasto_typ_id,db.session.get(Miasto,13).miasto_typ_id),(3,2))
 
     def test_capital_annexation_moves_the_whole_gdp(self):
         from sqlalchemy import update
