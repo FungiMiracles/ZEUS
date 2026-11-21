@@ -288,5 +288,11 @@ def country_state(session,country_id):
         cities=admin_cities(session,country_id)
     except Exception:
         cities=[]
-    return {'country':header,'profile':profile,'plans':plans,'finance':finance,'counts':counts,'objects':objects,'technologies':technologies,'researchPoints':int(research.points) if research else 0,
+    # 21 Nov 2026: plany wojenne (game.paga2.war_plans)
+    try:
+        from game.paga2.war_plans import admin_view
+        war_plans_view=admin_view(session,country_id,names)
+    except Exception:
+        war_plans_view=[]
+    return {'warPlans':war_plans_view,'country':header,'profile':profile,'plans':plans,'finance':finance,'counts':counts,'objects':objects,'technologies':technologies,'researchPoints':int(research.points) if research else 0,
             'relations':relations,'army':forces,'stocks':stocks,'messages':messages,'regions':regions,'cities':cities}

@@ -228,76 +228,106 @@ class DeclareTests(unittest.TestCase):
         c=wctx(level='threat',enemies=(),mode='IMMEDIATE');c.situation['relations']=relations;return c
 
     def declare(self,other,bases,missiles=None,army=None):
+        """16 Nov 2026: zdolność do wojny (war_capability) — od 21 Nov 2026 jedna z ocen planu wojennego; komunikaty jak dawniej."""
+        from types import SimpleNamespace as NS
         c=self.ctx({other:{'relation':'wrogie','state':'pokoj'}})
-        [option]=war.declare_options(c,forces(bases=bases,army=army),{'missiles':missiles or {}});return c,option
+        cap=war.war_capability(c,forces(bases=bases,army=army),{'missiles':missiles or {}},other)
+        return c,NS(notes=cap['notes'],base=cap['bonus'],able=cap['able'],distant=cap['distant'])
 
-    def test_declaration_only_in_immediate_mode_and_for_war_relations(self):
+    @staticmethod
+    def blocked(option):
+        if option.able:return None
+        return ('Brak zdolności do wojny z odległym państwem. ' if option.distant else 'Brak zdolności do prowadzenia wojny. ')+' '.join(option.notes)
+
+    def plan_state(self,c,other,stage='READY',areas=None,targets=True):
+        """21 Nov 2026: wypowiedzenie wojny wyłącznie z planu wojennego w etapie READY."""
+        from types import SimpleNamespace as NS
+        full={k:{'have':1,'need':1,'ratio':1.0} for k in ('combat','reach','finance','supply','intel')}
+        plan=NS(id=11,enemy_id=other,kind='OFFENSIVE',stage=stage,reason='Uzasadnienie: test.',goal={'type':'conquer_region','label':'Zajęcie regionu'},readiness=1.0)
+        c._plan_state={11:{'plan':plan,'stage':stage,'targets':[{'kind':'base','id':5}] if targets else [],'areas':areas or full,'intel_fresh':True}}
+        return plan
+
+    def test_declaration_only_from_ready_war_plan(self):
         relations={7:{'relation':'wrogie','state':'pokoj'},8:{'relation':'dobre','state':'pokoj'},9:{'relation':'zle','state':'wojnakinetyczna'}}
         staffed=forces(bases=[base(1,garrison={'soldiers':5,'tanks':10})])
-        c=self.ctx(relations);c.mode='CYCLIC'
-        self.assertEqual(war.declare_options(c,staffed,{}),[])
-        c.mode='IMMEDIATE'
-        [declare]=war.declare_options(c,staffed,{})
-        self.assertEqual(declare.payload['target_id'],7);self.assertIsNone(war.check(c,declare))
+        c=self.ctx(relations)
+        with patch('game.paga2.war_plans.offensive_grace',return_value=None):
+            self.assertEqual(war.declare_options(c,staffed,{}),[])                       # bez planu wojennego — brak wypowiedzenia
+            self.plan_state(c,7,stage='PREPARATION')
+            self.assertEqual(war.declare_options(c,staffed,{}),[])                       # plan jeszcze nie gotowy
+            self.plan_state(c,7)
+            [declare]=war.declare_options(c,staffed,{})
+            self.assertEqual((declare.payload['target_id'],declare.payload['plan_id']),(7,11));self.assertIsNone(war.check(c,declare))
+            c.mode='CYCLIC';self.assertEqual(len(war.declare_options(c,staffed,{})),1)  # gotowy plan — także w przeglądzie cyklicznym
+            self.plan_state(c,7,areas={'combat':{'ratio':.5},'reach':{'ratio':1},'finance':{'ratio':1},'supply':{'ratio':1},'intel':{'ratio':1}})
+            [declare]=war.declare_options(c,staffed,{})
+            self.assertIn('Gotowość poniżej 80%',war.check(c,declare))
+            c.situation['relations'][7]={'relation':'chlodne','state':'pokoj'};self.plan_state(c,7)
+            [declare]=war.declare_options(c,staffed,{})
+            self.assertIn('nie pozwalają wypowiedzieć wojny',war.check(c,declare))
 
     def test_no_capability_blocks_declaration(self):
-        c=self.ctx({7:{'relation':'wrogie','state':'pokoj'}})
-        [declare]=war.declare_options(c,forces(bases=[],budget=0),{})
-        self.assertIn('Brak zdolności',war.check(c,declare))
+        c,declare=self.declare(7,[])
+        self.assertIn('Brak zdolności',self.blocked(declare))
 
     def test_neighbour_needs_attack_means(self):
         c,declare=self.declare(7,[base(1,garrison={'soldiers':5})])                       # sami żołnierze — brak środków ataku
-        self.assertIn('Brak środków ataku na sąsiada',war.check(c,declare))
+        self.assertIn('Brak środków ataku na sąsiada',self.blocked(declare))
         c,declare=self.declare(7,[base(1,garrison={'soldiers':5,'launchers':4})])         # wyrzutnie bez rakiet
-        self.assertIn('Brak środków ataku',war.check(c,declare))
+        self.assertIn('Brak środków ataku',self.blocked(declare))
         c,declare=self.declare(7,[base(1,garrison={'soldiers':5,'launchers':4})],{'short':{'count':20}})
-        self.assertIsNone(war.check(c,declare))
+        self.assertIsNone(self.blocked(declare))
 
     def test_neighbour_needs_defence_of_own_territory(self):
         c,declare=self.declare(7,[base(1,kind='air',garrison={'soldiers':5,'fighters':10})],{'short':{'count':20}})
-        self.assertIn('Brak obsadzonej bazy lądowej',war.check(c,declare))        # atak z powietrza, ale brak obrony lądowej
+        self.assertIn('Brak obsadzonej bazy lądowej',self.blocked(declare))        # atak z powietrza, ale brak obrony lądowej
         self.power=(500.0,1000.0)
         c,declare=self.declare(7,[base(1,garrison={'soldiers':5,'tanks':10})])
-        self.assertIn('zbyt słabe do obrony',war.check(c,declare))
+        self.assertIn('zbyt słabe do obrony',self.blocked(declare))
         self.power=(2000.0,1000.0)
         c,strong=self.declare(7,[base(1,garrison={'soldiers':5,'tanks':10})])
         self.power=(700.0,1000.0)
         c,weaker=self.declare(7,[base(1,garrison={'soldiers':5,'tanks':10})])
-        self.assertIsNone(war.check(c,weaker));self.assertGreater(strong.base,weaker.base)
+        self.assertIsNone(self.blocked(weaker));self.assertGreater(strong.base,weaker.base)
 
     def test_distant_country_needs_long_range_means(self):
         b=lambda **g:base(1,garrison={'soldiers':5,**g},x=0.0)
         c,declare=self.declare(30,[b(tanks=10,launchers=5)],{'short':{'count':50}})
-        self.assertIn('odległym',war.check(c,declare))                      # czołgi i rakiety krótkiego zasięgu (cel 3000 km)
+        self.assertIn('odległym',self.blocked(declare))                      # czołgi i rakiety krótkiego zasięgu (cel 3000 km)
         c,declare=self.declare(30,[b()],{'long':{'count':4}})
-        self.assertIn('odległym',war.check(c,declare))                      # rakiety dalekiego zasięgu bez wyrzutni
+        self.assertIn('odległym',self.blocked(declare))                      # rakiety dalekiego zasięgu bez wyrzutni
         c,declare=self.declare(30,[b(launchers=2)],{'long':{'count':4}})
-        self.assertIsNone(war.check(c,declare));self.assertIn('rakiety dalekiego zasięgu 4',declare.notes[0])
+        self.assertIsNone(self.blocked(declare));self.assertIn('rakiety dalekiego zasięgu 4',declare.notes[0])
         c,declare=self.declare(30,[b(launchers=2)],{'medium':{'count':40}})
-        self.assertIn('odległym',war.check(c,declare))                      # rakiety średniego zasięgu nie sięgają 3000 km
+        self.assertIn('odległym',self.blocked(declare))                      # rakiety średniego zasięgu nie sięgają 3000 km
         c,declare=self.declare(30,[base(1,kind='naval',garrison={'soldiers':5,'submarines':2})])
-        self.assertIsNone(war.check(c,declare));self.assertIn('okręty podwodne 2',declare.notes[0])
+        self.assertIsNone(self.blocked(declare));self.assertIn('okręty podwodne 2',declare.notes[0])
         self.geo[30]=([[30,0]],False)                                        # państwo bez wybrzeża — okręty nie wystarczą
         c,declare=self.declare(30,[base(1,kind='naval',garrison={'soldiers':5,'warships':2})])
-        self.assertIn('odległym',war.check(c,declare))
+        self.assertIn('odległym',self.blocked(declare))
 
     def test_no_declaration_during_peace_grace_period(self):
-        # 16 Nov 2026: karencja 30 dni Entendy po zawarciu pokoju — PAGA2 nie rozważa wojny z tym państwem.
-        c=self.ctx({7:{'relation':'wrogie','state':'pokoj'},8:{'relation':'wrogie','state':'pokoj'}})
+        # 16 Nov 2026: karencja 30 dni Entendy po pokoju (gra); 21 Nov 2026: dla PAGA2 okres ochronny 180 dni — blokada w planie.
+        c=self.ctx({7:{'relation':'wrogie','state':'pokoj'}})
         c._peace_grace={7:c.now+timedelta(days=5)}
-        self.assertEqual([o.target for o in war.declare_options(c,forces(bases=[base(1,garrison={'soldiers':5,'tanks':10})]),{})],[8])
+        self.plan_state(c,7)
+        with patch('game.paga2.war_plans.offensive_grace',return_value=None):
+            [declare]=war.declare_options(c,forces(bases=[base(1,garrison={'soldiers':5,'tanks':10})]),{})
+        self.assertIn('Okres ochronny po pokoju',war.check(c,declare))
 
     def test_carrier_counts_as_long_range_means(self):
         bases=[base(1,kind='naval',garrison={'soldiers':5}),base(2,kind='air',garrison={'soldiers':5,'fighters':6},x=0.0)]
         c,declare=self.declare(30,bases,army={'lotniskowce_ilosc':1})
-        self.assertIsNone(war.check(c,declare));self.assertIn('lotniskowce 1',declare.notes[0])
+        self.assertIsNone(self.blocked(declare));self.assertIn('lotniskowce 1',declare.notes[0])
         c,declare=self.declare(30,bases,army={'lotniskowce_ilosc':0})
-        self.assertIn('odległym',war.check(c,declare))
+        self.assertIn('odległym',self.blocked(declare))
 
     def test_imperialist_scores_war_higher_than_pacifist(self):
         def option(**kw):
             c=wctx(level='threat',enemies=(),mode='IMMEDIATE',**kw);c.situation['relations']={7:{'relation':'wrogie','state':'pokoj'}}
-            return score(war.declare_options(c,forces(bases=[base(1,garrison={'soldiers':5,'tanks':10})]),{})[0],c)
+            self.plan_state(c,7)
+            with patch('game.paga2.war_plans.offensive_grace',return_value=None):
+                return score(war.declare_options(c,forces(bases=[base(1,garrison={'soldiers':5,'tanks':10})]),{})[0],c)
         hawk=option(traits={'militarism':95,'expansionism':95,'agreeableness':5},categories=['imperialist'],priorities=['conquest'])
         dove=option(traits={'militarism':5,'expansionism':5,'agreeableness':95},categories=['welfare'],priorities=['welfare'])
         self.assertGreater(hawk.score,dove.score+40)

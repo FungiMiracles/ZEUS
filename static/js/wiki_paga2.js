@@ -307,6 +307,31 @@
     const army=Object.entries(state.army).filter(([k])=>ARMY[k]);$('paga2-state-army').replaceChildren(army.length?table(['Siły','Stan'],army.map(([k,v])=>[ARMY[k],v===null?'—':number.format(v)])):make('p','Brak danych o siłach zbrojnych.'));
     const tech=$('paga2-state-tech');tech.replaceChildren(make('p',`Niewykorzystane punkty rozwoju: ${number.format(state.researchPoints)}`));
     tech.append(state.technologies.length?table(['Technologia','Postęp','Stan'],state.technologies.map(t=>[t.label,`${number.format(t.invested)} / ${number.format(t.cost)}`,t.developed?'rozwinięta':'w toku'])):make('p','Brak rozwiniętych technologii.'));
+    // 21 Nov 2026: plany wojenne PAGA2 — cel, etap, gotowość w pięciu obszarach, rozpoznanie, braki i historia
+    const warBox=$('paga2-state-war-plans');
+    if(warBox){warBox.replaceChildren();
+      const pct=v=>`${Math.round(100*Number(v||0))}%`;
+      for(const plan of state.warPlans||[]){
+        const item=make('details',null,'paga-decision'),summary=make('summary');
+        const what=make('div',null,'paga-what');
+        what.append(make('b',`Plan #${plan.id}: ${plan.kind==='ALLY_SUPPORT'?'wsparcie sojusznika '+(plan.ally||'#'+plan.allyId)+' — ':''}przeciwnik ${plan.enemy||'#'+plan.enemyId}`),
+                    make('p',`${plan.goal?.label||'cel'} · gotowość ${pct(plan.readiness)} · operacje: ${plan.operations}`));
+        const badges=make('span',null,'paga-badges'),badge=make('span',plan.stageLabel,'paga-badge');
+        badge.dataset.status=plan.stage==='COMPLETED'?'EXECUTED':plan.stage==='ABANDONED'?'ERROR':'';badges.append(badge);
+        summary.append(make('span',date(plan.createdAt),'paga-when'),make('span',plan.stage,'paga-who'),what,badges);item.append(summary);
+        const body=make('div',null,'paga-decision-body');
+        body.append(make('p',`Przyczyna: ${plan.reason}`));
+        if(plan.endReason)body.append(make('p',`Powód zakończenia: ${plan.endReason}`));
+        body.append(table(['Obszar gotowości','Posiadane','Wymagane','Pokrycie'],Object.entries(plan.areas||{}).map(([k,a])=>[plan.areaLabels?.[k]||k,number.format(Number(a.have||0)),number.format(Number(a.need||0)),pct(a.ratio)])));
+        if((plan.shortfalls||[]).length)body.append(make('p','Braki blokujące wojnę: '+plan.shortfalls.join('; ')));
+        body.append(make('p',`Rozpoznanie: ${(plan.areas?.intel?.ratio||0)>=1?'aktualne':'brak aktualnego'} · próby wywiadu: ${plan.intelAttempts} · cykle bez operacji: ${plan.idleCycles}`));
+        if((plan.targets||[]).length)body.append(make('p','Cele militarne: '+plan.targets.map(t=>t.label).join(', ')));
+        for(const n of plan.notes||[])body.append(make('p',n,'paga-note'));
+        if((plan.history||[]).length)body.append(table(['Czas Entendy','Zdarzenie'],plan.history.slice().reverse().map(h=>[date(h.at),h.text])));
+        item.append(body);warBox.append(item);
+      }
+      if(!(state.warPlans||[]).length)warBox.append(make('p','Państwo nie ma planów wojennych.'));
+    }
     // 21 Nov 2026: obiekty miejskie w miastach państwa (budynki postawione przez PAGA2)
     const cityBox=$('paga2-state-cities');
     if(cityBox){cityBox.replaceChildren();

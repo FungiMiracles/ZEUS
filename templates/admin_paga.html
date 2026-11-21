@@ -180,6 +180,7 @@
 <section class="paga-card"><h2>Technologie</h2><div id="paga2-state-tech"></div></section>
 <section class="paga-card"><h2>Surowce w magazynie</h2><div id="paga2-state-stocks"></div></section>
 </div>
+<section class="paga-card"><h2>Plany wojenne</h2><p class="paga-note">Przygotowania i prowadzenie wojen ofensywnych oraz udział w wojnach sojuszników: cel, etap, gotowość w pięciu obszarach (próg 80%), rozpoznanie, braki blokujące wypowiedzenie wojny i historia działań.</p><div id="paga2-state-war-plans" class="paga-decision-list"></div></section>
 <section class="paga-card"><h2>Miasta i obiekty miejskie</h2><p class="paga-note">Budynki postawione w miastach państwa (klinika, szpital, żłobek, szkoła, uniwersytet, komunikacja miejska, monument) — stan budowy i roczne utrzymanie.</p><div id="paga2-state-cities" class="paga-decision-list"></div></section>
 <section class="paga-card"><h2>Plany wieloetapowe</h2><p class="paga-note">Cel rozłożony na etapy (technologie, surowce, energia, budowa). Etapy są przeliczane przy każdym przebiegu algorytmu.</p><div id="paga2-state-plans" class="paga-decision-list"></div></section>
 <section class="paga-card"><h2>Relacje z innymi państwami</h2><div id="paga2-state-relations" class="paga-monitor-table"></div></section>
@@ -190,7 +191,7 @@
 <script type="application/json" id="paga-config">{{ paga_config|tojson }}</script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga.js',v='20261112-paga2-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261121-cities-2') }}" defer></script>
+<script src="{{ url_for('static',filename='js/wiki_paga2.js',v='20261121-war-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/wiki_paga_relationships.js',v='20261108-1') }}" defer></script>
 {% if paga_config.monitoringUrl %}<script src="{{ url_for('static',filename='js/wiki_paga_monitoring.js',v='20261110-multiai-1') }}" defer></script>{% endif %}
 {% endblock %}

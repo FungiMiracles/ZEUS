@@ -4,7 +4,7 @@ from sqlalchemy import select,func
 from game.forum_models import GameNotification
 from game.communication_models import PrivateMessage
 
-SECURITY=('nuclear_strike','war_declared','land_invasion','under_attack','military_loss','occupation','annexation','hybrid_detected')
+SECURITY=('war_plan_operation','nuclear_strike','war_declared','land_invasion','under_attack','military_loss','occupation','annexation','hybrid_detected')
 ORDER=SECURITY+('nuclear_research','diplomatic_proposal','private_message','forum_message','intelligence_report','military_report','loan_event','social_unrest',
                 'energy_shortage','production_stopped','resource_event','trade_event','construction_completed','generated_event','system_notice')
 LAND=[(re.compile(r'^Uderzenie atomowe:'),'nuclear_strike'),(re.compile(r'^Badania atomowe:'),'nuclear_research'),

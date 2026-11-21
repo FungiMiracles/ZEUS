@@ -213,9 +213,10 @@ class JoinWarCapabilityTests(unittest.TestCase):
     def test_accept_blocked_without_capability_and_reject_still_possible(self):
         from game.paga2.scoring import Option
         c=dctx()
-        accept=Option('a','diplomacy','PROPOSAL_ACCEPT','x',payload={'proposal_id':1,'group':'proposal:1','required':True,'capable':False,'reason':'Brak środków ataku.'})
+        # 21 Nov 2026: warunki A/B/C (game.paga2.war_plans.join_blockers) — odmowa z uzasadnieniem, odrzucenie nadal możliwe
+        accept=Option('a','diplomacy','PROPOSAL_ACCEPT','x',payload={'proposal_id':1,'group':'proposal:1','required':True,'join_blockers':['A. Możliwości militarne poniżej 80%.']})
         reject=Option('r','diplomacy','PROPOSAL_REJECT','x',payload={'proposal_id':1,'group':'proposal:1','required':True})
-        self.assertIn('Brak zdolności do dołączenia do wojny',diplomacy.check(c,accept))
+        self.assertIn('Odmowa udziału w wojnie sojusznika: A.',diplomacy.check(c,accept))
         self.assertIsNone(diplomacy.check(c,reject))
 
     def test_capability_uses_war_rules(self):

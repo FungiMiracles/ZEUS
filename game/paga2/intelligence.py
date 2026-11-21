@@ -61,8 +61,25 @@ def options_for(ctx,data):
         options.append(Option(key=f'intel:counter:{level}',domain='intelligence',action='COUNTER_UPGRADE',label=f'Kontrwywiad: poziom {level} → {level+1}',
                               cost=float(COUNTER_COSTS[level]),sector='security_services',effects={'intelligence':.8,'defensive_army':.5},
                               traits={'secrecy':.8,'loss_tolerance':-.3},base=3.0+(6.0 if attacked else 0),payload={'action':'counter_upgrade','expected_level':level}))
+    # 21 Nov 2026: rozpoznanie celów planów wojennych (game.paga2.war_plans) — przed innymi misjami, najwyżej MAX_INTEL_ATTEMPTS prób.
+    from game.paga2 import war_plans
+    requests=war_plans.intel_requests(ctx)
+    if requests and not free and not any(o.action=='RECRUIT_AGENT' for o in options):
+        level=max(1,min(7,1+int(t.get('espionage',50)//17)))
+        while level>1 and AGENT_COSTS[level-1]>available*ctx.limits['per_action']:level-=1
+        options.append(Option(key=f'intel:recruit:plan:{level}',domain='intelligence',action='RECRUIT_AGENT',label=f'Rekrutacja agenta poziomu {level} do rozpoznania przed planowaną wojną',
+                              cost=float(AGENT_COSTS[level-1]),sector='security_services',effects={'intelligence':1.0,'offensive_army':.4},traits={'espionage':.6},base=8.0,
+                              payload={'action':'recruit','level':level,'count':1}))
     if not free:return options
     agent=max(free,key=lambda a:a['level'])
+    for plan_id,other,region in requests:
+        regions=[region] if region is not None else target_regions(ctx,other)
+        if not regions:continue
+        options.append(Option(key=f'intel:plan:{plan_id}',domain='intelligence',action='SCOUT_bases',label=f'Rozpoznanie baz państwa {other}, region {regions[0]} (plan wojenny #{plan_id})',
+                              target=other,stance='neutral',cost=float(MISSION_COSTS[agent['level']-1]),sector='security_services',
+                              effects={'intelligence':1.0,'offensive_army':.6,'conquest':.4},traits={'espionage':.6},base=12.0,
+                              notes=['Plan wojenny wymaga aktualnego rozpoznania celów przed jakąkolwiek decyzją o wojnie.'],
+                              payload={'action':'mission','kind':'bases','agent_id':agent['id'],'region_id':regions[0],'group':'intel:mission','war_plan_id':plan_id}))
     done=recent_missions(ctx)
     enemies=list(s.get('at_war',[]))+[x for x in s.get('threats',[]) if x not in s.get('at_war',[])]
     neighbors=ctx.world_summary().get('neighbor_countries',[])
@@ -102,8 +119,14 @@ def propose(ctx):
 
 
 def execute(ctx,option):
-    body={k:v for k,v in option.payload.items() if k!='group'}
+    body={k:v for k,v in option.payload.items() if k not in ('group','war_plan_id')}
     status,data=ctx.call(PATH,json={**body,'request_id':str(uuid5(NAMESPACE_URL,f'paga2:{ctx.request_key}:{option.key}'))})
+    plan_id=option.payload.get('war_plan_id')
+    if plan_id and status<400:
+        from game.paga2 import war_plans
+        plan=next((p for p in war_plans.active_plans(ctx) if p.id==plan_id),None)
+        war_plans.save(plan_id,intel_attempts=((plan.intel_attempts if plan else 0) or 0)+1,note=f'Misja wywiadu: {option.label}.',now=ctx.now)
+        ctx._war_plans=None
     return result(status,data)
 
 

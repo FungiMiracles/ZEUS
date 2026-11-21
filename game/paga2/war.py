@@ -636,38 +636,103 @@ def peace_grace(ctx):
 
 
 def declare_options(ctx,forces,screen=None):
-    """Wypowiedzenie wojny — tylko w trybie doraźnym, wobec państw o złych lub wrogich relacjach (warunek gry).
-    16 Nov 2026: decyzja uwzględnia zdolność do wojny (war_capability): środki ataku na odległość wobec państw
-    niesąsiadujących, środki ataku i obrony własnego terytorium wobec sąsiadów."""
-    if ctx.mode!='IMMEDIATE':return []
+    """21 Nov 2026 (reforma wojny PAGA2): wypowiedzenie wojny ofensywnej wyłącznie z planu wojennego w etapie READY
+    (game.paga2.war_plans) — twarde warunki: gotowość ≥ 80% w każdym obszarze, aktualne rozpoznanie, istniejący cel,
+    złe lub gorsze stosunki, brak okresu ochronnego po pokoju (30 dni gry, 180 dni Entendy dla PAGA2). Spełnienie warunków
+    nie oznacza wypowiedzenia — dalej decyduje ocena opłacalności i ryzyka (dotychczasowe składniki oceny)."""
+    from game.paga2 import war_plans
     options=[]
     triggers={item.get('from') for item in ctx.triggers if item.get('from')}
     if screen is None:screen=war_screen(ctx)
     from game.paga2.war_losses import deterrence_map
     deterred=deterrence_map(ctx)   # 13 Nov 2026: pokój po ciężkiej wojnie — mniejsza skłonność do ataku
     grace=peace_grace(ctx)
-    for other,row in ctx.situation.get('relations',{}).items():
-        if row.get('relation') not in WAR_RELATIONS or row.get('state')=='wojnakinetyczna':continue
-        if other in grace:continue   # karencja po zawarciu pokoju — gra odrzuciłaby wypowiedzenie wojny
+    for plan_id,info in war_plans.plan_state(ctx).items():
+        plan=info['plan']
+        if info['stage']!='READY' or plan.kind!='OFFENSIVE':continue
+        other=plan.enemy_id;row=ctx.situation.get('relations',{}).get(other) or {}
+        if row.get('state')=='wojnakinetyczna':continue
+        until=war_plans.offensive_grace(ctx,other)
+        if other in grace:until=max(until or grace[other],grace[other])
+        blockers=war_plans.declare_blockers(info['areas'],targets=info['targets'],intel_fresh=info['intel_fresh'],relation=row.get('relation','neutralne'),grace_until=until,now=ctx.now)
         provoked=ctx.history(other)['hostile_from']
         cap=war_capability(ctx,forces,screen,other);distant=cap['distant']
-        options.append(Option(key=f'war:declare:{other}',domain='war',action='WAR',label=f'Wypowiedzenie wojny państwu {other}',target=other,stance='hostile',
+        goal=(plan.goal or {}).get('label') or 'cel planu'
+        options.append(Option(key=f'war:declare:{other}',domain='war',action='WAR',label=f'Wypowiedzenie wojny państwu {other} (plan #{plan.id}: {goal})',target=other,stance='hostile',
                               effects={'conquest':1.0,'offensive_army':.7,'welfare':-.6,'financial_stability':-.5,'trade':-.4},
                               traits={'militarism':.8,'expansionism':.8,'provocation':.6,'ambition':.4,'agreeableness':-.8,'strategic_patience':-.3,'predictability':-.2},
-                              categories={'imperialist':1.0,'terrorist':.4,'hegemonic':.3,'isolationist':-.5,'welfare':-.6},
-                              base=-16.0+(0 if distant else 5.0)+4*min(3,provoked)+(6.0 if other in triggers else 0)-min(12.0,deterred.get(other,0.0))+cap['bonus'],risk=.4+(.2 if distant else 0),
-                              notes=list(cap['notes'])+([f'Odstraszenie: pokój po ciężkiej wojnie z tym państwem lub jego sojusznikiem (−{min(12.0,deterred[other]):.1f}).'] if deterred.get(other) else []),
-                              payload={'kind':'WAR','target_id':other,'group':'war:declare','capable':cap['able'],**({'distant':True} if distant else {}),
-                                       **({} if cap['able'] else {'reason':' '.join(cap['notes'])})}))
+                              categories={'imperialist':1.0,'terrorist':.4,'hegemonic':.3,'isolationist':-.5,'welfare':-.6,'economic':-.3},
+                              base=-10.0+(0 if distant else 5.0)+4*min(3,provoked)+(6.0 if other in triggers else 0)-min(12.0,deterred.get(other,0.0))+cap['bonus']+6.0*info['areas'].get('combat',{}).get('ratio',0),
+                              risk=.4+(.2 if distant else 0),
+                              notes=[f'Plan wojenny #{plan.id}: {plan.reason}',f'Cel główny: {goal}.',f'Gotowość: {round(100*(plan.readiness or 0))}% (najsłabszy obszar).']+list(cap['notes'])
+                                    +([f'Odstraszenie: pokój po ciężkiej wojnie z tym państwem lub jego sojusznikiem (−{min(12.0,deterred[other]):.1f}).'] if deterred.get(other) else []),
+                              payload={'kind':'WAR','target_id':other,'group':'war:declare','plan_id':plan.id,'blockers':blockers}))
+    return options
+
+
+def plan_start_options(ctx,forces):
+    """21 Nov 2026: rozpoczęcie przygotowań wojennych (plan wojenny) wobec państwa wrogiego lub zagrażającego — tylko w
+    przeglądzie cyklicznym, najwyżej jeden plan ofensywny naraz, bez okresu ochronnego po pokoju. Skłonność wynika
+    z profilu (charakter, priorytety, cechy) przez zwykłą punktację; sam plan nie oznacza wojny."""
+    from game.paga2 import war_plans
+    if ctx.mode!='CYCLIC' or ctx.situation.get('level')=='war':return []
+    if any(p.kind=='OFFENSIVE' for p in war_plans.active_plans(ctx)):return []
+    options=[];s=ctx.situation;allies=set(s.get('allies',[]))
+    from game.sovereignty import lost
+    with Session(db.engine) as session:
+        gone={other for other in s.get('relations',{}) if lost(session,other) is not None}
+    for other,row in s.get('relations',{}).items():
+        if other in allies or other in gone or row.get('state')=='wojnakinetyczna':continue
+        p=ctx.perception(other);history=ctx.history(other)
+        hostile=row.get('relation') in WAR_RELATIONS
+        if not (hostile or p.get('threat',20)>=60 or history['hostile_from']>=2):continue
+        if war_plans.offensive_grace(ctx,other) is not None or other in peace_grace(ctx):continue
+        goal=war_plans.choose_goal(ctx,other,forces)
+        motive=[]
+        if hostile:motive.append(f'stosunki „{row.get("relation")}”')
+        if p.get('threat',20)>=60:motive.append(f'zagrożenie {p.get("threat")}')
+        if history['hostile_from']:motive.append(f'wrogie działania wobec nas: {history["hostile_from"]}')
+        reason='Uzasadnienie: '+', '.join(motive)+f'. Korzyść: {goal["label"].lower()}.'
+        options.append(Option(key=f'war:plan:start:{other}',domain='war',action='WAR_PLAN_START',label=f'Rozpoczęcie przygotowań wojennych wobec państwa {other}: {goal["label"]}',
+                              target=other,stance='hostile',effects={'conquest':.8,'offensive_army':.6,'defensive_army':.2},
+                              traits={'militarism':.8,'expansionism':.7,'ambition':.5,'revenge':.4,'agreeableness':-.6,'isolationism':-.5},
+                              categories={'imperialist':1.0,'hegemonic':.5,'terrorist':.2,'isolationist':-1.0,'economic':-.6,'welfare':-.5},
+                              base=-12.0+3*min(3,history['hostile_from'])+(p.get('threat',20)-50)/10,
+                              notes=[reason,'Plan nie oznacza wojny: wymaga rozpoznania, przygotowania i gotowości ≥ 80% w każdym obszarze.'],
+                              payload={'goal':goal,'reason':reason,'group':'war:plan:start'}))
+    return options
+
+
+def plan_operation_bonus(ctx,options):
+    """Operacje na cele planu: premia; po wypowiedzeniu wojny pierwsza operacja jest decyzją wymaganą."""
+    from game.paga2 import war_plans
+    state=war_plans.plan_state(ctx)
+    for info in state.values():
+        plan=info['plan']
+        if info['stage'] not in ('ACTIVE','NEGOTIATION'):continue
+        wanted={(t['kind'],t['id']) for t in info['targets']}
+        for option in options:
+            if option.target!=plan.enemy_id or not (option.action.startswith('STRIKE_') or option.action in ('LAND_ATTACK','NUCLEAR_STRIKE')):continue
+            target=(option.payload.get('target_kind'),option.payload.get('target_id')) if option.action=='LAND_ATTACK' else next(((k,option.payload.get(f)) for k,f in TARGET_FIELD.items() if f in option.payload),(None,None))
+            if target in wanted:option.base+=6.0;option.notes=list(option.notes)+[f'Cel planu wojennego #{plan.id}.']
+            if plan.first_operation_pending and info['stage']=='ACTIVE' and option.action!='NUCLEAR_STRIKE':
+                option.payload=dict(option.payload,required=True,group=f'war:first:{plan.id}')
+                option.notes=list(option.notes)+[f'Pierwsza operacja po wypowiedzeniu wojny (plan #{plan.id}) — decyzja wymagana.']
     return options
 
 
 def propose(ctx):
     from game.paga2.defense import _forces
+    from game.paga2 import war_plans
     forces=_forces(ctx)
     options,recapture=occupation_options(ctx)
     enemies=set(ctx.situation.get('at_war',[]))
     screen=war_screen(ctx)
+    # 21 Nov 2026: plany wojenne — przegląd etapów i gotowości przed wszystkimi decyzjami wojennymi
+    if war_plans.active_plans(ctx):
+        try:war_plans.review(ctx,forces,screen,war_config(ctx))
+        except Exception as error:ctx.errors.append(f'plany wojenne: {type(error).__name__}: {error}'[:300])
+    options+=plan_start_options(ctx,forces)
     options+=declare_options(ctx,forces,screen)
     options+=withdraw_options(ctx,forces,screen)
     if not enemies and not recapture:
@@ -681,19 +746,21 @@ def propose(ctx):
     if enemies:options+=strike_options(ctx,forces,screen,config,enemies)
     if enemies:options+=nuclear_strike_options(ctx,forces,screen,config,enemies)
     options+=land_options(ctx,forces,screen,config,enemies,recapture)
-    return options
+    return plan_operation_bonus(ctx,options)
 
 
 def check(ctx,option):
-    if option.action=='WAR' and not option.payload.get('capable'):
-        reason=option.payload.get('reason') or ''
-        if option.payload.get('distant'):return 'Brak zdolności do wojny z odległym państwem. '+reason
-        return 'Brak zdolności do prowadzenia wojny. '+reason
+    if option.action=='WAR' and option.payload.get('blockers'):
+        return 'Wojna ofensywna niedozwolona (plan wojenny): '+' '.join(option.payload['blockers'])
     return None
 
 
 def execute(ctx,option):
-    p={k:v for k,v in option.payload.items() if k not in ('group','required','capable','plan_id','distant','reason')}
+    p={k:v for k,v in option.payload.items() if k not in ('group','required','capable','plan_id','distant','reason','blockers','goal')}
+    from game.paga2 import war_plans
+    if option.action=='WAR_PLAN_START':
+        plan=war_plans.create(ctx,option.target,kind='OFFENSIVE',reason=option.payload['reason'],goal=option.payload['goal'],stage='INTELLIGENCE')
+        return {'status':200,'war_plan_id':plan} if plan else {'status':409,'error':'Plan wojenny wobec tego państwa już istnieje.'}
     if option.action=='WAR_PREPARE':
         from game.paga2.models import Paga2Plan
         with Session(db.engine) as session,session.begin():
@@ -730,7 +797,17 @@ def execute(ctx,option):
     elif option.action=='ANNEX':
         status,data=ctx.call(OCCUPATION,json={'action':'annex','occupation_id':p['occupation_id']})
     else:return {'status':400,'error':'Nieznana operacja wojenna.'}
-    if status<400:ctx._forces=None;ctx._screens.clear()
+    if status<400:
+        ctx._forces=None;ctx._screens.clear()
+        if option.action=='WAR' and option.payload.get('plan_id'):
+            own,_=strength(ctx,option.target)
+            plan=war_plans.plan_for(ctx,option.target)
+            war_plans.save(option.payload['plan_id'],stage='ACTIVE',declared_at=ctx.now,first_operation_pending=True,first_operation_attempts=0,power_at_start=own,
+                           assessment={**((plan.assessment if plan else None) or {}),'ops_seen':plan.operations if plan else 0},
+                           note='Wypowiedzenie wojny — pierwsza operacja przy najbliższej reakcji doraźnej.',now=ctx.now)
+            ctx._war_plans=None
+        elif option.action.startswith('STRIKE_') or option.action in ('NUCLEAR_STRIKE','LAND_ATTACK','RECAPTURE'):
+            war_plans.register_operation(ctx,option.target,option.label)
     return result(status,data)
 
 

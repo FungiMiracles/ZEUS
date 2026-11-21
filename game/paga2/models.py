@@ -148,3 +148,40 @@ class Paga2Plan(db.Model):
     finished_at=db.Column(db.DateTime)
     game_created_at=db.Column(db.DateTime)
     __table_args__=({'mysql_engine':'InnoDB'},)
+
+
+class Paga2WarPlan(db.Model):
+    """21 Nov 2026: plan wojenny PAGA2 (game.paga2.war_plans) — cel, cele militarne, ocena gotowości w pięciu obszarach,
+    etap (PLANNING → INTELLIGENCE → PREPARATION → READY → ACTIVE → NEGOTIATION → COMPLETED / ABANDONED) i historia.
+    `active_key` = 'kraj:przeciwnik' dla planu w toku (NULL po zakończeniu) — unikalny: jeden plan na parę państw naraz."""
+    __tablename__='game_paga2_war_plans'
+    id=db.Column(db.Integer,primary_key=True)
+    country_id=db.Column(db.Integer,db.ForeignKey('panstwa.PANSTWO_ID'),nullable=False,index=True)
+    enemy_id=db.Column(db.Integer,nullable=False,index=True)
+    kind=db.Column(db.String(16),nullable=False,default='OFFENSIVE')        # OFFENSIVE / ALLY_SUPPORT
+    ally_id=db.Column(db.Integer)
+    stage=db.Column(db.String(16),nullable=False,index=True)
+    active_key=db.Column(db.String(40),unique=True)
+    reason=db.Column(db.Text,nullable=False)
+    goal=db.Column(db.JSON,nullable=False)            # {type, label, region_id?, target_ids?}
+    extra_goals=db.Column(db.JSON,nullable=False)
+    targets=db.Column(db.JSON,nullable=False)         # [{kind, id, region, label}]
+    assessment=db.Column(db.JSON,nullable=False)      # {areas:{combat,reach,finance,supply,intel}, own, enemy, risk, notes}
+    readiness=db.Column(db.Float,nullable=False,default=0)
+    shortfalls=db.Column(db.JSON,nullable=False)
+    history=db.Column(db.JSON,nullable=False)         # [{at, text}]
+    intel_attempts=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))
+    stale_cycles=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))   # przeglądy bez postępu przygotowań
+    idle_cycles=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))    # cykle wojenne bez skutecznej operacji
+    first_operation_pending=db.Column(db.Boolean,nullable=False,default=False,server_default=db.text('0'))
+    first_operation_attempts=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))
+    operations=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))
+    power_at_start=db.Column(db.Float)
+    declared_at=db.Column(db.DateTime)                # czas gry
+    last_operation_at=db.Column(db.DateTime)          # czas gry
+    end_reason=db.Column(db.Text)
+    game_created_at=db.Column(db.DateTime)
+    created_at=db.Column(db.DateTime,nullable=False,default=utc_now)
+    updated_at=db.Column(db.DateTime,nullable=False,default=utc_now)
+    finished_at=db.Column(db.DateTime)
+    __table_args__=({'mysql_engine':'InnoDB'},)

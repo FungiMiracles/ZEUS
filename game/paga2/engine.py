@@ -1,7 +1,8 @@
 """Silnik decyzji PAGA2: opcje → wykonalność → punktacja → wybór (randomizer przy remisie) → wykonanie → dziennik.
 
 Tryby:
-- CYCLIC    — cykliczny przegląd infrastruktury, wydobycia, energii, badań, handlu, obrony i stosunków (bez wypowiadania wojny),
+- CYCLIC    — cykliczny przegląd infrastruktury, wydobycia, energii, badań, handlu, obrony i stosunków; wojnę ofensywną można
+              wypowiedzieć wyłącznie z gotowego planu wojennego (game.paga2.war_plans, 21 Nov 2026),
 - IMMEDIATE — natychmiastowa reakcja na zagrożenia (wojna, atak, najazd) oraz na wiadomości, wpisy forum i powiadomienia,
 - BUDGET    — ustalenie budżetu bieżącego okresu budżetowego, gdy wymaga tego przebieg gry.
 

@@ -101,6 +101,12 @@ def process_country(app,country_id,control,now):
         identity=session.get(PagaAiIdentity,country_id)
         triggers=collect(session,country_id,state,identity.user_id) if identity else []
         key=f'IMMEDIATE:{country_id}:n{state.notification_cursor}:m{state.message_cursor}'
+        # 21 Nov 2026: plan wojenny po wypowiedzeniu wojny bez pierwszej operacji — reakcja doraźna przy tym sprawdzeniu
+        from game.paga2.war_plans import first_operation_triggers
+        planned=first_operation_triggers(session,country_id)
+        if planned:
+            triggers=planned+triggers
+            key+=':w'+'.'.join(f'{t["plan_id"]}-{t["attempt"]}' for t in planned)
     if triggers:
         lead=(security(triggers) or triggers)[0]
         run(app,country_id,'IMMEDIATE',lead['label'],request_key=key,triggers=triggers)

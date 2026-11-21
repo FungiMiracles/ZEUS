@@ -1,7 +1,11 @@
 """PAGA2 — dyplomacja: zmiana relacji (propozycje poprawy, sojusze i partnerstwa, jednostronne pogorszenie),
 propozycje pokoju i zawieszenia broni oraz odpowiedzi na propozycje innych państw.
 
-Wypowiedzenie wojny należy do etapu „Wojna” (nigdy w trybie cyklicznym).
+Wypowiedzenie wojny należy do modułu wojny i planów wojennych (game.paga2.war_plans).
+21 Nov 2026: karencja 90 dni Entendy na dobrowolne zmiany stosunków z tym samym państwem (wyjątki: wrogie działania,
+zawarcie lub zerwanie sojuszu), konsekwencja polityki zależna od przewidywalności, warunki A/B/C dołączenia do wojny
+sojusznika (gotowość ≥ 80%, co najmniej przyjazne stosunki z proszącym, wrogość wobec przeciwnika) i ocena pokoju
+według realizacji celu planu wojennego.
 Ocena uwzględnia ogólny charakter (np. państwo hegemonistyczne buduje sojusze), cechy (ugodowość, prowokacyjność,
 lojalność sojusznicza, rewanżyzm, izolacjonizm), powiązania historyczne, zaufanie i pamięć działań wobec państwa.
 """
@@ -81,7 +85,9 @@ def occupation_stance(ctx,other):
 
 
 def relation_options(ctx,ids):
+    from game.paga2 import war_plans
     s=ctx.situation;t=ctx.traits;options=[]
+    planned={p.enemy_id for p in war_plans.active_plans(ctx) if p.stage in war_plans.PREPARING}
     proposals_possible=addressable(ctx)
     hegemonic='hegemonic' in ctx.categories
     for other in candidates(ctx):
@@ -100,6 +106,8 @@ def relation_options(ctx,ids):
                                       effects=terms['effects'],traits=terms['traits'],base=terms['base']+bonus,notes=list(terms['notes'])+([f'Proponowany czas zawieszenia broni: {days} dni Entendy.'] if days else []),
                                       payload={'kind':kind,'target_id':other,'group':f'diplomacy:{other}',**({'days':days} if days else {})}))
         if war:continue
+        locked=war_plans.relation_lock(ctx,other)
+        lock_payload={'locked':f'Karencja zmian stosunków z państwem {other} do {locked:%d.%m.%Y} (Entenda) — ostatnia dobrowolna zmiana niedawno.'} if locked else {}
         if rank<len(ORDER)-1 and other in proposals_possible and 'RELATION' not in pending and not recently(ctx,'RELATION_IMPROVE',other):
             better=ORDER[rank+1]
             if better in ids:
@@ -107,22 +115,26 @@ def relation_options(ctx,ids):
                 options.append(Option(key=f'diplomacy:improve:{other}',domain='diplomacy',action='RELATION_IMPROVE',label=f'Propozycja poprawy relacji z państwem {other}: {current} → {better}',
                                       target=other,stance='friendly',effects={'alliances':1.0 if pact else .6,'trade':.4,'welfare':.2},
                                       traits={'agreeableness':.8,'solidarity':.4,'isolationism':-.7,'alliance_loyalty':.4 if pact else 0,'provocation':-.4},
-                                      categories={'hegemonic':.8 if pact else .4,'economic':.3,'isolationist':-.6},base=-2.0-3*min(3,attacked)-occupation_stance(ctx,other),
-                                      payload={'kind':'RELATION','target_id':other,'relation_id':ids[better],'group':f'diplomacy:{other}'}))
+                                      categories={'hegemonic':.8 if pact else .4,'economic':.3,'isolationist':-.6},
+                                      base=-2.0-3*min(3,attacked)-occupation_stance(ctx,other)-war_plans.consistency_penalty(ctx,other,1)-(8.0 if other in planned else 0),
+                                      payload={'kind':'RELATION','target_id':other,'relation_id':ids[better],'group':f'diplomacy:{other}',**lock_payload}))
         # Bezpośrednia propozycja sojuszu przy wysokim zaufaniu (budowa sojuszy — państwo hegemonistyczne i priorytet „sojusze”).
         if other in proposals_possible and 'RELATION' not in pending and 'sojusznicze' in ids and current in ('dobre','przyjazne','partnerskie','partnerskiestrategiczne') and p.get('trust',50)>=65 and not recently(ctx,'ALLIANCE',other):
             options.append(Option(key=f'diplomacy:alliance:{other}',domain='diplomacy',action='ALLIANCE',label=f'Propozycja sojuszu z państwem {other}',target=other,stance='friendly',
                                   effects={'alliances':1.0,'defensive_army':.4},traits={'alliance_loyalty':.8,'agreeableness':.4,'isolationism':-.9},
-                                  categories={'hegemonic':1.0,'isolationist':-.8},base=-1.0+(3.0 if hegemonic else 0),
-                                  payload={'kind':'RELATION','target_id':other,'relation_id':ids['sojusznicze'],'group':f'diplomacy:{other}'}))
+                                  categories={'hegemonic':1.0,'isolationist':-.8},base=-1.0+(3.0 if hegemonic else 0)-war_plans.consistency_penalty(ctx,other,1),
+                                  payload={'kind':'RELATION','target_id':other,'relation_id':ids['sojusznicze'],'group':f'diplomacy:{other}',**lock_payload}))
         if rank>0 and not recently(ctx,'RELATION_WORSEN',other):
             worse=ORDER[rank-1]
             if worse in ids:
                 options.append(Option(key=f'diplomacy:worsen:{other}',domain='diplomacy',action='RELATION_WORSEN',label=f'Jednostronne pogorszenie relacji z państwem {other}: {current} → {worse}',
                                       target=other,stance='hostile',effects={'conquest':.4,'alliances':-.6 if current in PACTS else -.2,'trade':-.3},
                                       traits={'provocation':.9,'revenge':.5,'agreeableness':-.8,'isolationism':.3,'predictability':-.2},
-                                      categories={'imperialist':.5,'terrorist':.4},base=-8.0+4*min(3,attacked)+(p.get('threat',20)-50)/10+occupation_stance(ctx,other)-min(6.0,deterrence(ctx,other)/2),
-                                      payload={'kind':'RELATION','target_id':other,'relation_id':ids[worse],'group':f'diplomacy:{other}'}))
+                                      categories={'imperialist':.5,'terrorist':.4},
+                                      base=-8.0+4*min(3,attacked)+(p.get('threat',20)-50)/10+occupation_stance(ctx,other)-min(6.0,deterrence(ctx,other)/2)
+                                           -war_plans.consistency_penalty(ctx,other,-1)+(6.0 if other in planned and current not in ('zle','napiete','wrogie','egzystencjalniewrogie') else 0),
+                                      notes=[f'Plan wojenny wobec państwa {other} wymaga złych stosunków przed wypowiedzeniem wojny.'] if other in planned else [],
+                                      payload={'kind':'RELATION','target_id':other,'relation_id':ids[worse],'group':f'diplomacy:{other}',**lock_payload}))
     return options
 
 
@@ -134,9 +146,29 @@ def peace_terms(ctx,other):
     bonus,loss,days=peace_bonus(ctx,other)
     notes=[f'Straty w tej wojnie: bazy {loss.get("bases",0)}, fabryki {loss.get("factories",0)}, elektrownie {loss.get("power",0)}, infrastruktura −{loss.get("infrastructure",0)} pkt; wojna trwa {days} dni Entendy.'] if loss else []
     if loss.get('nuclear'):notes.append(f'Przeciwnik użył przeciw nam broni atomowej ({loss["nuclear"]} rakiet z głowicą nuklearną) — pokój jest pilną koniecznością.')
+    plan_bonus,plan_notes=plan_peace(ctx,other)   # 21 Nov 2026: realizacja celu planu wojennego
     return dict(effects={'welfare':.8,'financial_stability':.6,'defensive_army':.3,'conquest':-.8,'offensive_army':-.5},
                 traits={'agreeableness':1.0,'revenge':-.6,'loss_tolerance':-.6,'militarism':-.5,'strategic_patience':.3},
-                base=4.0*len(ctx.situation.get('occupied_regions',{}))+2*min(3,attacked)*(100-t.get('loss_tolerance',50))/100+weakness(ctx)+bonus,notes=notes)
+                base=4.0*len(ctx.situation.get('occupied_regions',{}))+2*min(3,attacked)*(100-t.get('loss_tolerance',50))/100+weakness(ctx)+bonus+plan_bonus,notes=notes+plan_notes)
+
+
+def plan_peace(ctx,other):
+    """Korekta oceny pokoju z planu wojennego wobec `other` (cel osiągnięty, bezczynność, straty, przewaga, okupacja)."""
+    from game.paga2 import war_plans
+    plan=war_plans.plan_for(ctx,other)
+    if plan is None or plan.stage not in ('ACTIVE','NEGOTIATION'):return 0.0,[]
+    info=war_plans.plan_state(ctx).get(plan.id) or {}
+    own,foe=(plan.assessment or {}).get('own'),(plan.assessment or {}).get('enemy')
+    superiority=bool(own and foe and own>=1.5*foe)
+    losses=bool(plan.power_at_start and own is not None and own<war_plans.LOSS_LIMIT*plan.power_at_start)
+    occupied=ctx.situation.get('occupied_regions') or {}
+    by_enemy=any((v.get('occupier') if isinstance(v,dict) else v)==other for v in (occupied.values() if isinstance(occupied,dict) else occupied))
+    near=(plan.goal or {}).get('type')=='conquer_region' and (plan.operations or 0)>=1 and superiority
+    goal=info.get('goal_done') or plan.stage=='NEGOTIATION' and 'osiągnięty' in str((plan.history or [{}])[-1].get('text',''))
+    value,notes=war_plans.peace_adjustment(goal_done=bool(goal),near_goal=near,superiority=superiority,occupied_recoverable=by_enemy and superiority,
+                                           idle=plan.idle_cycles or 0,losses=losses)
+    if plan.stage=='NEGOTIATION':value+=4;notes=notes+[f'Plan wojenny #{plan.id} w etapie zakończenia konfliktu.']
+    return value,[f'Plan wojenny #{plan.id}: '+n for n in notes]
 
 
 def ceasefire_length(ctx,other):
@@ -221,9 +253,33 @@ def join_capability(ctx,enemy):
     except Exception:return {'able':True,'notes':[],'bonus':0.0,'distant':False}
 
 
+def join_assessment(ctx,requester,enemy):
+    """21 Nov 2026: warunki A/B/C przystąpienia do wojny sojusznika — lista powodów odmowy (pusta = można rozważyć)."""
+    from types import SimpleNamespace as NS
+    from game.paga2 import war_plans
+    from game.paga2.defense import _forces
+    from game.paga2.war import war_screen,war_config
+    rel=ctx.situation.get('relations',{})
+    forces=_forces(ctx);screen=war_screen(ctx)
+    goal=war_plans.choose_goal(ctx,enemy,forces)
+    if goal['type']=='destroy_bases':goal={'type':'support_ally','label':f'Wsparcie sojusznika {requester} przeciw państwu {enemy}'}
+    probe=NS(enemy_id=enemy,goal=goal,kind='ALLY_SUPPORT',ally_id=requester,operations=0)
+    try:targets,areas,notes,intel_fresh,extra=war_plans.assess(ctx,probe,forces,screen,war_config(ctx))
+    except Exception as error:return [f'Nie udało się ocenić gotowości: {type(error).__name__}.'],goal,{}
+    reasons=war_plans.join_blockers(areas,requester_relation=(rel.get(requester) or {}).get('relation','neutralne'),enemy_relation=(rel.get(enemy) or {}).get('relation','neutralne'),
+                                    threat=ctx.perception(enemy).get('threat',20),hostile_from=ctx.history(enemy)['hostile_from'],targets=targets,intel_fresh=intel_fresh)
+    if war_plans.plan_for(ctx,enemy) is None and any(p.kind=='OFFENSIVE' and p.stage in ('ACTIVE','NEGOTIATION') for p in war_plans.active_plans(ctx)):
+        reasons.append('Państwo prowadzi już własną wojnę ofensywną.')
+    return reasons,goal,{'areas':areas,'targets':targets,'notes':notes,'own':extra.get('own'),'enemy':extra.get('enemy')}
+
+
 def check(ctx,option):
-    if option.action=='PROPOSAL_ACCEPT' and option.payload.get('capable') is False:
-        return 'Brak zdolności do dołączenia do wojny. '+(option.payload.get('reason') or '')
+    if option.action=='PROPOSAL_ACCEPT' and option.payload.get('join_blockers'):
+        return 'Odmowa udziału w wojnie sojusznika: '+' '.join(option.payload['join_blockers'])
+    if option.action=='PROPOSAL_ACCEPT' and option.payload.get('locked'):
+        return option.payload['locked']
+    if option.action in ('RELATION_IMPROVE','RELATION_WORSEN','ALLIANCE') and option.payload.get('locked'):
+        return option.payload['locked']
     return None
 
 
@@ -268,10 +324,10 @@ def proposal_options(ctx):
         if row.kind=='JOIN_WAR':
             label=f'dołączenie do wojny z państwem {params.get("enemy_name")}'
             terms=join_terms(ctx,params.get('enemy_id'))
-            cap=join_capability(ctx,params.get('enemy_id'))
+            blockers,join_goal,join_info=join_assessment(ctx,other,params.get('enemy_id'))
             accept=dict(effects={'alliances':1.0,'conquest':.5,'offensive_army':.5,'welfare':-.4,'financial_stability':-.3},
-                        traits={'alliance_loyalty':1.0,'interventionism':1.0,'militarism':.4,'isolationism':-.8},categories={'hegemonic':.6,'isolationist':-.8},
-                        base=terms['base']-(0 if cap['able'] else 8.0),notes=terms['notes']+cap['notes'])
+                        traits={'alliance_loyalty':1.0,'interventionism':1.0,'militarism':.4,'isolationism':-.8},categories={'hegemonic':.6,'isolationist':-.8,'economic':-.4},
+                        base=terms['base'],notes=terms['notes']+list(join_info.get('notes',[]))+(['Powody odmowy: '+' '.join(blockers)] if blockers else ['Warunki A/B/C spełnione.']))
             reject=dict(effects={'alliances':-.6,'financial_stability':.3,'welfare':.2},traits={'isolationism':.6,'alliance_loyalty':-.6,'interventionism':-.6},
                         categories={'isolationist':.6},base=-terms['base'],notes=terms['notes'])
         elif row.kind=='MINING_PERMIT':
@@ -294,12 +350,20 @@ def proposal_options(ctx):
             reject=dict(effects={k:-v for k,v in terms['effects'].items()},traits={k:-v for k,v in terms['traits'].items()},base=-terms['base'])
         else:
             proposal=normalized(names.get(row.proposed_relation_id,'') or '')
+            payload['relation_change']=True   # 21 Nov 2026: przyjęcie zmienia stosunki — podlega karencji 90 dni
             pact=proposal in PACTS
             accept=dict(effects={'alliances':1.0 if pact else .5,'trade':.3},traits={'agreeableness':.8,'solidarity':.3,'isolationism':-.6,'alliance_loyalty':.4 if pact else 0},
                         categories={'hegemonic':.8 if pact else .3,'isolationist':-.6},base=2.0)
             reject=dict(effects={'alliances':-.3},traits={'agreeableness':-.6,'isolationism':.6,'provocation':.3},categories={'isolationist':.6},base=0.0)
         accept_payload=dict(payload)
-        if row.kind=='JOIN_WAR' and not cap['able']:accept_payload.update(capable=False,reason=' '.join(cap['notes']))
+        if row.kind=='JOIN_WAR':
+            accept_payload.update(join_goal=join_goal,enemy_id=params.get('enemy_id'))
+            if blockers:accept_payload['join_blockers']=blockers
+        if row.kind=='RELATION':
+            from game.paga2 import war_plans
+            locked=war_plans.relation_lock(ctx,other)
+            if locked:accept_payload['locked']=f'Karencja zmian stosunków z państwem {other} do {locked:%d.%m.%Y} (Entenda) — propozycja odrzucona.'
+            reject['notes']=list(reject.get('notes',[]))+([accept_payload['locked']] if locked else [])
         options.append(Option(key=f'proposal:accept:{row.id}',domain='diplomacy',action='PROPOSAL_ACCEPT',label=f'Przyjęcie propozycji państwa {row.source_country_name}: {label}',
                               target=other,stance='friendly',payload=accept_payload,**accept))
         options.append(Option(key=f'proposal:reject:{row.id}',domain='diplomacy',action='PROPOSAL_REJECT',label=f'Odrzucenie propozycji państwa {row.source_country_name}: {label}',
@@ -318,6 +382,13 @@ def execute(ctx,option):
     p=option.payload
     if option.action in ('PROPOSAL_ACCEPT','PROPOSAL_REJECT'):
         status,data=ctx.call(DECIDE.format(id=p['proposal_id']),form={'decision':'accept' if option.action=='PROPOSAL_ACCEPT' else 'reject'})
+        if status<400 and option.action=='PROPOSAL_ACCEPT' and p.get('join_goal') and p.get('enemy_id'):
+            # 21 Nov 2026: udział w wojnie sojusznika — plan ALLY_SUPPORT w etapie wojny, pierwsza operacja wymagana
+            from game.paga2 import war_plans
+            from game.paga2.war import strength
+            own,_=strength(ctx,p['enemy_id'])
+            war_plans.create(ctx,p['enemy_id'],kind='ALLY_SUPPORT',ally=option.target,reason=f'Przystąpienie do wojny sojusznika {option.target} (warunki A/B/C spełnione).',
+                             goal=p['join_goal'],stage='ACTIVE',first_operation=True,power=own)
     else:
         form={'kind':p['kind'],'target_id':str(p['target_id'])}
         if p.get('relation_id'):form['relation_id']=str(p['relation_id'])

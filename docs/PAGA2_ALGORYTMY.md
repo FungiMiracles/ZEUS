@@ -151,6 +151,23 @@ PAGA2 czyta ekrany przez `view.py` i wykonuje operacje przez `gateway.py` w toż
 
 Modele językowe dostają profil, sytuację, plany, ostatnie działania i stosunek do rozmówcy (`llm_context.py`). Algorytm wybiera inicjowanie komunikacji, model generuje jej treść. **Wyjątek istotny dla interpretacji:** `finance.py` wprost pozostawia decyzję o udzieleniu pożyczki modelowi AI, udostępniając ocenę zdolności finansowej. Nie należy więc opisywać całego systemu jako pozbawionego decyzji AI.
 
+## 8. Plany wojenne, karencje i pokój (reforma 21 listopada 2026)
+
+Moduł `game/paga2/war_plans.py`, tabela `game_paga2_war_plans` (migracja `migrations/sql/paga2_war_plans_20261121.py`).
+
+- **Wojna ofensywna tylko z planu.** Etapy: PLANNING → INTELLIGENCE → PREPARATION → READY → ACTIVE → NEGOTIATION → COMPLETED / ABANDONED. Rozpoczęcie planu (`WAR_PLAN_START`) to zwykła opcja przeglądu cyklicznego (punktacja profilu); najwyżej jeden plan ofensywny naraz i jeden plan na parę państw (unikalny `active_key`).
+- **Cele sprawdzalne w grze:** zajęcie najbliższego regionu sąsiada (okupacja lub aneksja regionu), zniszczenie rozpoznanych baz państwa odległego, wsparcie sojusznika (operacje do końca jego wojny lub 3 skuteczne operacje).
+- **Gotowość w 5 obszarach** (potencjał bojowy, zdolność dotarcia, finanse, zaopatrzenie, rozpoznanie) — `min(1, posiadane/wymagane)` dla celów planu; wypowiedzenie wojny i przyjęcie prośby sojusznika wymagają ≥ 80% w każdym obszarze (twarda walidacja `check`).
+- **Rozpoznanie:** udana misja „bazy” w regionie celu nie starsza niż 90 dni Entendy, cele istniejące; misje planu mają pierwszeństwo w module wywiadu, najwyżej 6 prób, potem porzucenie planu.
+- **Przygotowanie:** 40 przeglądów bez wzrostu gotowości → porzucenie planu.
+- **Wypowiedzenie** (tryb cykliczny lub doraźny) tylko z etapu READY; potem pierwsza operacja jest decyzją wymaganą — harmonogram dodaje wyzwalacz `war_plan_operation` przy najbliższym sprawdzeniu (najwyżej 5 prób).
+- **W trakcie wojny:** cele planu z premią; 3 cykle bez skutecznej operacji → ponowna analiza, 6 → etap NEGOTIATION; spadek siły poniżej 50% siły z chwili wypowiedzenia lub osiągnięty cel → NEGOTIATION; ocena pokoju z korektą planu (`peace_adjustment`).
+- **Dołączenie do wojny sojusznika:** A — gotowość ≥ 80%, rozpoznane cele; B — stosunki z proszącym co najmniej przyjazne; C — stosunki z przeciwnikiem złe lub gorsze, zagrożenie ≥ 60 albo wrogie działania (i nie dobre lub lepsze). Odmowa z uzasadnieniem w historii; po przyjęciu plan ALLY_SUPPORT w etapie ACTIVE.
+- **Okres ochronny:** 180 dni Entendy po pokoju bez wojny ofensywnej z tym samym państwem (wyjątek: nowy atak, najazd, okupacja, aneksja z jego strony). Gra nadal ma 30-dniową karencję dla wszystkich.
+- **Karencja dyplomatyczna:** 90 dni Entendy od ostatniej dobrowolnej zmiany stosunków PAGA2 z danym państwem (poprawa, pogorszenie, sojusz, przyjęcie propozycji zmiany relacji); wyjątki: wrogie działania tego państwa, zawarcie lub zerwanie sojuszu. Odwrócenie kierunku polityki w ciągu roku bez uzasadniającego zdarzenia: kara 3 + 8 × przewidywalność/100 pkt.
+- **Obrona** (odbijanie, uderzenia w trwającej wojnie, okupacje) nie wymaga progu gotowości.
+- WIKI → „Stan państwa PAGA” → „Plany wojenne”: cel, etap, gotowość w obszarach, braki, rozpoznanie, historia i powód zakończenia.
+
 ## 7. Ograniczenia widoczne w kodzie — do osobnego rozważenia
 
 Poniższe obserwacje nie zostały zmienione w ramach korekt wyglądu:
