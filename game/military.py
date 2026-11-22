@@ -126,6 +126,8 @@ def render_military(mode):
             'countriesUrl':url_for('region_sovereignty.country_boundaries'),
             'citiesUrl':url_for('static',filename='maps/entenda_miasta.geojson'),
             'baseIcon':url_for('static',filename='icons/BAZA.svg'),
+            # 22 Nov 2026: mała pomarańczowa ikona rodzaju bazy w prawym górnym rogu plakietki
+            'baseKindIcons':{'air':url_for('static',filename='icons/MYŚLIWIEC.svg'),'land':url_for('static',filename='icons/CZOŁG.svg'),'naval':url_for('static',filename='icons/OKRĘT WOJENNY.svg')},
             'landWar':land_war_config(country.PANSTWO_ID,mode),
             'radars':visible_radars(db.session,country.PANSTWO_ID,mode=='war'),'radarIcon':url_for('static',filename='icons/RADAR.svg'),
             'radar':{**radar_config(db.session,country.PANSTWO_ID),'url':url_for('game_military.radar_change'),
@@ -385,7 +387,7 @@ def _land_action(handler):
 @military_bp.post('/panel-wojenny/armia-ladowa')
 def land_invasion():
     from game.land_war import launch_invasion
-    return _land_action(lambda user_id,data:{'id':launch_invasion(user_id,data),'message':'Armia wyruszyła. Bitwa odbędzie się po dotarciu do celu.'})
+    return _land_action(lambda user_id,data:{'id':launch_invasion(user_id,data),'message':'Posiłki wyruszyły. Po dotarciu dołączą do wojsk okupacyjnych.' if data.get('reinforce') else 'Armia wyruszyła. Bitwa odbędzie się po dotarciu do celu.'})
 
 
 @military_bp.post('/obrona-panstwa/przechwycenie-armii')

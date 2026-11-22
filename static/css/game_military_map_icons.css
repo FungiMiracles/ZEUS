@@ -66,3 +66,11 @@ html body.game-app #military-map .military-radar-destroyed.military-map-badge > 
 
 /* Wybrany obiekt (panel obrony) — obwódka zgodna z kształtem plakietki */
 html body.game-app.military-defense #military-map .military-map-badge.military-object-selected { outline: 2px solid #2c974b; outline-offset: 3px; box-shadow: 0 0 0 4px #2c974b22, 0 2px 5px #0006 !important; }
+
+/* 22 Nov 2026: rodzaj bazy — mała pomarańczowa ikona w prawym górnym rogu (samolot: lotnicza, czołg: lądowa, okręt: morska).
+   Flaga okupanta takiej bazy przechodzi do lewego górnego rogu. */
+html body.game-app #military-map .military-map-badge > .military-base-kind {
+  position: absolute; top: -6px; right: -7px; width: 14px; height: 14px; pointer-events: none;
+  background: #f57c00; -webkit-mask: var(--kind-icon) center / contain no-repeat; mask: var(--kind-icon) center / contain no-repeat;
+}
+html body.game-app #military-map .military-map-badge.military-base-has-kind .land-occupied-flag { right: auto; left: -8px; }

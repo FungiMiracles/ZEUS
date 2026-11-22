@@ -308,6 +308,29 @@ class OccupationTests(LandWarFixture):
         army=db.session.scalar(select(LandArmy).where(LandArmy.target_kind=='city',LandArmy.status=='OCCUPYING'))
         self.assertEqual(army.soldiers,100-10)
 
+    def test_reinforcements_march_to_occupied_city_and_join_the_occupation(self):
+        self.conquer_region();city=self.city_occupation()
+        db.session.expire_all();before=db.session.get(MilitaryBase,self.home.id).garrison['soldiers']
+        id=self.invade('city',10,soldiers=50,armored=2,reinforce=True)
+        army=self.army(id)
+        self.assertEqual((army.status,army.role,army.target_country_id),('MARCHING','invasion',2))   # marsz po terytorium właściciela
+        db.session.expire_all();self.assertEqual(db.session.get(MilitaryBase,self.home.id).garrison['soldiers'],before-50)
+        army=self.arrive(id,[])
+        self.assertEqual((army.status,army.battle['result']),('OCCUPYING','REINFORCED'))
+        self.assertEqual(db.session.get(Occupation,city.id).status,'ACTIVE')
+        present=land_war.withdraw_occupation(1,{'occupation_id':city.id,'base_id':self.home.id,'soldiers':150,'armored':2})
+        self.assertTrue(present['ended'])                           # 100 okupantów + 50 posiłków, wycofane razem
+        self.assertTrue(any('Posiłki dotarły' in (n.system_text or '') for n in db.session.query(GameNotification)))
+
+    def test_reinforcements_require_own_occupation_and_fight_after_recapture(self):
+        with self.assertRaisesRegex(FinanceError,'okupowanej przez nasze'):self.invade('city',10,soldiers=10,reinforce=True)
+        self.conquer_region();city=self.city_occupation()
+        id=self.invade('city',10,soldiers=1000,reinforce=True)
+        # Przed dotarciem posiłków właściciel odbija miasto — posiłki walczą o nie jak przy inwazji.
+        db.session.get(Occupation,city.id).status='ENDED';db.session.commit()
+        army=self.arrive(id,[0.0,0.0])
+        self.assertIn(army.battle['result'],('ATTACKER_WON','DEFENDER_WON'))
+
     def test_full_withdrawal_ends_object_and_region_occupation(self):
         row=self.conquer_region();city=self.city_occupation()
         land_war.decide_region(1,{'occupation_id':row.id,'occupy':True})
@@ -501,7 +524,8 @@ class InterfaceTests(LandWarFixture):
     def test_front_end_texts(self):
         from pathlib import Path
         script=(Path(__file__).resolve().parents[1]/'static/js/game_land_war.js').read_text()
-        for text in ('Dodaj obronę wojska','Wprowadź armię lądową','Okupowane przez:','Okupowany przez:','#d32f2f',"dashArray:'8 8'",'Prędkość:','Anektuj region','Czy prowadzić okupację regionu?'):
+        for text in ('Dodaj obronę wojska','Wprowadź armię lądową','Okupowane przez:','Okupowany przez:','#d32f2f',"dashArray:'8 8'",'Prędkość:','Anektuj region','Czy prowadzić okupację regionu?',
+                     "'Dorzuć wojsko'",'reinforce:true','Do aneksji:','regionUnderOccupation'):
             self.assertIn(text,script)
 
 
@@ -512,6 +536,8 @@ class RecaptureInterfaceTests(LandWarFixture):
         land=(root/'game_land_war.js').read_text();military=(root/'game_military.js').read_text()
         for text in ("'Odbij miasto'","'Odbij bazę'",'bindBase','regionOccupied','Odbicie wymaga trwającej wojny z okupantem.'):self.assertIn(text,land)
         self.assertIn('GameLandWar?.bindBase(baseMarker,base,tooltip)',military)
+        self.assertIn('GameLandWar?.regionUnderOccupation?.(id)?DEF.occupiedHover:DEF.hover',military)
+        self.assertIn('baseKindBadge(base,symbol)',military)
         self.assertIn("lockButton(button('Dodaj obronę przeciwrakietową'",military)
         self.assertIn('lockButton(actions.lastElementChild)',military)
 

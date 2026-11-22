@@ -323,13 +323,21 @@ def launch_invasion(user_id,data):
         existing=session.scalar(select(LandArmy).where(LandArmy.panstwo_id==own,LandArmy.request_id==key))
         if existing is not None:return existing.id
         target,holder,owner,region_id,name,point=target_state(session,kind,natural(data.get('target_id'),'Cel',1))
-        if holder==own:raise FinanceError('Ten obiekt jest już pod kontrolą naszego państwa.')
-        if holder not in enemies(session,own):raise FinanceError('Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
-        recapture=owner==own
-        if not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
-        if kind=='base' and not recapture:
-            from game.intelligence_service import known_ids
-            if target.id not in known_ids(session,own,'bases'):raise FinanceError('Lokalizacja tej bazy nie jest znana — najpierw zdobądź ją wywiadem.')
+        reinforce=bool(data.get('reinforce'))
+        if reinforce:
+            # 22 Nov 2026: posiłki do obiektu okupowanego przez nasze wojska — przemarsz po terytorium właściciela obiektu;
+            # po dotarciu armia dołącza do wojsk okupacyjnych (gdy obiekt został w międzyczasie odbity — walczy o niego).
+            occupation=active_occupation(session,kind,target.id if kind=='base' else target.miasto_id)
+            if occupation is None or occupation.occupier_id!=own:raise FinanceError('Posiłki można wysłać tylko do miasta lub bazy okupowanej przez nasze wojska.')
+            holder=occupation.owner_id
+        else:
+            if holder==own:raise FinanceError('Ten obiekt jest już pod kontrolą naszego państwa.')
+            if holder not in enemies(session,own):raise FinanceError('Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
+            recapture=owner==own
+            if not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
+            if kind=='base' and not recapture:
+                from game.intelligence_service import known_ids
+                if target.id not in known_ids(session,own,'bases'):raise FinanceError('Lokalizacja tej bazy nie jest znana — najpierw zdobądź ją wywiadem.')
         lock_countries(session,own,holder)
         base=own_land_base(session,own,data.get('source_base_id'))
         if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
@@ -602,6 +610,13 @@ def battle(session,army,moment,rolls=None):
         army.battle={'result':'TARGET_GONE'};_return_home(session,army);return
     defender,defending,defender_level,apply=found
     if defender==attacker:
+        object_id=army.target_base_id if army.target_kind=='base' else army.target_city_id
+        occupation=active_occupation(session,army.target_kind,object_id)
+        if occupation is not None and occupation.occupier_id==attacker:
+            # 22 Nov 2026: posiłki (lub kolejna fala) docierają do obiektu okupowanego przez nasze wojska — dołączają do okupacji.
+            army.status='OCCUPYING';army.resolved_at=moment;army.battle={'result':'REINFORCED','at':moment.isoformat()}
+            notify(session,attacker,f'Posiłki dotarły do: {army.target_name} ({units_text(attacking)}) i dołączyły do wojsk okupacyjnych.')
+            return
         # Cel przeszedł pod naszą kontrolę przed przybyciem armii (np. odbiła go wcześniejsza fala): bez bitwy z własnymi wojskami.
         army.battle={'result':'TARGET_GONE','reason':'Cel jest już pod kontrolą naszego państwa.'};_return_home(session,army);return
     attacker_level=training(session,attacker)

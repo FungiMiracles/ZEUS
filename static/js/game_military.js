@@ -5,7 +5,7 @@
     const config = JSON.parse(element.textContent), own = id => Number(config.regions[id]?.countryId) === config.countryId;
     const warTheme=config.mode==='war';
     // 13 Nov 2026: mapa obrony w kolorystyce mapy świata (moduł „Świat”): granatowy ocean, zielony ląd, białe miasta.
-    const DEF={enemy:'#d98b7a',land:'#c9d3c2',own:'#9fbf8f',border:'#667C63',regionBorder:'#7d9178',hover:'#D5E5C6',selected:'#1E3A5F',city:'#FFFFFF',cityBorder:'#22301f',ally:'#d6e6a6',permit:'#e6d27a',frozen:'#c9c39a'};
+    const DEF={enemy:'#d98b7a',land:'#c9d3c2',own:'#9fbf8f',border:'#667C63',regionBorder:'#7d9178',hover:'#D5E5C6',occupiedHover:'#9e2a20',selected:'#1E3A5F',city:'#FFFFFF',cityBorder:'#22301f',ally:'#d6e6a6',permit:'#e6d27a',frozen:'#c9c39a'};
     const mobileLayout=()=>window.matchMedia('(max-width:1366px), (hover:none) and (pointer:coarse)').matches;   // 18 Nov 2026: także tablet — mapa nad panelem (game_tablet.css)
     let regionLayerRef=null,highlightedRegion=null;
     const repaintRegions=()=>{if(regionLayerRef)regionLayerRef.eachLayer(layer=>{regionLayerRef.resetStyle(layer);if(String(layer.feature?.properties?.region_id)===highlightedRegion)layer.bringToFront();});};
@@ -504,6 +504,12 @@
         const tooltip=make('div');tooltip.append(make('strong',factory.name),healthBar(factory.health),make('p',factory.health?`${factory.dailyProduction} szt. / cykl produkcji Entendy`:'Fabryka zniszczona — produkcja zatrzymana.'));
         bindObjectTooltip(L.marker([factory.position[1],factory.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tooltip).on('click',()=>{if(config.mode==='war'&&factory.health<=0){document.getElementById('military-feedback').textContent='Fabryka została zniszczona.';return;}if(!locating&&!sailing&&config.mode==='defense'){selectObject('factory',factory);return;}if(!locating&&!sailing)showRegion(factory.regionId,null,{kind:'factory',id:factory.id,countryId:factory.countryId,name:factory.name,point:factory.position,health:factory.health});}).addTo(factoryLayer);
     }}
+    // 22 Nov 2026: rodzaj bazy — mała pomarańczowa ikona (samolot / czołg / okręt) w prawym górnym rogu plakietki.
+    function baseKindBadge(base,symbol){
+        const src=config.baseKindIcons?.[base.kind];if(!src)return;
+        const badge=make('span',null,'military-base-kind');badge.setAttribute('aria-hidden','true');
+        badge.style.setProperty('--kind-icon',`url("${src.replace(/"/g,"%22")}")`);symbol.classList.add('military-base-has-kind');symbol.append(badge);
+    }
     function drawBases() {
         baseLayer.clearLayers();
         for(const base of config.visibleBases) {
@@ -518,7 +524,7 @@
             if(base.upkeep!=null&&base.countryId===config.countryId)tooltip.append(make('p',`Utrzymanie: ${number(Number(base.upkeep))} ROI / okres budżetowy${base.abroad?' (baza za granicą — 2×)':''}`));
             tooltip.append(healthBar(base.health));
             window.GameLandWar?.baseTooltip(base,tooltip);
-            const symbol=make('div',null,'military-base-symbol military-map-badge');symbol.append(image(baseIcon(base)));window.GameLandWar?.baseSymbol(base,symbol);
+            const symbol=make('div',null,'military-base-symbol military-map-badge');symbol.append(image(baseIcon(base)));baseKindBadge(base,symbol);window.GameLandWar?.baseSymbol(base,symbol);
             const life=make('progress');life.className='map-health-bar';life.max=100;life.value=base.health;window.GameHealth?.paint(life,base.health);life.setAttribute('aria-label',`Życie bazy: ${base.health} / 100`);symbol.append(life);
             const baseMarker=L.marker([base.position[1],base.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-base-map-marker military-map-marker'}),title:baseName(base)});
             (window.GameLandWar?.bindBase(baseMarker,base,tooltip)?baseMarker:bindObjectTooltip(baseMarker,tooltip)).on('click',event=>{if(locating)saveLocation(event.latlng);else if(config.mode==='defense'&&base.countryId===config.countryId){selectObject('base',base);}else if(config.mode==='war'){showRegion(base.regionId,null,{kind:'base',id:base.id,countryId:base.countryId,name:baseName(base),point:base.position});}}).addTo(baseLayer);
@@ -783,7 +789,7 @@
                 const id = String(feature.properties.region_id), region = config.regions[id];
                 if(config.mode==='defense'){const existing=regionBounds.get(id);regionBounds.set(id,existing?existing.extend(layer.getBounds()):L.latLngBounds(layer.getBounds()));}
                 layer.bindTooltip(()=>window.GameLandWar?window.GameLandWar.regionTooltip(id,region):make('span',region.name),{sticky:true,className:'military-world-tooltip'});
-                layer.on({mouseover:()=>layer.setStyle({fillColor:DEF.hover}),mouseout:()=>regionLayer.resetStyle(layer),click:()=>{if(!locating&&!sailing){if(config.mode==='defense')selectRegion(id);else{showRegion(id);markRegion(id);}revealManagement();}}});
+                layer.on({mouseover:()=>layer.setStyle({fillColor:window.GameLandWar?.regionUnderOccupation?.(id)?DEF.occupiedHover:DEF.hover}),mouseout:()=>regionLayer.resetStyle(layer),click:()=>{if(!locating&&!sailing){if(config.mode==='defense')selectRegion(id);else{showRegion(id);markRegion(id);}revealManagement();}}});
             }
         }).addTo(map);
         {

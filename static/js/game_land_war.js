@@ -36,7 +36,7 @@
         const occupied=occupation('city',cityId);
         if(occupied){card.append(occupationLabel(occupied));const army=sum(armies.filter(a=>a.status==='OCCUPYING'&&a.targetKind==='city'&&String(a.targetCityId)===cityId));unitRows(army,card);
             if(city.countryId===cfg.countryId)recaptureButton(card,'Odbij miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point},occupied);
-            if(occupied.occupierId===cfg.countryId)withdrawButton(card,occupied,city.name,ownOccupiers('city',cityId));
+            if(occupied.occupierId===cfg.countryId){withdrawButton(card,occupied,city.name,ownOccupiers('city',cityId));reinforceButton(card,{kind:'city',id:Number(cityId),name:city.name,point:city.point});}
             return card;}
         if(city.countryId!==cfg.countryId)return card;
         const defenders=armies.filter(a=>a.status==='DEFENDING'&&String(a.targetCityId)===cityId&&a.countryId===cfg.countryId);
@@ -114,7 +114,7 @@
         const occupied=occupation('base',base.id);
         if(occupied&&occupied.occupierId===cfg.countryId&&base.position){
             hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
-                withdrawButton(card,occupied,api.baseName(base),ownOccupiers('base',base.id));return card;},'land-city-popup');
+                withdrawButton(card,occupied,api.baseName(base),ownOccupiers('base',base.id));reinforceButton(card,{kind:'base',id:base.id,name:api.baseName(base),point:base.position});return card;},'land-city-popup');
             return true;
         }
         if(!occupied||base.countryId!==cfg.countryId||!base.position)return false;
@@ -135,6 +135,42 @@
         button.disabled=!!reason;if(reason)button.title=reason;
         button.onclick=()=>{api.map.closePopup();withdrawModal(occupied,name,present);};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
+    }
+    // ---------- posiłki do okupowanego obiektu (22 Nov 2026) ----------
+    function reinforceButton(parent,target){
+        const button=make('button','Dorzuć wojsko','land-button land-reinforce');button.type='button';
+        const reason=!ownLandBases().length?'Potrzebna jest własna, sprawna i nieokupowana baza lądowa na mapie.':'';
+        button.disabled=!!reason;if(reason)button.title=reason;
+        button.onclick=()=>{api.map.closePopup();reinforceModal(target);};
+        parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
+    }
+    function reinforceModal(target){
+        const bases=ownLandBases(),settings=lw();
+        api.modal(`Dorzuć wojsko — ${target.name}`,()=>{
+            api.fields.append(make('p','Wybrane jednostki pomaszerują z bazy lądowej do okupowanego obiektu i po dotarciu dołączą do wojsk okupacyjnych.','land-muted'));
+            const select=api.choose('Baza lądowa, z której wyruszą jednostki','base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''}`]));
+            const room=make('p',null,'land-muted');api.fields.append(room);
+            const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,0)]));
+            const quote=make('div',null,'land-quote');api.fields.append(quote);
+            const update=()=>{
+                const base=bases.find(b=>b.id===Number(select.value));if(!base)return;
+                for(const unit of UNITS){const limit=base.garrison?.[unit]||0;inputs[unit].max=limit;if(Number(inputs[unit].value)>limit)inputs[unit].value=limit;inputs[unit].disabled=limit===0;}
+                room.textContent=`W bazie: żołnierze ${api.number(base.garrison?.soldiers||0)}, wozy opancerzone ${api.number(base.garrison?.armored||0)}, czołgi ${api.number(base.garrison?.tanks||0)}.`;
+                const units=Object.fromEntries(UNITS.map(unit=>[unit,Math.max(0,Number(inputs[unit].value)||0)]));
+                const extra=Number(settings.gdpPerCapita)*0.01;
+                const cost=UNITS.reduce((total,unit)=>total+units[unit]*(Number(settings.unitCosts[unit])+extra),0);
+                const distance=Math.hypot(target.point[0]-base.position[0],target.point[1]-base.position[1])*cfg.kmPerUnit;
+                const speed=units.armored>0?settings.speeds.armored:settings.speeds.foot;
+                quote.replaceChildren(make('p',`Koszt przemarszu: ${money(cost)} (z budżetu sił zbrojnych).`),
+                    make('p',`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
+                document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks);
+            };
+            select.onchange=update;for(const input of Object.values(inputs))input.oninput=update;update();
+        },async data=>{
+            const payload={source_base_id:Number(data.get('base_id')),target_kind:target.kind,target_id:target.id,reinforce:true,request_id:uuid()};
+            for(const unit of UNITS)payload[unit]=Number(data.get(unit)||0);
+            await done(await send(lw().invasionUrl,payload));
+        });
     }
     function withdrawModal(occupied,name,present){
         const bases=withdrawBases();
@@ -159,6 +195,7 @@
     }
 
     const regionOccupied=id=>{const row=occupation('region',id);return !!row&&row.occupierId!==cfg.countryId;};
+    const regionUnderOccupation=id=>!!occupation('region',id);   // 22 Nov 2026: dowolna aktywna okupacja regionu (podświetlenie na czerwono)
 
     // ---------- bazy: status okupacji ----------
     function baseTooltip(base,tooltip){
@@ -467,6 +504,6 @@
         init(context){api=context;cfg=context.config;armies=lw().armies||[];occupations=lw().occupations||[];layer=L.layerGroup().addTo(api.map);draw();renderOccupations();askPending();},
         update(state){if(!api)return;armies=state.armies||armies;occupations=state.occupations||occupations;draw();drawOccupiedRegions();renderOccupations();askPending();},
         setRegions(regions,coordinates){regionGeometry=regions;toLatLng=coordinates;drawOccupiedRegions();},
-        bindCity,bindBase,regionOccupied,baseTooltip,baseSymbol,regionTooltip,warActions,tick,
+        bindCity,bindBase,regionOccupied,regionUnderOccupation,baseTooltip,baseSymbol,regionTooltip,warActions,tick,
     };
 })();
