@@ -411,7 +411,8 @@ def apply_structural_damage(session,flight,order,hits):
     elif flight.target_kind=='shipment':
         from game.commerce_models import TradeShipment
         ship=session.scalar(select(TradeShipment).where(TradeShipment.id==flight.target_shipment_id).with_for_update())
-        if ship is not None and ship.health>0 and ship.sunk_at is None and ship.delivered_at is None and flight.impact_at<ship.arrives_at:
+        from game.trade_routes import mode_at   # 22 Nov 2026: trafienie tylko statku na morzu (nie pociągu ani samolotu)
+        if ship is not None and ship.health>0 and ship.sunk_at is None and ship.delivered_at is None and flight.impact_at<ship.arrives_at and mode_at(ship,flight.impact_at)=='sea':
             loss=min(ship.health,sum(4+randbelow(12) for _ in range(hits)));ship.health-=loss
             if ship.health==0:ship.sunk_at=flight.impact_at
             damage={'shipmentHealthLost':loss,'remainingHealth':ship.health,'sunk':ship.health==0}

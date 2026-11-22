@@ -80,6 +80,14 @@ def policy_options(ctx,screen):
     """Opłata portowa i dostęp do portów to decyzje administracyjne: wykonywane poza limitem działań (payload.required),
     gdy obecne ustawienie odbiega od docelowego — wcześniej zawsze przegrywały z działaniami strategicznymi (12 Nov 2026)."""
     options=[];t=ctx.traits
+    # 22 Nov 2026: cło lądowe — % wartości towaru płacony przez kupującego za tranzyt pociągu przez terytorium państwa
+    customs=float(screen.get('customs') or 0)
+    customs_target=round(clip(2+8*t.get('isolationism',50)/100+6*(100-t.get('trade_propensity',50))/100-3*t.get('solidarity',50)/100+(3 if ctx.situation.get('level')=='war' else 0),0,20))
+    if abs(customs-customs_target)>=1 and not recent_policy(ctx,'LAND_CUSTOMS'):
+        options.append(Option(key='trade:customs',domain='trade',action='LAND_CUSTOMS',label=f'Cło lądowe {customs:g}% → {customs_target}%',
+                              effects={'trade':.3 if customs_target<customs else -.1,'financial_stability':.3 if customs_target>customs else 0},
+                              traits={'isolationism':.5 if customs_target>customs else -.5,'trade_propensity':-.4 if customs_target>customs else .4},base=3.0,
+                              notes=['Docelowe cło wynika z izolacjonizmu, skłonności do handlu, solidarności i sytuacji bezpieczeństwa.'],payload={'action':'customs','rate':str(customs_target),'group':'trade:customs','required':True}))
     if not screen.get('ownPorts'):return options
     current=float(screen.get('ownTariff') or 0)
     target=round(clip(3+15*t.get('isolationism',50)/100+10*(100-t.get('trade_propensity',50))/100-5*t.get('solidarity',50)/100+(5 if ctx.situation.get('level')=='war' else 0),0,30))
@@ -114,8 +122,7 @@ def departure_port(screen,country_id):
 def sell_options(ctx,screen,factors):
     from game.paga2.planner import _holdings
     warehouse=screen.get('warehouse') or {};t=ctx.traits
-    port=departure_port(screen,ctx.country_id)
-    if port is None:return []
+    # 22 Nov 2026: oferta bez portu i transportu — towar czeka w magazynie; drogę dostawy wybiera kupujący
     reserve=pricing.consumption(_holdings(ctx),days=60+int(60*t.get('isolationism',50)/100))
     share=.3+.5*t.get('trade_propensity',50)/100
     cargo={}
@@ -133,14 +140,6 @@ def sell_options(ctx,screen,factors):
         else:quantity=int(surplus*share)
         if quantity>0:cargo[code]=quantity
     if not cargo:return []
-    limit,only=port_limit(port)
-    if only is not None:cargo={k:v for k,v in cargo.items() if k==only}
-    if limit is not None:
-        total=sum(cargo.values())
-        if total>limit:cargo={k:max(1,v*limit//total) for k,v in cargo.items()}
-        while sum(cargo.values())>limit:largest=max(cargo,key=cargo.get);cargo[largest]-=1
-        cargo={k:v for k,v in cargo.items() if v>0}
-    if not cargo:return []
     # 12 Nov 2026: jedna oferta = jeden rodzaj towaru (najcenniejszy pakiet); cena w granicach gry (game/trade_prices).
     best=max(cargo,key=lambda code:pricing.cargo_value({code:cargo[code]},factors))
     cargo={best:cargo[best]}
@@ -150,12 +149,11 @@ def sell_options(ctx,screen,factors):
     from game.trade_prices import clamp
     price=clamp(best,cargo[best],Decimal(str(value*markup))).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
     excluded=sorted(unfriendly(ctx)-{ctx.country_id})
-    rate=port_rate(screen,port,ctx.country_id)
     return [Option(key='trade:offer',domain='trade',action='TRADE_OFFER',label='Oferta sprzedaży: '+', '.join(f'{q} {LABELS.get(c,c)}' for c,q in cargo.items()),
                    effects={'trade':1.0,'financial_stability':.4},traits={'trade_propensity':1.0,'isolationism':-.6},base=2.0,
                    notes=[f'Nadwyżka ponad rezerwę operacyjną; cena {float(price)/1e9:.2f} MLD (wartość {value/1e9:.2f} MLD × {markup:.2f}, w granicach cen gry).',
                           f'Oferta ukryta przed {len(excluded)} państwami (wojna / wrogość).'],
-                   payload={'action':'offer','cargo':cargo,'price':str(price),'port_id':port,'departure_rate':str(rate),'excluded':excluded,'group':'trade:offer'})]
+                   payload={'action':'offer','cargo':cargo,'price':str(price),'excluded':excluded,'group':'trade:offer'})]
 
 
 def reprice_options(ctx,screen):
@@ -199,34 +197,26 @@ def buy_options(ctx,screen,factors):
     for resource in planned_acquisitions(ctx):need[resource]=max(need.get(resource,0),10)
     need={k:v for k,v in need.items() if v>0}
     if not need:return []
-    port,rate=arrival_port(screen,ctx.country_id)
-    # 18 Nov 2026: oferta sąsiada lądowego (offer['land']) jedzie lądem między stolicami — bez portu i opłaty portowej.
-    # 20 Nov 2026: oferta lotnicza (offer['transport']=='air') — odbiór na własnym czynnym lotnisku, bez opłat portowych.
-    own_airports=[int(id) for id in screen.get('ownAirports') or []]
-    if port is None and not own_airports and not any(o.get('land') for o in screen.get('offers') or []):return []
+    # 22 Nov 2026: droga dostawy wybierana przez grę przy zakupie ('auto' — najtańsza dostępna: kolej, morze, powietrze);
+    # koszt szacowany z zapasem na opłaty (MFW do 8%, port odbioru, cła tranzytowe).
     reserve=float(screen.get('reserve') or 0);ctx._sectors['reserve']=reserve
     avoid=unfriendly(ctx)
     tolerance=1.0+.5*t.get('trade_propensity',50)/100+(.3 if ctx.situation.get('level')=='war' else 0)
     options=[]
     for offer in screen.get('offers') or []:
         if offer.get('own') or not offer.get('usable',True) or offer.get('sellerId') in avoid:continue
-        land=bool(offer.get('land'));air=offer.get('transport')=='air'
-        if air and not own_airports:continue
-        if not land and not air and port is None:continue
         cargo=offer.get('cargo') or {}
         useful=set(cargo)&set(need)
         if not useful:continue
         weights={code:(1.0 if code in need else .5) for code in cargo}
         value=pricing.cargo_value(cargo,factors,weights)
-        price=float(offer.get('price') or 0);total=price if land or air else price*(1+float(rate or 0)/100)
+        price=float(offer.get('price') or 0);total=price*1.12
         if total>value*tolerance:continue
         options.append(Option(key=f'trade:buy:{offer["id"]}',domain='trade',action='TRADE_BUY',label=f'Zakup oferty #{offer["id"]} od {offer.get("seller")}: '+', '.join(f'{q} {LABELS.get(c,c)}' for c,q in cargo.items()),
                               target=offer.get('sellerId'),stance='friendly',cost=total,sector='reserve',
                               effects={'production':1.0,'trade':.5},traits={'trade_propensity':.8,'isolationism':-.5},base=4.0+min(6.0,10*(value*tolerance-total)/max(1,total)),
-                              notes=[f'Potrzebne: {", ".join(LABELS.get(c,c) for c in sorted(useful))}; cena z opłatą {total/1e9:.2f} MLD, wartość {value/1e9:.2f} MLD.'],
-                              payload={'action':'buy','offer_id':offer['id'],'port_id':own_airports[0],'arrival_rate':'0','group':'trade:buy'} if air else
-                                      {'action':'buy','offer_id':offer['id'],'arrival_rate':'0','group':'trade:buy'} if land else
-                                      {'action':'buy','offer_id':offer['id'],'port_id':port,'arrival_rate':str(rate),'group':'trade:buy'}))
+                              notes=[f'Potrzebne: {", ".join(LABELS.get(c,c) for c in sorted(useful))}; cena z zapasem na dostawę {total/1e9:.2f} MLD, wartość {value/1e9:.2f} MLD.'],
+                              payload={'action':'buy','offer_id':offer['id'],'delivery':'auto','group':'trade:buy'}))
     return sorted(options,key=lambda o:-o.base)[:5]
 
 

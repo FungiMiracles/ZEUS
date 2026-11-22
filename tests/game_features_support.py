@@ -52,7 +52,10 @@ class FeatureTestCase(unittest.TestCase):
         ]])
         InfrastructureProject.__table__.create(db.engine, checkfirst=True)
         from game.warehouse import Warehouse
-        Warehouse.__table__.create(db.engine, checkfirst=True)
+        from game.trade_routes import LandCustoms, ImfShippingFee   # 22 Nov 2026: cło lądowe, opłaty MFW za wysyłkę
+        for model in (Warehouse, LandCustoms):
+            model.__table__.create(db.engine, checkfirst=True)
+
         for model in (MilitaryBase, MilitaryExpense, MilitaryMaintenance, MilitaryOrder, MilitaryFlight, MapCalibration, MilitaryVessel, MissileDefense, MissileDefenseExpense):
             model.__table__.create(db.engine, checkfirst=True)
         # Land armies and occupations (11 Nov 2026) are part of military counts and armed-forces spending.
@@ -88,7 +91,8 @@ class FeatureTestCase(unittest.TestCase):
         from game.intelligence_models import IntelligenceAgent,CounterIntelligence,IntelligenceMission,IntelligenceExpense
         for model in (IntelligenceAgent,CounterIntelligence,IntelligenceMission,IntelligenceExpense):model.__table__.create(db.engine)
         from game.commerce_models import ResourceStock,Mine,MiningExpense,PortTariff,TradeOffer,TradeShipment,TradeReserveMovement
-        for model in (ResourceStock,Mine,MiningExpense,PortTariff,TradeOffer,TradeShipment,TradeReserveMovement):model.__table__.create(db.engine)
+        from game.trade_routes import ImfShippingFee
+        for model in (ResourceStock,Mine,MiningExpense,PortTariff,TradeOffer,TradeShipment,TradeReserveMovement,ImfShippingFee):model.__table__.create(db.engine)
         db.session.add(MapCalibration(id=1,reference_city_a=1,reference_city_b=852,reference_km=100,km_per_unit=1,reference_a_x=0,reference_a_y=0,reference_b_x=100,reference_b_y=0))
         db.session.add_all([
             *[Panstwo(PANSTWO_ID=i, panstwo_nazwa=f'Państwo {i}') for i in range(1, 5)],

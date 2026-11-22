@@ -45,11 +45,11 @@
 {% endblock %}
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261025-1') }}"></script>
+<script src="{{ url_for('static', filename='js/game_trade_navigation.js', v='20261122-legs-1') }}"></script>
 <script src="{{ url_for('static', filename='js/world_relief.js', v='20261117-dark-peaks-1') }}"></script>
 <script src="{{ url_for('static', filename='js/game_rail_trains.js', v='20261119-trains-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_air_traffic.js', v='20261121-orange-1') }}" defer></script>
 {% if city_config %}<script src="{{ url_for('static', filename='js/game_cities.js', v='20261121-cities-4') }}" defer></script>{% endif %}
 <script src="{{ url_for('static', filename='js/game_warehouse_location.js', v='20261122-wh-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_world.js', v='20261122-wh-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_world.js', v='20261122-legs-1') }}" defer></script>
 {% endblock %}

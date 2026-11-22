@@ -69,17 +69,16 @@ class TradeTests(unittest.TestCase):
     def test_surplus_offer_hidden_from_enemies_and_never_the_army(self):
         ctx=EconomyCtx(screens={'trade':trade_screen()},traits={'trade_propensity':100})
         ctx.situation.update(at_war=[4])
-        with patch('game.paga2.trade.port_limit',return_value=(None,None)):
-            [offer]=trade.sell_options(ctx,trade_screen(),{})
+        [offer]=trade.sell_options(ctx,trade_screen(),{})
         self.assertEqual(offer.payload['cargo'],{'wegiel_kamienny':400})  # 80% nadwyżki; czołgi zostają w armii
-        self.assertEqual(offer.payload['excluded'],[4]);self.assertEqual(offer.payload['port_id'],10)
+        self.assertEqual(offer.payload['excluded'],[4])
         self.assertGreater(Decimal(offer.payload['price']),Decimal(str(pricing.unit_value('wegiel_kamienny')*400)))
 
-    def test_port_infrastructure_limits_offer(self):
+    def test_offer_has_no_port_or_transport(self):
+        # 22 Nov 2026: oferta czeka w magazynie — port, transport i limit portu wybiera gra przy zakupie (game.trade_routes).
         ctx=EconomyCtx(screens={'trade':trade_screen()},traits={'trade_propensity':100})
-        with patch('game.paga2.trade.port_limit',return_value=(100,None)):
-            [offer]=trade.sell_options(ctx,trade_screen(),{})
-        self.assertLessEqual(sum(offer.payload['cargo'].values()),100)
+        [offer]=trade.sell_options(ctx,trade_screen(),{})
+        for key in ('port_id','departure_rate','transport'):self.assertNotIn(key,offer.payload)
 
     def test_buys_needed_goods_at_reasonable_price_from_non_hostile_sellers(self):
         iron=pricing.unit_value('zelazo')
@@ -93,7 +92,7 @@ class TradeTests(unittest.TestCase):
         with patch('game.paga2.trade.planned_acquisitions',return_value=set()):options=trade.buy_options(ctx,screen,{})
         self.assertEqual([o.payload['offer_id'] for o in options],[1])
         self.assertEqual(options[0].sector,'reserve');self.assertEqual(options[0].target,2);self.assertEqual(options[0].stance,'friendly')
-        self.assertEqual(options[0].payload['port_id'],10)
+        self.assertEqual(options[0].payload['delivery'],'auto')   # 22 Nov 2026: najtańsza droga dostawy wybierana przez grę
         # Surowiec wskazany przez plan (zakup w handlu) jest potrzebny nawet bez fabryk.
         ctx=EconomyCtx(screens={'trade':screen});ctx.situation.update(at_war=[4])
         with patch('game.paga2.trade.planned_acquisitions',return_value={'zelazo'}):self.assertEqual([o.payload['offer_id'] for o in trade.buy_options(ctx,screen,{})],[1])

@@ -293,16 +293,21 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   const ships = [];
   for (const ship of config.ships || []) {
     L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(map);
-    // 18 Nov 2026: transport lądowy (granica lądowa) — ikona TRANSPORT LĄDOWY z flagą państwa sprzedającego.
-    const land = ship.transport === 'land', air = ship.transport === 'air', icon = air ? config.airplaneIcon : land ? (config.landIcon || config.shipIcon) : config.shipIcon;
-    const symbol = make('div', null, 'world-ship' + (land ? ' world-land-transport' : '')); const img = make('img'); img.src = icon; img.alt = ''; symbol.append(img);
-    if (ship.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = ship.flag; flag.alt = ''; symbol.append(flag); }
+    // 22 Nov 2026: przesyłka z odcinkami — pociąg towarowy (pomarańczowy, paczka, flaga sprzedającego), statek albo samolot
     const point = window.GameTradeNavigation?.position(ship, gameTime()); if (!point) continue;
-    const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-      .bindTooltip(iconTip(icon, air ? 'Samolot towarowy' : land ? 'Transport lądowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `${air ? 'Doleci' : land ? 'Dotrze' : 'Przypłynie'}: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+    const shipIcon = mode => {
+      if (mode === 'land') return L.divIcon({ html: window.GameTradeNavigation.trainSymbol(ship), className: 'world-ship-marker', iconSize: [28, 28], iconAnchor: [14, 14] });
+      const air = mode === 'air', symbol = make('div', null, 'world-ship'); const img = make('img'); img.src = air ? config.airplaneIcon : config.shipIcon; img.alt = ''; symbol.append(img);
+      if (ship.flag) { const flag = make('img', null, 'world-ship-flag'); flag.src = ship.flag; flag.alt = ''; symbol.append(flag); }
+      return L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] });
+    };
+    const tip = () => { const mode = window.GameTradeNavigation.mode(ship, gameTime()), air = mode === 'air', land = mode === 'land';
+      return iconTip(air ? config.airplaneIcon : land ? '/static/icons/PACZKA.svg' : config.shipIcon, air ? 'Samolot towarowy' : land ? 'Pociąg towarowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `Dostawa do magazynu: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]); };
+    const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: make('div'), className: 'world-ship-marker' }) }).bindTooltip(tip, { direction: 'top', className: 'world-tooltip' }).addTo(map);
+    window.GameTradeNavigation.syncIcon(marker, ship, gameTime(), shipIcon); marker._shipIcon = shipIcon;
     ships.push([ship, marker]);
   }
-  if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);
+  if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); window.GameTradeNavigation.syncIcon(marker, ship, now, marker._shipIcon); } }, 1000);
   // --- okręty wojenne i lotniskowce wszystkich państw (14 Nov 2026) ---
   const kinds = { warships: 'Okręt wojenny', carriers: 'Lotniskowiec', submarines: 'Okręt podwodny' };
   const statuses = { sailing: 'w rejsie', returning: 'powrót do bazy', stationed: 'na pozycji' };

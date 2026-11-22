@@ -178,8 +178,14 @@ class SharedAdministrationTests(CommerceFixture):
         from game.finance_models import StateFinancialAccount
         db.session.add(StateFinancialAccount(panstwo_id=3,reserve_balance=10000,last_transaction_sequence=0,created_at=NOW,updated_at=NOW))
         db.session.commit()
-        offer=create_offer(2,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'1000','port_id':101,'departure_rate':'12'})
-        buy_offer(3,{'request_id':str(uuid4()),'offer_id':offer,'port_id':103,'arrival_rate':'0'})
+        # 22 Nov 2026: towar jedzie koleją z magazynu sprzedającego (102) do portu zależności (101), dalej statkiem do 103.
+        from game.rail_models import RailLine
+        from datetime import timedelta
+        RailLine.__table__.create(db.engine,checkfirst=True)
+        db.session.add(RailLine(initiator_id=2,partner_id=4,city_a_id=102,city_b_id=101,path=[[100,0],[0,0]],distance_km=100,cost=0,shares={},build_days=1,status='ACTIVE',
+                                starts_at=NOW-timedelta(days=5),ready_at=NOW-timedelta(days=1),request_id=str(uuid4())));db.session.commit()
+        offer=create_offer(2,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'1000'})
+        buy_offer(3,{'request_id':str(uuid4()),'offer_id':offer,'delivery':'sea:103'})
         db.session.expire_all()
         self.assertEqual(db.session.get(StateFinancialAccount,1).reserve_balance,120)
         self.assertIsNone(db.session.get(StateFinancialAccount,4))

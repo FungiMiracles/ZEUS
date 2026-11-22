@@ -468,6 +468,8 @@ def create_order(user_id,data):
             shipment_target=session.scalar(select(TradeShipment).where(TradeShipment.id==target_id).with_for_update())
             if shipment_target is None or shipment_target.health<=0 or shipment_target.sunk_at is not None or shipment_target.delivered_at is not None or not shipment_target.starts_at<=game_now()<shipment_target.arrives_at:raise FinanceError('Statek handlowy nie znajduje się już w rejsie.')
             if shipment_target.transport=='air':raise FinanceError('Samolotu towarowego w locie nie można zaatakować.')   # 20 Nov 2026
+            from game.trade_routes import mode_at
+            if mode_at(shipment_target,game_now())!='sea':raise FinanceError('Atakować można tylko statek handlowy na morzu — przesyłka jest teraz w transporcie kolejowym lub lotniczym.')   # 22 Nov 2026
             target_country(session,shipment_target,country.PANSTWO_ID)
             port=session.scalar(select(Miasto).options(lazyload('*')).where(Miasto.miasto_id==shipment_target.departure_port_id))
             if port is None:raise FinanceError('Brak portu macierzystego statku.')

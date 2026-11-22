@@ -37,6 +37,19 @@
       </div>
     </section>
   </div>
+  {# 22 Nov 2026: opłaty za wysyłkę w handlu (lotnicza 8%, morska 5%, kolejowa 0%) — konto MFW poza pulą pożyczek #}
+  <section class="game-panel imf-shipping-fees" aria-labelledby="imf-shipping-title">
+    <h2 class="game-panel-heading" id="imf-shipping-title">Opłaty za wysyłkę towarów (konto MFW)</h2>
+    <div class="game-panel-body">
+      <dl class="finance-metrics">
+        <div><dt>Zebrane łącznie</dt><dd>{{ imf_shipping.total|game_money }}</dd></div>
+        <div><dt>Transport lotniczy (8%)</dt><dd>{{ imf_shipping.byTransport.get('air', 0)|game_money }}</dd></div>
+        <div><dt>Transport morski (5%)</dt><dd>{{ imf_shipping.byTransport.get('sea', 0)|game_money }}</dd></div>
+        <div><dt>Kolej (0%)</dt><dd>{{ imf_shipping.byTransport.get('land', 0)|game_money }}</dd></div>
+      </dl>
+      <p class="imf-hint">Opłatę za wysyłkę płaci państwo kupujące przy zakupie oferty, zależnie od wybranego transportu. Środki są zapisywane na koncie MFW i nie zasilają puli pożyczek.</p>
+    </div>
+  </section>
   <section class="game-panel imf-borrowers" aria-labelledby="imf-borrowers-title">
     <h2 class="game-panel-heading" id="imf-borrowers-title">Państwa zadłużone w MFW</h2>
     <div class="game-panel-body"><div class="finance-table-scroll"><table class="finance-table imf-table">

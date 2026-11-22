@@ -39,6 +39,8 @@ class CommerceFixture(MilitaryFixture):
             patcher=patch(target,return_value=value);patcher.start();self.addCleanup(patcher.stop)
         route=patch('game.trade_service.shortest_sea_route',side_effect=lambda a,b:[a,b]);route.start();self.addCleanup(route.stop)
         p=patch('game.trade_service.city_point',side_effect=lambda id:[(id-101)*100,0]);p.start();self.addCleanup(p.stop)
+        # 22 Nov 2026: drogi dostawy (game.trade_routes) i magazyny (game.warehouse) czytają punkty miast z military_geography
+        p=patch('game.military_geography.city_point',side_effect=lambda id:[(id-101)*100,0]);p.start();self.addCleanup(p.stop)
         p=patch('game.military_geography.region_contains',return_value=True);p.start();self.addCleanup(p.stop)
         # 18 Nov 2026: domyślnie bez granic lądowych (handel morski); transport lądowy testuje test_trade_land.
         p=patch('game.road_projects.region_adjacency',return_value={});p.start();self.addCleanup(p.stop)
@@ -46,7 +48,9 @@ class CommerceFixture(MilitaryFixture):
     def offer(self,**extra):
         return create_offer(1,dict(request_id=str(uuid4()),cargo={'wegiel_kamienny':5},price='1000',port_id=101,departure_rate='0',**extra))
     def buy(self,id,**extra):
-        data=dict(request_id=str(uuid4()),offer_id=id,port_id=102,arrival_rate='0');data.update(extra)
+        # 22 Nov 2026: kupujący wybiera drogę dostawy; port_id (dawny port odbioru) wskazuje opcję morską do tego portu
+        data=dict(request_id=str(uuid4()),offer_id=id);port=extra.pop('port_id',102);extra.pop('arrival_rate',None)
+        data['delivery']=extra.pop('delivery',f'sea:{port}');data.update(extra)
         return buy_offer(2,data)
     def mine(self,**extra):
         data=dict(request_id=str(uuid4()),region_id=1,resource='wegiel_kamienny',x=1,y=2);data.update(extra)
@@ -86,20 +90,30 @@ class CommerceTests(CommerceFixture):
         with self.assertRaises(FinanceError):create_offer(1,{'request_id':str(uuid4()),'cargo':{'zloto':1},'price':'10','port_id':101,'departure_rate':'0'})
     def test_payment_immediate_goods_only_on_arrival_idempotent(self):
         id=self.offer();key=str(uuid4());shipment=self.buy(id,request_id=key);self.assertEqual(self.buy(id,request_id=key),shipment);db.session.expire_all()
-        self.assertEqual(db.session.get(StateFinancialAccount,1).reserve_balance,1000);self.assertEqual(db.session.get(StateFinancialAccount,2).reserve_balance,9000)
+        self.assertEqual(db.session.get(StateFinancialAccount,1).reserve_balance,1000);self.assertEqual(db.session.get(StateFinancialAccount,2).reserve_balance,8950)   # cena + 5% MFW (droga morska)
         row=db.session.get(TradeShipment,shipment);self.assertEqual(row.arrives_at,NOW+timedelta(hours=1));self.assertIsNone(db.session.get(ResourceStock,(2,'wegiel_kamienny')))
         deliver_shipments(db.session,NOW+timedelta(minutes=59));db.session.commit();self.assertIsNone(db.session.get(ResourceStock,(2,'wegiel_kamienny')))
         deliver_shipments(db.session,NOW+timedelta(hours=1));db.session.commit();deliver_shipments(db.session,NOW+timedelta(hours=2));db.session.commit()
         self.assertEqual(db.session.get(ResourceStock,(2,'wegiel_kamienny')).quantity,5)
         self.assertEqual(_reserve_for_account(db.session.get(StateFinancialAccount,1),None),1000)
         resale=create_offer(2,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':5},'price':'500','port_id':102,'departure_rate':'0'});self.assertIsNotNone(resale)
-    def test_own_ports_required_and_foreign_fees_split(self):
-        with self.assertRaises(FinanceError):create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'1000','port_id':103,'departure_rate':'0'})
-        db.session.get(Miasto,101).czy_portowe='NIE';db.session.get(Miasto,102).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'2.5'})
-        id=create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'1000','port_id':103,'departure_rate':'2.5'})
-        self.buy(id,port_id=103,arrival_rate='2.5');db.session.expire_all()
-        self.assertEqual(db.session.get(StateFinancialAccount,1).reserve_balance,975);self.assertEqual(db.session.get(StateFinancialAccount,2).reserve_balance,8975);self.assertEqual(db.session.get(StateFinancialAccount,3).reserve_balance,50)
-        self.assertEqual(sum(db.session.scalars(select(TradeReserveMovement.amount))),0)
+    @patch('game.military_geography.region_adjacency',return_value={})   # bez sąsiadów lądowych — reguła portu sąsiada: test_trade_neighbor_ports
+    def test_foreign_departure_port_reached_by_rail_and_fees_split(self,_adjacency):
+        # 22 Nov 2026: sprzedający bez portu — towar jedzie koleją z magazynu do portu sąsiada (opłata portu wysyłki
+        # z przychodu sprzedającego); kupujący płaci cenę i 5% MFW (własny port odbioru bez opłaty).
+        from game.rail_models import RailLine
+        RailLine.__table__.create(db.engine,checkfirst=True)
+        db.session.get(Miasto,101).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'2.5'})
+        db.session.add(RailLine(initiator_id=1,partner_id=3,city_a_id=101,city_b_id=103,path=[[0,0],[200,0]],distance_km=120,cost=0,shares={},build_days=1,status='ACTIVE',
+                                starts_at=NOW-timedelta(days=5),ready_at=NOW-timedelta(days=1),request_id=str(uuid4())));db.session.commit()
+        id=create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'1000'})
+        with self.assertRaises(FinanceError):self.buy(id,port_id=999)   # nieistniejąca opcja dostawy
+        self.buy(id,port_id=102);db.session.expire_all()
+        self.assertEqual(db.session.get(StateFinancialAccount,1).reserve_balance,975);self.assertEqual(db.session.get(StateFinancialAccount,2).reserve_balance,8950);self.assertEqual(db.session.get(StateFinancialAccount,3).reserve_balance,25)
+        self.assertEqual(sum(db.session.scalars(select(TradeReserveMovement.amount))),-50,'only the IMF fee leaves the reserves')
+        shipment=db.session.scalar(select(TradeShipment))
+        self.assertEqual([leg['mode'] for leg in shipment.legs],['land','sea'])
+        self.assertEqual(shipment.arrives_at,NOW+timedelta(hours=1)+timedelta(hours=1),'120 km by rail (120 km/h) + 100 km by sea (100 km/h)')
     def test_excluded_country_and_failed_purchase_do_not_charge(self):
         id=self.offer(excluded=[2]);
         with self.assertRaises(FinanceError):self.buy(id)
@@ -109,13 +123,15 @@ class CommerceTests(CommerceFixture):
         id=self.offer();db.session.get(StateFinancialAccount,2).reserve_balance=5;db.session.commit()
         with self.assertRaises(FinanceError):self.buy(id)
         db.session.expire_all();self.assertEqual(db.session.get(TradeOffer,id).status,'open');self.assertEqual(self.count(TradeReserveMovement),0)
-    @patch('game.military_geography.region_adjacency',return_value={})   # 18 Nov 2026: test opłat — bez sąsiadów lądowych (reguła portu sąsiada: test_trade_neighbor_ports)
-    def test_tariff_changes_require_requote(self,_adjacency):
-        db.session.get(Miasto,101).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'5'})
-        with self.assertRaises(FinanceError):create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'10','port_id':103,'departure_rate':'0'})
-        id=create_offer(1,{'request_id':str(uuid4()),'cargo':{'wegiel_kamienny':1},'price':'10','port_id':103,'departure_rate':'5'})
-        db.session.get(Miasto,102).czy_portowe='NIE';db.session.commit()
-        with self.assertRaises(FinanceError):self.buy(id,port_id=103,arrival_rate='0')
+    def test_changed_delivery_cost_requires_requote(self):
+        set_tariff(2,{'rate':'5'})
+        id=self.offer()
+        from game.trade_routes import delivery_options
+        option=next(o for o in delivery_options(db.session,db.session.get(TradeOffer,id),2) if o['key']=='sea:102')
+        self.assertEqual(option['arrivalFee'],'0.00','own arrival port is free')
+        from game.finance_service import FinanceConflict
+        with self.assertRaises(FinanceConflict):self.buy(id,expected_total='1000')
+        self.buy(id,expected_total=option['total'])
     def test_http_csrf_and_page(self):
         self.assertEqual(self.client.get('/game/handel').status_code,200)
         for path in ['/game/handel/zmien','/game/handel/wydobycie/buduj']:
@@ -165,7 +181,7 @@ class CommerceBudgetTests(CommerceFixture):
         db.session.execute(text('UPDATE game_state_budgets SET closing_reserve=0 WHERE id=1'))
         db.session.add(StateFinancialAccount(panstwo_id=1,reserve_balance=0,last_budget_id=1,last_transaction_sequence=0,created_at=NOW,updated_at=NOW));db.session.get(StateFinancialAccount,2).last_budget_id=2;db.session.commit()
         id=self.offer();self.buy(id);db.session.expire_all()
-        for country,budget_id,expected in [(1,1,1000),(2,2,9000)]:
+        for country,budget_id,expected in [(1,1,1000),(2,2,8950)]:   # 22 Nov 2026: kupujący płaci też 5% opłaty MFW za drogę morską
             budget=db.session.get(StateBudget,budget_id);self.assertEqual(_reserve_for_account(db.session.get(StateFinancialAccount,country),budget),expected)
             self.assertEqual(sector_balances(db.session,budget)['reserve']['remaining'],expected)
         with patch('game.budget_transfers.game_now',return_value=NOW):

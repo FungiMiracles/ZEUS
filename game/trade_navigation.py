@@ -8,6 +8,13 @@ from game.governance import controller_id
 
 
 def shipment_position(shipment,now):
+    # 22 Nov 2026: przesyłka z odcinkami (kolej / statek / samolot) — pozycja na bieżącym odcinku
+    from game.trade_routes import leg_at
+    from datetime import datetime
+    leg=leg_at(shipment,now)
+    if leg is not None and len(leg['path'])>=2:
+        start,end=datetime.fromisoformat(leg['startsAt']),datetime.fromisoformat(leg['arrivesAt'])
+        return path_position(leg['path'],(now-start).total_seconds()/max(1,(end-start).total_seconds()))
     duration=max(1,(shipment.arrives_at-shipment.starts_at).total_seconds())
     return path_position(shipment.route or [[shipment.source_x,shipment.source_y],[shipment.target_x,shipment.target_y]],(now-shipment.starts_at).total_seconds()/duration)
 
@@ -31,6 +38,8 @@ def visible_shipments(session,country_id):
     names=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all());enemy=set(enemies(session,country_id))
     cities={id:(region,owner) for id,region,owner in session.execute(select(Miasto.miasto_id,Miasto.region_id,Miasto.panstwo_id))}
     result=[]
+    from game.trade_routes import mode_at,legs_json
+    now=game_now()
     for ship in session.scalars(active_shipments(session).order_by(TradeShipment.id)):
         origin=cities.get(ship.departure_port_id);arrival=cities.get(ship.arrival_port_id)
         if not origin or not arrival:continue
@@ -39,5 +48,6 @@ def visible_shipments(session,country_id):
         result.append({'id':ship.id,'countryId':owner,'regionId':str(origin[0]),'originCountryId':ship.origin_country_id or origin[1],
             'sellerId':ship.seller_id,'buyerId':ship.buyer_id,'seller':names.get(ship.seller_id,''),'buyer':names.get(ship.buyer_id,''),'health':ship.health,
             'route':ship.route or [[ship.source_x,ship.source_y],[ship.target_x,ship.target_y]],'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z',
-            'canAttack':not own and ship.transport!='air' and bool({ship.seller_id,ship.buyer_id}&enemy),'transport':ship.transport or 'sea'})
+            'canAttack':not own and mode_at(ship,now)=='sea' and bool({ship.seller_id,ship.buyer_id}&enemy),'transport':ship.transport or 'sea',
+            'legs':legs_json(ship.legs)})   # 22 Nov 2026: atak tylko na statek na morzu (nie na pociąg ani samolot)
     return result

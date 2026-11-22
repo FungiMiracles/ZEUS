@@ -98,25 +98,27 @@ class MiningAndPortTests(unittest.TestCase):
         self.assertEqual(db.session.get(ResourceStock,(1,'wegiel_kamienny')).quantity,before+1,'no extraction below 10')
         self.assertEqual(db.session.get(self.Mine,id).extracted_at,start+timedelta(days=5),'time passes: no backlog later')
 
-    def test_port_infrastructure_limits_export_offers(self):
-        from game.finance_service import FinanceError
-        from game.commerce_models import ResourceStock
-        db.session.get(ResourceStock,(1,'wegiel_kamienny')).quantity=1000;db.session.add(ResourceStock(panstwo_id=1,resource='zloto',quantity=50));db.session.commit()
+    def test_port_infrastructure_limits_sea_export(self):
+        # 22 Nov 2026: limit infrastruktury portowej obowiązuje przy zakupie — za duży ładunek nie może wypłynąć z tego portu
+        # (droga morska z tego portu jest niedostępna), oferta może być wystawiona.
+        from game.commerce_models import ResourceStock,TradeOffer
+        from game.trade_routes import delivery_options
+        db.session.get(ResourceStock,(1,'wegiel_kamienny')).quantity=5000;db.session.add(ResourceStock(panstwo_id=1,resource='zloto',quantity=50));db.session.commit()
+        sea=lambda id:any(o['mode']=='sea' for o in delivery_options(db.session,db.session.get(TradeOffer,id),2))
         self.region(region_stan_infra_portowej=65)
-        with self.assertRaises(FinanceError) as error:create(self,{'wegiel_kamienny':501})
-        self.assertIn('500',str(error.exception))
-        self.assertIsNotNone(create(self,{'wegiel_kamienny':500}))
+        self.assertFalse(sea(create(self,{'wegiel_kamienny':501})))
+        self.assertTrue(sea(create(self,{'wegiel_kamienny':500})))
         self.region(region_stan_infra_portowej=5)
-        with self.assertRaises(FinanceError):create(self,{'zloto':1})
-        with self.assertRaises(FinanceError):create(self,{'wegiel_kamienny':101})
-        self.assertIsNotNone(create(self,{'wegiel_kamienny':100}))
+        self.assertFalse(sea(create(self,{'zloto':1})))
+        self.assertFalse(sea(create(self,{'wegiel_kamienny':101})))
+        self.assertTrue(sea(create(self,{'wegiel_kamienny':100})))
         self.region(region_stan_infra_portowej=85)
-        self.assertIsNotNone(create(self,{'wegiel_kamienny':300}))
+        self.assertTrue(sea(create(self,{'wegiel_kamienny':300})))
 
 
 def create(case,cargo):
     from game.trade_service import create_offer
-    return create_offer(1,dict(request_id=str(uuid4()),cargo=cargo,price='1000',port_id=101,departure_rate='0'))
+    return create_offer(1,dict(request_id=str(uuid4()),cargo=cargo,price='1000'))
 
 
 class ExpansionAndFundsTests(unittest.TestCase):

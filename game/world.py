@@ -65,6 +65,7 @@ def world_data():
             ships.append({'id':ship.id,'seller':(countries.get(str(ship.seller_id)) or {}).get('name'),'buyer':(countries.get(str(ship.buyer_id)) or {}).get('name'),
                           'route':ship.route or [[ship.source_x,ship.source_y],[ship.target_x,ship.target_y]],'source':[ship.source_x,ship.source_y],'target':[ship.target_x,ship.target_y],
                           'startsAt':ship.starts_at.isoformat()+'Z','arrivesAt':ship.arrives_at.isoformat()+'Z','health':ship.health,'transport':ship.transport or 'sea',
+                          'legs':__import__('game.trade_routes',fromlist=['legs_json']).legs_json(ship.legs),'sellerFlag':(countries.get(str(ship.seller_id)) or {}).get('flag'),
                           'flag':(countries.get(str(ship.origin_country_id or ship.seller_id)) or {}).get('flag')})
     except Exception:
         current_app.logger.exception('Ekran Świat: statki')

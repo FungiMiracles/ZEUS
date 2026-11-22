@@ -223,30 +223,37 @@ class AirTradeTests(CommerceFixture):
         db.session.commit()
         p = patch('game.airports.game_now', return_value=NOW); p.start(); self.addCleanup(p.stop)
 
-    def test_air_offer_and_purchase(self):
-        from game.commerce_models import TradeOffer, TradeShipment
-        from game.trade_service import buy_offer, AIR_SPEED
-        offer_id = self.offer(transport='air')
-        offer = db.session.get(TradeOffer, offer_id)
-        self.assertEqual((offer.transport, offer.port_id, offer.departure_rate), ('air', 101, 0))
-        shipment = db.session.get(TradeShipment, buy_offer(2, {'request_id': str(uuid4()), 'offer_id': offer_id, 'port_id': 102, 'arrival_rate': '0'}))
+    # 22 Nov 2026: transport wybiera kupujący — droga lotnicza między czynnymi lotniskami obu państw, 8% opłaty MFW.
+    def test_air_delivery_option_and_purchase(self):
+        from game.commerce_models import TradeShipment
+        from game.trade_service import buy_offer
+        from game.trade_routes import AIR_SPEED, ImfShippingFee
+        offer_id = self.offer()
+        shipment = db.session.get(TradeShipment, buy_offer(2, {'request_id': str(uuid4()), 'offer_id': offer_id, 'delivery': 'air:102'}))
         self.assertEqual((shipment.transport, shipment.departure_port_id, shipment.arrival_port_id, shipment.departure_fee, shipment.arrival_fee), ('air', 101, 102, 0, 0))
         self.assertEqual(shipment.arrives_at - shipment.starts_at, timedelta(seconds=shipment.distance_km / AIR_SPEED * 3600))
+        fee = db.session.scalar(select(ImfShippingFee.amount).where(ImfShippingFee.shipment_id == shipment.id))
+        self.assertEqual(fee, Decimal('80.00'), '8% of the price goes to the IMF account')
+        from game.finance_models import StateFinancialAccount
+        self.assertEqual(db.session.get(StateFinancialAccount, 2).reserve_balance, 10000 - 1000 - 80)
         from game.commerce import trade_state
         with self.app.test_request_context():
             data = trade_state(2)
         self.assertEqual(data['ownAirports'], ['102'])
         self.assertEqual(data['shipments'][0]['transport'], 'air')
 
-    def test_air_offer_requires_own_airports(self):
-        from game.trade_service import buy_offer
-        from game.trade_service import create_offer
-        with self.assertRaises(FinanceError):                         # lotnisko innego państwa
-            create_offer(1, {'request_id': str(uuid4()), 'cargo': {'wegiel_kamienny': 5}, 'price': '1000', 'port_id': 102, 'departure_rate': '0', 'transport': 'air'})
-        offer_id = self.offer(transport='air')
-        db.session.execute(text('UPDATE game_airports SET health=0 WHERE panstwo_id=2')); db.session.commit()
-        with self.assertRaises(FinanceError):
-            buy_offer(2, {'request_id': str(uuid4()), 'offer_id': offer_id, 'port_id': 102, 'arrival_rate': '0'})
+    def test_air_delivery_requires_working_airports_and_open_connection(self):
+        from game.commerce_models import TradeOffer
+        from game.trade_routes import delivery_options
+        from game.airport_models import AirRouteSuspension
+        offer_id = self.offer()
+        keys = lambda: {o['key'] for o in delivery_options(db.session, db.session.get(TradeOffer, offer_id), 2)}
+        self.assertIn('air:102', keys())
+        ids = [a.id for a in db.session.scalars(select(Airport).order_by(Airport.id))]
+        db.session.add(AirRouteSuspension(airport_id=ids[0], other_id=ids[1])); db.session.commit()
+        self.assertNotIn('air:102', keys(), 'suspended connection')
+        db.session.query(AirRouteSuspension).delete(); db.session.execute(text('UPDATE game_airports SET health=0 WHERE panstwo_id=2')); db.session.commit()
+        self.assertNotIn('air:102', keys(), 'buyer airport destroyed')
 
 
 class Paga2AirportTests(unittest.TestCase):
@@ -273,17 +280,19 @@ class Paga2AirportTests(unittest.TestCase):
         self.assertEqual(build_options(self.ctx(), self.screen(airports=[{'completed': False}])), [])
         self.assertEqual(build_options(self.ctx(), self.screen(available=False)), [])
 
-    def test_buys_air_offer_with_own_airport(self):
+    def test_buys_offer_and_lets_the_game_choose_delivery(self):
+        # 22 Nov 2026: PAGA2 kupuje z drogą dostawy 'auto' — gra wybiera najtańszą dostępną (kolej, morze, powietrze).
         from game.paga2 import trade
-        screen = {'ownAirports': ['7'], 'offers': [{'id': 5, 'transport': 'air', 'sellerId': 3, 'seller': 'S', 'cargo': {'zelazo': 10}, 'price': '1000', 'usable': True}]}
+        screen = {'ownAirports': ['7'], 'offers': [{'id': 5, 'sellerId': 3, 'seller': 'S', 'cargo': {'zelazo': 10}, 'price': '1000', 'usable': True}]}
         holdings = NS(stock={})
         ctx = NS(country_id=1, traits={'trade_propensity': 50}, situation={'level': 'peace'}, _sectors={})
         with patch('game.paga2.planner._holdings', return_value=holdings), patch('game.paga2.trade.pricing.consumption', return_value={'zelazo': 10}), \
              patch('game.paga2.trade.planned_acquisitions', return_value=set()), patch('game.paga2.trade.arrival_port', return_value=(None, None)), \
              patch('game.paga2.trade.unfriendly', return_value=set()), patch('game.paga2.trade.pricing.cargo_value', return_value=1e12):
             options = trade.buy_options(ctx, screen, {})
-        self.assertEqual(options[0].payload['port_id'], 7)
-        self.assertEqual(options[0].payload['arrival_rate'], '0')
+        self.assertEqual(options[0].payload['delivery'], 'auto')
+        self.assertNotIn('port_id', options[0].payload)
+        self.assertAlmostEqual(options[0].cost, 1120.0, msg='price with a margin for delivery fees (IMF up to 8%, ports, customs)')
 
 
 if __name__ == '__main__':

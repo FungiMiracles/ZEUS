@@ -402,7 +402,8 @@ def production_stopped(text):
 def notification_icon(item, *, intelligence=False):
     text=(item.system_text or '').casefold() if item.notification_type=='SYSTEM' else ''
     filename=None
-    if ' zakupił/a ' in text and 'cło portowe:' in text:filename='TRANSPORT LĄDOWY.svg' if 'transport lądowy' in text else 'CARGO SHIP.svg'
+    # 22 Nov 2026: powiadomienie o sprzedaży — „Dostawa: kolej / droga morska / droga lotnicza” (dawniej „Cło portowe”)
+    if ' zakupił/a ' in text and ('cło portowe:' in text or 'dostawa:' in text):filename='PACZKA.svg' if 'dostawa: kolej' in text else 'SAMOLOT.svg' if 'dostawa: droga lotnicza' in text else 'TRANSPORT LĄDOWY.svg' if 'transport lądowy' in text else 'CARGO SHIP.svg'
     elif intelligence or item.notification_type=='INTELLIGENCE_REPORT' or any(word in text for word in ('wywiad','kontrwywiad','hybryd','agent','sabota')):
         filename='WYWIAD WOJSKOWY.svg'
     elif 'pożycz' in text:filename='POŻYCZKA.svg'
@@ -456,7 +457,7 @@ def open_notification(notification_id):
     if notification.notification_type == "SYSTEM":
         from game.diplomacy_news import enabled,NewsNotice
         if enabled() and db.session.scalar(select(NewsNotice.event_id).where(NewsNotice.user_id==user.id,NewsNotice.main_notification_id==notification.id)) is not None:return redirect(url_for('game_diplomacy.page'),code=303)
-        if " zakupił/a " in (notification.system_text or "") and "Cło portowe:" in (notification.system_text or ""):return redirect("/game/handel",code=303)
+        if " zakupił/a " in (notification.system_text or "") and ("Cło portowe:" in (notification.system_text or "") or "Dostawa:" in (notification.system_text or "")):return redirect("/game/handel",code=303)
         if (notification.system_text or "").startswith("Obywatele nie są zadowoleni z wysokiej stawki podatku."):return redirect("/game/spoleczenstwo",code=303)
         if (notification.system_text or "").startswith("Droga:"):return redirect("/game/infrastruktura?tab=roads",code=303)
         if production_stopped(notification.system_text):return redirect("/game/infrastruktura",code=303)

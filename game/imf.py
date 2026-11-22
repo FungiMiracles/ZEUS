@@ -392,7 +392,8 @@ def page():
     response = render_template('game/imf.html', game_user=user, game_country=country_summary(country), game_home_url=url_for('game_main_page'),
                                game_logout_url=url_for('game_logout'), game_active_page='imf',
                                imf_config={'stateUrl': url_for('game_imf.state'), 'changeUrl': url_for('game_imf.change'),
-                                           'financeUrl': url_for('game_finance.page'), 'countryId': country.PANSTWO_ID if country else None})
+                                           'financeUrl': url_for('game_finance.page'), 'countryId': country.PANSTWO_ID if country else None},
+                               imf_shipping=__import__('game.trade_routes', fromlist=['imf_shipping_total']).imf_shipping_total(db.session))
     db.session.rollback()
     return response
 

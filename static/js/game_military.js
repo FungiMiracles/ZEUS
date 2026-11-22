@@ -606,17 +606,22 @@
         cargoLayer.clearLayers();cargoMarkers.clear();   // 18 Nov 2026: ładunki widoczne także na mapie obrony (atak tylko w panelu wojennym)
         for(const ship of config.tradeShips||[]){
             const point=window.GameTradeNavigation.position(ship,currentGameTime());if(!point||Date.parse(ship.arrivesAt)<=currentGameTime())continue;
-            const land=ship.transport==='land',air=ship.transport==='air',label=air?'Samolot towarowy':land?'Transport lądowy':'Statek handlowy',attackable=config.mode==='war'&&ship.canAttack;
-            const symbol=make('div',null,'military-vessel-symbol trade-cargo-symbol military-map-badge'+(land||air?' trade-land-symbol':''));symbol.append(image(air?config.airportIcon:land?(config.landTransportIcon||config.cargoShipIcon):config.cargoShipIcon));
-            const flag=image(config.flags[String(ship.originCountryId)],land?'Państwo sprzedające':'Kraj wypłynięcia');flag.className='military-vessel-flag';symbol.append(flag);
-            const life=make('progress');life.className='map-health-bar';life.max=100;life.value=ship.health;window.GameHealth?.paint(life,ship.health);symbol.append(life);
+            // 22 Nov 2026: przesyłka z odcinkami — na odcinku kolejowym pomarańczowy pociąg z paczką i flagą sprzedającego
+            const mode=window.GameTradeNavigation.mode(ship,currentGameTime()),land=mode==='land',air=mode==='air',label=air?'Samolot towarowy':land?'Pociąg towarowy':'Statek handlowy',attackable=config.mode==='war'&&ship.canAttack;
             const route=L.polyline(ship.route.map(p=>[p[1],p[0]]),{color:attackable?'#c07b6d':'#7e9d75',weight:2,dashArray:'6 7',interactive:false}).addTo(cargoLayer);
-            const marker=L.marker([point[1],point[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:1750}).bindTooltip(make('span',`${label} #${ship.id} · ${ship.seller} → ${ship.buyer} · życie ${ship.health}%`)).addTo(cargoLayer);
+            const marker=L.marker([point[1],point[0]],{icon:L.divIcon({html:make('div'),className:'military-map-marker'}),zIndexOffset:1750}).bindTooltip(make('span',`${label} #${ship.id} · ${ship.seller} → ${ship.buyer} · życie ${ship.health}%`)).addTo(cargoLayer);
+            window.GameTradeNavigation.syncIcon(marker,ship,currentGameTime(),m=>cargoIcon(ship,m));
             marker.on('click',()=>{if(locating||sailing)return;if(attackable)showRegion(ship.regionId,null,{kind:'shipment',id:ship.id,countryId:ship.countryId,name:`${label} #${ship.id}`,point:window.GameTradeNavigation.position(ship,currentGameTime())});else marker.bindPopup(make('span',config.mode==='war'?`${label} własny lub neutralny — atak niedostępny.`:`${label}: ${ship.seller} → ${ship.buyer}.`)).openPopup();});
             cargoMarkers.set(ship.id,{marker,route});
         }
     }
-    function animateShips(now){for(const ship of config.tradeShips||[]){const entry=cargoMarkers.get(ship.id);if(!entry)continue;if(now>=Date.parse(ship.arrivesAt)){entry.marker.remove();entry.route.remove();cargoMarkers.delete(ship.id);}else{const point=window.GameTradeNavigation.position(ship,now);entry.marker.setLatLng([point[1],point[0]]);}}for(const vessel of config.vessels||[]){const point=shipPosition(vessel,now);shipMarkers.get(vessel.id)?.setLatLng([point[1],point[0]]);}}
+    function cargoIcon(ship,mode){
+        if(mode==='land')return L.divIcon({html:window.GameTradeNavigation.trainSymbol({...ship,sellerFlag:config.flags[String(ship.sellerId)]}),className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]});
+        const air=mode==='air',symbol=make('div',null,'military-vessel-symbol trade-cargo-symbol military-map-badge'+(air?' trade-land-symbol':''));symbol.append(image(air?config.airportIcon:config.cargoShipIcon));
+        const flag=image(config.flags[String(ship.originCountryId)],'Kraj wysyłki');flag.className='military-vessel-flag';symbol.append(flag);
+        const life=make('progress');life.className='map-health-bar';life.max=100;life.value=ship.health;window.GameHealth?.paint(life,ship.health);symbol.append(life);
+        return L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]});}
+    function animateShips(now){for(const ship of config.tradeShips||[]){const entry=cargoMarkers.get(ship.id);if(!entry)continue;if(now>=Date.parse(ship.arrivesAt)){entry.marker.remove();entry.route.remove();cargoMarkers.delete(ship.id);}else{const point=window.GameTradeNavigation.position(ship,now);entry.marker.setLatLng([point[1],point[0]]);window.GameTradeNavigation.syncIcon(entry.marker,ship,now,m=>cargoIcon(ship,m));}}for(const vessel of config.vessels||[]){const point=shipPosition(vessel,now);shipMarkers.get(vessel.id)?.setLatLng([point[1],point[0]]);}}
     // 22 Nov 2026: mała flaga państwa-właściciela w prawym górnym rogu ikony (myśliwce, armie w marszu).
     function ownerFlag(parent,countryId){const src=config.flags?.[String(countryId)];if(!src)return;const flag=image(src,'');flag.className='military-owner-flag';flag.onerror=()=>flag.remove();parent.append(flag);}
     function updateFlights(items,now) {

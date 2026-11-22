@@ -110,11 +110,16 @@ class TradeExtensionTests(CommerceFixture):
     @patch('game.military_geography.region_adjacency',return_value={})   # 18 Nov 2026: test opłat — bez sąsiadów lądowych (reguła portu sąsiada: test_trade_neighbor_ports)
     def test_seller_notification_once_with_export_fee_ship_icon_and_trade_link(self,_adjacency):
         db.session.get(Miasto,101).czy_portowe='NIE';db.session.commit();set_tariff(3,{'rate':'5'})
-        id=self.ammo_offer(port_id=103,departure_rate='5');key=str(uuid4());self.buy(id,request_id=key);self.buy(id,request_id=key)
+        # 22 Nov 2026: sprzedający bez portu — towar jedzie koleją z magazynu (101) do portu 103
+        from game.rail_models import RailLine
+        RailLine.__table__.create(db.engine,checkfirst=True)
+        db.session.add(RailLine(initiator_id=1,partner_id=3,city_a_id=101,city_b_id=103,path=[[0,0],[200,0]],distance_km=200,cost=0,shares={},build_days=1,status='ACTIVE',
+                                starts_at=NOW-timedelta(days=5),ready_at=NOW-timedelta(days=1),request_id=str(uuid4())));db.session.commit()
+        id=self.ammo_offer();key=str(uuid4());self.buy(id,request_id=key);self.buy(id,request_id=key)
         db.session.expire_all();notice=db.session.scalar(select(GameNotification))
         self.assertEqual(db.session.query(GameNotification).count(),1)
         self.assertEqual(notice.user_id,1)
-        self.assertEqual(notice.system_text,'Państwo 2 zakupił/a 10 Amunicja przeciwrakietowa za 1 000,00 ROI. Cło portowe: 50,00 ROI')
+        self.assertEqual(notice.system_text,'Państwo 2 zakupił/a 10 Amunicja przeciwrakietowa za 1 000,00 ROI. Dostawa: droga morska. Opłata portu wysyłki: 50,00 ROI.')
         self.login(1);data=self.client.get('/game/forum/powiadomienia').json
         self.assertTrue(data['items'][0]['icon_url'].endswith('/CARGO%20SHIP.svg'))
         response=self.post(f'/game/forum/powiadomienia/{notice.id}/otworz')

@@ -150,11 +150,10 @@ class PortAccessTests(CommerceFixture):
     def test_block_does_not_cancel_a_paid_shipment_or_break_retry(self):
         offer=self.offer();key=str(uuid4())
         with patch('game.trade_service._country_for_user',return_value=SimpleNamespace(PANSTWO_ID=2)):
-            with patch('game.trade_service.ports',return_value=[db.session.get(__import__('models').Miasto,101)]):
-                shipment=self.buy(offer,request_id=key,port_id=101)
-        set_port_access(1,{'block_foreign':True,'blocked_countries':[]});db.session.expire_all()
+            shipment=self.buy(offer,request_id=key,port_id=102)
+        set_port_access(1,{'block_foreign':True,'blocked_countries':[2]});db.session.expire_all()
         with patch('game.trade_service._country_for_user',return_value=SimpleNamespace(PANSTWO_ID=2)):
-            self.assertEqual(self.buy(offer,request_id=key,port_id=101),shipment)
+            self.assertEqual(self.buy(offer,request_id=key,port_id=102),shipment)
         self.assertEqual(db.session.query(TradeShipment).count(),1)
 
 
