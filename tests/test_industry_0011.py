@@ -392,3 +392,15 @@ class PowerCombatTests(FlightFixture):
         id=self.launch_power(2);flight=db.session.get(MilitaryFlight,id)
         complete_flights(db.session,flight.impact_at);db.session.commit()
         self.assertEqual(db.session.get(PowerPlant,self.plant_id).health,0)
+
+
+class FactoryProductDisplayTests(__import__('unittest').TestCase):
+    def test_product_shown_in_order_modal_and_tooltips(self):
+        # 22 Nov 2026: ikona produktu w oknie zlecenia; fabryka chipów pokazuje produkowany chip na mapach
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[1]
+        script=(root/'static/js/game_industry.js').read_text()
+        self.assertIn("productBox.append(productRow(target.product))",script);self.assertIn("'Produkuje: '",script)
+        self.assertIn('id="industry-confirm-product"',(root/'templates/game/_factories.html').read_text())
+        self.assertIn('Produkuje: ${factory.productName}',(root/'static/js/game_military.js').read_text())
+        self.assertIn("produkuje: {label}",(root/'game/main_panel.py').read_text())

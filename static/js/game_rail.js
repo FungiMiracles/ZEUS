@@ -113,7 +113,7 @@ function renderSelection(){
 
 function renderLists(){
   $('rail-connected').textContent=`${number(state.connectedPopulation)} mieszk.`;
-  $('rail-bonus').textContent=money(state.bonus);$('rail-funds').textContent=money(state.funds);
+  $('rail-bonus').textContent=money(state.bonus)+(state.partnerBonusPercent?` (w tym +${state.partnerBonusPercent}% za połączenia z sieciami sąsiadów)`:'');   // 22 Nov 2026$('rail-funds').textContent=money(state.funds);
   const infra=$('rail-infrastructure');if(infra)infra.textContent=`${Number(state.railInfrastructure||0).toLocaleString('pl-PL',{maximumFractionDigits:1})} / 100`;
   const noTech=$('rail-no-tech');if(noTech)noTech.hidden=!!state.available;
   const requests=$('rail-requests'),lines=$('rail-lines');requests.replaceChildren();lines.replaceChildren();

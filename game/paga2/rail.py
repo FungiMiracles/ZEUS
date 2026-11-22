@@ -10,6 +10,8 @@ Ten adapter, po opracowaniu technologii:
   przechodząca obok innego miasta jest dzielona (A→B, potem B→C). 20 Nov 2026: bonus liczy tylko spójną sieć
   (game.rail.main_network), więc oderwany odcinek nie daje dochodu i nie jest budowany.
 O współfinansowaniu decyduje wyłącznie PAGA2 (model AI nie ma operacji kolejowych).
+22 Nov 2026: PAGA2 sama występuje z wnioskami o linie do sąsiadów (international_options; +10% dochodów z kolei za
+każde obce państwo w sieci), a inwestycje o zwrocie do 4 cykli nie podlegają limitowi jednej akcji.
 Wszystko przez ekran i endpointy gracza (/game/kolej/…).
 """
 from math import hypot
@@ -22,6 +24,7 @@ from game.rail import main_network
 MAX_BUILDING = 5          # jednocześnie budowane własne linie (najwyżej jedna nowa na przebieg)
 CANDIDATES = 2            # wycen (zapytań) na przebieg
 MAX_PAYBACK_CYCLES = 12   # przy przeciętnym konserwatyzmie fiskalnym (50)
+FAST_PAYBACK_CYCLES = 4   # 22 Nov 2026: szybszy zwrot zwalnia z limitu jednej akcji (game.paga2.scoring.check_resources)
 ESTIMATE_FACTOR = 1.15    # trasa po lądzie dłuższa od odcinka prostego
 
 
@@ -184,7 +187,71 @@ def build_options(ctx, screen):
                               cost=cost, sector='infrastructure', base=3.0 + max(0.0, (limit - payback) / limit) * 3 + trade_bonus(ctx),
                               notes=[f'Koszt {cost/1e9:.2f} MLD ROI, dochody z kolei +{income/1e9:.2f} MLD na cykl, zwrot po {payback:.1f} cyklu(ach).',
                                      f'Skłonność do handlu {ctx.traits.get("trade_propensity", 50)}: limit zwrotu ×{trade:.2f}.'],
-                              payload={'city_a': city['id'], 'city_b': target['id'], 'expected_cost': quote['cost'], 'group': 'rail:build'}))
+                              payload={'city_a': city['id'], 'city_b': target['id'], 'expected_cost': quote['cost'], 'group': 'rail:build',
+                                       'fast_payback': payback <= FAST_PAYBACK_CYCLES}))
+    return options
+
+
+INTERNATIONAL_CANDIDATES = 2   # wycen linii międzynarodowych na przebieg
+
+
+def international_options(ctx, screen):
+    """22 Nov 2026: PAGA2 występuje z wnioskiem o współfinansowanie linii do sąsiada — łączy własną sieć z najbliższym
+    miastem sąsiada, z którym nie ma jeszcze połączenia (relacja co najmniej neutralna, bez wojny). Wartość: +10%
+    dochodów z kolei za każde obce państwo w sieci (game.rail.PARTNER_BONUS) oraz kolej w handlu (tranzyt, cła).
+    Najwyżej jeden oczekujący wniosek naraz; koszt własny = udział w trasie po naszej stronie granicy."""
+    from game.rail import PARTNER_BONUS
+    lines = screen.get('lines') or []
+    if any(l.get('own') and l.get('partnerId') and l.get('status') == 'PENDING' for l in lines):
+        return []
+    bonus = float(screen.get('bonus') or 0)
+    if bonus <= 0:
+        return []                     # bez własnej sieci premia za połączenie nic nie daje
+    partners = set(screen.get('networkPartners') or [])
+    base_income = bonus / (1 + float(PARTNER_BONUS) * len(partners))
+    gain = base_income * float(PARTNER_BONUS)
+    linked = {l.get('partnerId') if l.get('own') else l.get('initiatorId') for l in lines
+              if l.get('partnerId') and l.get('status') in ('PENDING', 'ACTIVE')}
+    relations = ctx.situation.get('relations', {})
+    wars = set(ctx.situation.get('at_war', []))
+    cities = screen.get('cities') or []
+    core = set(screen.get('networkCities') or [])
+    ours = [c for c in cities if c.get('own') and c['id'] in core]
+    pairs = []
+    for neighbor in screen.get('neighbors') or []:
+        if neighbor in partners or neighbor in linked or neighbor in wars:
+            continue
+        relation = (relations.get(neighbor) or {}).get('relation_label') or 'neutralne'
+        if relation_factor(relation) < 0:
+            continue
+        theirs = [c for c in cities if c.get('countryId') == neighbor]
+        best = min(((hypot(b['point'][0] - a['point'][0], b['point'][1] - a['point'][1]), a, b) for a in ours for b in theirs), default=None, key=lambda item: item[0])
+        if best:
+            pairs.append((best[0], neighbor, best[1], best[2], relation))
+    conservatism = ctx.traits.get('fiscal_conservatism', 50)
+    trade = trade_factor(ctx)
+    limit = MAX_PAYBACK_CYCLES * (1.5 - conservatism / 100) * trade
+    available = ctx.available('infrastructure')
+    options = []
+    for _, neighbor, city, target, relation in sorted(pairs, key=lambda item: item[0])[:INTERNATIONAL_CANDIDATES]:
+        status, quote = ctx.call('/game/kolej/wycena', json={'city_a': city['id'], 'city_b': target['id']})
+        if status >= 400 or not isinstance(quote, dict) or quote.get('partnerId') != neighbor:
+            continue
+        cost = float(((quote.get('shares') or {}).get(str(ctx.country_id)) or {}).get('cost') or quote['cost'])
+        payback = cost / gain if gain else float('inf')
+        if payback > limit or cost > available * .6:
+            continue
+        name = (screen.get('countries') or {}).get(str(neighbor), f'państwo {neighbor}')
+        options.append(Option(key=f'rail:international:{city["id"]}:{target["id"]}', domain='economy', action='RAIL_INTERNATIONAL', target=neighbor,
+                              label=f'Wniosek o wspólną linię {city["name"]} – {target["name"]} ({name}, {float(quote["distanceKm"]):.0f} km)',
+                              effects={'infrastructure': .8, 'trade': .7, 'alliances': .3, 'financial_stability': .3},
+                              traits={'trade_propensity': .8, 'solidarity': .3, 'isolationism': -.6, 'industrialism': .3},
+                              cost=cost, sector='infrastructure', stance='friendly',
+                              base=2.0 + max(0.0, (limit - payback) / limit) * 3 + trade_bonus(ctx),
+                              notes=[f'Nasz udział {cost/1e9:.2f} MLD ROI; połączenie z siecią sąsiada: +{gain/1e9:.2f} MLD dochodów z kolei na cykl '
+                                     f'(+{int(PARTNER_BONUS*100)}%), zwrot po {payback:.1f} cyklu(ach). Relacja: {relation}. Budowa po akceptacji sąsiada.'],
+                              payload={'city_a': city['id'], 'city_b': target['id'], 'expected_cost': quote['cost'], 'group': 'rail:international',
+                                       'fast_payback': payback <= FAST_PAYBACK_CYCLES}))
     return options
 
 
@@ -194,7 +261,7 @@ def propose(ctx):
     screen = rail_screen(ctx)
     options = decision_options(ctx, screen)
     if screen.get('available') and getattr(ctx, 'mode', 'CYCLIC') == 'CYCLIC':
-        options += build_options(ctx, screen)
+        options += build_options(ctx, screen) + international_options(ctx, screen)
     return options
 
 
@@ -203,7 +270,7 @@ def execute(ctx, option):
     if option.action in ('RAIL_ACCEPT', 'RAIL_REJECT'):
         status, data = ctx.call('/game/kolej/zmien', json={'action': 'accept' if option.action == 'RAIL_ACCEPT' else 'reject', 'line_id': p['line_id']})
         return result(status, data)
-    if option.action == 'RAIL_BUILD':
+    if option.action in ('RAIL_BUILD', 'RAIL_INTERNATIONAL'):
         key = str(uuid5(NAMESPACE_URL, f'paga2:{ctx.request_key}:{option.key}'))
         status, data = ctx.call('/game/kolej/zmien', json={'action': 'build', 'city_a': p['city_a'], 'city_b': p['city_b'],
                                                           'expected_cost': p['expected_cost'], 'request_id': key})

@@ -28,7 +28,7 @@ class AirportRulesTests(unittest.TestCase):
         self.assertIn('air_transport', technology_layout()['positions'])
 
     def test_constants(self):
-        self.assertEqual(airports.MATERIALS, {'kamien': 1400, 'zelazo': 200, 'chip_kerbit': 5, 'chip_natsyt': 3})
+        self.assertEqual(airports.MATERIALS, {'kamien': 1400, 'zelazo': 200, 'chip_simple': 5})   # 22 Nov 2026
         self.assertEqual((airports.BUILD_DAYS, airports.MIN_POPULATION, airports.NAME_MAX), (14, 100_000, 60))
         self.assertEqual((airports.PRICE_PER_RESIDENT, airports.INCOME_PER_RESIDENT), (Decimal('100'), Decimal('10')))
         from game.trade_service import AIR_SPEED

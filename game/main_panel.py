@@ -75,7 +75,11 @@ def map_objects(country_id,icon_url):
     for m in db.session.scalars(select(Mine).where(Mine.panstwo_id==country_id,Mine.removed_at.is_(None))):
         add('mines',f'{NAMES.get(m.resource,m.resource)} #{m.id} · poziom {m.level}',[m.map_x,m.map_y],'KOPALNIA.svg',m.health)
     for f in db.session.scalars(select(AmmunitionFactory).where(AmmunitionFactory.panstwo_id==country_id,AmmunitionFactory.removed_at.is_(None))):
-        add('factories',f'{FACTORIES[f.kind]["label"]} #{f.id} · poziom {f.level}',[f.map_x,f.map_y],'FABRYKA.svg',f.health)
+        # 22 Nov 2026: w tooltipie także produkt (fabryka chipów produkuje chip zależny od poziomu)
+        product=FACTORIES[f.kind]['levels'][f.level-1]['product']
+        from game.industry_catalog import GOODS
+        label=GOODS.get(product,(None,))[0]
+        add('factories',f'{FACTORIES[f.kind]["label"]} #{f.id} · poziom {f.level}'+(f' · produkuje: {label}' if label else ''),[f.map_x,f.map_y],'FABRYKA.svg',f.health)
     for p in db.session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country_id,PowerPlant.removed_at.is_(None))):
         add('power',f'{POWER_PLANTS[p.kind]["label"]} #{p.id} · poziom {p.level}',[p.map_x,p.map_y],POWER_PLANTS[p.kind].get('icon') or 'ELEKTROWNIA WĘGLOWA.svg',round(p.health*100/3))
     return items

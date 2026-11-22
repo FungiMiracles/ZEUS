@@ -1,6 +1,6 @@
 """Kolej (administrator, 19 Nov 2026).
 
-- technologie: „Transport i komunikacja” (50 pkt, 14 dni) → „Transport kolejowy” (200 pkt, 21 dni); po opracowaniu
+- technologie: „Transport i komunikacja” (50 pkt, 14 dni) → „Transport kolejowy” (100 pkt od 22 Nov 2026, wcześniej 200; 21 dni); po opracowaniu
   kolei na ekranie „Infrastruktura i energetyka” pojawia się zakładka „Komunikacja”;
 - gracz łączy dwa miasta (widoczne na mapie) torami; koszt 2,5 mln ROI za km trasy (do 22 Nov 2026: 6 mln), pobierany z budżetu infrastruktury;
 - budowa trwa 1 dzień Entendy na każde pełne 50 km trasy (230 km → 4 dni), najmniej 1 dzień;
@@ -529,9 +529,34 @@ def network(session, country, now=None):
     return {city for city in members if city in population}, int(total)
 
 
+PARTNER_BONUS = Decimal('0.10')   # 22 Nov 2026: +10% dochodów z kolei za każde obce państwo w największej sieci
+
+
+def network_partners(session, country, now=None):
+    """22 Nov 2026: obce państwa (suwerenni właściciele miast), których miasta należą do największej spójnej sieci
+    kolejowej państwa — sieć połączona liniami międzynarodowymi z sieciami sąsiadów."""
+    from sqlalchemy import inspect
+    if not inspect(session.connection()).has_table(RailLine.__tablename__):
+        return set()
+    edges = completed_edges(session, now)
+    ids = {city for edge in edges for city in edge}
+    if not ids:
+        return set()
+    owners = dict(session.execute(select(Miasto.miasto_id, Miasto.panstwo_id).where(Miasto.miasto_id.in_(ids))).all())
+    own = set(controlled_ids(session, country))
+    population = dict(session.execute(select(Miasto.miasto_id, func.coalesce(Miasto.miasto_populacja, 0)).where(
+        Miasto.miasto_id.in_(ids), Miasto.panstwo_id.in_(list(own)))).all())
+    members, _ = main_network(edges, population)
+    return {controller_id(session, owners[city]) for city in members if owners.get(city) is not None and owners[city] not in own} - {None, country}
+
+
 def connected_population(session, country, now=None):
-    """Ludność własnych miast w największej spójnej sieci kolejowej (każde miasto raz) — 20 Nov 2026."""
-    return network(session, country, now)[1]
+    """Ludność własnych miast w największej spójnej sieci kolejowej (każde miasto raz) — 20 Nov 2026.
+    22 Nov 2026: powiększona o 10% za każde obce państwo, którego miasta należą do tej sieci (dochód z kolei rośnie
+    proporcjonalnie — game.finance_service liczy bonus od tej wartości)."""
+    total = network(session, country, now)[1]
+    partners = len(network_partners(session, country, now)) if total else 0
+    return int(Decimal(total) * (1 + PARTNER_BONUS * partners))
 
 
 def rail_infrastructure(session, country):
@@ -588,6 +613,8 @@ def state(session, country):
         names.update(dict(session.execute(select(Miasto.miasto_id, Miasto.miasto_nazwa).where(Miasto.miasto_id.in_(missing))).all()))
     data = economy(session, country)
     network_cities, connected = network(session, country, now)
+    partners = network_partners(session, country, now) if connected else set()
+    weighted = int(Decimal(connected) * (1 + PARTNER_BONUS * len(partners)))
     infrastructure = rail_infrastructure(session, country)
     year, period = period_key(now)
     budget = session.scalar(select(StateBudget).where(StateBudget.panstwo_id == country, StateBudget.game_year == year, StateBudget.period == period))
@@ -598,7 +625,8 @@ def state(session, country):
             'countries': {str(k): v for k, v in countries.items()}, 'neighbors': sorted(near),
             'lines': [line_data(session, line, country, names) for line in lines],
             'connectedPopulation': connected, 'networkCities': sorted(network_cities), 'railInfrastructure': str(infrastructure),
-            'bonus': str(bonus(data['gdp'], data['population'], connected, infrastructure)),
+            'bonus': str(bonus(data['gdp'], data['population'], weighted, infrastructure)),
+            'networkPartners': sorted(partners), 'partnerBonusPercent': int(PARTNER_BONUS * 100 * len(partners)),
             'gdpPerCapita': str((Decimal(data['gdp']) / Decimal(data['population'])).quantize(Decimal('.01'))) if data['gdp'] and data['population'] else None,
             'funds': funds, 'gameNow': now.isoformat() + 'Z', 'kmPerUnit': _km_per_unit(session),
             'timeMultiplier': _multiplier(), 'trainSpeed': TRAIN_SPEED,

@@ -4,7 +4,7 @@ Technologię („Transport lotniczy”) rozwija planer (cel tech:air_transport w
 Ten adapter, po opracowaniu technologii, buduje porty lotnicze przez ekran i endpointy gracza (/game/lotniska/…):
 - najwyżej jedna budowa naraz i najwyżej MAX_AIRPORTS lotnisk państwa;
 - miasto: najludniejsze dozwolone miasto bez lotniska (powyżej 100 000 mieszkańców; bez takich — największe miasto);
-- warunki: komplet surowców i chipów w magazynie (1400 kamienia, 200 żelaza, 5 chipów kerbitowych, 3 natsytowe) oraz
+- warunki: komplet surowców i chipów w magazynie (1400 kamienia, 200 żelaza, 5 prostych chipów) oraz
   koszt (ludność × 100 ROI) nie większy niż 60% niewydanych środków infrastruktury;
 - opłacalność: dochód z połączeń (każde czynne lotnisko świata daje co najmniej ludność miasta × 10 ROI na cykl) zwraca
   koszt w rozsądnej liczbie cykli zależnej od konserwatyzmu fiskalnego; pierwsze lotnisko świata (brak połączeń) —
@@ -16,7 +16,7 @@ from uuid import uuid5, NAMESPACE_URL
 from game.paga2.engine import Adapter, register
 from game.paga2.scoring import Option
 from game.paga2.finance import result
-from game.paga2.rail import trade_factor, trade_bonus   # 22 Nov 2026: skłonność do handlu jak przy kolei
+from game.paga2.rail import trade_factor, trade_bonus, FAST_PAYBACK_CYCLES   # 22 Nov 2026: skłonność do handlu jak przy kolei
 
 PATH = '/game/lotniska/zmien'
 MAX_AIRPORTS = 3
@@ -69,7 +69,8 @@ def build_options(ctx, screen):
                    traits={'industrialism': .3, 'fiscal_conservatism': -.2, 'ambition': .3, 'trade_propensity': .6},
                    cost=cost, sector='infrastructure', base=base,
                    notes=[f'Koszt {cost/1e9:.2f} MLD ROI oraz surowce i chipy z magazynu. {note}'],
-                   payload={'city_id': city['id'], 'expected_cost': city['cost'], 'group': 'airport:build'})]
+                   payload={'city_id': city['id'], 'expected_cost': city['cost'], 'group': 'airport:build',
+                            'fast_payback': payback is not None and payback <= FAST_PAYBACK_CYCLES})]
 
 
 def propose(ctx):

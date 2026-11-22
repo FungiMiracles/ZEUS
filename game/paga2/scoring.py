@@ -130,7 +130,10 @@ def check_resources(option,ctx):
         start=ctx.sector_start(option.sector)
         minimal=bool(option.payload.get('minimal_purchase'))   # 13 Nov 2026: najmniejszy możliwy zakup (1 punkt) nie podlega limitom rozwagi
         if minimal:return None
-        if option.cost>ctx.limits['per_action']*start+1e-6:
+        # 22 Nov 2026: inwestycja transportowa (kolej, lotnisko) zwracająca się szybko nie podlega limitowi jednej akcji
+        # (Findehalia: linia zwracająca się po pół cyklu blokowana przy 55% środków sektora); limit przebiegu obowiązuje.
+        fast=bool(option.payload.get('fast_payback'))
+        if not fast and option.cost>ctx.limits['per_action']*start+1e-6:
             return f'Nierozważny wydatek: {100*option.cost/max(1,start):.0f}% środków sektora (limit jednej akcji {100*ctx.limits["per_action"]:.0f}%).'
         if ctx.spent.get(option.sector,0)+option.cost>ctx.limits['per_run']*start+1e-6:
             return f'Limit wydatków tego przebiegu w sektorze {option.sector} ({100*ctx.limits["per_run"]:.0f}%) zostałby przekroczony.'

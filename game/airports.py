@@ -4,7 +4,7 @@
   budować porty lotnicze z ekranu „Infrastruktura i energetyka” (kliknięcie miasta → „Zbuduj port lotniczy”);
 - lotnisko można zbudować w mieście państwa powyżej 100 000 mieszkańców; państwo bez takich miast — tylko w swoim
   największym mieście; jedno lotnisko na miasto;
-- koszt: 1400 kamienia, 200 żelaza, 5 chipów kerbitowych, 3 chipy natsytowe (z magazynu) oraz ludność miasta × 100 ROI
+- koszt: 1400 kamienia, 200 żelaza, 5 prostych chipów (z magazynu; do 22 Nov 2026: 5 kerbitowych i 3 natsytowe) oraz ludność miasta × 100 ROI
   (z budżetu infrastruktury bieżącego okresu); budowa trwa 14 dni Entendy;
 - nazwa: najwyżej 60 znaków; domyślnie (i zawsze dla PAGA2) „Port lotniczy {miasto} – {kod miasta}”;
 - połączenia lotnicze tworzą się automatycznie między wszystkimi czynnymi lotniskami świata; właściciel lotniska może
@@ -38,9 +38,9 @@ MIN_POPULATION = 100_000          # lotnisko w mieście powyżej 100 000 mieszka
 BUILD_DAYS = 14
 PRICE_PER_RESIDENT = Decimal('100')
 INCOME_PER_RESIDENT = Decimal('10')
-MATERIALS = {'kamien': 1400, 'zelazo': 200, 'chip_kerbit': 5, 'chip_natsyt': 3}
-MATERIAL_LABELS = {'kamien': 'Kamień', 'zelazo': 'Żelazo', 'chip_kerbit': 'Chip kerbitowy', 'chip_natsyt': 'Chip natsytowy'}
-MATERIAL_ICONS = {'kamien': 'KAMIEŃ.svg', 'zelazo': 'ŻELAZO.svg', 'chip_kerbit': 'CHIP KERBITOWY.svg', 'chip_natsyt': 'CHIP NATSYTOWY.svg'}
+MATERIALS = {'kamien': 1400, 'zelazo': 200, 'chip_simple': 5}   # 22 Nov 2026: zamiast 5 chipów kerbitowych i 3 natsytowych
+MATERIAL_LABELS = {'kamien': 'Kamień', 'zelazo': 'Żelazo', 'chip_simple': 'Prosty chip', 'chip_kerbit': 'Chip kerbitowy', 'chip_natsyt': 'Chip natsytowy'}
+MATERIAL_ICONS = {'kamien': 'KAMIEŃ.svg', 'zelazo': 'ŻELAZO.svg', 'chip_simple': 'CHIP PROSTY.svg', 'chip_kerbit': 'CHIP KERBITOWY.svg', 'chip_natsyt': 'CHIP NATSYTOWY.svg'}
 NAME_MAX = 60
 AIR_SPEED = 1000                  # km/h czasu gry — samoloty towarowe (handel) i samoloty na mapie świata
 

@@ -25,7 +25,7 @@ tech('waste_filters','Filtr odpadów fabrycznych',120,'environment_tech','enviro
 # Kolej (administrator, 19 Nov 2026): transport i komunikacja (do 20 Nov 2026 „Krajowe węzły komunikacyjne”) → transport kolejowy
 # (zakładka „Komunikacja” w infrastrukturze).
 tech('national_hubs','Transport i komunikacja',50,'method','transport','gps')
-tech('rail_transport','Transport kolejowy',200,'national_hubs','transport','rail')
+tech('rail_transport','Transport kolejowy',100,'national_hubs','transport','rail')   # 22 Nov 2026: 200 → 100 pkt
 # Transport lotniczy (administrator, 20 Nov 2026): 400 pkt, 28 dni; budowa lotnisk w miastach (game.airports).
 tech('air_transport','Transport lotniczy',400,'rail_transport','transport','airplane')
 tech('nuclear_missiles','Rakieta z głowicą nuklearną',750,'long_missiles','military','nuclear_weapon',requires=('long_missiles','mine_uranium','chip_cemium_i'))

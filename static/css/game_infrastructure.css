@@ -52,3 +52,8 @@
 .infrastructure-construction-tooltip-row { min-width:0; }
 .infrastructure-construction-tooltip-row img { flex:0 0 24px; }
 .infrastructure-construction-tooltip-row span { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+/* 22 Nov 2026: produkt fabryki z ikoną — karta obiektu na mapie i okno zlecenia produkcji */
+.industry-product-row{display:flex;align-items:center;gap:6px;margin:4px 0}
+.industry-product-row img{width:22px;height:22px;object-fit:contain;flex:0 0 auto}
+.industry-confirm-product{margin:2px 0 8px}
+.industry-confirm-product .industry-product-row img{width:40px;height:40px;padding:3px;border:1px solid #c5d0dd;border-radius:8px;background:#fff}

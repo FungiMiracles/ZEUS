@@ -18,7 +18,7 @@ class RailRulesTests(unittest.TestCase):
         from game.research_timing import DURATION_DAYS
         hubs, line = TECHNOLOGIES['national_hubs'], TECHNOLOGIES['rail_transport']
         self.assertEqual((hubs['cost'], hubs['parent'], DURATION_DAYS['national_hubs']), (50, 'method', 14))
-        self.assertEqual((line['cost'], line['parent'], DURATION_DAYS['rail_transport']), (200, 'national_hubs', 21))
+        self.assertEqual((line['cost'], line['parent'], DURATION_DAYS['rail_transport']), (100, 'national_hubs', 21))   # 22 Nov 2026: 200 → 100 pkt
         from game.research import technology_layout
         self.assertIn('rail_transport', technology_layout()['positions'])
 
@@ -112,8 +112,16 @@ class RailDataTests(MilitaryFixture):
         self.line(14, 11, status='PENDING', key='p')         # wniosek — nie liczy się
         self.line(11, 21, partner=2, key='x')                # linia do sąsiada: liczy się tylko własne miasto A
         with patch('game.rail.controlled_ids', side_effect=lambda s, c: [c]):
-            self.assertEqual(rail.connected_population(db.session, 1, NOW), 5_500_000)
-            self.assertEqual(rail.connected_population(db.session, 2, NOW), 7_000_000)
+            # 22 Nov 2026: sieć połączona z siecią sąsiada — +10% za każde obce państwo w sieci
+            self.assertEqual(rail.network_partners(db.session, 1, NOW), {2})
+            self.assertEqual(rail.connected_population(db.session, 1, NOW), 6_050_000)
+            self.assertEqual(rail.connected_population(db.session, 2, NOW), 7_700_000)
+
+    def test_network_without_foreign_cities_has_no_partner_bonus(self):
+        self.line(11, 12)
+        with patch('game.rail.controlled_ids', side_effect=lambda s, c: [c]):
+            self.assertEqual(rail.network_partners(db.session, 1, NOW), set())
+            self.assertEqual(rail.connected_population(db.session, 1, NOW), 4_000_000)
 
     def test_only_largest_coherent_network_counts(self):
         # 20 Nov 2026: odcinki A–B i C–D nie tworzą sieci — liczy się tylko większa z nich (C–D: 1,5 + 9 mln)
@@ -141,7 +149,7 @@ class RailDataTests(MilitaryFixture):
         # A–X i X–D (X — miasto sąsiada): A i D w jednej sieci, ludność X się nie liczy
         self.line(11, 21, partner=2, key='ax'); self.line(21, 14, partner=2, key='xd'); self.line(12, 13, key='bc')
         with patch('game.rail.controlled_ids', side_effect=lambda s, c: [c]):
-            self.assertEqual(rail.connected_population(db.session, 1, NOW), 10_000_000)
+            self.assertEqual(rail.connected_population(db.session, 1, NOW), 11_000_000)   # 22 Nov 2026: +10% za sieć sąsiada (X)
 
     def test_infrastructure_balance_includes_rail_expenses(self):
         from game.budget_transfers import infrastructure_balance
@@ -226,6 +234,34 @@ class Paga2RailTests(unittest.TestCase):
         self.assertIn('trade_propensity', option.traits)
         cheap = 6e9 * 2
         self.assertGreater(self.build(90, cheap)[0].base, self.build(20, cheap)[0].base)
+
+    def test_paga2_requests_international_line_to_friendly_neighbour(self):
+        # 22 Nov 2026: PAGA2 sama występuje z wnioskiem o współfinansowanie linii do sąsiada (premia +10% dochodów z kolei).
+        from game.paga2.rail import international_options
+        cities = [{'id': 1, 'name': 'A', 'own': True, 'countryId': 2, 'population': 5_000_000, 'point': [0, 0]},
+                  {'id': 9, 'name': 'Obce', 'own': False, 'countryId': 1, 'population': 1, 'point': [30, 0]},
+                  {'id': 8, 'name': 'Wrogie', 'own': False, 'countryId': 3, 'population': 1, 'point': [10, 0]}]
+        screen = {'cities': cities, 'networkCities': [1], 'neighbors': [1, 3], 'lines': [], 'bonus': '10000000000', 'networkPartners': [], 'countries': {'1': 'Sąsiad'}}
+        ctx = self.ctx(available=1e15); ctx.traits = {'fiscal_conservatism': 50, 'trade_propensity': 80}
+        ctx.situation = {'relations': {1: {'relation_label': 'Przyjazne'}, 3: {'relation_label': 'Wrogie'}}, 'at_war': []}
+        calls = []
+        def call(path, json=None, **kw):
+            calls.append(json['city_b'])
+            return 200, {'partnerId': 1, 'cost': '4000000000', 'distanceKm': '30', 'shares': {'2': {'cost': '2000000000'}}}
+        ctx.call = call
+        [option] = international_options(ctx, screen)
+        self.assertEqual((option.action, option.target, option.cost, calls), ('RAIL_INTERNATIONAL', 1, 2e9, [9]))   # tylko przyjazny sąsiad, nasz udział
+        self.assertTrue(option.payload['fast_payback'], 'gain 1 MLD per cycle, own share 2 MLD — payback 2 cycles')
+        screen['lines'] = [{'own': True, 'partnerId': 1, 'status': 'PENDING'}]
+        self.assertEqual(international_options(ctx, screen), [], 'one pending request at a time')
+
+    def test_fast_payback_transport_ignores_per_action_limit(self):
+        from game.paga2.scoring import Option, check_resources
+        ctx = NS(available=lambda sector: 100.0, sector_start=lambda sector: 100.0, limits={'per_action': .5, 'per_run': 1.0}, spent={}, stock=lambda r: 0)
+        slow = Option(key='a', domain='economy', action='RAIL_BUILD', label='x', cost=60, sector='infrastructure', payload={})
+        fast = Option(key='b', domain='economy', action='RAIL_BUILD', label='x', cost=60, sector='infrastructure', payload={'fast_payback': True})
+        self.assertIn('Nierozważny', check_resources(slow, ctx))
+        self.assertIsNone(check_resources(fast, ctx))
 
     def test_planner_ranks_transport_technology_by_trade_propensity(self):
         from game.paga2 import planner
