@@ -113,7 +113,7 @@ def _settle_war(session, defeated, annexer, moment):
                     .values(owner_id=annexer).execution_options(synchronize_session=False))
     armies = {'withdrawn': 0, 'transferred': 0}
     for army in session.scalars(select(LandArmy).where(LandArmy.panstwo_id == defeated, LandArmy.status.in_(land_war.LIVE)).with_for_update()):
-        released = army.status == 'MARCHING'
+        released = army.status in ('MARCHING', 'RETURNING')
         if army.status == 'OCCUPYING':
             # Still an occupation (now the annexer's)? Otherwise it was the annexer's own object and ended above.
             column = Occupation.base_id if army.target_kind == 'base' else Occupation.city_id

@@ -16,7 +16,7 @@
         const result=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(result.error||'Nie udało się zapisać zmian.');
         try{sessionStorage.setItem('military-selected',String(regionId));sessionStorage.setItem('military-radar-message',result.message||'Zapisano.');}catch{}
-        location.reload();
+        window.GameMilitaryMap?.saveView();location.reload();
     }
     function costRows(rule,parent){
         const rows=[[rc().chipIcon,`Chip natsytowy: ${rule.chips} (w magazynie: ${api.number(rc().chips||0)})`,(rc().chips||0)>=rule.chips],
@@ -39,6 +39,7 @@
         if(!visible())return;
         for(const radar of radars()){
             if(cfg.mode==='defense'&&radar.countryId!==cfg.countryId)continue;
+            if(!radar.health)continue;   // 22 Nov 2026: zniszczony radar znika z mapy (likwidacja nadal w panelu regionu)
             const symbol=api.make('div',null,'military-radar-symbol military-map-badge'+(radar.health?'':' military-radar-destroyed'));
             if(cfg.mode==='defense'&&api.mapFilters.has('defenses')&&(cfg.defenses||[]).some(item=>item.targetKind==='radar'&&item.targetId===radar.id))symbol.classList.add('military-object-protected');
             symbol.append(api.image(cfg.radarIcon,'Radar'),api.make('span',ROMAN[radar.level],'military-radar-level'));

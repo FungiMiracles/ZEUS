@@ -12,6 +12,7 @@ from game.land_war_models import LandArmy
 from game.finance_service import FinanceError
 from game.forum_models import GameNotification
 from game import land_war
+import game.infrastructure_service  # noqa: F401 — import przed łatkami fixtury (moduł wiąże _country_for_user przy imporcie)
 
 
 class MarchAttackTests(LandWarFixture):
@@ -97,3 +98,41 @@ class MarchAttackTests(LandWarFixture):
         rows=land_war.visible_armies(db.session,1)
         row=next(r for r in rows if r['id']==self.hostile.id)
         self.assertEqual((row['role'],row['targetRegionId'],row['targetArmyId']),('invasion',1,None))
+
+
+class OverlandAndCancelTests(LandWarFixture):
+    def test_invasion_across_the_sea_is_rejected(self):
+        with patch('game.land_war.overland',return_value=False):
+            with self.assertRaises(FinanceError) as error:self.invade(soldiers=10)
+        self.assertIn('morze',str(error.exception))
+        self.assertEqual(db.session.query(LandArmy).count(),0)
+
+    def test_overland_geometry(self):
+        from shapely.geometry import box
+        from game import sea_routes
+        router=SimpleNamespace(land=box(0,0,10,10).union(box(20,0,30,10)),lock=__import__('threading').RLock())
+        with patch('game.sea_routes._world_router',return_value=router):
+            self.assertTrue(sea_routes.overland((1,1),(9,9)))
+            self.assertFalse(sea_routes.overland((1,1),(25,5)))                       # przez „morze” 10–20
+            self.assertTrue(sea_routes.overland((1,1),(11,5),endpoint_km=2,km_per_unit=1))   # cel w pasie przybrzeżnym
+
+    def test_cancel_turns_the_army_back_to_its_base(self):
+        id=self.invade(soldiers=100)
+        self.now=NOW+timedelta(minutes=30)
+        land_war.cancel_march(1,{'army_id':id})
+        army=self.army(id)
+        self.assertEqual((army.status,army.arrives_at),('RETURNING',NOW+timedelta(minutes=60)))
+        self.assertAlmostEqual(army.source_x,25,delta=0.01);self.assertEqual((army.target_x,army.target_y),(0,0))
+        with self.assertRaises(FinanceError):land_war.cancel_march(1,{'army_id':id})
+        self.assertEqual(land_war.deployed_counts(db.session,1)['wojska_ladowe_ilosc'],100)   # jednostki nadal w drodze
+        self.now=NOW+timedelta(minutes=61)
+        with Session(db.engine) as session,session.begin():land_war.complete_marches(session,self.now)
+        army=self.army(id)
+        self.assertEqual(army.status,'WITHDRAWN')
+        self.assertEqual(db.session.get(MilitaryBase,self.home.id).garrison['soldiers'],5000)
+        self.assertTrue(any('wróciła do bazy' in (n.system_text or '') for n in db.session.query(GameNotification).filter_by(user_id=1)))
+
+    def test_only_own_marching_army_can_be_cancelled(self):
+        id=self.invade(soldiers=10)
+        self.player=2
+        with self.assertRaises(FinanceError):land_war.cancel_march(2,{'army_id':id})

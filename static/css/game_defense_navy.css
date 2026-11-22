@@ -231,3 +231,10 @@ html body.game-app.game-navy.game-civic .land-attack-hint{margin:6px 0 0;font-we
 html body.game-app.game-navy.game-civic .land-attack-methods{display:grid;gap:8px;margin-top:6px}
 html body.game-app.game-navy.game-civic .land-attack-methods .military-action{width:100%;justify-content:flex-start}
 html body.game-app.game-navy.game-civic .land-attack-methods .military-action img{width:24px;height:24px}
+/* 22 Nov 2026: reorganizacja garnizonu — ogólnie dostępne zasoby przy polach */
+html body.game-app.game-navy.game-civic #military-dialog .military-field-available{display:block;grid-column:1/-1;width:100%;margin-top:4px;font-size:12px;color:#4a6178}
+/* 22 Nov 2026: flaga właściciela na myśliwcach i armiach w marszu (prawy górny róg) */
+.military-fighter-icon,.land-invasion-symbol{position:relative;overflow:visible}
+.military-fighter-icon img.military-owner-flag,.land-invasion-symbol img.military-owner-flag{position:absolute;top:-5px;right:-8px;width:16px;height:11px;object-fit:cover;border:1px solid #fff;border-radius:2px;box-shadow:0 1px 3px #0008;filter:none;transform:none;pointer-events:none}
+html body.game-app.game-navy.game-civic .land-returning-symbol{background:#6b7a89;box-shadow:0 0 0 2px #6b7a89a8,0 2px 6px #0006}
+html body.game-app.game-navy.game-civic .land-cancel-march{margin-top:6px;background:#fff;color:#8d3025;border:1px solid #c97d71}

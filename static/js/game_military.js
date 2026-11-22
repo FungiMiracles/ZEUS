@@ -95,8 +95,16 @@
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Nie udało się zapisać zmian.');
         if(data.action==='location')sessionStorage.removeItem('military-pending-location-'+config.countryId);
-        sessionStorage.setItem('military-selected', selected); location.reload();
+        sessionStorage.setItem('military-selected', selected); saveMapView(); location.reload();
     }
+    // 22 Nov 2026: po akcji z przeładowaniem strony (np. dodanie/ulepszenie obrony przeciwrakietowej) mapa wraca do widoku sprzed akcji.
+    const mapViewKey=`military-map-view:${config.countryId}:${config.mode}`;
+    function saveMapView(){try{if(typeof map!=='undefined'&&map){const c=map.getCenter();sessionStorage.setItem(mapViewKey,JSON.stringify({lat:c.lat,lng:c.lng,zoom:map.getZoom()}));}}catch{}}
+    function restoreMapView(){
+        let view=null;try{view=JSON.parse(sessionStorage.getItem(mapViewKey));sessionStorage.removeItem(mapViewKey);}catch{}
+        if(view&&Number.isFinite(view.lat)&&Number.isFinite(view.lng)&&Number.isFinite(view.zoom)){framedRegion=null;map.setView([view.lat,view.lng],view.zoom,{animate:false});}
+    }
+    window.GameMilitaryMap={saveView:()=>saveMapView()};
     // Okupowany region (11 Nov 2026): właściciel nie może w nim budować — przyciski budowy są wyszarzone.
     let regionLocked=false;
     const LOCKED_TEXT='Region jest okupowany przez przeciwnika — nie można w nim nic budować.';
@@ -237,7 +245,13 @@
                 button(base.position ? 'Zmień lokalizację' : 'Wskaż miejsce na mapie',()=>startLocation(base),controls,config.baseIcon);
                 if(base.position)button('Pokaż bazę',()=>map.setView([base.position[1],base.position[0]],Math.max(map.getZoom(),2)),controls);
                 button('Reorganizuj', () => modal(`${base.label} #${base.id} — garnizon`, () => {
-                    for (const [resource,capacity] of Object.entries(base.capacity)) input(config.resources[resource].label + ` (pojemność: ${number(capacity)})`,resource,base.garrison[resource] || 0,capacity);
+                    // 22 Nov 2026: przy każdym polu — ogólnie dostępne (nieprzydzielone) zasoby państwa danego rodzaju.
+                    const pool=config.availableGarrison?.[base.kind]||{},soldierKind={land:'lądowi',air:'lotnictwa',naval:'marynarki'}[base.kind];
+                    for (const [resource,capacity] of Object.entries(base.capacity)) {
+                        const current=base.garrison[resource]||0,free=Math.max(0,Number(pool[resource])||0);
+                        const node=input(config.resources[resource].label+(resource==='soldiers'&&soldierKind?` (${soldierKind})`:'')+` (pojemność: ${number(capacity)})`,resource,current,Math.min(capacity,current+free));
+                        node.closest('label').append(make('small',`Ogólnie dostępne: ${number(free)} · w tej bazie: ${number(current)} · maks. po zmianie: ${number(Math.min(capacity,current+free))}`,'military-field-available'));
+                    }
                     fields.append(make('p','Ustaw 0, aby wycofać wybrany rodzaj żołnierzy lub sprzętu.'));
                 }, data => post({action:'garrison',base_id:base.id,garrison:Object.fromEntries(Object.keys(base.capacity).map(key => [key,Number(data.get(key))]))})),controls);
                 button('Wycofaj garnizon', () => modal('Wycofać garnizon?', () => fields.append(make('p','Żołnierze i sprzęt wrócą do dostępnych zasobów państwa.')), () => post({action:'withdraw',base_id:base.id})),controls);
@@ -476,6 +490,7 @@
     function drawMines(){mineLayer.clearLayers();if(!mapFilters.has('mines'))return;for(const mine of config.visibleMines||[]){const symbol=make('div',null,'military-mine-symbol military-map-badge');symbol.style.position='relative';if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='mine'&&item.targetId===mine.id))symbol.classList.add('military-object-protected');const main=image(config.mineIcon);const badge=image(config.mineralIcons[mine.resource].icon);badge.className='military-map-subbadge';symbol.append(main,badge);const life=make('progress');life.className='map-health-bar';life.max=100;life.value=mine.health;window.GameHealth?.paint(life,mine.health);symbol.append(life);if(!mine.ready){const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=mine.progress;bar.setAttribute('aria-label',`Budowa kopalni: ${mine.progress}%`);symbol.append(bar);}const tip=make('div');tip.append(make('strong',mine.name),healthBar(mine.health));bindObjectTooltip(L.marker([mine.position[1],mine.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-map-marker'})}),tip).on('click',()=>{if(!locating&&!sailing&&config.mode==='defense'){selectObject('mine',mine);return;}if(!locating&&!sailing)showRegion(mine.regionId,null,{kind:'mine',id:mine.id,countryId:mine.countryId,name:mine.name,point:mine.position});}).addTo(mineLayer);}}
     function drawPower(){powerLayer.clearLayers();if(!mapFilters.has('power'))return;for(const plant of config.visiblePower||[]){const symbol=make('div',null,'military-power-symbol military-map-badge');symbol.append(image('/static/icons/'+plant.icon));const bar=make('progress');bar.className='map-health-bar';bar.max=100;bar.value=plant.health;bar.setAttribute('aria-label','Życie elektrowni');window.GameHealth?.paint(bar,plant.health);symbol.append(bar);const tip=make('div');tip.append(make('strong',plant.name),make('p',plant.status),healthBar(plant.health,false));bindObjectTooltip(L.marker([plant.position[1],plant.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tip).on('click',()=>{if(!locating&&!sailing){if(config.mode==='defense')selectObject('power',plant);else if(plant.health>0)showRegion(plant.regionId,null,{kind:'power',id:plant.id,countryId:plant.countryId,name:plant.name,point:plant.position,health:plant.health});}}).addTo(powerLayer);}}
     function drawFactories(){factoryLayer.clearLayers();if(!mapFilters.has('factories'))return;for(const factory of config.visibleFactories||[]){
+        if(!(factory.health>0))continue;   // 22 Nov 2026: zniszczona fabryka znika z mapy (karta w panelu regionu zostaje)
         if(config.mode==='defense'&&factory.countryId!==config.countryId)continue;
         const symbol=make('div',null,'military-factory-symbol military-map-badge');if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='factory'&&item.targetId===factory.id))symbol.classList.add('military-object-protected');symbol.append(image(config.factoryIcon));if(factory.productIcon){const product=image(factory.productIcon);product.alt=factory.productName;product.className='military-factory-product military-map-subbadge';symbol.append(product);}
         const life=make('progress');life.className='map-health-bar';life.max=100;life.value=factory.health;window.GameHealth?.paint(life,factory.health);symbol.append(life);
@@ -589,6 +604,8 @@
         }
     }
     function animateShips(now){for(const ship of config.tradeShips||[]){const entry=cargoMarkers.get(ship.id);if(!entry)continue;if(now>=Date.parse(ship.arrivesAt)){entry.marker.remove();entry.route.remove();cargoMarkers.delete(ship.id);}else{const point=window.GameTradeNavigation.position(ship,now);entry.marker.setLatLng([point[1],point[0]]);}}for(const vessel of config.vessels||[]){const point=shipPosition(vessel,now);shipMarkers.get(vessel.id)?.setLatLng([point[1],point[0]]);}}
+    // 22 Nov 2026: mała flaga państwa-właściciela w prawym górnym rogu ikony (myśliwce, armie w marszu).
+    function ownerFlag(parent,countryId){const src=config.flags?.[String(countryId)];if(!src)return;const flag=image(src,'');flag.className='military-owner-flag';flag.onerror=()=>flag.remove();parent.append(flag);}
     function updateFlights(items,now) {
         flights=items;gameAnchor=Date.parse(now);realAnchor=performance.now();
         const keep=new Set();
@@ -610,7 +627,7 @@
                 .bindTooltip(make('span',`${flight.targetName} · rakiety: ${flight.missiles} · ${flight.distanceKm.toLocaleString('pl-PL',{maximumFractionDigits:1})} km`)).addTo(group);
             let jet=null,jetImage=null;
             if(flight.kind==='air') {
-                jetImage=image(config.fighterIcon,'Myśliwiec');const wrapper=make('div',null,'military-fighter-icon');wrapper.append(jetImage);
+                jetImage=image(config.fighterIcon,'Myśliwiec');const wrapper=make('div',null,'military-fighter-icon');wrapper.append(jetImage);ownerFlag(wrapper,flight.countryId);
                 jet=L.marker([flight.source[1],flight.source[0]],{icon:L.divIcon({className:'military-fighter',html:wrapper,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:1600})
                     .bindTooltip(make('span',`Myśliwiec ${flight.sourceBaseId?'z bazy #'+flight.sourceBaseId:'ze zniszczonej bazy'} — ${flight.targetName}, następnie powrót`)).addTo(group);
             }
@@ -703,7 +720,7 @@
     }
     // Po trafieniu (animacja dociera do celu) stan odświeżany od razu, nie dopiero przy kolejnym cyklu 5 s.
     function refreshAfterImpact(){clearTimeout(impactRefresh);impactRefresh=setTimeout(refreshState,1500);}
-    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,
+    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,ownerFlag,
         showRegion:(...args)=>showRegion(...args),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     window.GameRadar?.attach(map);
     const rawDistance=map.distance.bind(map);map.distance=(a,b)=>rawDistance(a,b)*config.kmPerUnit*1000;
@@ -786,6 +803,7 @@
         else { status.hidden=false; status.textContent='Brak geometrii regionów.'; }
         const pendingId=Number(sessionStorage.getItem('military-pending-location-'+config.countryId));const pendingBase=config.bases.find(base=>base.id===pendingId);
         if(config.mode==='defense'&&pendingBase&&!pendingBase.position){showRegion(pendingBase.regionId);startLocation(pendingBase);}else if(pendingId)sessionStorage.removeItem('military-pending-location-'+config.countryId);
+        if(!(config.mode==='defense'&&pendingBase&&!pendingBase.position))restoreMapView();
         if (results.some(result=>result.status==='rejected')) { status.hidden=false; status.textContent='Nie udało się wczytać wszystkich warstw mapy.'; }
     }).catch(()=>{status.hidden=false;status.textContent='Nie udało się wyświetlić mapy.';});
     drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();

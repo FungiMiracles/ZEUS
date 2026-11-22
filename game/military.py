@@ -367,7 +367,7 @@ def land_war_config(country_id,mode):
             'neighbors':sorted(neighboring_countries(db.session,country_id)) if mode=='war' else [],
             'armies':visible_armies(db.session,country_id),'occupations':visible_occupations(db.session),
             'icons':{'city':icon('MIASTO.svg'),'invasion':icon('INWAZJA.svg'),'soldiers':icon('CZŁOWIEK.svg'),'armored':icon('WÓZ OPANCERZONY.svg'),'tanks':icon('CZOŁG.svg')},
-            'invasionUrl':url_for('game_military.land_invasion'),'interceptUrl':url_for('game_military.land_intercept'),'strikeLoss':[1,3],'cityDefenseUrl':url_for('game_military.city_defense'),'occupationUrl':url_for('game_military.occupation_decision'),
+            'invasionUrl':url_for('game_military.land_invasion'),'interceptUrl':url_for('game_military.land_intercept'),'cancelMarchUrl':url_for('game_military.land_cancel'),'strikeLoss':[1,3],'cityDefenseUrl':url_for('game_military.city_defense'),'occupationUrl':url_for('game_military.occupation_decision'),
             'capacities':{kind:[{unit:row.get(unit,0) for unit in ('soldiers','armored','tanks')} for row in rows] for kind,rows in CAPACITIES.items() if kind!='nuclear'}}
 
 
@@ -393,6 +393,13 @@ def land_intercept():
     # 22 Nov 2026: własna armia lądowa wyrusza przeciw wrogiej armii maszerującej po naszym terytorium
     from game.land_war import launch_interception
     return _land_action(lambda user_id,data:{'id':launch_interception(user_id,data),'message':'Oddział wyruszył. Bitwa nastąpi w punkcie spotkania z armią przeciwnika.'})
+
+
+@military_bp.post('/panel-wojenny/armia-ladowa/anuluj')
+def land_cancel():
+    # 22 Nov 2026: anulowanie przemarszu własnej armii — zawraca do bazy macierzystej
+    from game.land_war import cancel_march
+    return _land_action(lambda user_id,data:{'id':cancel_march(user_id,data),'message':'Przemarsz anulowany. Armia zawraca do bazy.'})
 
 
 @military_bp.post('/obrona-panstwa/obrona-miasta')

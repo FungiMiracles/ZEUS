@@ -33,7 +33,7 @@ class LandWarFixture(MilitaryFixture):
             clock=patch(target,side_effect=lambda:self.now);clock.start();self.addCleanup(clock.stop)
         self.player=1
         who=patch('game.finance_service._country_for_user',side_effect=lambda session,user_id,lock=False:SimpleNamespace(PANSTWO_ID=self.player));who.start();self.addCleanup(who.stop)
-        for target,value in [('game.road_projects.neighboring_countries',{2}),('game.land_war.border_fraction',0.5),('game.military_geography.city_point',[60,0])]:
+        for target,value in [('game.road_projects.neighboring_countries',{2}),('game.land_war.border_fraction',0.5),('game.land_war.overland',True),('game.military_geography.city_point',[60,0])]:
             p=patch(target,return_value=value);p.start();self.addCleanup(p.stop)
         from sqlalchemy import update
         db.session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==1).values(panstwo_PKB=1000000000000,panstwo_populacja=1000000))   # PKB per capita 1 000 000 -> +10 000 / jednostkę

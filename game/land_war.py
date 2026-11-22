@@ -32,7 +32,7 @@ SPEED_ARMORED=80
 ANNEX_DAYS=30
 GDP_SOURCE='ANEKSJA'
 TARGET_BASE_KINDS=('land','naval','air')
-LIVE=('MARCHING','DEFENDING','OCCUPYING')
+LIVE=('MARCHING','DEFENDING','OCCUPYING','RETURNING')   # RETURNING: anulowany przemarsz — powrót do bazy (22 Nov 2026)
 _random=secrets.SystemRandom()
 
 
@@ -196,6 +196,18 @@ def border_fraction(session,holder_id,source,target,samples=120):
     return 1.0
 
 
+def overland(session,source,target):
+    """22 Nov 2026: armia lądowa porusza się tylko po lądzie — trasa nie może przecinać morza ani oceanu."""
+    from game.sea_routes import overland as covered
+    from game.military_flights import calibration
+    return covered(source,target,endpoint_km=4,km_per_unit=calibration(session).km_per_unit)
+
+
+def require_overland(session,source,target):
+    if not overland(session,source,target):
+        raise FinanceError('Armia lądowa nie dotrze do celu: trasa przemarszu przecina morze lub ocean. Wybierz cel osiągalny drogą lądową.')
+
+
 # ---------------- targets ----------------
 
 def target_state(session,kind,target_id):
@@ -321,6 +333,7 @@ def launch_invasion(user_id,data):
         lock_countries(session,own,holder)
         base=own_land_base(session,own,data.get('source_base_id'))
         if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
+        require_overland(session,(base.map_x,base.map_y),point)
         offer=quote(session,own,base,units,point)
         budget,_,available=military_budget(session,own)
         if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżący okres budżetowy.')
@@ -419,6 +432,7 @@ def launch_interception(user_id,data):
         kmh=speed(units);meeting=catch_up(session,(base.map_x,base.map_y),enemy,kmh,now)
         if meeting is None:raise FinanceError(f'Oddział z tej bazy ({kmh} km/h) nie zdąży dogonić armii przed jej dotarciem do celu ({enemy.target_name}).')
         moment,point=meeting
+        require_overland(session,(base.map_x,base.map_y),point)
         take_from_garrison(base,units)
         from game.military_flights import distance_km
         who=names(session,enemy.panstwo_id).get(enemy.panstwo_id,'przeciwnika')
@@ -478,6 +492,36 @@ def intercept_battle(session,army,moment,rolls=None):
         except FinanceError:pass
 
 
+# ---------------- anulowanie przemarszu (22 Nov 2026) ----------------
+
+def cancel_march(user_id,data):
+    """Own marching army turns back from its current position to its home base; the return takes as long as the march so far.
+    The invasion cost is not refunded."""
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        army=session.scalar(select(LandArmy).where(LandArmy.id==natural(data.get('army_id'),'Armia',1),LandArmy.panstwo_id==own).with_for_update())
+        if army is None or army.status!='MARCHING':raise FinanceError('Ta armia nie jest w marszu.')
+        now=game_now()
+        if army.arrives_at<=now:raise FinanceError('Armia dotarła już do celu.')
+        position=army_position(army,now)
+        base=session.get(MilitaryBase,army.source_base_id) if army.source_base_id else None
+        home=(base.map_x,base.map_y) if base is not None and base.map_x is not None else (army.source_x,army.source_y)
+        elapsed=max(timedelta(seconds=1),now-army.starts_at)
+        army.status='RETURNING';army.source_x,army.source_y=position;army.target_x,army.target_y=home
+        army.starts_at=now;army.arrives_at=now+elapsed;army.border_at=None
+        from game.military_flights import distance_km
+        army.distance_km=distance_km(session,position,home)
+        session.flush()
+        return army.id
+
+
+def complete_returns(session,now):
+    for army in session.scalars(select(LandArmy).where(LandArmy.status=='RETURNING',LandArmy.arrives_at<=now).with_for_update()):
+        _return_home(session,army);army.resolved_at=army.arrives_at
+        notify(session,army.panstwo_id,f'Armia zawrócona z przemarszu ({army.target_name}) wróciła do bazy.')
+    session.flush()
+
+
 # ---------------- resolution ----------------
 
 def complete_marches(session,now=None):
@@ -488,6 +532,7 @@ def complete_marches(session,now=None):
     complete_flights(session,now,army_strikes=True)
     due=list(session.execute(select(LandArmy.id,LandArmy.panstwo_id,LandArmy.target_country_id).where(LandArmy.status=='MARCHING',
          or_(LandArmy.arrives_at<=now,and_(LandArmy.border_notified.is_(False),LandArmy.border_at<=now)))))
+    complete_returns(session,now)
     if not due:return
     lock_countries(session,*{row.panstwo_id for row in due},*{row.target_country_id for row in due})
     for army in session.scalars(select(LandArmy).where(LandArmy.id.in_([row.id for row in due])).order_by(LandArmy.arrives_at,LandArmy.id).with_for_update().execution_options(populate_existing=True)):

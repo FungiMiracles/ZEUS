@@ -245,14 +245,18 @@
     function draw(){
         if(!layer)return;layer.clearLayers();marching.clear();
         for(const army of armies){
-            if(army.status!=='MARCHING'||!army.source||!army.target)continue;
+            if(!['MARCHING','RETURNING'].includes(army.status)||!army.source||!army.target)continue;
             const from=L.latLng(army.source[1],army.source[0]),to=L.latLng(army.target[1],army.target[0]);
-            const interceptor=army.role==='intercept';
-            L.polyline([from,to],{color:interceptor?'#1565c0':'#d32f2f',weight:3,dashArray:'8 8',opacity:.9,interactive:false}).addTo(layer);
-            const symbol=make('div',null,'land-invasion-symbol'+(interceptor?' land-intercept-symbol':''));symbol.append(api.image(lw().icons.invasion,'Armia lądowa'));
+            const interceptor=army.role==='intercept',returning=army.status==='RETURNING';
+            L.polyline([from,to],{color:returning?'#6b7a89':interceptor?'#1565c0':'#d32f2f',weight:3,dashArray:'8 8',opacity:.9,interactive:false}).addTo(layer);
+            const symbol=make('div',null,'land-invasion-symbol'+(interceptor?' land-intercept-symbol':''));symbol.append(api.image(lw().icons.invasion,'Armia lądowa'));api.ownerFlag?.(symbol,army.countryId);
             const tooltip=armyTooltip(army);
+            if(returning){symbol.classList.add('land-returning-symbol');tooltip.querySelector('p:nth-of-type(2)')?.replaceWith(make('p',`Powrót do bazy (przemarsz anulowany; cel był: ${army.targetName})`));}
             if(attackable(army)){symbol.classList.add('land-attackable');tooltip.append(make('p','Kliknij, aby zaatakować armię.','land-attack-hint'));}
-            const marker=L.marker(from,{icon:L.divIcon({html:symbol,className:'land-invasion-marker',iconSize:[34,34],iconAnchor:[17,17]}),zIndexOffset:2000}).bindTooltip(tooltip,{direction:'top',offset:[0,-16],className:'military-wrapping-tooltip'}).addTo(layer);
+            const marker=L.marker(from,{icon:L.divIcon({html:symbol,className:'land-invasion-marker',iconSize:[34,34],iconAnchor:[17,17]}),zIndexOffset:2000}).addTo(layer);
+            // 22 Nov 2026: własna armia w marszu — karta po najechaniu z przyciskiem „Anuluj przemarsz” (zwykły tooltip nie przyjmuje kliknięć).
+            if(army.countryId===cfg.countryId&&army.status==='MARCHING'&&lw().cancelMarchUrl)hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(armyTooltip(army));cancelButton(card,army);return card;},'land-city-popup');
+            else marker.bindTooltip(tooltip,{direction:'top',offset:[0,-16],className:'military-wrapping-tooltip'});
             if(attackable(army))marker.on('click',event=>{L.DomEvent.stopPropagation(event);attackArmy(army);});
             marching.set(army.id,{army,marker,from,to});
         }
@@ -266,6 +270,13 @@
         }
     }
 
+    function cancelButton(card,army){
+        const button=make('button','Anuluj przemarsz','land-button land-cancel-march');button.type='button';
+        card.append(make('p','Armia zawróci do bazy; powrót potrwa tyle, ile dotychczasowy marsz. Koszt inwazji nie jest zwracany.','land-muted'));
+        button.onclick=async()=>{if(!confirm('Anulować przemarsz tej armii? Armia zawróci do bazy macierzystej.'))return;button.disabled=true;
+            try{api.map.closePopup();await done(await send(lw().cancelMarchUrl,{army_id:army.id}));}catch(error){api.feedback(error.message);button.disabled=false;}};
+        card.append(button);
+    }
     // ---------- atak na wrogą armię w marszu (22 Nov 2026) ----------
     function armyPoint(army,moment){
         const start=Date.parse(army.startsAt),end=Date.parse(army.arrivesAt);

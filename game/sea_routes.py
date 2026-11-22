@@ -154,6 +154,18 @@ def shortest_sea_route(source,target):
     return [list(point) for point in _route(tuple(source),tuple(target),MAP_PATH.stat().st_mtime_ns)]
 
 
+def overland(source,target,endpoint_km=0,km_per_unit=1):
+    """22 Nov 2026: czy odcinek source→target biegnie wyłącznie po lądzie (bez przekraczania morza/oceanu).
+    Końce odcinka mogą leżeć do endpoint_km od lądu (bazy morskie stoją w pasie przybrzeżnym)."""
+    router=_world_router(MAP_PATH.stat().st_mtime_ns)
+    line=LineString([tuple(source),tuple(target)])
+    if endpoint_km>0 and km_per_unit>0:
+        radius=endpoint_km/km_per_unit
+        line=line.difference(Point(tuple(source)).buffer(radius)).difference(Point(tuple(target)).buffer(radius))
+        if line.is_empty:return True
+    with router.lock:return bool(router.land.covers(line))
+
+
 @lru_cache(maxsize=4)
 def _navy_router(modified,km_per_unit):
     router=_world_router(modified)

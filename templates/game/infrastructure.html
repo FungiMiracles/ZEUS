@@ -67,7 +67,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui5') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_region_tooltip.js',v='20261117-tooltip-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_industry.js',v='20261121-tooltip-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_industry.js',v='20261122-destroyed-1') }}" defer></script>
 {% if rail_config %}<script id="rail-config" type="application/json">{{ rail_config|tojson }}</script><script src="{{ url_for('static',filename='js/game_rail_trains.js',v='20261119-trains-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_rail.js',v='20261120-rail-6') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261121-cities-1') }}" defer></script>
 {% if airport_config %}<script src="{{ url_for('static',filename='js/game_airports.js',v='20261121-airports-3') }}" defer></script>{% endif %}
