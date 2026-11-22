@@ -332,6 +332,10 @@ class AiTests(unittest.TestCase):
         from game.research_models import ResearchAccount
         result=self.call('game_infrastructure.industry_change:POST',{'action':'build','category':'factory','kind':'interceptor_ammo','level':1,'region_id':1,'x':10,'y':10})
         self.assertEqual(result['status'],200,result)
+        from game.research_models import AmmunitionFactory   # 22 Nov 2026: nowa fabryka czeka na zlecenie produkcji
+        factory=db.session.scalar(select(AmmunitionFactory).order_by(AmmunitionFactory.id.desc()))
+        result=self.call('game_infrastructure.industry_change:POST',{'action':'resume','category':'factory','object_id':factory.id,'quantity':1000})
+        self.assertEqual(result['status'],200,result)
         db.session.add_all([ResourceStock(panstwo_id=1,resource='zelazo',quantity=10),ResourceStock(panstwo_id=1,resource='ropa_naftowa',quantity=10)]);db.session.commit()
         with patch('game.industry_service.game_now',return_value=NOW+timedelta(days=1)),patch('game.research_service.game_now',return_value=NOW+timedelta(days=1)):
             read=self.call('game_infrastructure.industry_state:GET')

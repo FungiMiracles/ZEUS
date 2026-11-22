@@ -31,7 +31,7 @@ class MoneyDisplayTests(unittest.TestCase):
 
 class FactoryProtectionTests(MilitaryFixture):
     def test_factory_can_be_protected_only_by_its_owner_and_maps_at_factory(self):
-        factory=AmmunitionFactory(panstwo_id=1,region_id=1,budget_id=1,map_x=10,map_y=20,cost=2000000000,produced_at=NOW,created_game_at=NOW,request_id=str(uuid4()));db.session.add(factory);db.session.commit();id=factory.id
+        factory=AmmunitionFactory(panstwo_id=1,region_id=1,budget_id=1,map_x=10,map_y=20,cost=2000000000,produced_at=NOW,created_game_at=NOW,request_id=str(uuid4()),production_target=10**6);db.session.add(factory);db.session.commit();id=factory.id
         self.change('defense_place',target_kind='factory',target_id=id)
         defense=db.session.scalar(select(MissileDefense));self.assertEqual(defense_data(defense)['position'],[10,20])
         self.assertEqual(defense.target_kind,'factory')
@@ -41,7 +41,7 @@ class FactoryProtectionTests(MilitaryFixture):
 
 class FactoryAttackTests(FlightFixture):
     def setUp(self):
-        super().setUp();self.factory=AmmunitionFactory(panstwo_id=2,region_id=2,budget_id=1,map_x=100,map_y=0,cost=2000000000,produced_at=NOW-timedelta(days=2),created_game_at=NOW-timedelta(days=2),request_id=str(uuid4()));db.session.add(self.factory);db.session.commit();self.factory_id=self.factory.id;self.source_base=self.source()
+        super().setUp();self.factory=AmmunitionFactory(panstwo_id=2,region_id=2,budget_id=1,map_x=100,map_y=0,cost=2000000000,produced_at=NOW-timedelta(days=2),created_game_at=NOW-timedelta(days=2),request_id=str(uuid4()),production_target=10**6);db.session.add(self.factory);db.session.commit();self.factory_id=self.factory.id;self.source_base=self.source()
         from game.commerce_models import ResourceStock
         db.session.add_all([ResourceStock(panstwo_id=2,resource=code,quantity=100) for code in ('zelazo','ropa_naftowa')]);db.session.commit()
 

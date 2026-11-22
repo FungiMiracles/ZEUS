@@ -33,9 +33,13 @@ class IndustryTests(CommerceFixture):
         for target in ['game.research_service.game_now','game.research.game_now','game.industry_service.game_now','game.finance_service.game_now']:
             p=patch(target,return_value=NOW);p.start();self.addCleanup(p.stop)
 
-    def operation(self,action='build',**values):
+    def operation(self,action='build',order=True,**values):
         data=dict(action=action,category='factory',kind='chips',level=1,region_id=1,x=10,y=10,request_id=str(uuid4()));data.update(values)
-        return change_industry(1,data)
+        id=change_industry(1,data)
+        # 22 Nov 2026: nowa fabryka czeka na zlecenie — testy pracującej fabryki zlecają produkcję bez praktycznego limitu.
+        if order and action=='build' and data['category']=='factory' and not FACTORIES[data['kind']].get('on_demand'):
+            change_industry(1,dict(action='resume',category='factory',object_id=id,quantity=10**6,request_id=str(uuid4())))
+        return id
     def add_stock(self,code,amount):
         row=db.session.get(ResourceStock,(1,code))
         if row:row.quantity=amount
@@ -77,7 +81,7 @@ class IndustryTests(CommerceFixture):
         db.session.get(Region,1).region_polozenie_id=2;db.session.commit()
         for kind,rule in FACTORIES.items():
             for i,spec in enumerate(rule['levels'],1):
-                with patch('game.military_geography.naval_location_allowed',return_value=True):id=self.operation(kind=kind,level=i)
+                with patch('game.military_geography.naval_location_allowed',return_value=True):id=self.operation(kind=kind,level=i,order=False)
                 self.refresh();row=db.session.get(AmmunitionFactory,id)
                 self.assertEqual((row.kind,row.level),(kind,i))
                 if rule.get('budget_sector')=='armed_forces':   # 13 Nov 2026: fabryka rakiet atomowych — wydatek sił zbrojnych
@@ -335,6 +339,35 @@ class IndustryTests(CommerceFixture):
                 check(config['visibleFactories'])
         state=self.client.get('/game/panel-wojenny/stan');self.assertEqual(state.status_code,200);check(state.json['factories'])
 
+    # 22 Nov 2026: zlecenia produkcji — fabryka produkuje zadaną liczbę sztuk, potem przechodzi we wstrzymanie;
+    # wstrzymana fabryka pobiera połowę energii z czasu pracy.
+    def test_new_factory_waits_for_an_order_and_stops_after_it(self):
+        from game.industry_service import settle_industry
+        id=self.operation(kind='interceptor_ammo',order=False);self.add_stock('zelazo',100);self.add_stock('ropa_naftowa',100)
+        self.refresh();self.assertTrue(db.session.get(AmmunitionFactory,id).paused)
+        with self.assertRaisesRegex(FinanceError,'liczbę sztuk'):self.operation('resume',object_id=id)
+        self.operation('resume',object_id=id,quantity=7)
+        from game.industry_service import factory_can_work
+        enough=lambda session,factories,production,resident:{f.id for f in factories if factory_can_work(session,f)}   # sieć z wystarczającą energią
+        with patch('game.industry_service.economy',return_value={'population':0}),patch('game.industry_service.powered_factories',side_effect=enough):
+            settle_industry(db.session,1,NOW+timedelta(days=3));db.session.commit()
+        self.refresh();factory=db.session.get(AmmunitionFactory,id)
+        self.assertEqual(db.session.get(ResearchAccount,1).ammunition,7,'exactly the ordered quantity')
+        self.assertTrue(factory.paused);self.assertIsNone(factory.production_target)
+        self.assertTrue(db.session.query(GameNotification).filter(GameNotification.system_text.like('%zlecenie produkcji zrealizowane%')).count())
+
+    def test_paused_factory_draws_half_of_its_energy(self):
+        from game.industry_service import energy_balance
+        id=self.operation(kind='interceptor_ammo',order=False)
+        spec=FACTORIES['interceptor_ammo']['levels'][0]
+        with patch('game.industry_service.economy',return_value={'population':0}):
+            balance=energy_balance(db.session,1)
+        self.assertEqual(Decimal(balance['idleFactories']),Decimal(spec['energy'])/2)
+        self.assertEqual(Decimal(balance['consumption']),Decimal(spec['energy'])/2)
+        self.operation('pause',object_id=id)   # ponowne wstrzymanie nie zmienia poboru
+        self.refresh();self.assertIsNone(db.session.get(AmmunitionFactory,id).production_target)
+
+
 from test_game_military_flights import FlightFixture
 
 class PowerCombatTests(FlightFixture):
@@ -359,5 +392,3 @@ class PowerCombatTests(FlightFixture):
         id=self.launch_power(2);flight=db.session.get(MilitaryFlight,id)
         complete_flights(db.session,flight.impact_at);db.session.commit()
         self.assertEqual(db.session.get(PowerPlant,self.plant_id).health,0)
-
-

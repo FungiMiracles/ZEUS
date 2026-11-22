@@ -141,7 +141,7 @@ class TradeExtensionTests(CommerceFixture):
     @patch('game.industry_service.powered_factories',new=lambda session,factories,production,resident:{f.id for f in factories})
     def test_complete_factory_days_are_available_for_offer(self):
         db.session.get(ResearchAccount,1).ammunition=0
-        db.session.add(AmmunitionFactory(panstwo_id=1,region_id=1,budget_id=1,map_x=1,map_y=1,cost=1,produced_at=NOW-timedelta(days=2),created_game_at=NOW-timedelta(days=2),request_id=str(uuid4())))
+        db.session.add(AmmunitionFactory(panstwo_id=1,region_id=1,budget_id=1,map_x=1,map_y=1,cost=1,produced_at=NOW-timedelta(days=2),created_game_at=NOW-timedelta(days=2),request_id=str(uuid4()),production_target=10**6))
         db.session.add_all([ResourceStock(panstwo_id=1,resource=code,quantity=100) for code in ('zelazo','ropa_naftowa')]);db.session.commit();self.ammo_offer(cargo={AMMUNITION:10});db.session.expire_all()
         self.assertEqual(db.session.get(ResearchAccount,1).ammunition,0)
         self.assertEqual(trade_warehouse(db.session,1)[AMMUNITION]['reserved'],10)

@@ -69,7 +69,14 @@ def add_output(session,country,code,count):
 
 def factory_can_work(session,f):
     if FACTORIES[f.kind].get('on_demand'):return False   # 13 Nov 2026: fabryka rakiet atomowych produkuje tylko na zamówienie (game.nuclear)
-    return f.removed_at is None and f.health>0 and not f.paused and (f.production_progress>0 or has_inputs(session,f.panstwo_id,FACTORIES[f.kind]['levels'][f.level-1]['inputs']))
+    return f.removed_at is None and f.health>0 and not f.paused and (FACTORIES[f.kind].get('on_demand') or (f.production_target or 0)>0) and (f.production_progress>0 or has_inputs(session,f.panstwo_id,FACTORIES[f.kind]['levels'][f.level-1]['inputs']))
+def idle_energy(f):
+    """22 Nov 2026: wstrzymana (sprawna) fabryka pobiera połowę energii z czasu pracy; fabryki na zamówienie — bez zmian."""
+    if f.removed_at is not None or f.health<=0 or not f.paused or FACTORIES[f.kind].get('on_demand'):return Decimal(0)
+    return Decimal(str(FACTORIES[f.kind]['levels'][f.level-1]['energy']))/2
+def finish_order(session,country,f,rule):
+    f.paused=True;f.production_target=None;f.running=False
+    notify(session,country,FACTORIES[f.kind]['label']+f' #{f.id}: zlecenie produkcji zrealizowane — fabryka przeszła w stan wstrzymania.')
 def power_can_work(session,p):
     rule=POWER_PLANTS[p.kind]
     return p.removed_at is None and p.health==3 and (rule['fuel'] is None or available(session,p.panstwo_id,rule['fuel'])>=rule['amounts'][p.level-1])
@@ -100,14 +107,15 @@ def settle_industry(session,country,now=None):
                 if rule['fuel']:consume(session,country,{rule['fuel']:rule['amounts'][p.level-1]})
                 p.ever_worked=True
             p.running=active;p.checked_at+=DAY
-        powered=powered_factories(session,factories,sum(plant_output(session,p) for p in plants if p.running),resident)
+        powered=powered_factories(session,factories,sum(plant_output(session,p) for p in plants if p.running),resident+sum((idle_energy(f) for f in factories),Decimal(0)))
         for f in factories:
             if f.produced_at+DAY>moment:continue
             workable=factory_can_work(session,f);active=workable and f.id in powered;rule=FACTORIES[f.kind]['levels'][f.level-1]
             if active:
                 if rule['days']==1:
-                    count=min([rule['quantity']]+[available(session,country,code)//amount for code,amount in rule['inputs'].items()])
+                    count=min([rule['quantity'],int(f.production_target or 0)]+[available(session,country,code)//amount for code,amount in rule['inputs'].items()])
                     consume(session,country,rule['inputs'],count);add_output(session,country,rule['product'],count)
+                    f.production_target=int(f.production_target or 0)-count
                 else:
                     if f.production_progress==0:
                         consume(session,country,rule['inputs'])
@@ -115,7 +123,9 @@ def settle_industry(session,country,now=None):
                     f.production_progress+=1
                     if f.production_progress>=f.cycle_days:
                         add_output(session,country,rule['product'],1);f.production_progress=0
+                        f.production_target=int(f.production_target or 0)-1
                 f.ever_worked=True
+                if f.production_target<=0:finish_order(session,country,f,rule);f.produced_at+=DAY;continue
             elif f.running and f.ever_worked and not f.paused:
                 notify(session,country,FACTORIES[f.kind]['label']+f' #{f.id}: produkcja została wstrzymana — '+('brak energii w sieci (deficyt energii).' if workable else 'brak surowców lub uszkodzenie.'))
             f.running=active;f.produced_at+=DAY
@@ -170,9 +180,10 @@ def energy_balance(session,country):
     plants=list(session.scalars(select(PowerPlant).where(PowerPlant.panstwo_id==country,PowerPlant.removed_at.is_(None))))
     production=sum(plant_output(session,p) for p in plants if power_can_work(session,p))
     special=on_demand_energy(session,country)
-    powered=powered_factories(session,factories,production,resident+special)
-    demand=resident+special+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if factory_can_work(session,f))
-    consumption=resident+special+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if f.id in powered)
+    idle=sum((idle_energy(f) for f in factories),Decimal(0))
+    powered=powered_factories(session,factories,production,resident+special+idle)
+    demand=resident+special+idle+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if factory_can_work(session,f))
+    consumption=resident+special+idle+sum(FACTORIES[f.kind]['levels'][f.level-1]['energy'] for f in factories if f.id in powered)
     stopped=sum(1 for f in factories if factory_can_work(session,f) and f.id not in powered)
     sources={kind:dict(production=0,consumption=0,extraction=0) for kind in POWER_PLANTS}
     for plant in plants:
@@ -195,7 +206,7 @@ def energy_balance(session,country):
             factor=extraction_time_factor(session.scalar(select(Region.region_stan_infra_kolejowej).where(Region.region_id==region)))
             effective=0 if factor is None else float((Decimal(rate)/factor).quantize(Decimal('0.01')))
             sources[kind]['extraction']+=min(effective,max(0,int(deposit)))
-    return dict(consumption=str(consumption),production=str(production),residents=str(resident),sufficient=production>=demand,sources=sources,
+    return dict(consumption=str(consumption),production=str(production),residents=str(resident),idleFactories=str(idle),sufficient=production>=demand,sources=sources,
                 demand=str(demand),stoppedFactories=stopped)
 
 def current_budget(session,country,cost,environment=Decimal(0)):
@@ -258,7 +269,7 @@ def change_industry(user_id,data):
                 session.add(MilitaryExpense(panstwo_id=country,budget_id=budget.id,base_id=None,level=1,amount=military_cost))
             if category=='factory':
                 obj=AmmunitionFactory(panstwo_id=country,region_id=region,budget_id=budget.id,map_x=x,map_y=y,level=level,kind=kind,cost=0,created_game_at=now,produced_at=now,request_id=key,
-                                      waste_filter=False,degradation_points=FACTORY_DEGRADATION)
+                                      waste_filter=False,degradation_points=FACTORY_DEGRADATION,paused=not FACTORIES[kind].get('on_demand'))   # 22 Nov 2026: nowa fabryka czeka na zlecenie
                 change_degradation(session,region,obj.degradation_points)
             else:
                 obj=PowerPlant(panstwo_id=country,region_id=region,map_x=x,map_y=y,level=1,kind=kind,investment=cost,created_game_at=now,checked_at=now,
@@ -330,7 +341,14 @@ def change_industry(user_id,data):
             elif action=='repair' and category=='power':
                 if obj.health==3:raise FinanceError('Elektrownia jest sprawna.')
                 cost=(obj.investment*Decimal(3-obj.health)/3).quantize(Decimal('.01'));obj.health=3
-            elif action in ('pause','resume') and category=='factory':obj.paused=action=='pause';obj.running=False
+            elif action=='pause' and category=='factory':obj.paused=True;obj.production_target=None;obj.running=False
+            elif action=='resume' and category=='factory':
+                # 22 Nov 2026: wznowienie = zlecenie produkcji określonej liczby sztuk (po realizacji fabryka sama się wstrzymuje)
+                if FACTORIES[obj.kind].get('on_demand'):raise FinanceError('Ta fabryka produkuje na zamówienie.')
+                if obj.health<=0:raise FinanceError('Zniszczona fabryka nie może produkować.')
+                quantity=data.get('quantity')
+                if type(quantity) is not int or not 1<=quantity<=1000000000:raise FinanceError('Podaj liczbę sztuk do wyprodukowania (co najmniej 1).')
+                obj.paused=False;obj.production_target=quantity;obj.running=False
             else:raise FinanceError('Nieprawidłowa operacja obiektu.')
             if host_removal:
                 budget=session.scalar(select(StateBudget).where(StateBudget.panstwo_id==country).order_by(StateBudget.id.desc()).limit(1))
@@ -356,7 +374,7 @@ def object_data(obj,category,powered=None):
         session=object_session(obj)
         missing={code:amount-available(session,obj.panstwo_id,code) for code,amount in spec['inputs'].items() if available(session,obj.panstwo_id,code)<amount} if obj.production_progress==0 else {}
         extra=dict(wasteFilter=bool(obj.waste_filter),degradation=int(obj.degradation_points or 0),
-                   wasteFilterCost=WASTE_FILTER_COSTS[obj.level-1] if not obj.waste_filter else None,paused=obj.paused,energy=spec['energy'],product=spec['product'],quantity=spec['quantity'],days=spec['days'],missingInputs=missing,ready=True,progress=100,effectiveQuantity=spec['quantity'] if status=='pracuje' else 0)
+                   wasteFilterCost=WASTE_FILTER_COSTS[obj.level-1] if not obj.waste_filter else None,paused=obj.paused,target=obj.production_target,idleEnergy=float(idle_energy(obj)),energy=spec['energy'],product=spec['product'],quantity=spec['quantity'],days=spec['days'],missingInputs=missing,ready=True,progress=100,effectiveQuantity=spec['quantity'] if status=='pracuje' else 0)
     elif category=='power':
         rule=POWER_PLANTS[obj.kind];label=rule['label'];icon=rule['icon'];health=obj.health*100/3
         status='zniszczona' if obj.health==0 else 'uszkodzona' if obj.health<3 else 'pracuje' if power_can_work(__import__('sqlalchemy.orm',fromlist=['object_session']).object_session(obj),obj) else 'brak paliwa'

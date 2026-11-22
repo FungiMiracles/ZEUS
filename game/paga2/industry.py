@@ -67,9 +67,12 @@ def propose(ctx):
                                   cost=FILTER_COSTS[p['level']-1],sector='environment',effects={'environment':1.0,'welfare':.3},traits={'ecology':1.0,'health':.4,'industrialism':-.2},
                                   payload={'action':'filter','category':'power','object_id':p['id']}))
     for f in factories:
-        if f['paused'] and f['health']>0:
-            options.append(Option(key=f'resume:factory:{f["id"]}',domain='economy',action='FACTORY_RESUME',label=f'Wznowienie: {FACTORIES[f["kind"]]["label"]} #{f["id"]}',
-                                  effects={'production':1.0},base=5.0,payload={'action':'resume','category':'factory','object_id':f['id']}))
+        if f['paused'] and f['health']>0 and not FACTORIES[f['kind']].get('on_demand'):
+            # 22 Nov 2026: wznowienie = zlecenie produkcji — PAGA2 zamawia produkcję na ok. 30 dni Entendy.
+            spec=FACTORIES[f['kind']]['levels'][f['level']-1]
+            quantity=spec['quantity']*30 if spec['days']==1 else 1 if spec['days']=='month' else max(1,30//int(spec['days']))
+            options.append(Option(key=f'resume:factory:{f["id"]}',domain='economy',action='FACTORY_RESUME',label=f'Zlecenie produkcji ({quantity} szt.): {FACTORIES[f["kind"]]["label"]} #{f["id"]}',
+                                  effects={'production':1.0},base=5.0,payload={'action':'resume','category':'factory','object_id':f['id'],'quantity':quantity}))
         if not f['filter'] and f['health']>0 and developed(ctx,WASTE_FILTER_TECHNOLOGY):
             options.append(Option(key=f'filter:factory:{f["id"]}',domain='economy',action='WASTE_FILTER',label=f'Filtr odpadów: {FACTORIES[f["kind"]]["label"]} #{f["id"]}',
                                   cost=WASTE_FILTER_COSTS[f['level']-1],sector='environment',effects={'environment':1.0},traits={'ecology':1.0,'industrialism':-.2},

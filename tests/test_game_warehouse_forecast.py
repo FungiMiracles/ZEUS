@@ -21,6 +21,7 @@ class WarehouseForecastTests(CommerceFixture):
         else:db.session.add(ResourceStock(panstwo_id=1,resource=code,quantity=quantity))
 
     def factory(self,kind,level=1,**values):
+        values.setdefault('production_target',10**6)   # 22 Nov 2026: fabryka pracuje tylko w ramach zlecenia produkcji
         obj=AmmunitionFactory(panstwo_id=1,region_id=1,budget_id=1,map_x=10,map_y=10,level=level,kind=kind,cost=0,created_game_at=NOW,produced_at=NOW,request_id=str(uuid4()),**values)
         db.session.add(obj)
         for code,amount in FACTORIES[kind]['levels'][level-1]['inputs'].items():self.stock(code,max(100,amount))

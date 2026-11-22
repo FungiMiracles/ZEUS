@@ -36,6 +36,9 @@ class AmmunitionFactory(db.Model):
     __tablename__='game_ammunition_factories'
     kind=db.Column(db.String(32),nullable=False,default='interceptor_ammo',server_default='interceptor_ammo')
     paused=db.Column(db.Boolean,nullable=False,default=False,server_default=db.text('0'))
+    # 22 Nov 2026: zlecenie produkcji — liczba sztuk produktu, które fabryka ma jeszcze wyprodukować; po jej osiągnięciu
+    # fabryka przechodzi w stan wstrzymania (paused). Wstrzymana fabryka pobiera połowę energii z czasu pracy.
+    production_target=db.Column(db.Integer,nullable=True)
     removed_at=db.Column(db.DateTime)
     production_progress=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))
     cycle_days=db.Column(db.Integer,nullable=False,default=0,server_default=db.text('0'))

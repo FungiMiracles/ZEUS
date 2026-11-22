@@ -182,6 +182,9 @@ class ResearchTests(MilitaryFixture):
             with self.assertRaises(FinanceError):self.change_research('factory',region_id=2,x=10,y=20)
             data=self.change_research('factory',region_id=1,x=10,y=20);change_research(1,data)
         self.assertEqual(db.session.query(AmmunitionFactory).count(),1)
+        db.session.query(AmmunitionFactory).one().paused=True;db.session.commit()
+        from game.industry_service import change_industry   # 22 Nov 2026: zlecenie produkcji
+        change_industry(1,dict(action='resume',category='factory',object_id=db.session.query(AmmunitionFactory).one().id,quantity=10**6,request_id=str(uuid4())))
         self.assertEqual(infrastructure_balance(db.session,db.session.get(StateBudget,1))[1],8000000000)
         self.assertEqual(sector_balances(db.session,db.session.get(StateBudget,1))['infrastructure']['spent'],2000000000)
         for hours,expected in [(23,0),(49,10),(50,10),(72,15)]:
