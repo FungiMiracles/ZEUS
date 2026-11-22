@@ -116,8 +116,8 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="{{ url_for('static', filename='js/game_warehouse_location.js', v='20261122-wh-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_panel_map.js', v='20261122-wh-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_warehouse_location.js', v='20261122-wh-2') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_panel_map.js', v='20261122-wh-2') }}" defer></script>
 {% if config.get('GAME_FINANCE_ENABLED', false) %}
 <script src="{{ url_for(
     'static',

@@ -8,8 +8,12 @@
   function marker(map, warehouse, options = {}) {
     if (!map || !window.L || !warehouse || !warehouse.point) return null;
     const badge = make('div', null, 'warehouse-map-badge'); const img = make('img'); img.src = warehouse.icon; img.alt = 'Magazyn'; badge.append(img);
-    return L.marker([warehouse.point[1], warehouse.point[0]], { pane: options.pane, keyboard: false, interactive: true, zIndexOffset: 900,
-      icon: L.divIcon({ html: badge, className: 'warehouse-map-marker', iconSize: [24, 24], iconAnchor: [-5, 26] }) })
+    // 22 Nov 2026: `pane` tylko, gdy podany — `pane: undefined` nadpisuje domyślny markerPane i Leaflet rzuca wyjątek
+    // (na panelu państwa przerywało to rysowanie miast).
+    const markerOptions = { keyboard: false, interactive: true, zIndexOffset: 900,
+      icon: L.divIcon({ html: badge, className: 'warehouse-map-marker', iconSize: [24, 24], iconAnchor: [-5, 26] }) };
+    if (options.pane) markerOptions.pane = options.pane;
+    return L.marker([warehouse.point[1], warehouse.point[0]], markerOptions)
       .bindTooltip(`Magazyn państwa — ${warehouse.name}`, { direction: 'top', className: options.tooltipClass || 'world-tooltip' })
       .addTo(options.layer || map);
   }

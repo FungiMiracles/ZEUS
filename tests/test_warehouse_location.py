@@ -66,3 +66,20 @@ class WarehouseLocationTests(CommerceFixture):
         script = (ROOT / 'static/js/game_warehouse_location.js').read_text()
         self.assertIn("if (config.required) event.preventDefault()", script, 'the mandatory window cannot be dismissed')
         self.assertIn('"game_warehouse"', (ROOT / 'zeus_app.py').read_text())
+
+    def test_paga2_warehouse_in_largest_own_port_city(self):
+        from game.paga_ai_models import PagaAiIdentity
+        PagaAiIdentity.__table__.create(db.engine, checkfirst=True)
+        db.session.add(Miasto(miasto_id=120, panstwo_id=2, region_id=2, miasto_nazwa='Duży port 2', czy_portowe='TAK', czy_na_mapie='TAK', miasto_populacja=900))
+        db.session.add(Miasto(miasto_id=121, panstwo_id=2, region_id=2, miasto_nazwa='Stolica 2', czy_portowe='NIE', czy_na_mapie='TAK', miasto_typ_id=1, miasto_populacja=5000))
+        db.session.add(PagaAiIdentity(country_id=2, user_id=2)); db.session.commit()
+        self.assertEqual(warehouse.warehouse_city(db.session, 2), 120, 'AI: largest own port city, not the capital')
+        self.assertEqual(warehouse.assign_ai_warehouses(db.session), [(2, 120)]); db.session.commit()
+        self.assertEqual(warehouse.chosen_city(db.session, 2), 120)
+        self.assertEqual(warehouse.assign_ai_warehouses(db.session), [], 'already in a port city')
+        self.assertEqual(warehouse.warehouse_city(db.session, 1), 111, 'players without a choice keep the capital')
+
+    def test_marker_does_not_pass_an_undefined_pane(self):
+        script = (ROOT / 'static/js/game_warehouse_location.js').read_text()
+        self.assertIn('if (options.pane) markerOptions.pane = options.pane;', script)
+        self.assertNotIn('pane: options.pane', script)

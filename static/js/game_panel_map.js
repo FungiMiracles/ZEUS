@@ -110,7 +110,6 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
 
   map.createPane('panelCities'); map.getPane('panelCities').style.zIndex = '610';
   load(config.citiesUrl).then(cities => {
-    window.GameWarehouse?.marker(map, config.warehouse, { tooltipClass: 'panel-map-tooltip' });   // 22 Nov 2026: magazyn państwa
     L.geoJSON(cities, {
       coordsToLatLng: coordinates, filter: f => Object.prototype.hasOwnProperty.call(config.cities, String(f.properties.miasto_id)),
       pointToLayer: (feature, latlng) => {
@@ -128,6 +127,8 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
         layer.on('mouseout', () => layer.setRadius(city.stolica ? 7 : 4.5));
       }
     }).addTo(layers.cities || map);
+    // 22 Nov 2026: magazyn państwa — po miastach i osobno, aby błąd ikony nie ukrył miast
+    try { window.GameWarehouse?.marker(map, config.warehouse, { tooltipClass: 'panel-map-tooltip' }); } catch (error) { console.error('Ikona magazynu:', error); }
   }).catch(() => say('Mapa została wczytana, ale nie udało się wyświetlić miast.'));
   applyFilters();
   if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById('game-country-map'));
