@@ -1,0 +1,22 @@
+/* 22 Nov 2026: wybór lokalizacji magazynu (okno z mapą) i ikona magazynu obok miasta na mapach właściciela */
+.warehouse-dialog{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);box-sizing:border-box;padding:18px 20px;border:1px solid #1E3A5F;border-radius:12px;background:#fff;color:#172433;box-shadow:0 18px 50px rgba(11,29,51,.35);overflow:auto}
+.warehouse-dialog::backdrop{background:rgba(11,29,51,.55)}
+.warehouse-title{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:1.2rem;color:#1E3A5F}
+.warehouse-help{margin:0 0 10px;color:#4d5f78;font-size:.92rem;line-height:1.45}
+.warehouse-map{height:min(52vh,420px);min-height:240px;border:1px solid #c9d3c2;border-radius:8px;background:#9fb3c8}
+.warehouse-select{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0 0;font-weight:600}
+.warehouse-select select{min-width:min(280px,100%);padding:6px 8px;border:1px solid #8da0b8;border-radius:6px}
+.warehouse-choice{margin:8px 0 0;font-weight:600;color:#1E3A5F}
+.warehouse-error{margin:6px 0 0;color:#b3261e;min-height:1em}
+.warehouse-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px}
+.warehouse-actions button{padding:8px 14px;border-radius:7px;font-weight:700;cursor:pointer}
+.warehouse-primary{border:1px solid #1E3A5F;background:#1E3A5F;color:#fff}
+.warehouse-primary:disabled{opacity:.5;cursor:not-allowed}
+.warehouse-secondary{border:1px solid #8da0b8;background:#fff;color:#1E3A5F}
+.warehouse-map-marker{background:transparent;border:0}
+.warehouse-map-badge{box-sizing:border-box;width:24px;height:24px;padding:2px;border:1.5px solid #1E3A5F;border-radius:6px;background:#fff;box-shadow:0 2px 5px #0006}
+.warehouse-map-badge img{display:block;width:100%;height:100%;object-fit:contain}
+.warehouse-open-button{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #1E3A5F;border-radius:7px;background:#fff;color:#1E3A5F;font-weight:700;cursor:pointer}
+.warehouse-open-button img{width:20px;height:20px}
+@media (max-width:600px){.warehouse-dialog{padding:14px}.warehouse-actions button{flex:1 1 auto}}
+.trade-warehouse-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px;font-size:.9rem}

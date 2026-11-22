@@ -1,0 +1,15 @@
+{# 22 Nov 2026: wybór lokalizacji magazynu państwa (game.warehouse). Obowiązkowe okno po zatwierdzeniu pierwszego budżetu;
+   na ekranie handlu otwierane przyciskiem [data-warehouse-open]. Wymaga Leaflet na stronie. #}
+<script type="application/json" id="warehouse-config">{{ warehouse_modal | tojson }}</script>
+<dialog id="warehouse-dialog" class="warehouse-dialog" aria-labelledby="warehouse-title">
+  <h2 id="warehouse-title" class="warehouse-title"><img src="{{ warehouse_modal.icon }}" alt="" width="32" height="32">{{ 'Wskaż lokalizację magazynu państwa' if warehouse_modal.required else 'Zmień lokalizację magazynu' }}</h2>
+  <p class="warehouse-help">Magazyn to miejsce, z którego wysyłasz i do którego odbierasz towary w handlu międzynarodowym. Kolej, porty i lotniska muszą mieć połączenie z miastem magazynu.{% if warehouse_modal.required %} Wybór jest wymagany, aby kontynuować grę; później możesz go zmienić na ekranie handlu.{% endif %}</p>
+  <div id="warehouse-map" class="warehouse-map" aria-label="Mapa miast państwa"></div>
+  <label class="warehouse-select">Miasto magazynu <select id="warehouse-city-select"></select></label>
+  <p id="warehouse-choice" class="warehouse-choice" role="status"></p>
+  <p id="warehouse-error" class="warehouse-error" role="alert"></p>
+  <div class="warehouse-actions">
+    {% if not warehouse_modal.required %}<button type="button" id="warehouse-cancel" class="warehouse-secondary">Anuluj</button>{% endif %}
+    <button type="button" id="warehouse-save" class="warehouse-primary" disabled>Zapisz lokalizację magazynu</button>
+  </div>
+</dialog>

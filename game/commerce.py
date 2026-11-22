@@ -139,7 +139,10 @@ def page():
     config.update({'countryId':country_id,'csrf':session['game_csrf_token'],'changeUrl':url_for('game_trade.change'),'stateUrl':url_for('game_trade.state'),
         'resources':goods_catalog(),'resourceOrder':goods_order(),'priceLimits':__import__('game.trade_prices',fromlist=['all_limits']).all_limits(goods_catalog().keys()),'regionsUrl':url_for('static',filename='maps/entenda_regiony.geojson'),
         'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'shipSpeed':SHIP_SPEED,'airIcon':url_for('static',filename='icons/SAMOLOT.svg'),'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'landSpeed':__import__('game.trade_service',fromlist=['LAND_SPEED']).LAND_SPEED,'kmPerUnit':calibration(db.session).km_per_unit})
-    response=render_template('game/trade.html',game_user=user,game_country=country_summary(country),game_active_page='trade',game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),trade_config=config)
+    from game import warehouse   # 22 Nov 2026: magazyn — ikona na mapie handlu i zmiana lokalizacji
+    config['warehouse']=warehouse.marker(db.session,country_id)
+    warehouse_modal=warehouse.modal_config(db.session,country_id,warehouse.required(db.session,country_id))
+    response=render_template('game/trade.html',game_user=user,game_country=country_summary(country),game_active_page='trade',game_home_url=url_for('game_main_page'),game_logout_url=url_for('game_logout'),trade_config=config,warehouse_modal=warehouse_modal)
     db.session.commit();return response
 
 

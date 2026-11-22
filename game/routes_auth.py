@@ -156,6 +156,11 @@ def init_game_auth_routes(app):
             panel={'regions':main_panel.region_info(country.PANSTWO_ID),'objects':main_panel.map_objects(country.PANSTWO_ID,icon),
                    'dashboard':main_panel.dashboard(country.PANSTWO_ID),
                    'filters':[(group,[(code,label,icon(file)) for code,label,file in items]) for group,items in main_panel.MAP_FILTERS]}
+            # 22 Nov 2026: lokalizacja magazynu — ikona na mapie i obowiązkowe okno wyboru po zatwierdzeniu pierwszego budżetu
+            from game import warehouse
+            panel['warehouse']=warehouse.marker(db.session,country.PANSTWO_ID)
+            if not finance_context.get('finance_required') and warehouse.required(db.session,country.PANSTWO_ID):
+                panel['warehouseModal']=warehouse.modal_config(db.session,country.PANSTWO_ID,True)
             db.session.rollback()
         return render_template(
             "game/game_main_page.html",

@@ -187,6 +187,7 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   const markersToggle = document.getElementById('world-markers-toggle');
   if (!map.getPane('worldCityMarkers')) { map.createPane('worldCityMarkers'); map.getPane('worldCityMarkers').style.zIndex = '660'; }
   const cityMarkersLayer = L.layerGroup();
+  window.GameWarehouse?.marker(map, config.warehouse, { pane: 'worldCityMarkers' });   // 22 Nov 2026: magazyn własnego państwa
   let showMarkers = true; try { showMarkers = localStorage.getItem('world-city-markers') !== '0'; } catch {}
   if (showMarkers) cityMarkersLayer.addTo(map);
   if (markersToggle) {

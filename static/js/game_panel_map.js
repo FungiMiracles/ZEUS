@@ -110,6 +110,7 @@ Promise.all([load(config.regionsUrl), load(config.countriesUrl).catch(() => null
 
   map.createPane('panelCities'); map.getPane('panelCities').style.zIndex = '610';
   load(config.citiesUrl).then(cities => {
+    window.GameWarehouse?.marker(map, config.warehouse, { tooltipClass: 'panel-map-tooltip' });   // 22 Nov 2026: magazyn państwa
     L.geoJSON(cities, {
       coordsToLatLng: coordinates, filter: f => Object.prototype.hasOwnProperty.call(config.cities, String(f.properties.miasto_id)),
       pointToLayer: (feature, latlng) => {

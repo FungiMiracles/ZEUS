@@ -32,7 +32,8 @@ class FeatureTestCase(unittest.TestCase):
         from routes_region_secession import region_sovereignty_bp
         self.app.register_blueprint(region_sovereignty_bp)
         from game.commerce import trade_bp
-        for blueprint in [messages_bp, diplomacy_bp, forum_bp, environment_bp, trade_bp]:
+        from game.warehouse import warehouse_bp   # 22 Nov 2026: lokalizacja magazynu (ekran handlu, panel państwa)
+        for blueprint in [messages_bp, diplomacy_bp, forum_bp, environment_bp, trade_bp, warehouse_bp]:
             self.app.register_blueprint(blueprint)
         for name in ['wejscie', 'game_main_page', 'game_logout', 'game_demography.page']:
             self.app.add_url_rule('/test/' + name, name, lambda: '')
@@ -50,6 +51,8 @@ class FeatureTestCase(unittest.TestCase):
             RegionStateHistory, SpoleczenstwoStateHistory,
         ]])
         InfrastructureProject.__table__.create(db.engine, checkfirst=True)
+        from game.warehouse import Warehouse
+        Warehouse.__table__.create(db.engine, checkfirst=True)
         for model in (MilitaryBase, MilitaryExpense, MilitaryMaintenance, MilitaryOrder, MilitaryFlight, MapCalibration, MilitaryVessel, MissileDefense, MissileDefenseExpense):
             model.__table__.create(db.engine, checkfirst=True)
         # Land armies and occupations (11 Nov 2026) are part of military counts and armed-forces spending.
