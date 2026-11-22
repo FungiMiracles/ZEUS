@@ -13,7 +13,7 @@ from game.autonomy_memory import record_event,observe,assessment,ingest_sources
 from game.autonomy_actions import Candidate,score,build_context,REGISTRY
 from game.diplomacy_service import create_action,decide_action
 from game.diplomacy_models import DiplomaticAction
-from game.intelligence_service import operate_in_transaction,complete_missions
+from game.intelligence_service import operate_in_transaction,complete_missions,mission_days   # czas misji: 4 dni, hybrydowe 2 (od 17 Nov 2026)
 from game.intelligence_models import IntelligenceAgent,IntelligenceMission,IntelligenceExpense
 from game.forum_models import GameNotification
 from test_game_intelligence import IntelligenceFixture
@@ -165,12 +165,12 @@ class AutonomyTests(IntelligenceFixture):
         operate_in_transaction(db.session,1,{'action':'recruit','level':7,'count':1,'request_id':str(uuid4())},NOW)
         db.session.flush();agent=db.session.scalar(select(IntelligenceAgent).where(IntelligenceAgent.panstwo_id==1))
         id=operate_in_transaction(db.session,1,{'action':'mission','agent_id':agent.id,'region_id':2,'kind':'bases','request_id':str(uuid4())},NOW);db.session.commit()
-        mission=db.session.get(IntelligenceMission,id);self.assertEqual(mission.ends_at,NOW+timedelta(days=7))
+        mission=db.session.get(IntelligenceMission,id);self.assertEqual(mission.ends_at,NOW+timedelta(days=mission_days('bases')))
         self.assertEqual(db.session.query(IntelligenceExpense).count(),2)
-        with patch('game.intelligence_service.randbelow',return_value=0):complete_missions(db.session,NOW+timedelta(days=7));db.session.commit()
+        with patch('game.intelligence_service.randbelow',return_value=0):complete_missions(db.session,NOW+timedelta(days=mission_days('bases')));db.session.commit()
         self.assertTrue(mission.success);self.assertIn(self.enemy.id,mission.report['base_ids'])
-        ingest_sources(db.session,db.session.get(state.AutonomyControl,1),NOW+timedelta(days=7));db.session.commit()
-        observe(db.session,1,db.session.get(PagaConfiguration,1),NOW+timedelta(days=7),db.session.get(state.AutonomyControl,1));db.session.commit()
+        ingest_sources(db.session,db.session.get(state.AutonomyControl,1),NOW+timedelta(days=mission_days('bases')));db.session.commit()
+        observe(db.session,1,db.session.get(PagaConfiguration,1),NOW+timedelta(days=mission_days('bases')),db.session.get(state.AutonomyControl,1));db.session.commit()
         self.assertTrue(db.session.scalar(select(state.AutonomyEvent.id).where(state.AutonomyEvent.kind=='INTELLIGENCE_REPORT')))
 
     def test_atomic_failure_rolls_back_world_and_analysis(self):
@@ -197,7 +197,7 @@ class AutonomyTests(IntelligenceFixture):
             self.assertEqual(db.session.get(state.AutonomyAnalysis,id).action,'SCOUT_resources')
             self.assertEqual(db.session.query(IntelligenceExpense).count(),2)
             mission=db.session.scalar(select(IntelligenceMission))
-            self.assertEqual(mission.ends_at,mission.starts_at+timedelta(days=7))
+            self.assertEqual(mission.ends_at,mission.starts_at+timedelta(days=mission_days('resources')))
 
     def test_runtime_hybrid_uses_real_mission_cost_and_changes_target_after_seven_days(self):
         self.config({'militarism':100,'provocation':100,'ambition':100,'agreeableness':0,'isolationism':0,'predictability':100,'revenge':100},'world_chaos');self.due()
@@ -211,9 +211,9 @@ class AutonomyTests(IntelligenceFixture):
         self.assertEqual(db.session.get(state.AutonomyAnalysis,id).action,'HYBRID_arson')
         self.assertEqual(db.session.query(IntelligenceExpense).count(),1)
         mission=db.session.scalar(select(IntelligenceMission))
-        self.assertEqual(mission.ends_at,NOW+timedelta(days=7));self.assertIsNone(mission.completed_at)
+        self.assertEqual(mission.ends_at,NOW+timedelta(days=mission_days('arson')));self.assertIsNone(mission.completed_at)
         with patch('game.intelligence_service.randbelow',return_value=0):
-            complete_missions(db.session,NOW+timedelta(days=7));db.session.commit()
+            complete_missions(db.session,NOW+timedelta(days=mission_days('arson')));db.session.commit()
         self.assertTrue(mission.success);self.assertEqual(db.session.get(Region,2).region_stan_infra_mieszkalnej,79)
 
     def test_maximum_actions_applies_to_periodic_and_reactive_decisions_together(self):

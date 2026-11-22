@@ -122,7 +122,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertIn("'waste_filter':'FILTR ODPADÓW FABRYCZNYCH.svg'",self.read('templates/macros/icons.html'))
 
     def test_trust_refusal_shown_in_red_next_to_the_transfer_form(self):
-        form=self.read('templates/game/_finanse_form.html');script=self.read('static/js/game_finanse.js')
+        form=self.read('templates/game/_finance_transfer.html');script=self.read('static/js/game_finanse.js')   # formularz przesunięć wydzielony z _finanse_form.html
         self.assertIn('class="finance-transfer-error" data-transfer-error role="alert"',form)
         self.assertIn('Społeczeństwo nie ufa władzy wystarczająco (',script)
         self.assertIn("sector_transfers_allowed===false",script)

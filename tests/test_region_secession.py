@@ -178,15 +178,23 @@ class RegionSecessionTests(unittest.TestCase):
         (maps/'entenda_regiony.geojson').write_text(json.dumps({'type':'FeatureCollection','features':[
             {'type':'Feature','properties':{'region_id':11,'panstwo_id':1},'geometry':square(0,5)}]}))
         areas=lambda:{f['properties']['panstwo_id']:shape(f['geometry']).area for f in self.client.get('/wiki/mapa/panstwa.geojson').get_json()['features']}
-        db.session.execute(text("CREATE TABLE game_occupations (id INTEGER PRIMARY KEY, kind TEXT, region_id INTEGER, status TEXT)"))
-        db.session.execute(text("CREATE TABLE game_sovereignty_losses (panstwo_id INTEGER PRIMARY KEY, annexed_by INTEGER)"))
+        # Lekkie tabele zgodne z kolumnami wymaganymi przez modele gry; IF NOT EXISTS — w pełnym przebiegu tabele z modeli
+        # (game.land_war_models) mogły już powstać w innym teście, więc wstawiamy wszystkie kolumny NOT NULL. Bez importu
+        # modeli (ich klucze obce do tabel wojska psułyby create_all w pozostałych testach tego modułu).
+        db.session.execute(text("CREATE TABLE IF NOT EXISTS game_occupations (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, region_id INTEGER NOT NULL, "
+                                "owner_id INTEGER NOT NULL, occupier_id INTEGER NOT NULL, status TEXT NOT NULL, started_at DATETIME NOT NULL, created_at DATETIME NOT NULL)"))
+        db.session.execute(text("CREATE TABLE IF NOT EXISTS game_sovereignty_losses (panstwo_id INTEGER PRIMARY KEY, annexed_by INTEGER NOT NULL, "
+                                "capital_region_id INTEGER NOT NULL, lost_at DATETIME NOT NULL, created_at DATETIME NOT NULL)"))
+        db.session.execute(text("DELETE FROM game_occupations")); db.session.execute(text("DELETE FROM game_sovereignty_losses"))
         db.session.get(Region,11).panstwo_id=2
-        db.session.execute(text("INSERT INTO game_occupations (kind, region_id, status) VALUES ('region', 11, 'ACTIVE')"))
+        db.session.execute(text("INSERT INTO game_occupations (kind, region_id, owner_id, occupier_id, status, started_at, created_at) "
+                                "VALUES ('region', 11, 1, 2, 'ACTIVE', '3001-01-01 00:00:00', '2026-11-22 00:00:00')"))
         db.session.commit()
         self.assertEqual(areas(),{1:100,2:100})                    # occupation only: borders unchanged
         db.session.execute(text("UPDATE game_occupations SET status='ANNEXED'")); db.session.commit()
         self.assertEqual(areas(),{1:50,2:150})                     # annexed region is drawn as part of the annexer
-        db.session.execute(text("INSERT INTO game_sovereignty_losses VALUES (1, 2)")); db.session.commit()
+        db.session.execute(text("INSERT INTO game_sovereignty_losses (panstwo_id, annexed_by, capital_region_id, lost_at, created_at) "
+                                "VALUES (1, 2, 11, '3001-01-02 00:00:00', '2026-11-22 00:00:00')")); db.session.commit()
         self.assertEqual(areas(),{2:200})                          # loss of sovereignty: whole territory of the annexer
 
     def test_commit_failure_rolls_back_database_and_removes_new_assets(self):
