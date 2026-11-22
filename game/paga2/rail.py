@@ -95,6 +95,17 @@ def candidates(ctx, screen):
 INTERMEDIATE_KM = 20      # miasto leżące tak blisko trasy jest „po drodze”
 
 
+def trade_factor(ctx):
+    """22 Nov 2026: skłonność do handlu wydłuża akceptowany czas zwrotu inwestycji w transport (kolej łączy magazyny,
+    porty i lotniska): 0 → ×0,6, 50 → ×1,0, 100 → ×1,4."""
+    return 0.6 + 0.8 * ctx.traits.get('trade_propensity', 50) / 100
+
+
+def trade_bonus(ctx):
+    """Premia oceny inwestycji w transport: (skłonność do handlu − 50) / 25 (−2 … +2)."""
+    return (ctx.traits.get('trade_propensity', 50) - 50) / 25
+
+
 def _distance_to_path(point, path):
     best = float('inf')
     for a, b in zip(path, path[1:]):
@@ -146,7 +157,8 @@ def build_options(ctx, screen):
     if gdp_pc <= 0:
         return []
     conservatism = ctx.traits.get('fiscal_conservatism', 50)
-    limit = MAX_PAYBACK_CYCLES * (1.5 - conservatism / 100)      # 50 → 12 cykli, 90 → 7,2, 10 → 16,8
+    trade = trade_factor(ctx)
+    limit = MAX_PAYBACK_CYCLES * (1.5 - conservatism / 100) * trade   # 50/50 → 12 cykli; skłonność do handlu 90 → ×1,32 (game.paga2.rail.trade_factor)
     available = ctx.available('infrastructure')
     options = []
     core = main_network(_edges(screen), {c['id']: int(c.get('population') or 0) for c in screen.get('cities') or [] if c.get('own')})[0]
@@ -168,9 +180,10 @@ def build_options(ctx, screen):
         options.append(Option(key=f'rail:build:{city["id"]}:{target["id"]}', domain='economy', action='RAIL_BUILD',
                               label=f'Linia kolejowa {city["name"]} – {target["name"]} ({float(quote["distanceKm"]):.0f} km)',
                               effects={'infrastructure': .9, 'financial_stability': .5, 'trade': .3},
-                              traits={'industrialism': .4, 'fiscal_conservatism': -.2, 'ambition': .2},
-                              cost=cost, sector='infrastructure', base=3.0 + max(0.0, (limit - payback) / limit) * 3,
-                              notes=[f'Koszt {cost/1e9:.2f} MLD ROI, dochody z kolei +{income/1e9:.2f} MLD na cykl, zwrot po {payback:.1f} cyklu(ach).'],
+                              traits={'industrialism': .4, 'fiscal_conservatism': -.2, 'ambition': .2, 'trade_propensity': .6},
+                              cost=cost, sector='infrastructure', base=3.0 + max(0.0, (limit - payback) / limit) * 3 + trade_bonus(ctx),
+                              notes=[f'Koszt {cost/1e9:.2f} MLD ROI, dochody z kolei +{income/1e9:.2f} MLD na cykl, zwrot po {payback:.1f} cyklu(ach).',
+                                     f'Skłonność do handlu {ctx.traits.get("trade_propensity", 50)}: limit zwrotu ×{trade:.2f}.'],
                               payload={'city_a': city['id'], 'city_b': target['id'], 'expected_cost': quote['cost'], 'group': 'rail:build'}))
     return options
 

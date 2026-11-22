@@ -29,7 +29,7 @@ class RailRulesTests(unittest.TestCase):
         self.assertEqual(rail.build_days(Decimal('100')), 2)
 
     def test_price(self):
-        self.assertEqual(rail.PRICE_PER_KM, Decimal('6000000'))
+        self.assertEqual(rail.PRICE_PER_KM, Decimal('2500000'))   # 22 Nov 2026
 
     def test_bonus_formula(self):
         # PKB per capita 30 000 × 0,01 × 5,5 mln połączonych = 1,65 MLD
@@ -206,6 +206,32 @@ class Paga2RailTests(unittest.TestCase):
             {'id': 4, 'name': 'Obce', 'own': False, 'population': 9_000_000, 'point': [5, 0]}]}
         best = candidates(self.ctx(), screen)[0]
         self.assertEqual((best[1]['id'], best[2]['id']), (1, 2))
+
+    def build(self, trade, payback_cost):
+        """Linia 1–2 (przyrost sieci 1 mln mieszkańców); koszt dobrany do czasu zwrotu."""
+        from game.paga2.rail import build_options
+        cities = [{'id': 1, 'name': 'A', 'own': True, 'population': 5_000_000, 'point': [0, 0]},
+                  {'id': 2, 'name': 'B', 'own': True, 'population': 1_000_000, 'point': [10, 0]}]
+        screen = {'kmPerUnit': 1, 'cities': cities, 'lines': [], 'gdpPerCapita': '100000', 'railInfrastructure': '100'}
+        ctx = self.ctx(available=1e15); ctx.traits = {'fiscal_conservatism': 50, 'trade_propensity': trade}
+        ctx.call = lambda path, json=None, **kw: (200, {'path': [[0, 0], [10, 0]], 'partnerId': None, 'cost': str(payback_cost), 'distanceKm': '10'})
+        return build_options(ctx, screen)
+
+    def test_trade_propensity_extends_accepted_payback_and_raises_score(self):
+        # 22 Nov 2026: przyrost sieci 6 mln × 1000 ROI = 6 MLD na cykl; zwrot po 13 cyklach przekracza limit 12 (skłonność 50),
+        # ale mieści się w limicie 12 × 1,32 przy skłonności do handlu 90.
+        cost = 6e9 * 13
+        self.assertEqual(self.build(50, cost), [])
+        option = self.build(90, cost)[0]
+        self.assertIn('trade_propensity', option.traits)
+        cheap = 6e9 * 2
+        self.assertGreater(self.build(90, cheap)[0].base, self.build(20, cheap)[0].base)
+
+    def test_planner_ranks_transport_technology_by_trade_propensity(self):
+        from game.paga2 import planner
+        self.assertEqual(planner.PRIORITY_GOALS['trade'][:2], ['tech:rail_transport', 'tech:air_transport'])
+        self.assertIn('trade_propensity', planner.goal_traits('tech:rail_transport'))
+        self.assertAlmostEqual(planner.TRANSPORT_TRADE_BONUS * (100 - 50) / 50, .15)
 
     def test_main_network_pure(self):
         population = {1: 10, 2: 10, 3: 5, 4: 30, 5: 1}

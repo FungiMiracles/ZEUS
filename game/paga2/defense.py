@@ -46,6 +46,8 @@ class Forces:
         from game.military_service import buildable_bases
         self.slots=buildable_bases(session,country_id)
         self.defenses=list(session.scalars(select(MissileDefense).where(MissileDefense.panstwo_id==country_id)))
+        # 22 Nov 2026: obiekty z jakąkolwiek obroną (także pozostawioną przez poprzedniego właściciela regionu) — gra odrzuca drugą
+        self.all_defended=set(session.execute(select(MissileDefense.target_kind,MissileDefense.target_id)).all())
         self.radars=list(session.scalars(select(Radar).where(Radar.panstwo_id==country_id)))
         scope=controlled_ids(session,country_id) or [country_id]
         self.capital=session.scalar(select(Miasto.miasto_id).where(Miasto.panstwo_id.in_(scope),Miasto.miasto_typ_id==1).limit(1))
@@ -210,6 +212,9 @@ def base_options(ctx,forces,threats):
 def defense_targets(ctx,forces,threats):
     """Obiekty warte obrony przeciwrakietowej, od najważniejszych (bez regionów okupowanych — gra zabrania tam budowy)."""
     covered={(d.target_kind,d.target_id) for d in forces.defenses}
+    # 22 Nov 2026: gra odrzuca obronę obiektu, który ma już jakąkolwiek obronę — także pozostawioną przez poprzedniego
+    # właściciela regionu (Rannisjaon proponował w kółko region 249). Liczymy wszystkie istniejące obrony.
+    covered|=getattr(forces,'all_defended',set())
     occupied={int(r) for r in ctx.situation.get('occupied_regions',{})}
     targets=[]
     if forces.capital and ('city',forces.capital) not in covered:targets.append(('city',forces.capital,'stolica',8.0))

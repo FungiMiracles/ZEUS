@@ -1,4 +1,4 @@
-/* 19 Nov 2026: zakładka „Komunikacja” — kolej. Wybór dwóch miast na mapie, wycena (6 mln ROI/km, 1 dzień na 50 km),
+/* 19 Nov 2026: zakładka „Komunikacja” — kolej. Wybór dwóch miast na mapie, wycena (2,5 mln ROI/km, 1 dzień na 50 km),
    budowa linii krajowej albo wniosek o współfinansowanie do sąsiada; tory jako cienka linia z poprzecznymi kreskami,
    w budowie — ikona żurawia z dymkiem (postęp i data ukończenia). */
 (()=>{'use strict';

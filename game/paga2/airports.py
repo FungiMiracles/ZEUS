@@ -16,6 +16,7 @@ from uuid import uuid5, NAMESPACE_URL
 from game.paga2.engine import Adapter, register
 from game.paga2.scoring import Option
 from game.paga2.finance import result
+from game.paga2.rail import trade_factor, trade_bonus   # 22 Nov 2026: skłonność do handlu jak przy kolei
 
 PATH = '/game/lotniska/zmien'
 MAX_AIRPORTS = 3
@@ -34,7 +35,9 @@ def candidate(screen):
 
 def build_options(ctx, screen):
     airports = screen.get('airports') or []
-    if not screen.get('available') or len(airports) >= MAX_AIRPORTS or any(not a.get('completed') for a in airports):
+    # 22 Nov 2026: państwa skłonne do handlu budują więcej lotnisk (skłonność ≥ 75 → 4, ≤ 25 → 2)
+    most = MAX_AIRPORTS + (1 if ctx.traits.get('trade_propensity', 50) >= 75 else -1 if ctx.traits.get('trade_propensity', 50) <= 25 else 0)
+    if not screen.get('available') or len(airports) >= most or any(not a.get('completed') for a in airports):
         return []
     if any(int(m.get('have') or 0) < int(m.get('need') or 0) for m in screen.get('materials') or []):
         return []
@@ -48,9 +51,10 @@ def build_options(ctx, screen):
     others = max(0, int(screen.get('worldAirports') or 0) - sum(1 for a in airports if a.get('operational')))
     income = others * int(city.get('population') or 0) * float(screen.get('incomePerResident') or 10)
     conservatism = ctx.traits.get('fiscal_conservatism', 50)
-    limit = MAX_PAYBACK_CYCLES * (1.5 - conservatism / 100)
+    trade = trade_factor(ctx)
+    limit = MAX_PAYBACK_CYCLES * (1.5 - conservatism / 100) * trade
     if income <= 0:
-        if cost > available * FIRST_AIRPORT_SHARE:
+        if cost > available * FIRST_AIRPORT_SHARE * trade:
             return []
         payback, note = None, 'Brak innych lotnisk na świecie — połączenia powstaną, gdy zbudują je inne państwa.'
     else:
@@ -58,11 +62,11 @@ def build_options(ctx, screen):
         if payback > limit:
             return []
         note = f'Dochód z połączeń co najmniej {income/1e9:.2f} MLD na cykl, zwrot po {payback:.1f} cyklu(ach).'
-    base = 3.0 + (max(0.0, (limit - payback) / limit) * 3 if payback is not None else 0.5)
+    base = 3.0 + (max(0.0, (limit - payback) / limit) * 3 if payback is not None else 0.5) + trade_bonus(ctx)
     return [Option(key=f'airport:build:{city["id"]}', domain='economy', action='AIRPORT_BUILD',
                    label=f'Port lotniczy w mieście {city["name"]}',
                    effects={'infrastructure': .9, 'financial_stability': .4, 'trade': .5},
-                   traits={'industrialism': .3, 'fiscal_conservatism': -.2, 'ambition': .3},
+                   traits={'industrialism': .3, 'fiscal_conservatism': -.2, 'ambition': .3, 'trade_propensity': .6},
                    cost=cost, sector='infrastructure', base=base,
                    notes=[f'Koszt {cost/1e9:.2f} MLD ROI oraz surowce i chipy z magazynu. {note}'],
                    payload={'city_id': city['id'], 'expected_cost': city['cost'], 'group': 'airport:build'})]

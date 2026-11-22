@@ -158,3 +158,16 @@ class ExecuteTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class ForeignDefenseTests(unittest.TestCase):
+    def test_object_defended_by_another_country_is_not_proposed(self):
+        # 22 Nov 2026: region z obroną pozostawioną przez poprzedniego właściciela — gra odrzuca drugą obronę.
+        from types import SimpleNamespace as NS
+        from unittest.mock import patch
+        from game.paga2 import defense
+        forces=NS(defenses=[],all_defended={('region',249)},capital=None,bases=[])
+        ctx=NS(situation={'occupied_regions':{}})
+        with patch('game.paga2.planner._holdings',return_value=NS(factories=[],plants=[])):
+            targets=defense.defense_targets(ctx,forces,{249:100,250:100})
+        self.assertEqual([t[1] for t in targets],[250])

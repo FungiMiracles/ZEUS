@@ -2,7 +2,7 @@
 
 - technologie: „Transport i komunikacja” (50 pkt, 14 dni) → „Transport kolejowy” (200 pkt, 21 dni); po opracowaniu
   kolei na ekranie „Infrastruktura i energetyka” pojawia się zakładka „Komunikacja”;
-- gracz łączy dwa miasta (widoczne na mapie) torami; koszt 6 mln ROI za km trasy, pobierany z budżetu infrastruktury;
+- gracz łączy dwa miasta (widoczne na mapie) torami; koszt 2,5 mln ROI za km trasy (do 22 Nov 2026: 6 mln), pobierany z budżetu infrastruktury;
 - budowa trwa 1 dzień Entendy na każde pełne 50 km trasy (230 km → 4 dni), najmniej 1 dzień;
 - trasa biegnie wewnątrz terytorium państwa (bez terytoriów zamorskich); linia do miasta bezpośredniego sąsiada biegnie
   przez oba państwa — sąsiad musi zaakceptować współfinansowanie proporcjonalne do długości trasy po jego stronie granicy;
@@ -30,7 +30,7 @@ rail_bp = Blueprint('game_rail', __name__, url_prefix='/game/kolej')
 
 TECHNOLOGY = 'rail_transport'
 HUBS_TECHNOLOGY = 'national_hubs'
-PRICE_PER_KM = Decimal('6000000')
+PRICE_PER_KM = Decimal('2500000')   # 22 Nov 2026: obniżka z 6 mln ROI/km
 KM_PER_DAY = 50
 BONUS_RATE = Decimal('0.01')
 ENDPOINT_SNAP_KM = 25        # miasto portowe leżące tuż poza wielokątem regionu: tor zaczyna się w najbliższym punkcie lądu

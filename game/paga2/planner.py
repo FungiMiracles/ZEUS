@@ -32,8 +32,11 @@ PRIORITY_GOALS={
     'research':['tech:it_industry','tech:chip_simple','tech:energy_industry','tech:environment_tech','tech:mining_industry'],
     'infrastructure':['tech:rail_transport','tech:air_transport','power:wind','power:solar','mine:kamien','mine:wegiel_kamienny'],   # 19 Nov 2026: kolej; 20 Nov 2026: lotnictwo
     'environment':['tech:air_filters','tech:waste_filters','power:solar','power:wind'],
-    'trade':['mine:zloto','mine:srebro','mine:kerbit','mine:natsyt','mine:ropa_naftowa','tech:rail_transport','tech:air_transport'],
+    # 22 Nov 2026: kolej i lotnictwo na początku — od zmiany handlu (magazyny, drogi dostawy) są warunkiem handlu lądowego i lotniczego
+    'trade':['tech:rail_transport','tech:air_transport','mine:zloto','mine:srebro','mine:kerbit','mine:natsyt','mine:ropa_naftowa'],
 }
+TRANSPORT_GOALS=('tech:rail_transport','tech:air_transport')
+TRANSPORT_TRADE_BONUS=.15   # premia w wyborze nowych celów: ×(skłonność do handlu − 50)/50 (skłonność 100 → +0,15 ≈ waga 1. priorytetu)
 # Powinowactwo cech do rodzajów celów (skala -1..1).
 MILITARY_FACTORIES={'tanks','missiles','armored','drones','fighters','shipyard','interceptor_ammo'}
 
@@ -60,6 +63,7 @@ def goal_traits(goal):
     if kind=='power':return {'industrialism':.4,'ecology':.6 if code in ('wind','solar') else -.6}
     if code in ('air_filters','waste_filters','environment_tech'):return {'ecology':.8}
     if code=='radar':return {'militarism':.4,'secrecy':.3}
+    if goal in TRANSPORT_GOALS:return {'trade_propensity':.8,'industrialism':.3,'isolationism':-.3,'ambition':.2}   # 22 Nov 2026
     return {'ambition':.3}
 
 
@@ -270,7 +274,10 @@ def propose(ctx):
                     if goal in goals or goal in closed:continue
                     candidates.setdefault(goal,{'effects':{},'priority':priority})
                     candidates[goal]['effects'][priority]=max(candidates[goal]['effects'].get(priority,0),1.0-.15*rank)
-            for goal,info in sorted(candidates.items(),key=lambda item:-sum(weights[p]*v for p,v in item[1]['effects'].items()))[:6]:
+            # 22 Nov 2026: skłonność do handlu podnosi technologie transportu (kolej, lotnictwo) w kolejce celów
+            trade_bonus=TRANSPORT_TRADE_BONUS*(ctx.traits.get('trade_propensity',50)-50)/50
+            rank=lambda item:sum(weights[p]*v for p,v in item[1]['effects'].items())+(trade_bonus if item[0] in TRANSPORT_GOALS else 0)
+            for goal,info in sorted(candidates.items(),key=lambda item:-rank(item))[:6]:
                 evaluation=decompose(goal,h)
                 if evaluation.impossible or evaluation.done():continue
                 cost=sum(s['cost'] for s in evaluation.steps if s['status'] in ('ready','blocked'))

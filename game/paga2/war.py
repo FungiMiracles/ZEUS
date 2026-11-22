@@ -6,6 +6,7 @@ Wykonalność sprawdzana przed decyzją: sprawna baza z odpowiednim sprzętem, z
 szacowana przewaga w bitwie. Uderzenie jądrowe (13 Nov 2026) — wyłącznie w stanie wojny i w ostateczności (przegrywana
 wojna: wróg okupuje nasze regiony albo użył broni atomowej przeciw nam), rakietą z głowicą nuklearną z silosu (zasięg 3000 km).
 """
+import math
 from decimal import Decimal
 from uuid import uuid5,NAMESPACE_URL
 from sqlalchemy import select
@@ -161,6 +162,7 @@ def nuclear_strike_options(ctx,forces,screen,config,enemies):
 
 DEFEAT_MARGIN=.3        # o tyle rośnie wymagana przewaga po każdej porażce o ten sam cel
 MAX_MARGIN=3.0
+MIN_LAND_FORCE=500       # 22 Nov 2026: najmniejsza wysyłana siła (żołnierze + 3×wozy + 5×czołgi), gdy cel jest prawie bez obrony
 BATTLE_MEMORY_DAYS=90
 
 
@@ -323,8 +325,11 @@ def land_options(ctx,forces,screen,config,enemies,recapture_targets):
                 options+=readiness_options(ctx,forces,base,kind,id,owner,recapture,required,ours,plan)
             continue
         if plan is not None:update_plan(plan,readiness_steps(base,ours,required,margin,defeats,label),reason='Armia gotowa — atak.')
-        scale=min(1.0,required*1.15/ours) if ours else 1.0
-        units={u:int(garrison[u]*scale) for u in WEIGHTS}
+        # 22 Nov 2026: cel prawie bez obrony dawał skalę ~0 i armię bez jednostek (gra: „Wybierz żołnierzy lub sprzęt”,
+        # opcja wracała w każdym przebiegu). Najmniejsza wysyłana siła: MIN_LAND_FORCE (ważona), zaokrąglenie w górę.
+        scale=min(1.0,max(required*1.15,MIN_LAND_FORCE)/ours) if ours else 1.0
+        units={u:min(garrison[u],math.ceil(garrison[u]*scale)) for u in WEIGHTS}
+        if not any(units.values()):continue
         cost=float(sum(UNIT_COST[u]*units[u] for u in WEIGHTS))
         distance=km(ctx,[base.map_x,base.map_y],point) or 0
         options.append(Option(key=f'war:land:{kind}:{id}',domain='war',action='RECAPTURE' if recapture else 'LAND_ATTACK',label=f'{label} ({distance:.0f} km)',
