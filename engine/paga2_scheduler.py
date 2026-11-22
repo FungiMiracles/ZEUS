@@ -158,7 +158,7 @@ def run_tick(app):
 def start_paga2_scheduler(app):
     if app.config.get('ENV_NAME')!='UAT' or not app.config.get('PAGA_ENABLED'):return None
     if app.extensions.get('paga2_scheduler'):return app.extensions['paga2_scheduler']
-    import game.paga2.budget,game.paga2.planner,game.paga2.finance,game.paga2.industry,game.paga2.trade,game.paga2.defense,game.paga2.diplomacy,game.paga2.intelligence,game.paga2.war,game.paga2.communication,game.paga2.bases_abroad,game.paga2.mines_abroad,game.paga2.rail,game.paga2.airports,game.paga2.cities  # noqa: F401  rejestracja adapterów
+    import game.paga2.budget,game.paga2.planner,game.paga2.finance,game.paga2.industry,game.paga2.trade,game.paga2.defense,game.paga2.diplomacy,game.paga2.intelligence,game.paga2.war,game.paga2.communication,game.paga2.bases_abroad,game.paga2.mines_abroad,game.paga2.rail,game.paga2.airports,game.paga2.cities,game.paga2.warehouse  # noqa: F401  rejestracja adapterów
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler=BackgroundScheduler(timezone='UTC')
     scheduler.add_job(run_tick,'interval',seconds=TICK_SECONDS,args=[app],id='paga2',max_instances=1,coalesce=True,misfire_grace_time=TICK_SECONDS)

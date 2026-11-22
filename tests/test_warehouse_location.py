@@ -67,17 +67,32 @@ class WarehouseLocationTests(CommerceFixture):
         self.assertIn("if (config.required) event.preventDefault()", script, 'the mandatory window cannot be dismissed')
         self.assertIn('"game_warehouse"', (ROOT / 'zeus_app.py').read_text())
 
-    def test_paga2_warehouse_in_largest_own_port_city(self):
-        from game.paga_ai_models import PagaAiIdentity
-        PagaAiIdentity.__table__.create(db.engine, checkfirst=True)
-        db.session.add(Miasto(miasto_id=120, panstwo_id=2, region_id=2, miasto_nazwa='Duży port 2', czy_portowe='TAK', czy_na_mapie='TAK', miasto_populacja=900))
-        db.session.add(Miasto(miasto_id=121, panstwo_id=2, region_id=2, miasto_nazwa='Stolica 2', czy_portowe='NIE', czy_na_mapie='TAK', miasto_typ_id=1, miasto_populacja=5000))
-        db.session.add(PagaAiIdentity(country_id=2, user_id=2)); db.session.commit()
-        self.assertEqual(warehouse.warehouse_city(db.session, 2), 120, 'AI: largest own port city, not the capital')
-        self.assertEqual(warehouse.assign_ai_warehouses(db.session), [(2, 120)]); db.session.commit()
-        self.assertEqual(warehouse.chosen_city(db.session, 2), 120)
-        self.assertEqual(warehouse.assign_ai_warehouses(db.session), [], 'already in a port city')
-        self.assertEqual(warehouse.warehouse_city(db.session, 1), 111, 'players without a choice keep the capital')
+    def test_paga2_chooses_its_own_warehouse_by_character(self):
+        # 22 Nov 2026: PAGA2 wybiera magazyn sama — handlowa: port / kolej, ostrożna: stolica; bez wyboru — stolica.
+        from types import SimpleNamespace as NS
+        from game.paga2.warehouse import options_for
+        self.assertEqual(warehouse.warehouse_city(db.session, 1), 111, 'no choice yet: capital')
+        cities = [{'id': 1, 'name': 'Stolica', 'capital': True, 'port': False, 'rail': False, 'airport': False, 'population': 900},
+                  {'id': 2, 'name': 'Port', 'capital': False, 'port': True, 'rail': True, 'airport': False, 'population': 500}]
+        trader = NS(traits={'trade_propensity': 95, 'isolationism': 10, 'militarism': 10})
+        cautious = NS(traits={'trade_propensity': 10, 'isolationism': 95, 'militarism': 90})
+        best = lambda ctx: max(options_for(ctx, {'cities': cities, 'current': None}), key=lambda o: o.base)
+        self.assertEqual(best(trader).payload['city_id'], 2)
+        self.assertEqual(best(cautious).payload['city_id'], 1)
+        self.assertTrue(all(o.payload['required'] for o in options_for(trader, {'cities': cities, 'current': None})))
+        from unittest.mock import patch
+        with patch('game.paga2.trade.recent_policy', return_value=False):
+            self.assertEqual(options_for(trader, {'cities': cities, 'current': 2}), [], 'already in the best city')
+            [move] = options_for(trader, {'cities': cities, 'current': 1})
+            self.assertFalse(move.payload['required'])
+        with patch('game.paga2.trade.recent_policy', return_value=True):
+            self.assertEqual(options_for(trader, {'cities': cities, 'current': 1}), [], 'changes at most every 180 days')
+
+    def test_state_endpoint_lists_city_features(self):
+        with self.app.test_request_context():
+            data = warehouse.screen_state(db.session, 1)
+        city = next(c for c in data['cities'] if c['id'] == 101)
+        self.assertTrue(city['port']); self.assertIn('rail', city); self.assertIn('airport', city)
 
     def test_marker_does_not_pass_an_undefined_pane(self):
         script = (ROOT / 'static/js/game_warehouse_location.js').read_text()

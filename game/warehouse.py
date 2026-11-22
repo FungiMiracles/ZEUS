@@ -3,8 +3,8 @@
 * Po zatwierdzeniu pierwszego budżetu gracz musi w oknie z mapą wskazać miasto, w którym fizycznie znajduje się magazyn
   jego państwa (okno wraca, dopóki wybór nie zostanie zapisany; gdy państwo utraci kontrolę nad miastem — także).
 * Lokalizację można później zmienić (ekran handlu → „Zmień lokalizację magazynu”).
-* Państwa AI (PAGA2) nie wybierają ręcznie — ich magazyn jest w największym własnym mieście portowym (bez portu: w stolicy);
-  gracz, dopóki nie wybierze, ma magazyn w stolicy.
+* Państwa PAGA2 wybierają magazyn same (game.paga2.warehouse) — według skłonności do handlu (port, kolej, lotnisko)
+  i ostrożności (stolica); do wyboru, tak jak gracz, mają magazyn w stolicy.
 * Magazyn jest punktem nadania i odbioru towarów w handlu (game.trade_routes); ikona MAGAZYN.svg obok miasta jest
   widoczna tylko dla państwa-właściciela na mapach: panel państwa, świat, handel.
 """
@@ -59,58 +59,29 @@ def chosen_city(session, country_id):
     return row.miasto_id if row is not None and _valid(session, country_id, row.miasto_id) else None
 
 
-def is_ai(session, country_id):
-    """Państwo prowadzone przez PAGA (tożsamość AI)."""
-    from sqlalchemy import inspect
-    from game.paga_ai_models import PagaAiIdentity
-    if not inspect(session.connection()).has_table(PagaAiIdentity.__tablename__):
-        return False
-    return session.scalar(select(PagaAiIdentity.country_id).where(PagaAiIdentity.country_id == country_id)) is not None
-
-
-def port_city(session, country_id):
-    """22 Nov 2026: magazyn PAGA2 — największe własne miasto portowe na mapie (bez portu: stolica)."""
-    from game.governance import controller_id
-    from game.trade_service import ports, capital_city
-    own = [city for city in ports(session) if controller_id(session, city.panstwo_id) == country_id]
-    if own:
-        return max(own, key=lambda city: (int(city.miasto_populacja or 0), -city.miasto_id)).miasto_id
-    return capital_city(session, country_id)
-
-
 def warehouse_city(session, country_id):
-    """Miasto magazynu do transportu: wybrane miasto; bez wyboru — PAGA2: największe własne miasto portowe,
-    gracz: stolica państwa."""
+    """Miasto magazynu do transportu: wybrane miasto, a bez wyboru — stolica państwa. Państwa PAGA2 wybierają magazyn
+    same (game.paga2.warehouse), do tego czasu obowiązuje stolica."""
     city = chosen_city(session, country_id)
     if city is not None:
         return city
-    if is_ai(session, country_id):
-        return port_city(session, country_id)
     from game.trade_service import capital_city
     return capital_city(session, country_id)
 
 
-def assign_ai_warehouses(session):
-    """Zapisuje magazyny państw PAGA2 w miastach portowych (bez ważnego wyboru albo z magazynem poza portem)."""
-    from game.paga_ai_models import PagaAiIdentity
-    from game.trade_service import ports
-    port_ids = {city.miasto_id for city in ports(session)}
-    changed = []
-    for country_id in session.scalars(select(PagaAiIdentity.country_id).order_by(PagaAiIdentity.country_id)):
-        current = chosen_city(session, country_id)
-        if current is not None and current in port_ids:
-            continue
-        city = port_city(session, country_id)
-        if city is None:
-            continue
-        row = session.get(Warehouse, country_id)
-        if row is None:
-            row = Warehouse(panstwo_id=country_id)
-            session.add(row)
-        row.miasto_id, row.user_id, row.chosen_at = city, None, utc_now()
-        changed.append((country_id, city))
-    session.flush()
-    return changed
+def screen_state(session, country_id):
+    """22 Nov 2026: stan dla ekranu/PAGA2 — miasta państwa z cechami ważnymi dla magazynu (port, lotnisko, sieć kolejowa)."""
+    from game.airports import own_operational
+    from game.rail import network
+    cities = candidate_cities(session, country_id)
+    ports = set(session.scalars(select(Miasto.miasto_id).where(Miasto.miasto_id.in_([c['id'] for c in cities] or [0]), Miasto.czy_portowe == 'TAK')))
+    airports = {a.miasto_id for a in own_operational(session, country_id)}
+    rail = network(session, country_id)[0]
+    row = session.get(Warehouse, country_id)
+    for city in cities:
+        city.update(port=city['id'] in ports, airport=city['id'] in airports, rail=city['id'] in rail)
+    return {'cities': cities, 'current': chosen_city(session, country_id),
+            'chosenAt': row.chosen_at.isoformat() + 'Z' if row is not None and row.chosen_at else None}
 
 
 def required(session, country_id):
@@ -156,6 +127,19 @@ def modal_config(session, country_id, required_now):
     return {'required': bool(required_now), 'csrf': web_session.get('game_csrf_token', ''), 'saveUrl': url_for('game_warehouse.save'),
             'regionsUrl': url_for('static', filename='maps/entenda_regiony.geojson'), 'icon': url_for('static', filename='icons/MAGAZYN.svg'),
             'cities': candidate_cities(session, country_id), 'current': chosen_city(session, country_id)}
+
+
+@warehouse_bp.get('/stan')
+def state():
+    from game.forum import player
+    user, country = player()
+    if user is None or country is None:
+        return jsonify(error='Zaloguj się ponownie.'), 401
+    data = screen_state(db.session, country.PANSTWO_ID)
+    db.session.rollback()
+    response = jsonify(data)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @warehouse_bp.post('/lokalizacja')
