@@ -258,6 +258,26 @@ def create_app():
             app.logger.exception('Pasek boczny gry: magazyn')
             return {}
 
+    from game.society_strip import install as install_society_trends
+    install_society_trends()
+
+    @app.context_processor
+    def game_society_strip():
+        # 22 Nov 2026: pasek wskaźników społecznych pod menu (kolory progów, trend dwóch ostatnich zmian).
+        from flask import request,session
+        if not request.path.startswith('/game/') and request.path!='/game':return {}
+        user_id=session.get('game_user_id')
+        if type(user_id) is not int:return {}
+        try:
+            from sqlalchemy import select
+            from game.models import GamePlayerCountry
+            from game.society_strip import society_strip
+            country_id=db.session.scalar(select(GamePlayerCountry.panstwo_id).where(GamePlayerCountry.user_id==user_id))
+            return {'game_society_strip':society_strip(db.session,country_id)} if country_id else {}
+        except Exception:
+            app.logger.exception('Pasek wskaźników społecznych')
+            return {}
+
     @app.context_processor
     def inject_entenda_clock():
 

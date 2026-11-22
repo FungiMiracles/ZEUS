@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261121-icons-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261114-nav-6') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261116-pop-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261122-society-1') }}">
 {# 13 Nov 2026: arkusze ekranów w nowej stylistyce — wczytywane na końcu #}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_tutorial.css', v='20261115-tutorial-3') }}">
 {% block late_css %}{% endblock %}
@@ -103,6 +103,23 @@
   </div>
   <div class="game-rail-footer"><span>Zarządzasz państwem</span><strong>{{ game_country.nazwa if game_country else 'ENTENDA' }}</strong></div>
 </nav>
+{# 22 Nov 2026: wskaźniki społeczne zarządzanego państwa — pod menu, nad paskiem wiadomości #}
+{% if game_society_strip %}
+<div class="game-society-strip" role="region" aria-label="Wskaźniki społeczne państwa" tabindex="0">
+  <ul>
+  {% for item in game_society_strip %}
+    {% set trend_label = {'up':'dwie ostatnie zmiany: wzrost','down':'dwie ostatnie zmiany: spadek','mixed':'ostatnie zmiany: wzrost i spadek'}.get(item.trend, 'brak zarejestrowanych zmian') %}
+    <li class="society-chip tone-{{ item.tone }}" title="{{ item.label }}: {{ item.value if item.value is not none else '—' }} ({{ trend_label }})">
+      <span class="society-chip-label">{{ item.label }}</span>
+      <strong class="society-chip-value">{{ item.value if item.value is not none else '—' }}</strong>
+      {%- if item.trend == 'up' %}<span class="society-trend trend-up" aria-label="{{ trend_label }}">▲</span>
+      {%- elif item.trend == 'down' %}<span class="society-trend trend-down" aria-label="{{ trend_label }}">▼</span>
+      {%- elif item.trend == 'mixed' %}<span class="society-trend trend-mixed" aria-label="{{ trend_label }}">–</span>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
 {# 13 Nov 2026: pasek wiadomości Entendy bezpośrednio pod menu #}
 <div class="game-news-bar">
   <div class="game-news" aria-label="Wydarzenia Entendy">
@@ -438,7 +455,7 @@
 <script src="{{ url_for('static', filename='js/game_tutorial.js', v='20261115-tutorial-2') }}" defer></script>
 {% endif %}
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
-<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261121-effects-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_notifications.js', v='20261122-keep-open-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_ui.js', v='20261115-layer-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261114-sidebar-11') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>

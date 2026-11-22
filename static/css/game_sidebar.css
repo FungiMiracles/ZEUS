@@ -211,3 +211,21 @@ html body.game-app .sidebar-drawer-tab,html body.game-app .sidebar-drawer-backdr
   html body.game-app.game-navy.game-civic .game-navigation .game-rail-brand>span:not(.game-rail-mark){display:none}
   html body.game-app.game-navy.game-civic .game-navigation .game-nav-clock .game-time-info{display:none}
 }
+/* 22 Nov 2026: pasek wskaźników społecznych pod menu — jeden rząd, przewijany poziomo (bez zawijania) */
+html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-society-strip{grid-column:1/-1}
+html body.game-app.game-navy.game-civic .game-society-strip{min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:thin;background:#1b3657;border-bottom:1px solid #0f2238}
+html body.game-app.game-navy.game-civic .game-society-strip ul{display:flex;flex-wrap:nowrap;gap:5px;width:max-content;min-width:100%;margin:0;padding:6px 12px;list-style:none;box-sizing:border-box}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:5px;margin:0;padding:4px 8px;border-radius:6px;border:1px solid #ffffff2e;background:#2a4a73;color:#fff;font-size:12px;line-height:1.3;white-space:nowrap}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip.tone-good{background:#2e7d4f;border-color:#3f9a64}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip.tone-warn{background:#e3b341;border-color:#f0c660;color:#1e2a38}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip.tone-bad{background:#b3261e;border-color:#cf3a30}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip-label{font-weight:600}
+html body.game-app.game-navy.game-civic .game-society-strip .society-chip-value{font-size:13.5px;font-weight:800;color:inherit}
+html body.game-app.game-navy.game-civic .game-society-strip .society-trend{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#0f2238;font-size:10px;line-height:1}
+html body.game-app.game-navy.game-civic .game-society-strip .trend-up{color:#4cd07d}
+html body.game-app.game-navy.game-civic .game-society-strip .trend-down{color:#ff6b6b}
+html body.game-app.game-navy.game-civic .game-society-strip .trend-mixed{color:#d3d9e0;font-size:15px;font-weight:900}
+@media(max-width:900px){
+  html body.game-app.game-navy.game-civic .game-society-strip ul{padding:6px 10px}
+  html body.game-app.game-navy.game-civic .game-society-strip .society-chip{flex:0 0 auto;font-size:11.5px}
+}

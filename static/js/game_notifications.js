@@ -32,8 +32,7 @@
         dialogStatus.textContent = data.status;
         accept.hidden = reject.hidden = !data.can_decide;
         accept.disabled = reject.disabled = false;
-        root.open = false; settle();
-        dialog.showModal();
+        dialog.showModal();   // 22 Nov 2026: lista powiadomień zostaje otwarta pod oknem
     }
     async function decide(value) {
         if (deciding || !decisionUrl) return;
@@ -82,7 +81,6 @@
         effects.replaceChildren();
         appendEffects(effects, data.effects);
         if (!data.effects.length) effects.textContent = "Brak zarejestrowanych zmian wskaźników.";
-        root.open = false; settle();
         eventDialog.showModal();
     }
 
@@ -94,7 +92,7 @@
         document.getElementById('game-intelligence-date').textContent='Zakończenie (Entenda): '+data.date;
         const entries=document.getElementById('game-intelligence-entries');entries.replaceChildren();
         for(const item of data.entries){const label=document.createElement('dt'),value=document.createElement('dd');label.textContent=item.label;value.textContent=item.value;entries.append(label,value);}
-        root.open=false;settle();intelligenceDialog.showModal();
+        intelligenceDialog.showModal();
     };
 
     async function load(page = 1, countOnly = false) {
@@ -250,7 +248,8 @@
     root.addEventListener("keydown", escape);
     layer.addEventListener("keydown", escape);
     document.addEventListener("click", event => {
-        if (root.open && !root.contains(event.target) && !layer.contains(event.target)) root.open = false;
+        // Kliknięcia w oknach modalnych (i ich tle) nie zamykają listy powiadomień.
+        if (root.open && !root.contains(event.target) && !layer.contains(event.target) && !event.target.closest?.("dialog")) root.open = false;
     });
     more.addEventListener("click", () => { if (nextPage) load(nextPage); });
     document.addEventListener("visibilitychange", () => { if (!document.hidden) load(1, true); });
