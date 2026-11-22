@@ -173,8 +173,21 @@
     }
     function regionTooltip(id,region){
         const node=make('div');node.append(make('span',region.name));
-        const occupied=occupation('region',id);if(occupied){const label=make('div',null,'land-occupied-label');label.append(make('span','Okupowany przez:'),flag(occupied.occupierId));node.append(label);}
+        const occupied=occupation('region',id);if(occupied){const label=make('div',null,'land-occupied-label');label.append(make('span','Okupowany przez:'),flag(occupied.occupierId));node.append(label);
+            const countdown=annexCountdown(occupied);if(countdown)node.append(make('div',countdown,'land-annex-countdown'));}
         return node;
+    }
+    // Czas do aneksji okupowanego regionu (22 Nov 2026): czas Entendy i jego odpowiednik w czasie rzeczywistym.
+    function durationText(ms){
+        const minutes=Math.max(1,Math.ceil(ms/6e4)),d=Math.floor(minutes/1440),h=Math.floor(minutes%1440/60),m=minutes%60;
+        const parts=[];if(d)parts.push(d+' d');if(h)parts.push(h+' godz.');if(m&&!d)parts.push(m+' min');return parts.join(' ');
+    }
+    function annexCountdown(row){
+        const at=Date.parse(row.annexAt);if(!Number.isFinite(at))return '';
+        const left=at-api.currentGameTime();
+        if(left<=0)return row.occupierId===cfg.countryId?'Aneksja możliwa — region można już anektować.':'Aneksja możliwa — okupant może już anektować region.';
+        const real=left/(Number(cfg.timeMultiplier)||1);
+        return `Do aneksji: ${durationText(left)} Entendy (ok. ${durationText(real)} w czasie rzeczywistym)`;
     }
 
     // ---------- inwazja ----------

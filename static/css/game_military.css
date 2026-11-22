@@ -91,6 +91,7 @@
 .land-flag{display:inline-flex;align-items:center;gap:5px;font-weight:600}
 .land-flag img{width:22px;height:14px;object-fit:cover;border:1px solid #0003}
 .land-occupied-label{display:flex;flex-wrap:wrap;align-items:center;gap:5px;color:#b3261e;font-weight:600}
+.land-annex-countdown{margin-top:3px;color:#7a1f18;font-size:.92em}
 .land-invasion-marker{background:transparent;border:0}
 .land-invasion-symbol{width:34px;height:34px;border-radius:50%;background:#c62828;border:2px solid #fff;box-shadow:0 0 0 2px #c62828a8,0 2px 6px #0006;display:grid;place-items:center}
 .land-invasion-symbol img{width:22px;height:22px;filter:brightness(0) invert(1)}
