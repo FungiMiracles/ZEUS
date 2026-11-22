@@ -82,7 +82,13 @@
     function modal(title, build, handler) {
         dialog.classList.remove('military-object-selected');
         document.getElementById('military-dialog-title').textContent = title; fields.replaceChildren();
-        document.getElementById('military-dialog-error').textContent = ''; document.getElementById('military-dialog-confirm').disabled=false; submit = handler; build(); dialog.showModal();
+        document.getElementById('military-dialog-error').textContent = ''; document.getElementById('military-dialog-confirm').disabled=false;
+        // 22 Nov 2026: domyślne etykiety i brak dodatkowych przycisków (okno okupacji dodaje własne do rzędu akcji).
+        document.getElementById('military-dialog-confirm').textContent='Zatwierdź';document.getElementById('military-dialog-confirm').hidden=false; document.getElementById('military-dialog-cancel').textContent='Anuluj';
+        const confirmButton=document.getElementById('military-dialog-confirm'),decision=confirmButton.closest('.military-dialog-decision');
+        if(decision)decision.replaceWith(confirmButton);
+        dialog.querySelectorAll('.military-dialog-extra').forEach(node=>node.remove());
+        submit = handler; build(); dialog.showModal();
     }
     async function post(data) {
         const response = await fetch(config.changeUrl, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRF-Token':config.csrf},body:JSON.stringify(data)});
@@ -697,7 +703,7 @@
     }
     // Po trafieniu (animacja dociera do celu) stan odświeżany od razu, nie dopiero przy kolejnym cyklu 5 s.
     function refreshAfterImpact(){clearTimeout(impactRefresh);impactRefresh=setTimeout(refreshState,1500);}
-    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,
+    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,
         showRegion:(...args)=>showRegion(...args),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     window.GameRadar?.attach(map);
     const rawDistance=map.distance.bind(map);map.distance=(a,b)=>rawDistance(a,b)*config.kmPerUnit*1000;

@@ -175,12 +175,12 @@
                 </div>
                 {# 19 Nov 2026: dochody z kolei — PKB per capita × 0,01 × ludność miast połączonych koleją #}
                 <div data-rail-income-row hidden>
-                    <dt>Dochody z kolei</dt>
+                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/KOLEJ.svg') }}" alt="">Dochody z kolei</dt>
                     <dd data-value="rail_income" data-money>—</dd>
                 </div>
                 {# 20 Nov 2026: dochody z połączeń lotniczych — (ludność A + ludność B) × 10 ROI za czynne połączenie #}
                 <div data-air-income-row hidden>
-                    <dt>Dochody z lotnictwa</dt>
+                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="">Dochody z lotnictwa</dt>
                     <dd data-value="air_income" data-money>—</dd>
                 </div>
                 {# 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem środków (najwyżej 65% budżetu) #}

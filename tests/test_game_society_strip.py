@@ -12,8 +12,8 @@ from models import Panstwo, Spoleczenstwo
 
 class ToneAndTrendTest(unittest.TestCase):
     def test_thresholds_for_positive_indicators(self):
-        self.assertEqual([tone(v, True) for v in (71, 70, 65, 60, 59, 40, 39, 0)],
-                         ['good', 'neutral', 'neutral', 'neutral', 'warn', 'warn', 'bad', 'bad'])
+        self.assertEqual([tone(v, True) for v in (71, 70, 69, 60, 59, 40, 39, 0)],
+                         ['good', 'good', 'warn', 'warn', 'warn', 'warn', 'bad', 'bad'])
 
     def test_thresholds_for_harmful_indicators(self):
         self.assertEqual([tone(v, False) for v in (71, 70, 60, 59, 30, 29, 0)],
@@ -74,7 +74,7 @@ class RecordingTest(unittest.TestCase):
         items = society_strip(db.session, 7)
         self.assertEqual([i['label'] for i in items], ['Stabilność społeczna', 'Zadowolenie społeczne', 'Edukacja', 'Zdrowie',
                                                      'Przestępczość', 'Radykalizacja', 'Nierówności społeczne', 'Zaufanie do władzy'])
-        self.assertEqual([i['tone'] for i in items], ['warn', 'good', 'neutral', 'bad', 'good', 'warn', 'bad', 'warn'])
+        self.assertEqual([i['tone'] for i in items], ['warn', 'good', 'warn', 'bad', 'good', 'warn', 'bad', 'warn'])
         self.change(poziom_edukacji=66); self.change(poziom_edukacji=64)
         source = (Path(__file__).resolve().parents[1] / 'templates/game/game_base_layout.html').read_text()
         block = source[source.index('{% if game_society_strip %}'):source.index('{# 13 Nov 2026: pasek wiadomości')]

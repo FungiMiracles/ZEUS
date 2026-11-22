@@ -13,7 +13,7 @@ class LandArmy(db.Model):
     panstwo_id = db.Column(db.Integer, db.ForeignKey('panstwa.PANSTWO_ID'), nullable=False, index=True)
     user_id = db.Column(db.Integer, nullable=True)
     request_id = db.Column(db.String(36), nullable=False)
-    # invasion: przemarsz do celu; city_defense: obrona własnego miasta
+    # invasion: przemarsz do celu; city_defense: obrona własnego miasta; intercept: przechwycenie wrogiej armii w marszu (22 Nov 2026)
     role = db.Column(db.String(16), nullable=False)
     # MARCHING -> (bitwa) OCCUPYING / DESTROYED; DEFENDING (obrona miasta); WITHDRAWN (powrót do bazy); MERGED (wcielona po aneksji/odbiciu)
     status = db.Column(db.String(16), nullable=False, index=True)
@@ -21,7 +21,8 @@ class LandArmy(db.Model):
     soldiers = db.Column(db.BigInteger, nullable=False, default=0)
     armored = db.Column(db.BigInteger, nullable=False, default=0)
     tanks = db.Column(db.BigInteger, nullable=False, default=0)
-    target_kind = db.Column(db.String(8), nullable=False)          # base / city
+    target_kind = db.Column(db.String(8), nullable=False)          # base / city / army (przechwycenie)
+    target_army_id = db.Column(db.Integer, db.ForeignKey('game_land_armies.id', ondelete='SET NULL'))   # 22 Nov 2026
     target_base_id = db.Column(db.Integer, db.ForeignKey('game_military_bases.id', ondelete='SET NULL'))
     target_city_id = db.Column(db.Integer, db.ForeignKey('miasta.miasto_id'))
     target_country_id = db.Column(db.Integer, nullable=False)
@@ -44,8 +45,8 @@ class LandArmy(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
     __table_args__ = (db.UniqueConstraint('panstwo_id', 'request_id', name='uq_land_army_request'),
                       db.CheckConstraint('soldiers >= 0 AND armored >= 0 AND tanks >= 0', name='ck_land_army_units'),
-                      db.CheckConstraint("role IN ('invasion','city_defense')", name='ck_land_army_role'),
-                      db.CheckConstraint("target_kind IN ('base','city')", name='ck_land_army_target'),
+                      db.CheckConstraint("role IN ('invasion','city_defense','intercept')", name='ck_land_army_role'),
+                      db.CheckConstraint("target_kind IN ('base','city','army')", name='ck_land_army_target'),
                       {'mysql_engine': 'InnoDB'})
 
 

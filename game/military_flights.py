@@ -99,7 +99,13 @@ def launch_flight(session,country_id,army,target,order,data):
     target_radar=session.get(Radar,data['target_radar_id']) if data.get('target_radar_id') is not None else None
     from game.airport_models import Airport
     target_airport=session.get(Airport,data['target_airport_id']) if data.get('target_airport_id') is not None else None
-    if target_airport is not None:
+    # 22 Nov 2026: wroga armia maszerująca po naszym terytorium
+    from game.land_war_models import LandArmy
+    target_army=session.get(LandArmy,data['target_army_id']) if data.get('target_army_id') is not None else None
+    if target_army is not None:
+        from game.land_war import army_position
+        destination=list(army_position(target_army,now))
+    elif target_airport is not None:
         destination=[target_airport.map_x,target_airport.map_y]
     elif target_radar is not None:
         destination=[target_radar.map_x,target_radar.map_y]
@@ -117,7 +123,7 @@ def launch_flight(session,country_id,army,target,order,data):
         from game.military_navy import vessel_position
         destination=vessel_position(target_vessel,now)
     else:destination=[target_mine.map_x,target_mine.map_y] if target_mine else [target_base.map_x,target_base.map_y] if target_base else city_point(city.miasto_id) if city else region_point(target.region_id)
-    target_name=target_airport.name if target_airport else f'Radar #{target_radar.id}' if target_radar else (__import__('game.industry_catalog',fromlist=['POWER_PLANTS']).POWER_PLANTS[target_power.kind]['label']+f' #{target_power.id}') if target_power else f'Fabryka amunicji #{target_factory.id}' if target_factory else f'Statek handlowy #{target_shipment.id}' if target_shipment else f'Obrona przeciwrakietowa #{target_defense.id}' if target_defense else (NAMES[target_mine.resource]+f' #{target_mine.id}') if target_mine else (target_base.name or f'Baza #{target_base.id}') if target_base else (target_vessel.name or f'Okręt #{target_vessel.id}') if target_vessel else city.miasto_nazwa if city else target.region_nazwa
+    target_name=target_army_name(session,target_army) if target_army else target_airport.name if target_airport else f'Radar #{target_radar.id}' if target_radar else (__import__('game.industry_catalog',fromlist=['POWER_PLANTS']).POWER_PLANTS[target_power.kind]['label']+f' #{target_power.id}') if target_power else f'Fabryka amunicji #{target_factory.id}' if target_factory else f'Statek handlowy #{target_shipment.id}' if target_shipment else f'Obrona przeciwrakietowa #{target_defense.id}' if target_defense else (NAMES[target_mine.resource]+f' #{target_mine.id}') if target_mine else (target_base.name or f'Baza #{target_base.id}') if target_base else (target_vessel.name or f'Okręt #{target_vessel.id}') if target_vessel else city.miasto_nazwa if city else target.region_nazwa
     if destination is None:
         raise FinanceError('Brak współrzędnych celu na mapie.')
     source=[base.map_x,base.map_y] if base else None
@@ -138,6 +144,11 @@ def launch_flight(session,country_id,army,target,order,data):
             if distance_km(session,source,point)>middle*attack_speed/3600:lo=middle
             else:hi=middle
         destination=vessel_position(target_vessel,now+timedelta(seconds=hi))
+    if target_army is not None:
+        from game.land_war import catch_up
+        meeting=catch_up(session,source,target_army,FIGHTER_SPEED if order.kind=='air' else speed,now)
+        if meeting is None:raise FinanceError('Armia dotrze do celu, zanim atak będzie mógł ją dosięgnąć.')
+        destination=list(meeting[1])
     if target_shipment is not None:
         from game.trade_navigation import shipment_position
         attack_speed=FIGHTER_SPEED if order.kind=='air' else speed
@@ -172,16 +183,18 @@ def launch_flight(session,country_id,army,target,order,data):
     duration=max(1,distance/(FIGHTER_SPEED if order.kind=='air' else speed)*3600)
     impact=now+timedelta(seconds=duration)
     if target_shipment is not None and impact>=target_shipment.arrives_at:raise FinanceError('Statek dotrze do portu przed trafieniem.')
+    if target_army is not None and impact>=target_army.arrives_at:raise FinanceError('Armia dotrze do celu przed trafieniem.')
     fighter_seconds=max(1,distance/FIGHTER_SPEED*3600)
     order.payload={**order.payload,'source_base_id':base.id if base else None,'city_id':city.miasto_id if city else None,
-                   'target_name':target_name}
-    if target_shipment is not None:
+                   'target_name':target_name,**({'target_army_id':target_army.id} if target_army is not None else {})}
+    if target_army is not None:attacked_country=target_army.panstwo_id
+    elif target_shipment is not None:
         from game.trade_navigation import target_country
         attacked_country=target_country(session,target_shipment,country_id)
     elif target_mine is not None:attacked_country=controller_id(session,target_mine.panstwo_id)
     else:attacked_country=controller_id(session,target.panstwo_id)
     flight=MilitaryFlight(target_airport_id=target_airport.id if target_airport else None,target_radar_id=target_radar.id if target_radar else None,target_power_id=target_power.id if target_power else None,target_factory_id=target_factory.id if target_factory else None,target_shipment_id=target_shipment.id if target_shipment else None,order_id=order.id,panstwo_id=country_id,target_country_id=attacked_country,
-        source_base_id=base.id if base else None,source_vessel_id=vessel.id if vessel else None,is_nuclear=nuclear,city_id=city.miasto_id if city else None,target_defense_id=target_defense.id if target_defense else None,target_mine_id=target_mine.id if target_mine else None,target_kind='airport' if target_airport else 'radar' if target_radar else 'power' if target_power else 'factory' if target_factory else 'shipment' if target_shipment else 'defense' if target_defense else 'mine' if target_mine else 'base' if target_base else 'vessel' if target_vessel else 'city' if city else 'region',target_name=target_name,target_base_id=target_base.id if target_base else None,target_vessel_id=target_vessel.id if target_vessel else None,kind=order.kind,
+        source_base_id=base.id if base else None,source_vessel_id=vessel.id if vessel else None,is_nuclear=nuclear,city_id=city.miasto_id if city else None,target_defense_id=target_defense.id if target_defense else None,target_mine_id=target_mine.id if target_mine else None,target_kind='army' if target_army else 'airport' if target_airport else 'radar' if target_radar else 'power' if target_power else 'factory' if target_factory else 'shipment' if target_shipment else 'defense' if target_defense else 'mine' if target_mine else 'base' if target_base else 'vessel' if target_vessel else 'city' if city else 'region',target_name=target_name,target_base_id=target_base.id if target_base else None,target_vessel_id=target_vessel.id if target_vessel else None,kind=order.kind,
         missile_type=order.payload['missile_type'],missiles=count,
         source_x=source[0],source_y=source[1],target_x=destination[0],target_y=destination[1],distance_km=distance,
         starts_at=now,impact_at=impact,
@@ -193,6 +206,11 @@ def launch_flight(session,country_id,army,target,order,data):
         from game.nuclear import broadcast,country_name
         broadcast(session,f'Uderzenie atomowe: {country_name(session,country_id)} wystrzeliło {count} szt. rakiet z głowicą nuklearną w kierunku państwa {country_name(session,attacked_country)} (cel: {target_name}).',exclude=(country_id,))
     return flight.id
+
+
+def target_army_name(session,army):
+    name=session.scalar(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID==army.panstwo_id)) or 'przeciwnika'
+    return f'Armia państwa {name} (cel: {army.target_name})'[:255]
 
 
 def sink_carrier(session,vessel,army):
@@ -209,9 +227,10 @@ def roll_casualties(missiles):
     return sum(randbelow(101) for _ in range(missiles))
 
 
-def complete_flights(session,now,country_id=None,*,shipment_ids=None,factory_ids=None,lock_country_ids=()):
+def complete_flights(session,now,country_id=None,*,shipment_ids=None,factory_ids=None,lock_country_ids=(),army_strikes=False):
     query=select(MilitaryFlight).where(or_(and_(MilitaryFlight.impacted_at.is_(None),MilitaryFlight.impact_at<=now),
         and_(MilitaryFlight.kind=='air',MilitaryFlight.returned_at.is_(None),MilitaryFlight.returns_at<=now)))
+    if army_strikes:query=query.where(MilitaryFlight.target_kind=='army',MilitaryFlight.impacted_at.is_(None))
     from game.commerce_models import TradeShipment
     if factory_ids is not None:query=query.where(MilitaryFlight.target_factory_id.in_(factory_ids))
     if shipment_ids is not None:query=query.where(MilitaryFlight.target_shipment_id.in_(shipment_ids))
@@ -234,7 +253,7 @@ def complete_flights(session,now,country_id=None,*,shipment_ids=None,factory_ids
             hits=flight.missiles
             damage={}
             from game.missile_defense import intercept
-            if flight.target_kind not in ('vessel','shipment'):
+            if flight.target_kind not in ('vessel','shipment','army'):
                 hits=intercept(session,flight,region_id,flight.target_kind,flight.target_airport_id or flight.target_radar_id or flight.target_power_id or flight.target_factory_id or flight.target_defense_id or flight.target_base_id or flight.target_mine_id or flight.city_id or region_id)
             flight.intercepted=flight.missiles-hits
             if flight.is_nuclear:
@@ -418,6 +437,13 @@ def apply_structural_damage(session,flight,order,hits):
                         setattr(army,field,max(0,(getattr(army,field) or 0)-1))
                 vessel.status='sunk'
         else:damage={'targetUnavailable':True}
+    elif flight.target_kind=='army':
+        from game.land_war import strike_army
+        from game.land_war_models import LandArmy
+        army_id=(order.payload or {}).get('target_army_id')
+        army=session.scalar(select(LandArmy).where(LandArmy.id==army_id).with_for_update()) if army_id else None
+        damage=strike_army(session,army,hits,flight.impact_at)
+        if damage.get('targetUnavailable'):damage['armyGone']=True
     elif flight.target_kind=='region':
         metric=order.payload.get('infrastructure');field=FIELDS.get(metric)
         region=session.scalar(select(Region).options(lazyload('*')).where(Region.region_id==order.region_id,Region.panstwo_id.in_(controlled_ids(session,flight.target_country_id))).with_for_update())
@@ -430,6 +456,11 @@ def apply_structural_damage(session,flight,order,hits):
 def impact_summary(flight):
     damage=flight.damage or {}
     text=f'Przechwycono: {flight.intercepted or 0} z {flight.missiles}. Ofiary: {flight.casualties or 0}. '
+    if damage.get('armyGone'):return text+'Armia nie była już w marszu — brak strat.'
+    if 'armyLosses' in damage:
+        from game.land_war import units_text
+        text+=f'Straty armii w marszu: {units_text(damage["armyLosses"])}. '
+        return text+('Armia została rozbita.' if damage.get('armyDestroyed') else f'Pozostało: {units_text(damage["remaining"])}.')
     if 'powerHealthLost' in damage:
         text+=f'Uszkodzenie elektrowni: {damage["powerHealthLost"]:.2f}%. Pozostało: {damage["remainingHealth"]:.2f}% życia.'
     if 'radarHealthLost' in damage:

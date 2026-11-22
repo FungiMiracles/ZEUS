@@ -43,12 +43,12 @@ class GameSocietyTrend(db.Model):
 
 
 def tone(value, good_high):
-    """Progi z wymagań: dobre wskaźniki >70 zielony, 40–59 żółty, <40 czerwony; szkodliwe <30 zielony,
-    30–59 żółty, >70 czerwony. Przedział 60–70 nie ma koloru (neutralny)."""
+    """Progi (22 Nov 2026): dobre wskaźniki ≥70 zielony, 40–69 żółty, <40 czerwony; szkodliwe <30 zielony,
+    30–59 żółty, >70 czerwony, 60–70 neutralny."""
     if value is None:
         return 'neutral'
     if good_high:
-        return 'good' if value > 70 else 'warn' if 40 <= value < 60 else 'bad' if value < 40 else 'neutral'
+        return 'good' if value >= 70 else 'warn' if value >= 40 else 'bad'
     return 'bad' if value > 70 else 'warn' if 30 <= value < 60 else 'good' if value < 30 else 'neutral'
 
 

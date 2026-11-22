@@ -338,11 +338,154 @@ def launch_invasion(user_id,data):
         return army.id
 
 
+# ---------------- ataki na wrogie armie w marszu (22 Nov 2026) ----------------
+# Armię przeciwnika maszerującą po naszym terytorium (po przekroczeniu granicy) można:
+# (i) bombardować z powietrza, (ii) ostrzelać rakietami z własnego terytorium, (iii) ostrzelać z okrętu —
+#     loty game.military_flights z celem 'army'; każde nieprzechwycone trafienie niszczy 1–3% każdego rodzaju jednostek armii;
+# (iv) zatrzymać własną armią lądową — oddział 'intercept' wyrusza z bazy lądowej do punktu spotkania; bitwa jak przy
+#     inwazji (remis wygrywa obrońca); zwycięski oddział wraca do bazy, a pokonana armia przeciwnika zostaje zniszczona.
+STRIKE_LOSS=(1.0,3.0)   # % jednostek każdego rodzaju na jedno trafienie
+
+
+def army_position(army,moment):
+    """Position of a marching army at the given moment (linear march from source to target)."""
+    total=(army.arrives_at-army.starts_at).total_seconds()
+    f=1.0 if total<=0 else min(1.0,max(0.0,(moment-army.starts_at).total_seconds()/total))
+    return (army.source_x+(army.target_x-army.source_x)*f,army.source_y+(army.target_y-army.source_y)*f)
+
+
+def catch_up(session,source,army,speed_kmh,now):
+    """Earliest moment when a unit starting at `source` (speed km/h) reaches the marching army, or None if the army
+    arrives at its target first. Returns (moment, point)."""
+    from game.military_flights import distance_km
+    remaining=(army.arrives_at-now).total_seconds()
+    if remaining<=0 or speed_kmh<=0:return None
+    reach=lambda seconds:distance_km(session,source,army_position(army,now+timedelta(seconds=seconds)))<=seconds*speed_kmh/3600
+    if not reach(remaining):return None
+    lo,hi=0.0,remaining
+    for _ in range(45):
+        middle=(lo+hi)/2
+        if reach(middle):hi=middle
+        else:lo=middle
+    moment=now+timedelta(seconds=max(1.0,hi))
+    return moment,army_position(army,moment)
+
+
+def hostile_army(session,own,army_id,now=None,lock=False):
+    """An enemy army marching across our territory (after crossing the border) that we may attack."""
+    from game.military_service import enemies
+    now=now or game_now()
+    query=select(LandArmy).where(LandArmy.id==natural(army_id,'Armia przeciwnika',1))
+    army=session.scalar(query.with_for_update() if lock else query)
+    if army is None or army.status!='MARCHING' or army.role!='invasion':raise FinanceError('Ta armia nie jest już w marszu.')
+    if army.target_country_id!=own or army.panstwo_id==own:raise FinanceError('Można atakować tylko wrogie armie maszerujące po naszym terytorium.')
+    if army.border_at is None or army.border_at>now:raise FinanceError('Armia nie przekroczyła jeszcze naszej granicy.')
+    if army.arrives_at<=now:raise FinanceError('Armia dotarła już do celu.')
+    if army.panstwo_id not in enemies(session,own):raise FinanceError('Atak wymaga trwającej wojny z państwem tej armii.')
+    return army
+
+
+def strike_army(session,army,hits,moment):
+    """Hits of bombs/missiles on a marching army: every hit destroys 1–3% of each unit type (rounded)."""
+    if army is None or army.status!='MARCHING':return {'targetUnavailable':True}
+    keep=1.0
+    for _ in range(hits):keep*=1-_random.uniform(*STRIKE_LOSS)/100
+    units=army_units(army)
+    lost={unit:min(count,round(count*(1-keep))) for unit,count in units.items()}
+    for unit in UNITS:setattr(army,unit,units[unit]-lost[unit])
+    change_totals(session,army.panstwo_id,lost)
+    destroyed=not any(getattr(army,unit) for unit in UNITS)
+    if destroyed:
+        army.status='DESTROYED';army.resolved_at=moment;army.battle={'result':'DESTROYED_IN_MARCH','at':moment.isoformat()}
+        from game.military_service import reconcile_maintenance
+        reconcile_maintenance(session,army.panstwo_id)
+    return {'armyLosses':lost,'armyDestroyed':destroyed,'remaining':army_units(army)}
+
+
+def launch_interception(user_id,data):
+    """(iv) Own land army marches from a land base to meet the enemy army on our territory."""
+    from game.military_service import reconcile_maintenance
+    key=request_key(data.get('request_id'));units=units_from(data)
+    with Session(db.engine) as session,session.begin():
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        existing=session.scalar(select(LandArmy).where(LandArmy.panstwo_id==own,LandArmy.request_id==key))
+        if existing is not None:return existing.id
+        now=game_now()
+        enemy=hostile_army(session,own,data.get('army_id'),now)
+        lock_countries(session,own,enemy.panstwo_id)
+        enemy=hostile_army(session,own,enemy.id,now,lock=True)
+        base=own_land_base(session,own,data.get('source_base_id'))
+        if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
+        kmh=speed(units);meeting=catch_up(session,(base.map_x,base.map_y),enemy,kmh,now)
+        if meeting is None:raise FinanceError(f'Oddział z tej bazy ({kmh} km/h) nie zdąży dogonić armii przed jej dotarciem do celu ({enemy.target_name}).')
+        moment,point=meeting
+        take_from_garrison(base,units)
+        from game.military_flights import distance_km
+        who=names(session,enemy.panstwo_id).get(enemy.panstwo_id,'przeciwnika')
+        army=LandArmy(panstwo_id=own,user_id=user_id,request_id=key,role='intercept',status='MARCHING',source_base_id=base.id,**units,target_kind='army',
+                      target_army_id=enemy.id,target_country_id=enemy.panstwo_id,target_region_id=enemy.target_region_id,
+                      target_name=f'Armia państwa {who} (cel: {enemy.target_name})'[:255],source_x=base.map_x,source_y=base.map_y,target_x=point[0],target_y=point[1],
+                      distance_km=distance_km(session,(base.map_x,base.map_y),point),speed_kmh=kmh,starts_at=now,arrives_at=moment,cost=0)
+        session.add(army);session.flush()
+        reconcile_maintenance(session,own)
+        return army.id
+
+
+def intercept_battle(session,army,moment,rolls=None):
+    """Interceptor meets the enemy army. The interceptor defends its own territory (a draw goes to the interceptor)."""
+    enemy=session.scalar(select(LandArmy).where(LandArmy.id==army.target_army_id).with_for_update()) if army.target_army_id else None
+    if enemy is None or enemy.status!='MARCHING':
+        army.battle={'result':'TARGET_GONE','reason':'Armia przeciwnika nie jest już w marszu.'};_return_home(session,army);return
+    ours,theirs=army_units(army),army_units(enemy)
+    own_level,enemy_level=training(session,army.panstwo_id),training(session,enemy.panstwo_id)
+    r_own,r_enemy=rolls if rolls is not None else (_random.uniform(0,0.5),_random.uniform(0,0.5))
+    base_own,base_enemy=strength(ours,own_level),strength(theirs,enemy_level)
+    final_own=base_own*(1+r_own);final_enemy=base_enemy*(1+r_enemy)
+    won=final_own>=final_enemy
+    record={'attacker':{'country':enemy.panstwo_id,'units':theirs,'training':enemy_level,'strength':round(base_enemy,2),'chance':round(r_enemy,3),'final':round(final_enemy,2)},
+            'defender':{'country':army.panstwo_id,'units':ours,'training':own_level,'strength':round(base_own,2),'chance':round(r_own,3),'final':round(final_own,2)},
+            'result':'INTERCEPT_WON' if won else 'INTERCEPT_LOST','at':moment.isoformat()}
+    if won:
+        fraction=(final_enemy/final_own) if final_own else 0
+        lost={unit:min(count,round(count*fraction)) for unit,count in ours.items()}
+        for unit in UNITS:setattr(army,unit,ours[unit]-lost[unit])
+        change_totals(session,army.panstwo_id,lost);change_totals(session,enemy.panstwo_id,theirs)
+        for unit in UNITS:setattr(enemy,unit,0)
+        enemy.status='DESTROYED';enemy.resolved_at=moment;enemy.battle={**record,'result':'INTERCEPTED'}
+        record['defender']['lost']=lost;record['attacker']['lost']=theirs
+        army.battle=record
+        _return_home(session,army)
+        army.resolved_at=moment
+    else:
+        fraction=(final_own/final_enemy) if final_enemy else 0
+        lost={unit:min(count,round(count*fraction)) for unit,count in theirs.items()}
+        for unit in UNITS:setattr(enemy,unit,theirs[unit]-lost[unit])
+        change_totals(session,enemy.panstwo_id,lost);change_totals(session,army.panstwo_id,ours)
+        for unit in UNITS:setattr(army,unit,0)
+        army.status='DESTROYED';army.resolved_at=moment
+        record['defender']['lost']=ours;record['attacker']['lost']=lost
+        army.battle=record
+        if not any(getattr(enemy,unit) for unit in UNITS):enemy.status='DESTROYED';enemy.resolved_at=moment;enemy.battle={**record,'result':'INTERCEPTED'}
+    n=names(session,army.panstwo_id,enemy.panstwo_id)
+    summary=(f"Bitwa w marszu ({enemy.target_name}): przechwycenie przez {n.get(army.panstwo_id,'?')} (siła {record['defender']['final']}) vs armia {n.get(enemy.panstwo_id,'?')} (siła {record['attacker']['final']}). "
+             f"{'Armia przeciwnika została rozbita' if won else 'Oddział przechwytujący został rozbity, armia przeciwnika maszeruje dalej'}. "
+             f"Straty przechwytujących: {units_text(record['defender']['lost'])}; armii w marszu: {units_text(record['attacker']['lost'])}.")
+    notify(session,army.panstwo_id,summary);notify(session,enemy.panstwo_id,summary)
+    from game.military_service import reconcile_maintenance
+    for country in sorted({army.panstwo_id,enemy.panstwo_id}):
+        try:
+            with session.begin_nested():reconcile_maintenance(session,country)
+        except FinanceError:pass
+
+
 # ---------------- resolution ----------------
 
 def complete_marches(session,now=None):
     """Border notifications and battles of every army that is due (called on page loads and by the scheduler)."""
     now=now or game_now()
+    # 22 Nov 2026: najpierw trafienia lotów wymierzonych w armie w marszu — straty liczą się przed bitwą u celu.
+    from game.military_flights import complete_flights
+    complete_flights(session,now,army_strikes=True)
     due=list(session.execute(select(LandArmy.id,LandArmy.panstwo_id,LandArmy.target_country_id).where(LandArmy.status=='MARCHING',
          or_(LandArmy.arrives_at<=now,and_(LandArmy.border_notified.is_(False),LandArmy.border_at<=now)))))
     if not due:return
@@ -353,7 +496,9 @@ def complete_marches(session,now=None):
             army.border_notified=True
             who=names(session,army.panstwo_id).get(army.panstwo_id,'Obce państwo')
             notify(session,army.target_country_id,f'Wtargnięcie: armia państwa {who} wkroczyła na nasze terytorium ({units_text(army_units(army))}). Cel: {army.target_name}.')
-        if army.arrives_at<=now:battle(session,army,army.arrives_at)
+        if army.arrives_at<=now:
+            if army.role=='intercept':intercept_battle(session,army,army.arrives_at)
+            else:battle(session,army,army.arrives_at)
     session.flush()
 
 
@@ -742,7 +887,7 @@ def annex(session,row,own,now):
 def army_data(army,flags=None):
     stamp=lambda value:value.isoformat()+'Z' if value else None
     return {'id':army.id,'countryId':army.panstwo_id,'role':army.role,'status':army.status,'sourceBaseId':army.source_base_id,'units':army_units(army),
-            'targetKind':army.target_kind,'targetBaseId':army.target_base_id,'targetCityId':army.target_city_id,'targetCountryId':army.target_country_id,
+            'targetKind':army.target_kind,'targetBaseId':army.target_base_id,'targetArmyId':army.target_army_id,'targetRegionId':army.target_region_id,'targetCityId':army.target_city_id,'targetCountryId':army.target_country_id,
             'targetName':army.target_name,'source':[army.source_x,army.source_y] if army.source_x is not None else None,'target':[army.target_x,army.target_y] if army.target_x is not None else None,
             'distanceKm':army.distance_km,'speedKmh':army.speed_kmh,'startsAt':stamp(army.starts_at),'borderAt':stamp(army.border_at),'arrivesAt':stamp(army.arrives_at),
             'resolvedAt':stamp(army.resolved_at),'cost':str(army.cost),'battle':army.battle}

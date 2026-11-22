@@ -101,3 +101,6 @@ html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics{displa
 html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics>div{padding:10px 14px}
 html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics small{display:block;margin-top:4px;color:var(--fin-muted);font-size:12px}
 html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics small span{color:var(--fin-navy);font-family:Consolas,monospace;font-weight:700}
+/* 22 Nov 2026: ikony w kontenerach dochodów z kolei i lotnictwa (podsumowanie planu) */
+.finance-metrics dt.finance-metric-icon{display:flex;align-items:center;gap:8px}
+.finance-metrics dt.finance-metric-icon img{flex:0 0 26px;width:26px;height:26px;padding:3px;box-sizing:border-box;border-radius:5px;background:#fff;border:1px solid #d6e0ec;object-fit:contain}

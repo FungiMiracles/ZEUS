@@ -214,3 +214,20 @@ html body.game-app .military-region-note{margin:8px 0 4px;padding:8px 10px;borde
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .game-panel.military-sidebar{overflow:visible}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .game-panel.military-sidebar>.war-panel-bar{border-top-left-radius:9px;border-top-right-radius:9px}
 html body.game-app.game-navy.game-civic:is(.military-defense,.military-war) .military-base-menu[open]{z-index:30}
+/* 22 Nov 2026: okno „Okupacja regionu” — decyzje w jednym rzędzie akcji (później | nie · tak) */
+html body.game-app.game-navy.game-civic .military-dialog-actions .military-dialog-decision{display:flex;gap:10px;margin-left:auto}
+html body.game-app.game-navy.game-civic .military-dialog-actions button.land-occupation-no{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;background:#fff;color:#8d3025;border:1px solid #c97d71;border-radius:7px;font-weight:700;box-shadow:none;cursor:pointer}
+html body.game-app.game-navy.game-civic .military-dialog-actions button.land-occupation-no:hover:not(:disabled){background:#fae1dc}
+@media(max-width:600px){
+  html body.game-app.game-navy.game-civic .military-dialog-actions:has(.military-dialog-decision){flex-direction:column-reverse;align-items:stretch}
+  html body.game-app.game-navy.game-civic .military-dialog-actions .military-dialog-decision{margin-left:0}
+  html body.game-app.game-navy.game-civic .military-dialog-actions .military-dialog-decision>button{flex:1 1 0;min-height:46px}
+}
+@media(min-width:601px){html body.game-app.game-navy.game-civic .military-dialog-actions:has(.military-dialog-decision) button{white-space:nowrap;flex:0 0 auto}}
+/* 22 Nov 2026: atak na wrogą armię w marszu */
+html body.game-app.game-navy.game-civic .land-invasion-symbol.land-attackable{cursor:pointer;box-shadow:0 0 0 3px #ffcf6b,0 0 12px #d32f2f}
+html body.game-app.game-navy.game-civic .land-intercept-symbol{background:#1565c0;box-shadow:0 0 0 2px #1565c0a8,0 2px 6px #0006}
+html body.game-app.game-navy.game-civic .land-attack-hint{margin:6px 0 0;font-weight:700;color:#b3261e}
+html body.game-app.game-navy.game-civic .land-attack-methods{display:grid;gap:8px;margin-top:6px}
+html body.game-app.game-navy.game-civic .land-attack-methods .military-action{width:100%;justify-content:flex-start}
+html body.game-app.game-navy.game-civic .land-attack-methods .military-action img{width:24px;height:24px}
