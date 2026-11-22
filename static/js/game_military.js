@@ -244,22 +244,13 @@
                 button('Zmień nazwę',()=>modal('Nazwa bazy',()=>{const label=make('label','Nazwa'),field=make('input');field.name='name';field.value=baseName(base);field.maxLength=120;field.required=true;label.append(field);fields.append(label);},data=>post({action:'rename',base_id:base.id,name:data.get('name')})),controls);
                 button(base.position ? 'Zmień lokalizację' : 'Wskaż miejsce na mapie',()=>startLocation(base),controls,config.baseIcon);
                 if(base.position)button('Pokaż bazę',()=>map.setView([base.position[1],base.position[0]],Math.max(map.getZoom(),2)),controls);
-                button('Reorganizuj', () => modal(`${base.label} #${base.id} — garnizon`, () => {
-                    // 22 Nov 2026: przy każdym polu — ogólnie dostępne (nieprzydzielone) zasoby państwa danego rodzaju.
-                    const pool=config.availableGarrison?.[base.kind]||{},soldierKind={land:'lądowi',air:'lotnictwa',naval:'marynarki'}[base.kind];
-                    for (const [resource,capacity] of Object.entries(base.capacity)) {
-                        const current=base.garrison[resource]||0,free=Math.max(0,Number(pool[resource])||0);
-                        const node=input(config.resources[resource].label+(resource==='soldiers'&&soldierKind?` (${soldierKind})`:'')+` (pojemność: ${number(capacity)})`,resource,current,Math.min(capacity,current+free));
-                        node.closest('label').append(make('small',`Ogólnie dostępne: ${number(free)} · w tej bazie: ${number(current)} · maks. po zmianie: ${number(Math.min(capacity,current+free))}`,'military-field-available'));
-                    }
-                    fields.append(make('p','Ustaw 0, aby wycofać wybrany rodzaj żołnierzy lub sprzętu.'));
-                }, data => post({action:'garrison',base_id:base.id,garrison:Object.fromEntries(Object.keys(base.capacity).map(key => [key,Number(data.get(key))]))})),controls);
+                reorganizeButton(base,controls);
                 button('Wycofaj garnizon', () => modal('Wycofać garnizon?', () => fields.append(make('p','Żołnierze i sprzęt wrócą do dostępnych zasobów państwa.')), () => post({action:'withdraw',base_id:base.id})),controls);
                 button('Zlikwiduj bazę', () => modal('Zlikwidować bazę?', () => {
                     fields.append(make('p',`${baseName(base)} zniknie z mapy, a liczba baz tego rodzaju zmniejszy się o 1.`),
                         make('p','Żołnierze i sprzęt z garnizonu wrócą do dostępnych zasobów państwa. Koszty budowy i rozbudowy nie są zwracane; obrona przeciwrakietowa bazy zostanie usunięta.'));
                 }, () => post({action:'liquidate',base_id:base.id})),controls);
-                if (base.level < 7) button('Rozbuduj', () => modal('Rozbudowa bazy', () => fields.append(make('p',`Poziom ${base.level + 1}. Koszt: ${number(base.upgradeCost)} ROI z budżetu sił zbrojnych.`)), () => post({action:'upgrade',base_id:base.id})),controls);
+                upgradeButton(base,controls);
                 if(base.kind==='naval')for(const kind of ['warships','submarines']){
                     const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(base,kind),controls,config.resources[kind].icon);
                     control.disabled=!base.position||(base.garrison[kind]||0)<=(base.busyVessels[kind]||0);
@@ -290,7 +281,7 @@
             highlightSelection();
         } else if (config.mode === 'war') {
             const ownBase=selectedTarget?.kind==='base'&&config.bases.find(base=>base.id===selectedTarget.id);
-            if(ownBase){const link=make('a',`Zarządzaj: ${baseName(ownBase)}`);link.href=config.defenseUrl+'?base='+ownBase.id;actions.append(link);if(ownBase.kind==='naval')for(const kind of ['warships','submarines']){const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(ownBase,kind),actions,config.resources[kind].icon);control.disabled=!ownBase.position||(ownBase.garrison[kind]||0)<=(ownBase.busyVessels[kind]||0);}if(ownBase.kind==='naval')carrierButton(ownBase,actions);return;}
+            if(ownBase){const link=make('a',`Zarządzaj: ${baseName(ownBase)}`);link.href=config.defenseUrl+'?base='+ownBase.id;actions.append(link);reorganizeButton(ownBase,actions);upgradeButton(ownBase,actions);if(ownBase.kind==='naval')for(const kind of ['warships','submarines']){const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(ownBase,kind),actions,config.resources[kind].icon);control.disabled=!ownBase.position||(ownBase.garrison[kind]||0)<=(ownBase.busyVessels[kind]||0);}if(ownBase.kind==='naval')carrierButton(ownBase,actions);return;}
             if (!config.enemyIds.includes(selectedTarget?.countryId ?? region.countryId)) { actions.append(make('p','Działania wojenne są dostępne tylko przeciwko państwom, z którymi trwa wojna.')); return; }
             if(selectedVessel)actions.append(make('p',`Wybrany okręt #${selectedVessel.id}. Kliknij go ponownie, aby zmienić rozkaz.`));
             const methods=[['air','Bombarduj z powietrza'],['missile','Wystrzel rakiety z własnego terytorium'],['naval','Zaatakuj z okrętu'],['land','Wprowadź armię lądową']];
@@ -404,6 +395,22 @@
             bindObjectTooltip(L.marker([position[1],position[0]],{icon:L.divIcon({html:badge,className:'military-defense-marker military-map-marker',iconSize:[size,size],iconAnchor:offset}),zIndexOffset:1800}),tooltip,{className:'military-wrapping-tooltip',direction:'auto'})
                 .on('click',()=>{if(locating||sailing)return;if(config.mode==='war'&&defense.countryId!==config.countryId&&defense.health>0)showRegion(defense.regionId,null,{kind:'defense',id:defense.id,countryId:defense.countryId,name:'Obrona przeciwrakietowa #'+defense.id,point:position});else showDefense(defense);}).addTo(defenseLayer);
         }
+    }
+    // 22 Nov 2026: „Reorganizuj” i „Rozbuduj” — wspólne dla ekranu obrony i panelu wojennego (własna baza).
+    function reorganizeButton(base,parent){
+        button('Reorganizuj', () => modal(`${base.label} #${base.id} — garnizon`, () => {
+                    // 22 Nov 2026: przy każdym polu — ogólnie dostępne (nieprzydzielone) zasoby państwa danego rodzaju.
+                    const pool=config.availableGarrison?.[base.kind]||{},soldierKind={land:'lądowi',air:'lotnictwa',naval:'marynarki'}[base.kind];
+                    for (const [resource,capacity] of Object.entries(base.capacity)) {
+                        const current=base.garrison[resource]||0,free=Math.max(0,Number(pool[resource])||0);
+                        const node=input(config.resources[resource].label+(resource==='soldiers'&&soldierKind?` (${soldierKind})`:'')+` (pojemność: ${number(capacity)})`,resource,current,Math.min(capacity,current+free));
+                        node.closest('label').append(make('small',`Ogólnie dostępne: ${number(free)} · w tej bazie: ${number(current)} · maks. po zmianie: ${number(Math.min(capacity,current+free))}`,'military-field-available'));
+                    }
+                    fields.append(make('p','Ustaw 0, aby wycofać wybrany rodzaj żołnierzy lub sprzętu.'));
+                }, data => post({action:'garrison',base_id:base.id,garrison:Object.fromEntries(Object.keys(base.capacity).map(key => [key,Number(data.get(key))]))})),parent);
+    }
+    function upgradeButton(base,parent){
+        if (base.level < 7) button('Rozbuduj', () => modal('Rozbudowa bazy', () => fields.append(make('p',`Poziom ${base.level + 1}. Koszt: ${number(base.upgradeCost)} ROI z budżetu sił zbrojnych.`)), () => post({action:'upgrade',base_id:base.id})),parent);
     }
     function sourceBases(kind,nuclear=false) {
         const expected={air:['air','fighters'],missile:nuclear?['nuclear','warheads']:['land','launchers'],naval:['naval','warships']}[kind];
