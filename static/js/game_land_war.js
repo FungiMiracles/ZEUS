@@ -28,6 +28,8 @@
     async function done(result){if(api.dialog.open)api.dialog.close();api.feedback(result.message||'Zapisano.');await api.refresh();}
     const ownLandBases=()=>(cfg.bases||[]).filter(base=>base.kind==='land'&&base.countryId===cfg.countryId&&base.position&&base.operational&&base.health>0&&!occupation('base',base.id));
     const holder=(kind,id,owner)=>occupation(kind,id)?.occupierId??owner;
+    // 23 Nov 2026: pozycja listy baz lądowych — nazwa, region i stan garnizonu (okna inwazji, odbicia, wyzwolenia i „Dorzuć wojsko”)
+    const baseOption=base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''} (żołnierze ${api.number(base.garrison?.soldiers||0)}, wozy ${api.number(base.garrison?.armored||0)}, czołgi ${api.number(base.garrison?.tanks||0)})`];
     // 23 Nov 2026: obiekt sojusznika okupowany przez inne państwo — można go wyzwolić (wraca do sojusznika).
     const isAlly=id=>(cfg.allyIds||[]).includes(Number(id));
     const liberable=(owner,occupied)=>!!occupied&&isAlly(owner)&&occupied.occupierId!==cfg.countryId&&occupied.occupierId!==Number(owner);
@@ -157,7 +159,7 @@
         const bases=ownLandBases(),settings=lw();
         api.modal(`Dorzuć wojsko — ${target.name}`,()=>{
             api.fields.append(make('p','Wybrane jednostki pomaszerują z bazy lądowej do okupowanego obiektu i po dotarciu dołączą do wojsk okupacyjnych.','land-muted'));
-            const select=api.choose('Baza lądowa, z której wyruszą jednostki','base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''}`]));
+            const select=api.choose('Baza lądowa, z której wyruszą jednostki','base_id',bases.map(baseOption));
             const room=make('p',null,'land-muted');api.fields.append(room);
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,0)]));
             const quote=make('div',null,'land-quote');api.fields.append(quote);
@@ -185,7 +187,7 @@
         const bases=withdrawBases();
         api.modal(`Wycofaj wojsko — ${name}`,()=>{
             api.fields.append(make('p',`W obiekcie: żołnierze ${api.number(present.soldiers)}, wozy opancerzone ${api.number(present.armored)}, czołgi ${api.number(present.tanks)}.`,'land-muted'));
-            const select=api.choose('Baza, do której wrócą jednostki','base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''}`]));
+            const select=api.choose('Baza, do której wrócą jednostki','base_id',bases.map(baseOption));
             const room=make('p',null,'land-muted');api.fields.append(room);
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,present[unit]||0)]));
             const update=()=>{
@@ -262,7 +264,7 @@
     function chooseBase(target,recapture=false){
         const bases=ownLandBases();
         api.modal((target.liberate?'Wyzwolenie — wybierz bazę lądową: ':recapture?'Odbicie — wybierz bazę lądową: ':'Wybierz bazę lądową — przemarsz na: ')+target.name,()=>{
-            api.choose('Baza lądowa, z której wyruszy armia','base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''} (żołnierze ${api.number(base.garrison.soldiers||0)}, wozy ${api.number(base.garrison.armored||0)}, czołgi ${api.number(base.garrison.tanks||0)})`]));
+            api.choose('Baza lądowa, z której wyruszy armia','base_id',bases.map(baseOption));
             api.fields.append(make('p','Najpierw wybierz bazę; w następnym kroku wskażesz liczbę żołnierzy i sprzętu.','land-muted'));
         },async data=>{const base=bases.find(b=>b.id===Number(data.get('base_id')));if(!base)throw new Error('Wybierz bazę lądową.');api.dialog.close();invasionModal(target,base,recapture);});
     }
@@ -421,7 +423,7 @@
     function interceptModal(army){
         const bases=ownLandBases();
         api.modal('Wyślij armię lądową — przechwycenie armii '+countryName(army.countryId),()=>{
-            const source=api.choose('Baza lądowa, z której wyruszy oddział','source_base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''}`]));
+            const source=api.choose('Baza lądowa, z której wyruszy oddział','source_base_id',bases.map(baseOption));
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,0)]));
             api.fields.append(make('p',`Oddział wyrusza do punktu spotkania na trasie marszu. Bitwa jak przy inwazji: siła = (żołnierze + 3 × wozy + 5 × czołgi) × wyszkolenie / 100 × (1 + los 0–0,5); remis wygrywa nasz oddział (obrona własnego terytorium). Przegrany traci całą armię; zwycięski oddział wraca do bazy. Bez opłaty inwazyjnej.`,'land-muted'));
             const quote=make('p');api.fields.append(quote);
