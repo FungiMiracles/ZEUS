@@ -427,6 +427,8 @@ def industry_state(session,country):
         obj=object_data(mine,'mine',powered);obj['hostManaged']=True;obj['canHostRemove']=host_may_remove(session,mine,country,game_now());objects.append(obj)
     remaining={region:dict(values) for region,values in deposits.items()}
     from game.infrastructure_effects import extraction_time_factor
+    from services.natural_resources import RESOURCES as _resources
+    RESOURCE_LABELS=dict(_resources)
     rail={str(id):level for id,level in session.execute(select(Region.region_id,Region.region_stan_infra_kolejowej).where(Region.region_id.in_({int(obj['regionId']) for obj in objects if obj['category']=='mine'} or {0})))}
     for obj in objects:
         if obj['category']!='mine':continue
@@ -437,7 +439,8 @@ def industry_state(session,country):
         obj['extractionTimePercent']=int(factor*100) if factor is not None else None
         daily=0 if factor is None else float((Decimal(str(obj['dailyExtraction']))/factor).quantize(Decimal('0.01')))
         obj['effectiveDailyExtraction']=min(daily,deposit) if active else 0
-        if active:obj['status']=('pracuje' if deposit else 'brak złoża') if factor is not None else 'brak infrastruktury'
+        # 23 Nov 2026: status mówi, którego surowca brakuje (np. wyczerpana ropa w regionie z węglem — inny surowiec nie pomaga)
+        if active:obj['status']=('pracuje' if deposit else f'złoże wyczerpane — w regionie nie ma już surowca: {RESOURCE_LABELS.get(obj["kind"],obj["kind"]).lower()}') if factor is not None else 'brak infrastruktury'
         region[obj['kind']]=deposit-obj['effectiveDailyExtraction']
     return dict(foreignRegions=foreign,deposits=deposits,energy=energy_balance(session,country),budget=str(sector_balances(session,budget)['infrastructure']['remaining']) if budget else '0',
         technologies={key:researched(session,country,key) for key in TECHNOLOGIES},technologyLabels={key:rule['label'] for key,rule in TECHNOLOGIES.items()},

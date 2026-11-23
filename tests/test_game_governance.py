@@ -253,7 +253,8 @@ class DependencyFlightTests(FlightFixture):
     def test_controller_defense_intercepts_attacks_on_dependency(self):
         db.session.add(MissileDefense(panstwo_id=2,region_id=2,target_kind='region',target_id=2,level=7,ammunition=100))
         db.session.commit()
-        id=self.launch(self.source(),missiles=20)
+        source=self.source();source.garrison={'launchers':2};db.session.commit()   # 23 Nov 2026: 10 rakiet na wyrzutnię
+        id=self.launch(source,missiles=20)
         with patch('game.missile_defense.randbelow',side_effect=[0]*19+[99]):
             complete_flights(db.session,NOW+timedelta(hours=1));db.session.commit()
         self.assertEqual(db.session.get(MilitaryFlight,id).intercepted,19)

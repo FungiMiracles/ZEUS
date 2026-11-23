@@ -115,6 +115,7 @@ def render_military(mode):
             'stateUrl':url_for('game_military.map_state'),
             'missileRules':{code:{'min':low,'max':high,'speed':speed} for code,(low,high,speed) in MISSILE_FLIGHT.items()},
             'fighterSpeed':FIGHTER_SPEED,'maxSalvo':MAX_SALVO,
+            'salvo':{'fighter':__import__('game.military_flights',fromlist=['FIGHTER_MISSILES']).FIGHTER_MISSILES,'launcher':__import__('game.military_flights',fromlist=['LAUNCHER_SALVO']).LAUNCHER_SALVO,'warship':__import__('game.military_flights',fromlist=['WARSHIP_SALVO']).WARSHIP_SALVO},
             'nuclear':{'range':__import__('game.nuclear',fromlist=['RANGE_KM']).RANGE_KM,'speed':__import__('game.nuclear',fromlist=['SPEED_KMH']).SPEED_KMH,'radius':__import__('game.nuclear',fromlist=['RADIUS_KM']).RADIUS_KM},
             'fighterIcon':url_for('static',filename='icons/MYŚLIWIEC.svg'),
             'baseCapacities':{kind:values[0] for kind,values in CAPACITIES.items()},

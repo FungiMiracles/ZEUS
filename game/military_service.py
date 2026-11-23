@@ -200,7 +200,9 @@ def change_defense(user_id, action, data):
                     if value>capacity or value>owned(session,army,country.PANSTWO_ID,field_name)-active.get(field_name,0):raise FinanceError('Przekroczona pojemność lub dostępny zapas: '+RESOURCES[resource][0])
                     garrison[resource]=value
                 if kind=='nuclear':pass   # 13 Nov 2026: silos można zbudować pusty i załadować rakietami później
-                elif not garrison.get('soldiers') or not any(n for resource,n in garrison.items() if resource!='soldiers'):
+                elif not garrison.get('soldiers'):raise FinanceError('Dodaj żołnierzy do garnizonu bazy.')
+                # 23 Nov 2026: baza lądowa może powstać z samymi żołnierzami; pozostałe bazy nadal wymagają sprzętu.
+                elif kind!='land' and not any(n for resource,n in garrison.items() if resource!='soldiers'):
                     raise FinanceError('Dodaj żołnierzy oraz co najmniej jedną jednostkę sprzętu.')
                 scale=Decimal(period_months(*period_key(game_now())))/6
                 additional=sum(n*UPKEEP_RATES[resource] for resource,n in garrison.items())*(ABROAD_UPKEEP if abroad else 1)*scale+(25000000000+500000000*scale if kind=='nuclear' else 0)
@@ -563,6 +565,10 @@ def create_order(user_id,data):
                 raise FinanceError('Wybierz żołnierzy lub sprzęt do wysłania.')
         else:
             missile_type = data.get('missile_type')
+            # 23 Nov 2026: myśliwiec (z bazy i z lotniskowca) korzysta wyłącznie z zapasu rakiet krótkiego zasięgu
+            if kind == 'air':
+                from game.military_flights import FIGHTER_MISSILE_TYPE
+                missile_type = FIGHTER_MISSILE_TYPE
             if not isinstance(missile_type,str) or missile_type not in MISSILES:
                 raise FinanceError('Wybierz rodzaj rakiet.')
             count = natural(data.get('missiles'),'Liczba rakiet',1)

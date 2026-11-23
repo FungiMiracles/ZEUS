@@ -107,14 +107,18 @@ def strike_options(ctx,forces,screen,config,enemies):
             distance=km(ctx,[base.map_x,base.map_y],point)
             if distance is None:continue
             if base.kind=='air':
-                # 12 Nov 2026: myśliwiec — zasięg 1000 km, dowolna rakieta z zapasu (najliczniejsza).
-                from game.military_flights import FIGHTER_RANGE
-                missile=max((k for k,v in stock.items() if v>0),key=lambda k:stock[k],default=None) if distance<=FIGHTER_RANGE else None
+                # 12 Nov 2026: myśliwiec — zasięg 1000 km; 23 Nov 2026: wyłącznie rakiety krótkiego zasięgu.
+                from game.military_flights import FIGHTER_RANGE,FIGHTER_MISSILE_TYPE
+                missile=FIGHTER_MISSILE_TYPE if distance<=FIGHTER_RANGE and stock.get(FIGHTER_MISSILE_TYPE,0)>0 else None
             else:missile=missile_for(distance,stock)
             if missile and (best is None or distance<best[1]):best=(base,distance,missile)
         if best is None:continue
         base,distance,missile=best
-        count=salvo(ctx,stock[missile],defended)
+        # 23 Nov 2026: limit salwy — myśliwiec 10 rakiet, baza lądowa 10 × wyrzutnie, okręty w porcie 20 × okręty
+        from game.military_flights import salvo_limit
+        garrison=base.garrison or {}
+        limit=salvo_limit({'land':'missile','air':'air','naval':'naval'}[base.kind],launchers=garrison.get('launchers',0),warships=garrison.get('warships',0))
+        count=max(1,min(salvo(ctx,stock[missile],defended),limit))
         order={'land':'missile','air':'air','naval':'naval'}[base.kind]
         value=TARGET_VALUE[kind]+(4.0 if kind=='base' and distance<800 else 0)
         options.append(Option(key=f'war:strike:{kind}:{id}',domain='war',action='STRIKE_'+kind.upper(),label=f'Uderzenie ({order}, {count}× {missile}) na {kind} #{id} państwa {owner}',

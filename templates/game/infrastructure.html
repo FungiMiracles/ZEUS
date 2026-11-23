@@ -1,7 +1,7 @@
 {% extends "game/game_base_layout.html" %}
 {% block body_class %}infrastructure-room{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_war_room.css', v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_room.css', v='20261110-2') }}">{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261123-tabs-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure_navy.css', v='20261123-modal-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_tablet.css', v='20261118-ipad-2') }}">{% endblock %}
 {% block title %}Infrastruktura i energetyka — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -67,7 +67,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui5') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_region_tooltip.js',v='20261117-tooltip-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_industry.js',v='20261122-product-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_industry.js',v='20261123-modal-1') }}" defer></script>
 {% if rail_config %}<script id="rail-config" type="application/json">{{ rail_config|tojson }}</script><script src="{{ url_for('static',filename='js/game_rail_trains.js',v='20261123-ui-1') }}" defer></script><script src="{{ url_for('static',filename='js/game_rail.js',v='20261122-partner-1') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261123-locked-1') }}" defer></script>
 {% if airport_config %}<script src="{{ url_for('static',filename='js/game_airports.js',v='20261121-airports-3') }}" defer></script>{% endif %}

@@ -155,7 +155,7 @@
                 const available=config.availableGarrison[kind.value][resource],initial=resource==='soldiers'||resource==='warheads'?Math.min(1,available):0;
                 const field=input(`${config.resources[resource].label} — dostępne ${number(available)}, pojemność ${number(capacity)}`,resource,initial,Math.min(capacity,available));
                 if(resource==='soldiers'||resource==='warheads')field.min='1';inventory.append(field.closest('label'));
-            }}kind.onchange=()=>{renderRecipe();renderGarrison();};renderRecipe();renderGarrison();fields.append(make('p','Uzupełnij żołnierzy i sprzęt. Po zatwierdzeniu wskażesz obowiązkowo lokalizację bazy na mapie.'+(abroad?' Utrzymanie bazy za granicą jest dwukrotnie droższe.':'')));
+            }}kind.onchange=()=>{renderRecipe();renderGarrison();};renderRecipe();renderGarrison();fields.append(make('p','Uzupełnij żołnierzy i sprzęt (baza lądowa może powstać z samymi żołnierzami). Po zatwierdzeniu wskażesz obowiązkowo lokalizację bazy na mapie.'+(abroad?' Utrzymanie bazy za granicą jest dwukrotnie droższe.':'')));
         },async data=>{
             const kind=data.get('kind'),garrison=Object.fromEntries(Object.keys(config.baseCapacities[kind]||{}).map(key=>[key,Number(data.get(key))]));
             const response=await fetch(config.changeUrl,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':config.csrf},body:JSON.stringify({action:'deploy',region_id:Number(id),kind,garrison,request_id:requestId})});
@@ -307,9 +307,12 @@
                         }
                         if(nuclear&&kind!=='missile')choose('Silos z głowicami','silo_id',silos.map(base=>[base.id,`${baseName(base)} — głowice: ${number(base.garrison.warheads)}`]));
                         let missile;
-                        if(nuclear){missile=make('input');missile.type='hidden';missile.name='missile_type';missile.value='long';fields.append(missile);}
+                        // 23 Nov 2026: myśliwiec (z bazy i z lotniskowca) przenosi wyłącznie rakiety krótkiego zasięgu (najwyżej 10)
+                        if(nuclear||kind==='air'){missile=make('input');missile.type='hidden';missile.name='missile_type';missile.value=nuclear?'long':'short';fields.append(missile);
+                            if(kind==='air')fields.append(make('p',`Myśliwiec przenosi najwyżej ${config.salvo?.fighter||10} rakiet krótkiego zasięgu (zapas: ${number(config.missiles.short?.count||0)}); liczy się zasięg myśliwca.`,'military-salvo-note'));}
                         else missile=choose('Rodzaj rakiet','missile_type',Object.entries(config.missiles).map(([code,item])=>[code,`${item.label} — zapas: ${number(item.count)}`]));
-                        const quantity=input('Liczba rakiet','missiles',1,config.maxSalvo);quantity.min='1';
+                        let missileTouched=false;if(!nuclear&&kind!=='air')missile.addEventListener('change',()=>{missileTouched=true;});
+                        const quantity=input('Liczba rakiet','missiles',1,config.maxSalvo);quantity.min='1';quantity.value='1';
                         if(!selectedCity&&!selectedTarget)choose('Cel infrastrukturalny','infrastructure',[['road','Drogowa'],['rail','Kolejowa'],['energy','Energetyczna'],['housing','Mieszkaniowa'],['port','Portowa'],['connection','Skomunikowanie']]);
                         fields.append(make('p',selectedTarget?.kind==='factory'?'Jedna trafiona rakieta odbiera 11% życia fabryki.':nuclear?`Rakieta z głowicą nuklearną (zasięg ${number(config.nuclear?.range||3000)} km od silosu). Po trafieniu: skażenie w promieniu ${config.nuclear?.radius||100} km na 3 lata Entendy — giną mieszkańcy miast, zniszczone zostają wszystkie obiekty, obowiązuje zakaz budowy; w regionie degradacja środowiska i zanieczyszczenie powietrza +50, infrastruktura −40…−70. Rakietę może przechwycić obrona przeciwrakietowa. Wszystkie państwa otrzymają powiadomienie.`:selectedTarget?'Każda nieprzechwycona rakieta odbiera od 4 do 15 punktów życia celu.':selectedCity?'Ofiary po trafieniu: od 0 do 100 na nieprzechwyconą rakietę.':'Każda nieprzechwycona rakieta obniża wybraną infrastrukturę o 1 punkt.'));
                         const quote=make('p');fields.append(quote);
@@ -320,10 +323,19 @@
                             if(!origin || !point){quote.textContent='Brak lokalizacji źródła lub celu.';return;}
                             const position=kind==='naval'||fromCarrier?shipPosition(origin,currentGameTime()):origin.position;
                             const distance=Math.hypot(point[0]-position[0],point[1]-position[1])*config.kmPerUnit;
+                            // 23 Nov 2026: domyślny rodzaj rakiety według odległości (najpierw rodzaj z zapasem), dopóki gracz nie wybierze sam
+                            if(!nuclear&&kind!=='air'&&!missileTouched){
+                                const fits=Object.entries(config.missileRules).filter(([,r])=>distance>=r.min-0.000001&&distance<=r.max+0.000001).map(([code])=>code);
+                                const pick=fits.find(code=>(config.missiles[code]?.count||0)>0)||fits[0];if(pick)missile.value=pick;
+                            }
                             const rule=nuclear?{min:0,max:config.nuclear?.range||3000,speed:config.nuclear?.speed||5200}:config.missileRules[missile.value],speed=kind==='air'?config.fighterSpeed:rule.speed;
-                            quantity.max=nuclear?Math.min(config.maxSalvo,origin.garrison?.warheads||0):Math.min(config.maxSalvo,config.missiles[missile.value].count);
-                            quote.textContent=`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km. Prędkość: ${speed} km/h. Czas do celu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:2})} godz. Entendy. `+(kind==='air'?`Zasięg myśliwca: ${config.fighterRange} km (dowolny rodzaj rakiet).`:`Zasięg rakiety: ${rule.min}–${rule.max} km.`);
-                            const invalid=kind==='air'?distance>config.fighterRange+0.000001:(distance<rule.min-0.000001||distance>rule.max+0.000001);
+                            // 23 Nov 2026: limit salwy — myśliwiec 10, baza lądowa 10 × wyrzutnie, okręt 20
+                            const salvo=kind==='air'?(config.salvo?.fighter||10):kind==='missile'?(origin.garrison?.launchers||0)*(config.salvo?.launcher||10):kind==='naval'?(config.salvo?.warship||20):config.maxSalvo;
+                            quantity.max=nuclear?Math.min(config.maxSalvo,origin.garrison?.warheads||0):Math.min(config.maxSalvo,salvo,config.missiles[missile.value]?.count||0);
+                            if(Number(quantity.value)>Number(quantity.max))quantity.value=quantity.max;
+                            quote.textContent=`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km. Prędkość: ${speed} km/h. Czas do celu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:2})} godz. Entendy. `+(kind==='air'?`Zasięg myśliwca: ${config.fighterRange} km (rakiety krótkiego zasięgu).`:`Zasięg rakiety: ${rule.min}–${rule.max} km.`)
+                                +(nuclear?'':` Jednorazowo najwyżej ${number(salvo)} rakiet`+(kind==='missile'?` (${number(origin.garrison?.launchers||0)} wyrzutni × ${config.salvo?.launcher||10}).`:kind==='air'?' (myśliwiec).':' (okręt).'));
+                            const invalid=(kind==='air'?distance>config.fighterRange+0.000001:(distance<rule.min-0.000001||distance>rule.max+0.000001))||Number(quantity.max)<1;
                             quote.classList.toggle('military-range-error',invalid);document.getElementById('military-dialog-confirm').disabled=invalid;
                         }
                         source.onchange=update;if(!nuclear)missile.onchange=update;update();

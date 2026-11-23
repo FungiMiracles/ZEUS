@@ -17,6 +17,24 @@ FIGHTER_SPEED = 900
 FIGHTER_RANGE = 1000     # 12 Nov 2026: myśliwiec atakuje każdy cel w promieniu 1000 km, niezależnie od rodzaju rakiet
 CARRIER_FIGHTERS = 5     # pojemność lotniskowca
 MAX_SALVO = 10000
+# 23 Nov 2026: limity jednorazowej salwy — myśliwiec (także z lotniskowca) przenosi najwyżej 10 rakiet krótkiego zasięgu
+# (liczy się zasięg myśliwca, nie rakiet); jedna wyrzutnia w bazie lądowej wystrzeliwuje najwyżej 10 rakiet naraz
+# (jeden rodzaj rakiet w salwie); okręt wojenny — najwyżej 20 rakiet naraz.
+FIGHTER_MISSILES = 10
+FIGHTER_MISSILE_TYPE = 'short'
+LAUNCHER_SALVO = 10
+WARSHIP_SALVO = 20
+
+
+def salvo_limit(kind, launchers=0, warships=1):
+    """Największa salwa: kind 'air' — myśliwiec, 'missile' — baza lądowa z `launchers` wyrzutniami, 'naval' — `warships` okrętów."""
+    if kind == 'air':
+        return FIGHTER_MISSILES
+    if kind == 'missile':
+        return max(0, int(launchers)) * LAUNCHER_SALVO
+    if kind == 'naval':
+        return max(0, int(warships)) * WARSHIP_SALVO
+    return MAX_SALVO
 
 
 def calibration(session):
@@ -167,6 +185,21 @@ def launch_flight(session,country_id,army,target,order,data):
     count=order.payload['missiles']
     if count>MAX_SALVO:
         raise FinanceError(f'Jeden rozkaz może obejmować najwyżej {MAX_SALVO} rakiet.')
+    # 23 Nov 2026: limity salwy (myśliwiec 10, wyrzutnia 10 × liczba wyrzutni w bazie, okręt 20)
+    if not nuclear:
+        if order.kind=='air':
+            limit=salvo_limit('air')
+            if order.payload['missile_type']!=FIGHTER_MISSILE_TYPE:raise FinanceError('Myśliwiec przenosi wyłącznie rakiety krótkiego zasięgu.')
+            if count>limit:raise FinanceError(f'Myśliwiec przenosi najwyżej {limit} rakiet krótkiego zasięgu.')
+        elif order.kind=='missile':
+            limit=salvo_limit('missile',launchers=base.garrison.get('launchers',0))
+            if count>limit:raise FinanceError(f'Baza ma {base.garrison.get("launchers",0)} wyrzutni rakiet — jednorazowo może wystrzelić najwyżej {limit} rakiet (10 na wyrzutnię).')
+        elif order.kind=='naval':
+            if vessel is not None:limit=salvo_limit('naval')
+            else:
+                from game.military_navy import busy_vessels
+                limit=salvo_limit('naval',warships=base.garrison.get('warships',0)-busy_vessels(session,base.id,'warships'))
+            if count>limit:raise FinanceError(f'Okręt wojenny może jednorazowo wystrzelić najwyżej {WARSHIP_SALVO} rakiet'+('.' if vessel is not None else f' (w porcie: najwyżej {limit}).'))
     if not nuclear:   # rakieta atomowa nie zużywa dodatkowej rakiety konwencjonalnej (13 Nov 2026)
         field=MISSILES[order.payload['missile_type']][0]
         if count>(getattr(army,field) or 0):
