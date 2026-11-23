@@ -69,8 +69,15 @@ html body.game-app.military-defense #military-map .military-map-badge.military-o
 
 /* 22 Nov 2026: rodzaj bazy — mała pomarańczowa ikona w prawym górnym rogu (samolot: lotnicza, czołg: lądowa, okręt: morska).
    Flaga okupanta takiej bazy przechodzi do lewego górnego rogu. */
+/* 23 Nov 2026: ikona rodzaju na kwadratowym białym tle z czarną obwódką 1 px */
 html body.game-app #military-map .military-map-badge > .military-base-kind {
-  position: absolute; top: -6px; right: -7px; width: 14px; height: 14px; pointer-events: none;
+  position: absolute; top: -7px; right: -8px; box-sizing: border-box; width: 15px; height: 15px; pointer-events: none;
+  background: #fff; border: 1px solid #000; border-radius: 0;
+}
+html body.game-app #military-map .military-map-badge > .military-base-kind::before {
+  content: ""; position: absolute; inset: 1.5px;
   background: #f57c00; -webkit-mask: var(--kind-icon) center / contain no-repeat; mask: var(--kind-icon) center / contain no-repeat;
 }
+/* 23 Nov 2026: obrona przeciwrakietowa bazy — w lewym górnym rogu bazy, poziom po lewej stronie u góry ikony obrony */
+html body.game-app #military-map .military-defense-symbol-compact.military-defense-on-base.military-map-badge > span { left: -6px; right: auto; top: -5px; bottom: auto; }
 html body.game-app #military-map .military-map-badge.military-base-has-kind .land-occupied-flag { right: auto; left: -8px; }

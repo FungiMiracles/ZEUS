@@ -16,6 +16,7 @@ html body.game-app.game-navy.game-civic .game-shell:has(.game-sidebar)>.game-nav
 .game-sidebar .sidebar-pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
 .game-sidebar .sidebar-pie-center span{font-size:10px;color:#b9cbe2;text-transform:uppercase;letter-spacing:.08em}
 .game-sidebar .sidebar-pie-center strong{font-size:14px;color:#fff;max-width:96px;line-height:1.25}
+.game-sidebar .sidebar-pie-center small{font-size:9px;color:#b9cbe2;max-width:92px;line-height:1.2;margin-top:2px}
 .game-sidebar .sidebar-empty{margin:0;font-size:12px;color:#d6e2f0}
 .game-sidebar .sidebar-stats{display:grid;gap:8px;margin:0}
 .game-sidebar .sidebar-stats div{display:flex;flex-direction:column;gap:1px;padding:7px 9px;border:1px solid #ffffff24;border-radius:6px;background:#ffffff0d}

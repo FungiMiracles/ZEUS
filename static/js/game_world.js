@@ -187,7 +187,14 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   const markersToggle = document.getElementById('world-markers-toggle');
   if (!map.getPane('worldCityMarkers')) { map.createPane('worldCityMarkers'); map.getPane('worldCityMarkers').style.zIndex = '660'; }
   const cityMarkersLayer = L.layerGroup();
-  window.GameWarehouse?.marker(map, config.warehouse, { pane: 'worldCityMarkers' });   // 22 Nov 2026: magazyn własnego państwa
+  // 22 Nov 2026: magazyn własnego państwa; 23 Nov 2026: także magazyny innych państw — osobny filtr „Magazyny”
+  const warehouseLayer = L.layerGroup(), warehousesToggle = document.getElementById('world-warehouses-toggle');
+  window.GameWarehouse?.marker(map, config.warehouse, { pane: 'worldCityMarkers', layer: warehouseLayer });
+  for (const item of config.foreignWarehouses || []) window.GameWarehouse?.marker(map, item, { pane: 'worldCityMarkers', layer: warehouseLayer, label: `Magazyn: ${item.country} — ${item.name}`, flag: item.flag });
+  let showWarehouses = true; try { showWarehouses = localStorage.getItem('world-warehouses') !== '0'; } catch {}
+  const applyWarehouses = () => { if (showWarehouses) warehouseLayer.addTo(map); else warehouseLayer.remove(); try { localStorage.setItem('world-warehouses', showWarehouses ? '1' : '0'); } catch {} };
+  if (warehousesToggle) { warehousesToggle.checked = showWarehouses; warehousesToggle.addEventListener('change', () => { showWarehouses = warehousesToggle.checked; applyWarehouses(); }); }
+  applyWarehouses();
   let showMarkers = true; try { showMarkers = localStorage.getItem('world-city-markers') !== '0'; } catch {}
   if (showMarkers) cityMarkersLayer.addTo(map);
   if (markersToggle) {
@@ -247,7 +254,7 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
       window.GameRailTrains.track(line.path, { pane: 'worldRails', faded: !line.completed }).addTo(railLayer);
       const lines = [`${line.countries.filter(Boolean).join(' · ')}`, `${Math.round(Number(line.distanceKm)).toLocaleString('pl-PL')} km`,
                      line.completed ? 'Linia czynna' : `Budowa torów: ${line.progress}% · ukończenie ${dateText(line.readyAt)}`];
-      const tip = iconTip(config.landIcon, `Kolej: ${line.cityAName} – ${line.cityBName}`, lines);
+      const tip = iconTip(config.railIcon || config.landIcon, `Kolej: ${line.cityAName} – ${line.cityBName}`, lines);   // 23 Nov 2026: KOLEJ.svg
       L.polyline(line.path.map(p => [p[1], p[0]]), { pane: 'worldRails', color: '#000', weight: 12, opacity: 0 }).bindTooltip(tip, { sticky: true, className: 'world-tooltip' }).addTo(railLayer);
       if (!line.completed && config.craneIcon) {
         const mid = line.path[Math.floor(line.path.length / 2)], box = make('div', null, 'rail-crane'), img = make('img'); img.src = config.craneIcon; img.alt = ''; box.append(img);
@@ -290,9 +297,14 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
   // --- płynące statki towarowe ---
   map.createPane('worldShips'); map.getPane('worldShips').style.zIndex = '640';
   const anchor = Date.parse(config.gameNow), realAnchor = performance.now(), gameTime = () => anchor + (performance.now() - realAnchor) * (config.timeMultiplier || 1);
+  // 23 Nov 2026: filtr „Obiekty na morzu” — okręty wojenne, lotniskowce, okręty podwodne i statki handlowe (przesyłka na odcinku
+  // kolejowym lub lotniczym pozostaje widoczna jako pociąg / samolot).
+  const seaLayer = L.layerGroup(), seaToggle = document.getElementById('world-sea-toggle');
+  let showSea = true; try { showSea = localStorage.getItem('world-sea') !== '0'; } catch {}
+  const seaVisible = (marker, mode) => { const hide = !showSea && mode !== 'land' && mode !== 'air'; if (hide) marker.remove(); else if (!map.hasLayer(marker)) marker.addTo(map); };
   const ships = [];
   for (const ship of config.ships || []) {
-    L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(map);
+    L.polyline((ship.route || [ship.source, ship.target]).map(p => [p[1], p[0]]), { pane: 'worldShips', color: '#ffffff', weight: 1, opacity: .35, dashArray: '4 6', interactive: false }).addTo(seaLayer);
     // 22 Nov 2026: przesyłka z odcinkami — pociąg towarowy (pomarańczowy, paczka, flaga sprzedającego), statek albo samolot
     const point = window.GameTradeNavigation?.position(ship, gameTime()); if (!point) continue;
     const shipIcon = mode => {
@@ -304,10 +316,10 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     const tip = () => { const mode = window.GameTradeNavigation.mode(ship, gameTime()), air = mode === 'air', land = mode === 'land';
       return iconTip(air ? config.airplaneIcon : land ? '/static/icons/PACZKA.svg' : config.shipIcon, air ? 'Samolot towarowy' : land ? 'Pociąg towarowy' : 'Statek towarowy', [`${ship.seller || '?'} → ${ship.buyer || '?'}`, `Dostawa do magazynu: ${new Intl.DateTimeFormat('pl-PL', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ship.arrivesAt))}`]); };
     const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: make('div'), className: 'world-ship-marker' }) }).bindTooltip(tip, { direction: 'top', className: 'world-tooltip' }).addTo(map);
-    window.GameTradeNavigation.syncIcon(marker, ship, gameTime(), shipIcon); marker._shipIcon = shipIcon;
+    seaVisible(marker, window.GameTradeNavigation.syncIcon(marker, ship, gameTime(), shipIcon)); marker._shipIcon = shipIcon;
     ships.push([ship, marker]);
   }
-  if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); window.GameTradeNavigation.syncIcon(marker, ship, now, marker._shipIcon); } }, 1000);
+  if (ships.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [ship, marker] of ships) { if (now >= Date.parse(ship.arrivesAt)) { marker.remove(); marker._done = true; continue; } const p = window.GameTradeNavigation.position(ship, now); if (p) marker.setLatLng([p[1], p[0]]); seaVisible(marker, window.GameTradeNavigation.syncIcon(marker, ship, now, marker._shipIcon)); } }, 1000);
   // --- okręty wojenne i lotniskowce wszystkich państw (14 Nov 2026) ---
   const kinds = { warships: 'Okręt wojenny', carriers: 'Lotniskowiec', submarines: 'Okręt podwodny' };
   const statuses = { sailing: 'w rejsie', returning: 'powrót do bazy', stationed: 'na pozycji' };
@@ -321,10 +333,17 @@ Promise.all([load(config.countriesUrl), load(config.regionsUrl)]).then(([countri
     const point = window.GameTradeNavigation?.position(vessel, gameTime()); if (!point) continue;
     const label = vessel.name || `${kinds[vessel.kind] || 'Okręt'} #${vessel.id}`;
     const marker = L.marker([point[1], point[0]], { pane: 'worldShips', icon: L.divIcon({ html: symbol, className: 'world-ship-marker', iconSize: [26, 26], iconAnchor: [13, 13] }) })
-      .bindTooltip(iconTip(icon, label, [`Państwo: ${vessel.country || 'brak danych'}${vessel.own ? ' (Twoje)' : ''}`, `Stan: ${statuses[vessel.status] || vessel.status}`, `Życie: ${vessel.health}/100`]), { direction: 'top', className: 'world-tooltip' }).addTo(map);
+      .bindTooltip(iconTip(icon, label, [`Państwo: ${vessel.country || 'brak danych'}${vessel.own ? ' (Twoje)' : ''}`, `Stan: ${statuses[vessel.status] || vessel.status}`, `Życie: ${vessel.health}/100`]), { direction: 'top', className: 'world-tooltip' }).addTo(seaLayer);
     if (route) marker.on('tooltipopen', () => route.addTo(map)).on('tooltipclose', () => route.remove());
     vessels.push([vessel, marker]);
   }
+  const applySea = () => {
+    if (showSea) seaLayer.addTo(map); else seaLayer.remove();
+    for (const [ship, marker] of ships) if (!marker._done) seaVisible(marker, window.GameTradeNavigation?.mode(ship, gameTime()));
+    try { localStorage.setItem('world-sea', showSea ? '1' : '0'); } catch {}
+  };
+  if (seaToggle) { seaToggle.checked = showSea; seaToggle.addEventListener('change', () => { showSea = seaToggle.checked; applySea(); }); }
+  applySea();
   if (vessels.length && window.GameTradeNavigation) setInterval(() => { const now = gameTime(); for (const [vessel, marker] of vessels) { const p = window.GameTradeNavigation.position(vessel, now); if (p) marker.setLatLng([p[1], p[0]]); } }, 1000);
   if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(document.getElementById('world-map'));
 }).catch(error => { console.error('Ekran Świat:', error); say('Nie udało się wczytać mapy świata. Odśwież stronę.'); });

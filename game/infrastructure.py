@@ -151,6 +151,9 @@ def _airport_config(country_id):
     except Exception:
         current_app.logger.exception('Lotniska: stan ekranu infrastruktury')
         return None
+    # 23 Nov 2026: bez technologii i bez własnych lotnisk zakładka jest wyszarzona (szablon pokazuje ją z tooltipem)
+    if not data.get("available") and not data.get("airports"):
+        return None
     icon = lambda name: url_for("static", filename="icons/" + name)
     return {**data, "stateUrl": url_for("game_airports.state_view"), "changeUrl": url_for("game_airports.change_view"),
             "csrf": session["game_csrf_token"], "airplaneIcon": icon("SAMOLOT.svg"), "craneIcon": icon("PRACE BUDOWLANE.svg"),

@@ -384,14 +384,15 @@
         for(const defense of config.defenses||[]){
             const base=defense.targetKind==='base'?config.visibleBases.find(base=>base.id===defense.targetId):null;
             const position=base?.position || defense.position;if(!position)continue;
-            const compact=defense.targetKind!=='region',size=compact?17:28;
-            const badge=make('div',null,'military-defense-symbol military-map-badge'+(compact?' military-defense-symbol-compact':''));badge.append(image(config.defenseIcon),make('span',defense.level));const life=make('progress');life.className='map-health-bar';life.max=100;life.value=defense.health;window.GameHealth?.paint(life,defense.health);badge.append(life);
+            const compact=defense.targetKind!=='region',size=compact?17:28,onBase=defense.targetKind==='base';
+            const badge=make('div',null,'military-defense-symbol military-map-badge'+(compact?' military-defense-symbol-compact':'')+(onBase?' military-defense-on-base':''));badge.append(image(config.defenseIcon),make('span',defense.level));const life=make('progress');life.className='map-health-bar';life.max=100;life.value=defense.health;window.GameHealth?.paint(life,defense.health);badge.append(life);
             const tooltip=make('div',null,'military-defense-tooltip');
             tooltip.append(make('strong','Obrona przeciwrakietowa'));
             for(const [label,value] of [['Życie',`${defense.health}%`],['Poziom',`${defense.level} / 7`],['Skuteczność',`${defense.efficiency}%`],['Pozostałe pociski',`${number(defense.ammunition)} / ${number(defense.capacity)}`]]){
                 const row=make('div',null,'military-defense-tooltip-row');row.append(make('span',label),make('strong',value));tooltip.append(row);
             }
-            const offset=defense.targetKind==='region'?[14,14]:defense.targetKind==='city'?[-3,20]:[-6,24];   // 19 Nov 2026: jak w panelu państwa — prawy górny róg plakietki 28 px
+            // 19 Nov 2026: jak w panelu państwa — prawy górny róg plakietki 28 px; 23 Nov 2026: przy bazie lewy górny róg (prawy zajmuje rodzaj bazy)
+            const offset=defense.targetKind==='region'?[14,14]:defense.targetKind==='city'?[-3,20]:onBase?[23,24]:[-6,24];
             bindObjectTooltip(L.marker([position[1],position[0]],{icon:L.divIcon({html:badge,className:'military-defense-marker military-map-marker',iconSize:[size,size],iconAnchor:offset}),zIndexOffset:1800}),tooltip,{className:'military-wrapping-tooltip',direction:'auto'})
                 .on('click',()=>{if(locating||sailing)return;if(config.mode==='war'&&defense.countryId!==config.countryId&&defense.health>0)showRegion(defense.regionId,null,{kind:'defense',id:defense.id,countryId:defense.countryId,name:'Obrona przeciwrakietowa #'+defense.id,point:position});else showDefense(defense);}).addTo(defenseLayer);
         }

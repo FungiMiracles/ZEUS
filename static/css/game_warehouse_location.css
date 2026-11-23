@@ -20,3 +20,6 @@
 .warehouse-open-button img{width:20px;height:20px}
 @media (max-width:600px){.warehouse-dialog{padding:14px}.warehouse-actions button{flex:1 1 auto}}
 .trade-warehouse-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px;font-size:.9rem}
+/* 23 Nov 2026: magazyn innego państwa (mapa „Świat”) — mała flaga właściciela w prawym górnym rogu */
+.warehouse-map-badge.warehouse-map-foreign{position:relative}
+.warehouse-map-badge img.warehouse-map-flag{position:absolute;top:-6px;right:-9px;width:15px;height:10px;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px #0007}

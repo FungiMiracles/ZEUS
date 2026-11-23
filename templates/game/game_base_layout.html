@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_civic.css',v='20261121-icons-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_changes.css', v='20261026-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_topnav.css', v='20261114-nav-6') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261122-society-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_sidebar.css', v='20261123-ui-1') }}">
 {# 13 Nov 2026: arkusze ekranów w nowej stylistyce — wczytywane na końcu #}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_tutorial.css', v='20261115-tutorial-3') }}">
 {% block late_css %}{% endblock %}
@@ -185,14 +185,18 @@
   {% if game_budget_overview is defined and game_budget_pie is defined %}
   <section class="sidebar-block" aria-labelledby="sidebar-budget-title">
     <h2 id="sidebar-budget-title">Budżet · {{ period_label(game_budget_overview.year, game_budget_overview.period) if period_label is defined else game_budget_overview.period ~ '. okres ' ~ game_budget_overview.year }}</h2>
+    {# 23 Nov 2026: wycinki wg środków pozostałych do wydania — ich suma to kwota w środku wykresu #}
     {% set segments = game_budget_pie(game_budget_overview['items']) %}
-    {% if segments %}
+    {% if game_budget_overview['items'] %}
+    {% set budget_left = game_budget_overview['items']|sum(attribute='remaining') %}
+    {% set budget_allocated = game_budget_overview['items']|sum(attribute='allocated') %}
     <div class="sidebar-pie">
-      <svg viewBox="0 0 180 180" role="img" aria-label="Budżet według sektorów">
+      <svg viewBox="0 0 180 180" role="img" aria-label="Środki do wydania według sektorów">
+        {% if not segments %}<circle cx="90" cy="90" r="64.4" fill="none" stroke="#33557f" stroke-width="44"></circle>{% endif %}
         {% for segment in segments %}<path d="{{ segment.path }}" fill="{{ segment.color }}" tabindex="0" class="sidebar-pie-slice"
           data-label="{{ segment.label }}" data-remaining="{{ segment.remaining|game_money }}" data-allocated="{{ segment.allocated|game_money }}" data-spent="{{ segment.spent|game_money }}" data-share="{{ segment.share }}"><title>{{ segment.label }}: do wykorzystania {{ segment.remaining|game_money }}</title></path>{% endfor %}
       </svg>
-      <div class="sidebar-pie-center"><span>Do wydania</span><strong>{{ game_budget_overview['items']|sum(attribute='remaining')|game_money }}</strong></div>
+      <div class="sidebar-pie-center"><span>Do wydania</span><strong>{{ budget_left|game_money }}</strong><small>z {{ budget_allocated|game_money }}</small></div>
     </div>
     {% else %}<p class="sidebar-empty">Brak zatwierdzonego planu na bieżący okres budżetowy.</p>{% endif %}
   </section>
@@ -457,7 +461,7 @@
 <script src="{{ url_for('static', filename='js/wiki_clock.js', v='20261027-1') }}"></script>
 <script src="{{ url_for('static', filename='js/game_notifications.js', v='20261122-keep-open-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_ui.js', v='20261115-layer-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261114-sidebar-11') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_sidebar.js', v='20261123-ui-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_topnav.js', v='20261113-nav-1') }}" defer></script>
 {# 13 Nov 2026: strefy skażenia atomowego na wszystkich mapach gry (L.Map.addInitHook) #}
 <script src="{{ url_for('static', filename='js/game_nuclear_zones.js', v='20261113-nuclear-2') }}" defer></script>

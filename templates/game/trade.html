@@ -2,7 +2,7 @@
 {% block body_class %}trade-room{% endblock %}
 {% block page_theme %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_war_room.css',v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_trade_room.css',v='20261025-1') }}">{% endblock %}
 {% block title %}Handel — {{ game_country.nazwa }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_commerce.css',v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_airports.css',v='20261121-airports-4') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_warehouse_location.css',v='20261122-wh-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_trade_delivery.css',v='20261122-legs-1') }}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_commerce.css',v='20261025-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_airports.css',v='20261123-ui-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_warehouse_location.css',v='20261123-ui-1') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/game_trade_delivery.css',v='20261122-legs-1') }}">{% endblock %}
 {% block game_page_actions %}<button type="button" id="trade-port-fees-open" aria-haspopup="dialog" aria-controls="trade-port-fees-dialog">⚓ Opłaty portowe i cło lądowe</button>{% endblock %}
 {% block content %}
 <p class="trade-intro">Oferty obejmują towary znajdujące się w magazynie — jeden rodzaj towaru na ofertę. Cena dotyczy całego pakietu i musi mieścić się w zakresie ceny jednostki podanym przy towarze; zakupione surowce można odsprzedać po ich dostarczeniu.</p>
@@ -35,4 +35,4 @@
 {% endblock %}
 {% block late_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_trade_navy.css',v='20261113-trade-3') }}">{% endblock %}
 {% block extra_js %}
-<script src="{{ url_for('static',filename='js/game_trade_navigation.js',v='20261122-legs-1') }}" defer></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_warehouse_location.js',v='20261122-wh-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_trade.js',v='20261122-legs-1') }}" defer></script>{% endblock %}
+<script src="{{ url_for('static',filename='js/game_trade_navigation.js',v='20261123-ui-1') }}" defer></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static',filename='js/game_warehouse_location.js',v='20261123-ui-1') }}" defer></script><script src="{{ url_for('static',filename='js/game_trade.js',v='20261122-legs-1') }}" defer></script>{% endblock %}

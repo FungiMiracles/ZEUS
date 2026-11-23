@@ -1,7 +1,7 @@
 /* 19 Nov 2026: kolej — wspólne rysowanie torów i animacja pociągów (zakładka „Komunikacja” i mapa świata).
    Pociąg to mały prostokąt jadący po ukończonej linii tam i z powrotem z prędkością 120 km/h czasu gry
    (zegar gry: gameNow + upływ czasu rzeczywistego × mnożnik czasu). Linie międzynarodowe — tak samo.
-   19 Nov 2026: pociąg 22 × 10 px (dwukrotnie powiększony). Liczba pociągów na linii: 1 na każde rozpoczęte 400 km (najwyżej 3), równo rozstawione. */
+   19 Nov 2026: pociąg 22 × 10 px (dwukrotnie powiększony); 23 Nov 2026: zmniejszony o 50% — 11 × 5 px. Liczba pociągów na linii: 1 na każde rozpoczęte 400 km (najwyżej 3), równo rozstawione. */
 (()=>{'use strict';
 if(!window.L)return;
 const make=(tag,cls)=>{const el=document.createElement(tag);if(cls)el.className=cls;return el;};
@@ -9,7 +9,7 @@ const make=(tag,cls)=>{const el=document.createElement(tag);if(cls)el.className=
 function style(){
   if(document.getElementById('rail-trains-style'))return;
   const css=make('style');css.id='rail-trains-style';
-  css.textContent='.rail-train-marker{background:transparent;border:0}.rail-train{width:22px;height:10px;box-sizing:border-box;border:1.5px solid #fff;border-radius:3px;background:#b3261e;box-shadow:0 0 2px #0009;transform-origin:50% 50%}';
+  css.textContent='.rail-train-marker{background:transparent;border:0}.rail-train{width:11px;height:5px;box-sizing:border-box;border:1px solid #fff;border-radius:1.5px;background:#b3261e;box-shadow:0 0 1.5px #0009;transform-origin:50% 50%}';
   document.head.append(css);
 }
 
@@ -47,7 +47,7 @@ function trains(map,lines,options){
     for(let k=0;k<count;k++){
       const box=make('div','rail-train');
       const marker=L.marker([line.path[0][1],line.path[0][0]],{pane:options.pane,interactive:false,keyboard:false,
-        icon:L.divIcon({html:box,className:'rail-train-marker',iconSize:[22,10],iconAnchor:[11,5]})}).addTo(layer);
+        icon:L.divIcon({html:box,className:'rail-train-marker',iconSize:[11,5],iconAnchor:[5.5,2.5]})}).addTo(layer);
       items.push({line,lengths,km,offset:k*2*km/count,marker,box});
     }
   }

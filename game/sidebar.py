@@ -9,7 +9,7 @@ def _warehouse_keys():
 WAREHOUSE_KEYS=_warehouse_keys()
 # Kolory sektorów budżetu — stonowana paleta pasująca do granatu #1E3A5F.
 SECTOR_COLORS={'administration':'#7fa7d9','infrastructure':'#f0b35a','armed_forces':'#d9665b','social_policy':'#9b7fd1','environment':'#5fbf8a',
-               'health':'#e889b5','education':'#5ec3d6','research':'#c9d35a','security_services':'#8e9bb0','propaganda':'#e07fdc','reserve':'#f2e6c9'}
+               'healthcare':'#e889b5','education':'#5ec3d6','research':'#c9d35a','security_services':'#8e9bb0','propaganda':'#e07fdc','reserve':'#f2e6c9'}
 FALLBACK_COLORS=['#7fa7d9','#f0b35a','#d9665b','#9b7fd1','#5fbf8a','#e889b5','#5ec3d6','#c9d35a','#8e9bb0','#e07fdc','#f2e6c9']
 
 
@@ -27,13 +27,17 @@ def _point(cx,cy,r,angle):return cx+r*cos(angle),cy+r*sin(angle)
 
 
 def budget_pie(items,size=180,inner=0.56):
-    """Wycinki pierścienia SVG proporcjonalne do przydziału sektora; tooltip pokazuje pozostałe środki."""
-    total=sum(float(item.get('allocated') or 0) for item in items if float(item.get('allocated') or 0)>0)
+    """Wycinki pierścienia SVG proporcjonalne do środków POZOSTAŁYCH do wydania w sektorze.
+
+    23 Nov 2026: wcześniej wycinki odpowiadały przydziałowi, więc wykres nie zgadzał się z kwotą „Do wydania”
+    w środku (suma pozostałych środków) — wyczerpany sektor wciąż zajmował dużą część koła. Udział (share) to
+    teraz udział sektora w kwocie do wydania; przydział i wydatki zostają w tooltipie."""
+    positive=[item for item in items if float(item.get('remaining') or 0)>0]
+    total=sum(float(item['remaining']) for item in positive)
     if total<=0:return []
     cx=cy=size/2;r=size/2-2;ri=r*inner;angle=-pi/2;segments=[]
-    positive=[item for item in items if float(item.get('allocated') or 0)>0]
     for index,item in enumerate(positive):
-        share=float(item['allocated'])/total
+        share=float(item['remaining'])/total
         if len(positive)==1:share=0.9999
         end=angle+share*2*pi;large=1 if share>0.5 else 0
         x1,y1=_point(cx,cy,r,angle);x2,y2=_point(cx,cy,r,end);x3,y3=_point(cx,cy,ri,end);x4,y4=_point(cx,cy,ri,angle)

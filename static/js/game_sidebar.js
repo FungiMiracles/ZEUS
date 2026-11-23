@@ -44,7 +44,7 @@ function show(target,build){tip.replaceChildren();build(tip);tip.hidden=false;co
 function hide(){tip.hidden=true;}
 const line=(tag,text,cls)=>{const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;};
 for(const slice of bar.querySelectorAll('.sidebar-pie-slice')){
-  const build=box=>{box.append(line('strong',slice.dataset.label),line('span','Do wykorzystania: '+slice.dataset.remaining),line('small',`Przydział: ${slice.dataset.allocated} (${String(slice.dataset.share).replace('.',',')}% budżetu) · wydano: ${slice.dataset.spent}`));};
+  const build=box=>{box.append(line('strong',slice.dataset.label),line('span','Do wykorzystania: '+slice.dataset.remaining),line('small',`${String(slice.dataset.share).replace('.',',')}% środków do wydania · przydział: ${slice.dataset.allocated} · wydano: ${slice.dataset.spent}`));};
   slice.querySelector('title')?.remove();
   slice.addEventListener('mouseenter',()=>show(slice,build));slice.addEventListener('focus',()=>show(slice,build));
   slice.addEventListener('mouseleave',hide);slice.addEventListener('blur',hide);}

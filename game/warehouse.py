@@ -123,6 +123,25 @@ def marker(session, country_id):
     return {'cityId': city_id, 'name': name, 'point': [point[0], point[1]], 'icon': url_for('static', filename='icons/MAGAZYN.svg')}
 
 
+def foreign_markers(session, country_id):
+    """23 Nov 2026: magazyny innych państw na mapie „Świat” (filtr „Magazyny”) — tylko lokalizacje zapisane przez państwa
+    (gracz albo PAGA2) i nadal ważne (miasto pod kontrolą państwa, z punktem na mapie)."""
+    from models import Panstwo
+    from game.military_geography import city_point
+    rows = session.execute(select(Warehouse.panstwo_id, Warehouse.miasto_id, Panstwo.panstwo_nazwa, Miasto.miasto_nazwa)
+                           .join(Panstwo, Panstwo.PANSTWO_ID == Warehouse.panstwo_id).join(Miasto, Miasto.miasto_id == Warehouse.miasto_id)
+                           .where(Warehouse.panstwo_id != country_id)).all()
+    icon = url_for('static', filename='icons/MAGAZYN.svg')
+    result = []
+    for owner, city_id, country_name, city_name in rows:
+        if not _valid(session, owner, city_id):
+            continue
+        point = city_point(city_id)
+        result.append({'countryId': owner, 'country': country_name, 'cityId': city_id, 'name': city_name, 'point': [point[0], point[1]], 'icon': icon,
+                       'flag': url_for('static', filename='flags/' + (country_name or '').replace(' ', '_') + '.jpg')})
+    return result
+
+
 def modal_config(session, country_id, required_now):
     return {'required': bool(required_now), 'csrf': web_session.get('game_csrf_token', ''), 'saveUrl': url_for('game_warehouse.save'),
             'regionsUrl': url_for('static', filename='maps/entenda_regiony.geojson'), 'icon': url_for('static', filename='icons/MAGAZYN.svg'),

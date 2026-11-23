@@ -8,13 +8,15 @@
   function marker(map, warehouse, options = {}) {
     if (!map || !window.L || !warehouse || !warehouse.point) return null;
     const badge = make('div', null, 'warehouse-map-badge'); const img = make('img'); img.src = warehouse.icon; img.alt = 'Magazyn'; badge.append(img);
+    // 23 Nov 2026: magazyn innego państwa (mapa „Świat”) — mała flaga właściciela w prawym górnym rogu
+    if (options.flag) { const flag = make('img', null, 'warehouse-map-flag'); flag.src = options.flag; flag.alt = ''; flag.onerror = () => flag.remove(); badge.append(flag); badge.classList.add('warehouse-map-foreign'); }
     // 22 Nov 2026: `pane` tylko, gdy podany — `pane: undefined` nadpisuje domyślny markerPane i Leaflet rzuca wyjątek
     // (na panelu państwa przerywało to rysowanie miast).
     const markerOptions = { keyboard: false, interactive: true, zIndexOffset: 900,
       icon: L.divIcon({ html: badge, className: 'warehouse-map-marker', iconSize: [24, 24], iconAnchor: [-5, 26] }) };
     if (options.pane) markerOptions.pane = options.pane;
     return L.marker([warehouse.point[1], warehouse.point[0]], markerOptions)
-      .bindTooltip(`Magazyn państwa — ${warehouse.name}`, { direction: 'top', className: options.tooltipClass || 'world-tooltip' })
+      .bindTooltip(options.label || `Magazyn państwa — ${warehouse.name}`, { direction: 'top', className: options.tooltipClass || 'world-tooltip' })
       .addTo(options.layer || map);
   }
 

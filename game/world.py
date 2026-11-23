@@ -125,12 +125,18 @@ def page():
             'cityIcon':url_for('static',filename='icons/MIASTO.svg'),'regionIcon':url_for('static',filename='icons/WORLD.svg'),
             'shipIcon':url_for('static',filename='icons/CARGO SHIP.svg'),'landIcon':url_for('static',filename='icons/TRANSPORT LĄDOWY.svg'),'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier(),
             'trainSpeed':__import__('game.rail',fromlist=['TRAIN_SPEED']).TRAIN_SPEED,'craneIcon':url_for('static',filename='icons/PRACE BUDOWLANE.svg'),
-            'airplaneIcon':url_for('static',filename='icons/SAMOLOT.svg')}
+            'airplaneIcon':url_for('static',filename='icons/SAMOLOT.svg'),'railIcon':url_for('static',filename='icons/KOLEJ.svg')}
     # 18 Nov 2026: siedziba Międzynarodowego Funduszu Walutowego — tooltip Port Loyab prowadzi do ekranu MFW.
     from game.imf import imf_city_id
     config['imf']={'cityId':imf_city_id(db.session),'url':url_for('game_imf.page'),'icon':url_for('static',filename='icons/MFW.svg')}
     from game.warehouse import marker as warehouse_marker   # 22 Nov 2026: ikona magazynu (tylko własnego państwa)
     config['warehouse']=warehouse_marker(db.session,country.PANSTWO_ID) if country else None
+    try:   # 23 Nov 2026: magazyny innych państw (filtr „Magazyny”)
+        from game.warehouse import foreign_markers
+        config['foreignWarehouses']=foreign_markers(db.session,country.PANSTWO_ID if country else None)
+    except Exception:
+        current_app.logger.exception('Ekran Świat: magazyny innych państw')
+        config['foreignWarehouses']=[]
     response=render_template('game/world.html',game_user=user,game_country=country_summary(country),game_home_url=url_for('game_main_page'),
                              game_logout_url=url_for('game_logout'),game_active_page='world',world_config=config,
                              city_config=_city_config(country.PANSTWO_ID) if country else None)

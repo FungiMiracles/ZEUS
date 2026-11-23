@@ -140,3 +140,13 @@ html body.game-app .mine-tip .mine-tip-button{min-height:30px;padding:5px 12px;b
 html body.game-app .mine-tip .mine-tip-button:hover:not(:disabled){background:#2b4f7c}
 
 html body.game-app.game-navy.game-civic .mine-tip :is(span,p,strong,div){background:transparent}
+
+/* 23 Nov 2026: zakładki kolei/lotnictwa bez technologii — widoczne, wyszarzone, z pływającym tooltipem */
+html body.game-app.game-navy.game-civic.infrastructure-room .civic-tabs button.civic-tab-locked{opacity:.45;cursor:not-allowed;filter:grayscale(1)}
+html body.game-app.game-navy.game-civic.infrastructure-room .civic-tabs button.civic-tab-locked:hover{border-color:transparent;color:#d6e2f0}
+.civic-tab-locked-tip{position:fixed;z-index:3000;max-width:min(320px,calc(100vw - 16px));padding:8px 11px;border-radius:7px;background:#0f2440;color:#fff;font-size:13px;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.3);pointer-events:none}
+/* 23 Nov 2026: telefon — pasek zakładek nie zawija się, tylko przewija poziomo */
+@media (max-width: 900px){
+  html body.game-app.game-navy.game-civic.infrastructure-room .civic-tabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin}
+  html body.game-app.game-navy.game-civic.infrastructure-room .civic-tabs button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start}
+}

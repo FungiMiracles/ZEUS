@@ -17,9 +17,8 @@ function planes(map,air,options){
   for(const route of air.routes||[]){
     const a=airports.get(route.a),b=airports.get(route.b),km=Number(route.distanceKm)||0;
     if(!a||!b||km<=0)continue;
-    // 21 Nov 2026: samolot w kolorze pomarańczowym — kształt ikony jako maska (kolor z CSS .world-plane-shape)
-    const box=make('div','world-plane'),shape=make('span','world-plane-shape');const mask=`url("${options.icon}")`;
-    shape.style.webkitMaskImage=mask;shape.style.maskImage=mask;box.append(shape);
+    // 23 Nov 2026: powrót do pierwotnego wyglądu — czarna ikona SAMOLOT.svg bez poświaty (było: pomarańczowa maska z 21 Nov 2026)
+    const box=make('div','world-plane'),img=make('img');img.src=options.icon;img.alt='';box.append(img);
     const tip=make('div','world-tip'),text=make('div'),title=make('strong'),line=make('div');text.append(title,line);tip.append(text);
     const marker=L.marker([a.position[1],a.position[0]],{pane:options.pane,keyboard:false,
       icon:L.divIcon({html:box,className:'world-plane-marker',iconSize:[22,22],iconAnchor:[11,11]})})
