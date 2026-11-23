@@ -1,3 +1,4 @@
+from decimal import Decimal
 """Adapter integration through real Flask player routes, isolated SQLite only."""
 import json,unittest
 from datetime import datetime
@@ -145,7 +146,23 @@ class BudgetAdapterTests(unittest.TestCase):
         result=self.call('game_finance.approve:POST',{'rationale':'Wypłacamy świadczenia w ramach dostępnego przydziału, świadomie akceptując częściowe pokrycie oczekiwań.','accept_social_shortfall':True})
         self.assertEqual(result['status'],200,result)
         paid=sum(row.paid for row in db.session.scalars(select(BenefitPayment)))
-        self.assertEqual(str(paid),'367899375.00')
+        # 23 Nov 2026: przed podziałem pobierane jest utrzymanie wojska (85,1 mln ROI w tej fiksturze) — sektor socjalny (50%)
+        # dostaje o 42,55 mln mniej niż wcześniej (367 899 375).
+        self.assertEqual(str(paid),'325349375.00')
+    def test_approval_takes_military_upkeep_before_allocation(self):
+        # 23 Nov 2026: utrzymanie posiadanego wojska pobierane przy zatwierdzeniu (transakcja MILITARY_UPKEEP), rozliczenie okresu
+        # bez kosztów w sektorze sił zbrojnych (MilitaryMaintenance.amount = 0, opłata za żołnierzy zapisana).
+        from game.finance_models import StateFinancialTransaction
+        from game.military_models import MilitaryMaintenance
+        preview=self.plan();self.assertEqual(preview['status'],200,preview)
+        self.assertEqual(self.call('game_finance.approve:POST',{'rationale':self.reason})['status'],200)
+        budget=db.session.query(StateBudget).one()
+        self.assertEqual(budget.military_upkeep,Decimal('85100000.00'))
+        self.assertEqual(budget.military_upkeep_details['items']['soldiers']['count'],150000)
+        debit=db.session.scalar(select(StateFinancialTransaction).where(StateFinancialTransaction.operation_type=='MILITARY_UPKEEP'))
+        self.assertEqual((debit.direction,debit.amount),('DEBIT',Decimal('85100000.00')))
+        record=db.session.query(MilitaryMaintenance).one()
+        self.assertEqual((record.amount,record.soldier_fee),(0,Decimal('75000000.00')))
     def test_policy_never_clamps_an_explicit_amount_request(self):
         bad=self.call('game_finance.preview:POST',{'benefit_policy':'available_proportional','benefits_millions':{'children':500}})
         self.assertEqual(bad['status'],400,bad)

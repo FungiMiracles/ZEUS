@@ -338,6 +338,12 @@ def reconcile_maintenance(session,country_id,now=None):
     heads=sum(int((base.garrison or {}).get('warheads',0)) for base in bases if base.kind=='nuclear')   # 13 Nov 2026: tylko głowice w silosach
     orphans=list(session.scalars(select(MilitaryVessel).where(MilitaryVessel.panstwo_id==country_id,MilitaryVessel.base_id.is_(None),MilitaryVessel.kind!='carriers',MilitaryVessel.status.in_(['sailing','stationed','returning'])).with_for_update()))
     record=session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.panstwo_id==country_id,MilitaryMaintenance.game_year==year,MilitaryMaintenance.period==period).with_for_update())
+    # 23 Nov 2026: utrzymanie wojska pobierane z góry przy zatwierdzeniu budżetu (game.military_upkeep) — w trakcie okresu
+    # nic nie jest naliczane ani wycofywane. Bez zatwierdzonego budżetu również (wcześniej brak budżetu = brak środków,
+    # co przy każdym przeliczeniu przed zatwierdzeniem wycofywało sprzęt z baz).
+    current=session.execute(select(StateBudget.id,StateBudget.military_upkeep).where(StateBudget.panstwo_id==country_id,StateBudget.game_year==year,StateBudget.period==period)).first()
+    if current is None or current.military_upkeep is not None:
+        session.flush();return
     from game.military_recruitment import totals as soldier_totals,assess as assess_soldiers
     soldiers=sum(soldier_totals(army).values())
     if not bases and not heads and not orphans and not soldiers and (record is None or not record.soldier_fee):return

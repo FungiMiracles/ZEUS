@@ -216,7 +216,7 @@ def _general_tax_basis(session,country_id):
     return capture_basis(session,country_id)
 
 
-def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5"), imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO):
+def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, revenue_basis=None, share=Decimal("0.5"), imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO, military_upkeep=None):
     """Czyste obliczenia. Funkcja nie korzysta z bazy."""
 
     with localcontext() as context:
@@ -272,7 +272,12 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
         # 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem — najwyżej 65% środków budżetu (game.imf).
         from game.imf import collection_amount
         imf_collection = collection_amount(money(imf_due or ZERO, "Dług w MFW"), reserve + tax_total + rail_income + air_income)
-        budget_total = money(reserve + tax_total + rail_income + air_income - imf_collection, "Dostępne środki")
+        # 23 Nov 2026: utrzymanie wojska (game.military_upkeep) pobierane po spłacie MFW, przed podziałem; gdy środków nie
+        # starcza — tyle, ile jest (reszta to demobilizacja przy zatwierdzeniu). None — zasada wyłączona (budżet testowy).
+        available = reserve + tax_total + rail_income + air_income - imf_collection
+        military_due = money(military_upkeep or ZERO, "Utrzymanie wojska")
+        military_collection = min(military_due, max(ZERO, available))
+        budget_total = money(available - military_collection, "Dostępne środki")
 
         allocations = {}
 
@@ -309,6 +314,8 @@ def calculate_budget(gdp, population, reserve, pit_rate, cit_rate, shares, *, re
             "opening_reserve": reserve,
             "imf_due": money(imf_due or ZERO),
             "imf_collection": imf_collection,
+            "military_upkeep_due": military_due,
+            "military_upkeep": military_collection if military_upkeep is not None else None,
             "rail_population": int(rail_population or 0),
             "rail_infrastructure": rail_infrastructure,
             "rail_income": rail_income,
@@ -538,7 +545,7 @@ def sweep_unspent(session, country_id, previous, account, game_moment):
     return total
 
 
-def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO):
+def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO, military_upkeep=None):
     """Znacznik wykrywający zmianę podstaw od ostatniego podglądu."""
 
     from game.civic_models import CountryTaxPolicy
@@ -559,6 +566,8 @@ def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_po
         "controlled_country_ids": controlled_ids(object_session(country), country.PANSTWO_ID),
         "calculation_version": CALCULATION_VERSION,
     }
+    if military_upkeep:
+        data["military_upkeep"] = str(money(military_upkeep))   # 23 Nov 2026: zmiana stanu wojska zmienia kwotę do podziału
     if imf_due:
         data["imf_due"] = str(money(imf_due))   # 18 Nov 2026: zmiana zaległości w MFW wymaga odświeżenia podglądu
     if rail_population:
@@ -631,6 +640,8 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
         rail_infrastructure = rail_level(session, country.PANSTWO_ID)
         from game.airports import income as air_level
         air_income = air_level(session, country.PANSTWO_ID)
+        from game.military_upkeep import assess as assess_upkeep, serializable as upkeep_data
+        upkeep = assess_upkeep(session, country.PANSTWO_ID, year, period)
         from game.admin_finance import tax_plan
         plan = tax_plan(session,country.PANSTWO_ID,_previous_plan(session, previous))
 
@@ -659,7 +670,9 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
             air_income=air_income,
+            military_upkeep=upkeep["total"],
         )
+        result["military_upkeep_details"] = upkeep_data(upkeep)
 
         from game.social_benefits import expectations,carryover
         result["benefits"]={"expected":expectations(session,country.PANSTWO_ID),"carry_in":carryover(session,previous)}
@@ -677,7 +690,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             "period": period,
             "has_previous": previous is not None,
             "basis_token": _basis_token(
-                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income
+                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, upkeep["total"]
             ),
         })
 
@@ -850,10 +863,12 @@ def approve_in_transaction(
     rail_infrastructure = rail_level(session, country.PANSTWO_ID)
     from game.airports import income as air_level
     air_income = air_level(session, country.PANSTWO_ID)
+    from game.military_upkeep import assess as assess_upkeep, serializable as upkeep_data
+    upkeep = assess_upkeep(session, country.PANSTWO_ID, year, period)
 
     if not automatic:
         actual_basis = _basis_token(
-            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income
+            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, upkeep["total"]
         )
 
         if (
@@ -892,6 +907,7 @@ def approve_in_transaction(
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
             air_income=air_income,
+            military_upkeep=upkeep["total"],
     )
 
     financial_period = _get_period(
@@ -932,6 +948,8 @@ def approve_in_transaction(
         tax_total=calculation["tax_total"],
         budget_total=calculation["budget_total"],
         imf_collection=calculation["imf_collection"],
+        military_upkeep=calculation["military_upkeep"],
+        military_upkeep_details={**upkeep_data(upkeep), "collected": str(calculation["military_upkeep"])},
         rail_income=calculation["rail_income"],
         air_income=calculation["air_income"],
         expenditure_total=calculation["expenditure_total"],
@@ -1027,6 +1045,17 @@ def approve_in_transaction(
         )
         from game.imf import record_collection
         record_collection(session, country.PANSTWO_ID, budget, calculation["imf_collection"], captured_game_time)
+
+    # 23 Nov 2026: utrzymanie wojska przed podziałem środków; niedobór → proporcjonalna demobilizacja.
+    if calculation["military_upkeep"] > 0:
+        _post_transaction(
+            session, account, budget,
+            "MILITARY_UPKEEP", "DEBIT",
+            calculation["military_upkeep"],
+            captured_real_time, captured_game_time,
+        )
+    from game.military_upkeep import settle as settle_upkeep
+    settle_upkeep(session, country.PANSTWO_ID, budget, upkeep, calculation["military_upkeep"], captured_game_time)
 
     for code in EXPENDITURE_CODES:
         _post_transaction(

@@ -216,6 +216,8 @@ def _approved_details(database_session, budget_id, country_id):
         "opening_reserve": budget.opening_reserve,
         "budget_total": budget.budget_total,
         "imf_collection": getattr(budget, "imf_collection", 0) or 0,
+        "military_upkeep": getattr(budget, "military_upkeep", None),
+        "military_upkeep_details": getattr(budget, "military_upkeep_details", None),
         "rail_income": getattr(budget, "rail_income", 0) or 0,
         "air_income": getattr(budget, "air_income", 0) or 0,
         "expenditure_total": budget.expenditure_total,

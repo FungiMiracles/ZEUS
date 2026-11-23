@@ -317,6 +317,37 @@ function formatRatio(numerator, denominator, digits = 2) {
             row.hidden = !((decimalParts(state.imf_collection || "0")?.value ?? 0n) > 0n);
         });
 
+        // 23 Nov 2026: utrzymanie wojska pobierane przed podziałem — składniki w zwijanej liście; ostrzeżenie o demobilizacji.
+        root.querySelectorAll("[data-military-upkeep-row]").forEach(row => {
+            const details = state.military_upkeep_details;
+            row.hidden = !details || !((decimalParts(details.total || "0")?.value ?? 0n) > 0n);
+            const box = row.querySelector("[data-military-upkeep-details]");
+            if (!box) return;
+            box.replaceChildren();
+            if (row.hidden) return;
+            const due = details.total, paid = state.military_upkeep ?? state.military_upkeep_due;
+            if ((decimalParts(paid || "0")?.value ?? 0n) < (decimalParts(due)?.value ?? 0n)) {
+                const warning = document.createElement("p");
+                warning.className = "finance-upkeep-warning";
+                warning.textContent = `Środków nie starcza na pełne utrzymanie (należne ${moneyText(due)}). `
+                    + (state.approved ? "Przeprowadzono proporcjonalną demobilizację." : "Po zatwierdzeniu nastąpi proporcjonalna demobilizacja: zwolnienie żołnierzy i likwidacja sprzętu.");
+                box.append(warning);
+            }
+            const list = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "Składniki (stan wojska w chwili zatwierdzenia budżetu)";
+            list.append(summary);
+            for (const item of Object.values(details.items || {})) {
+                const line = document.createElement("div");
+                line.className = "finance-upkeep-item";
+                line.textContent = item.count != null
+                    ? `${item.label}: ${new Intl.NumberFormat("pl-PL").format(item.count)} × ${new Intl.NumberFormat("pl-PL", {maximumFractionDigits: 2}).format(Number(item.rate))} ROI = ${moneyText(item.amount)}`
+                    : `${item.label}: ${moneyText(item.amount)}`;
+                list.append(line);
+            }
+            box.append(list);
+        });
+
         root.querySelectorAll("[data-allocation]").forEach(element => {
             element.textContent = moneyText(
                 state.allocations?.[element.dataset.allocation]

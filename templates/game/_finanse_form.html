@@ -188,6 +188,12 @@
                     <dt>Spłata zaległości w MFW</dt>
                     <dd data-value="imf_collection" data-money>—</dd>
                 </div>
+                {# 23 Nov 2026: utrzymanie wojska pobierane przed podziałem środków (od posiadanego wojska) #}
+                <div data-military-upkeep-row hidden>
+                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/ARMIA.svg') }}" alt="">Utrzymanie wojska</dt>
+                    <dd data-value="military_upkeep" data-money>—</dd>
+                    <dd class="finance-upkeep-details" data-military-upkeep-details data-money-fixed></dd>
+                </div>
             </dl>
 
             <p class="finance-help"

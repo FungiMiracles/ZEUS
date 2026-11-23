@@ -185,6 +185,10 @@ class StateBudget(db.Model):
     rail_income = db.Column(db.Numeric(30, 2), nullable=False, default=0, server_default="0")
     # 20 Nov 2026: dochody z połączeń lotniczych (game.airports) — doliczane do środków budżetu.
     air_income = db.Column(db.Numeric(30, 2), nullable=False, default=0, server_default="0")
+    # 23 Nov 2026: utrzymanie wojska pobierane przed podziałem (game.military_upkeep); NULL — budżet sprzed tej zasady
+    # (utrzymanie naliczane w trakcie okresu z budżetu sił zbrojnych).
+    military_upkeep = db.Column(db.Numeric(30, 2), nullable=True)
+    military_upkeep_details = db.Column(db.JSON, nullable=True)
     expenditure_total = db.Column(db.Numeric(30, 2), nullable=False)
     closing_reserve = db.Column(db.Numeric(30, 2), nullable=False)
 
@@ -276,12 +280,13 @@ class StateBudget(db.Model):
             AND imf_collection >= 0
             AND rail_income >= 0
             AND air_income >= 0
+            AND (military_upkeep IS NULL OR military_upkeep >= 0)
             """,
             name="ck_gsb_amounts",
         ),
         CheckConstraint(
             """
-            budget_total = opening_reserve + tax_total + rail_income + air_income - imf_collection
+            budget_total = opening_reserve + tax_total + rail_income + air_income - imf_collection - COALESCE(military_upkeep, 0)
             AND budget_total = expenditure_total + closing_reserve
             """,
             name="ck_gsb_balance",
@@ -645,7 +650,7 @@ class StateFinancialTransaction(db.Model):
             )
             OR
             (
-                operation_type = 'IMF_COLLECTION'
+                operation_type IN ('IMF_COLLECTION', 'MILITARY_UPKEEP')
                 AND direction = 'DEBIT'
                 AND category_code IS NULL
             )

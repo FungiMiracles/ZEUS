@@ -122,8 +122,9 @@ class RecruitmentTests(MilitaryFixture):
         db.session.execute(text('DELETE FROM game_state_budget_allocations')); db.session.execute(text('DELETE FROM game_state_budgets')); db.session.commit()
         reconcile_maintenance(db.session, 1, NOW); db.session.commit()
         self.assertEqual(sum(self.soldiers()), 150000)
-        record = db.session.query(MilitaryMaintenance).one()
-        self.assertIsNone(record.soldiers_assessed_at); self.assertEqual(record.soldier_fee, 0)
+        # 23 Nov 2026: bez zatwierdzonego budżetu przeliczenie niczego nie nalicza ani nie zapisuje (wcześniej pusty rekord)
+        record = db.session.query(MilitaryMaintenance).one_or_none()
+        self.assertTrue(record is None or (record.soldiers_assessed_at is None and record.soldier_fee == 0))
 
     def test_endpoint_page_and_screens_show_fee(self):
         self.login(1)

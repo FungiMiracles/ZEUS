@@ -104,3 +104,9 @@ html body.game-app.game-navy.game-civic.finance-room .city-upkeep-metrics small 
 /* 22 Nov 2026: ikony w kontenerach dochodów z kolei i lotnictwa (podsumowanie planu) */
 .finance-metrics dt.finance-metric-icon{display:flex;align-items:center;gap:8px}
 .finance-metrics dt.finance-metric-icon img{flex:0 0 26px;width:26px;height:26px;padding:3px;box-sizing:border-box;border-radius:5px;background:#fff;border:1px solid #d6e0ec;object-fit:contain}
+/* 23 Nov 2026: utrzymanie wojska pobierane przed podziałem — składniki i ostrzeżenie o demobilizacji */
+.finance-metrics > [data-military-upkeep-row]{grid-column:1/-1}
+html body.game-app .finance-metrics .finance-upkeep-details{margin:6px 0 0;font:400 13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0}
+.finance-upkeep-details summary{cursor:pointer;color:#1E3A5F;font-weight:600}
+.finance-upkeep-item{padding:2px 0 2px 12px;font-variant-numeric:tabular-nums}
+.finance-upkeep-warning{margin:0 0 4px;color:#b3261e;font-weight:600}
