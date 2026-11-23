@@ -24,9 +24,13 @@ def run_military_tick(app):
             ids=sorted(set(ids)|set(session.scalars(select(Wojsko.panstwo_id).where((Wojsko.wojska_ladowe_ilosc>0)|(Wojsko.wojska_morskie_ilosc>0)|(Wojsko.wojska_powietrzne_ilosc>0)))))
             from game.governance import controller_id
             ids=sorted({owner for id in ids if (owner := controller_id(session,id)) is not None})
+        # 23 Nov 2026: błąd jednego państwa (np. zakleszczenie z żądaniem gracza) nie przerywa rozliczenia pozostałych.
         for country_id in ids:
-            with Session(db.engine) as session, session.begin():
-                reconcile_maintenance(session,country_id)
+            try:
+                with Session(db.engine) as session, session.begin():
+                    reconcile_maintenance(session,country_id)
+            except Exception as exc:
+                app.logger.warning('Utrzymanie wojska: państwo %s pominięte w tym cyklu: %s',country_id,f'{type(exc).__name__}: {exc}'[:300])
 
 
 def run_flights_tick(app):

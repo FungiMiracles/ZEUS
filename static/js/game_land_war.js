@@ -28,6 +28,16 @@
     async function done(result){if(api.dialog.open)api.dialog.close();api.feedback(result.message||'Zapisano.');await api.refresh();}
     const ownLandBases=()=>(cfg.bases||[]).filter(base=>base.kind==='land'&&base.countryId===cfg.countryId&&base.position&&base.operational&&base.health>0&&!occupation('base',base.id));
     const holder=(kind,id,owner)=>occupation(kind,id)?.occupierId??owner;
+    // 23 Nov 2026: przed otwarciem okna z listą baz pobieramy świeży stan — lista nie może pokazywać baz zlikwidowanych
+    // w innej karcie ani w czasie, gdy cykliczne odświeżanie (co 5 s) się nie powiodło.
+    async function fresh(open){
+        try{
+            const response=await fetch(cfg.stateUrl,{credentials:'same-origin',cache:'no-store'});
+            if(response.ok){const state=await response.json();if(Array.isArray(state.bases)){cfg.visibleBases=state.bases;cfg.bases=state.bases.filter(base=>base.countryId===cfg.countryId);}
+                if(state.armies)armies=state.armies;if(state.occupations)occupations=state.occupations;}
+        }catch{}
+        open();
+    }
     // 23 Nov 2026: pozycja listy baz lądowych — nazwa, region i stan garnizonu (okna inwazji, odbicia, wyzwolenia i „Dorzuć wojsko”)
     const baseOption=base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''} (żołnierze ${api.number(base.garrison?.soldiers||0)}, wozy ${api.number(base.garrison?.armored||0)}, czołgi ${api.number(base.garrison?.tanks||0)})`];
     // 23 Nov 2026: obiekt sojusznika okupowany przez inne państwo — można go wyzwolić (wraca do sojusznika).
@@ -50,10 +60,10 @@
             for(const army of defenders){const row=make('div',null,'land-detachment');const base=(cfg.bases||[]).find(b=>b.id===army.sourceBaseId);
                 row.append(make('span',base?`Oddział z: ${api.baseName(base)}`:army.sourceBaseId?`Oddział z: bazy #${army.sourceBaseId}`:'Oddział bez bazy macierzystej'));
                 // 23 Nov 2026: wycofanie do wybranej bazy albo do rezerwy państwa, także częściowe
-                const back=make('button','Wycofaj','land-small-button');back.type='button';back.onclick=()=>{api.map.closePopup();defenseWithdrawModal(army,city.name);};
+                const back=make('button','Wycofaj','land-small-button');back.type='button';back.onclick=()=>{api.map.closePopup();fresh(()=>{const current=armies.find(a=>a.id===army.id&&a.status==='DEFENDING');if(current)defenseWithdrawModal(current,city.name);else api.feedback('Oddział nie broni już tego miasta.');});};
                 row.append(back);card.append(row);}
         }
-        const add=make('button','Dodaj obronę wojska','land-button');add.type='button';add.onclick=()=>{api.map.closePopup();defenseModal(cityId,city);};card.append(add);
+        const add=make('button','Dodaj obronę wojska','land-button');add.type='button';add.onclick=()=>{api.map.closePopup();fresh(()=>defenseModal(cityId,city));};card.append(add);
         return card;
     }
     function bindCity(marker,cityId,city){
@@ -102,7 +112,7 @@
     function recaptureButton(parent,label,target,occupied){
         const button=make('button',label,'land-button land-recapture');button.type='button';
         const reason=recaptureReason(occupied,!!target.liberate);button.disabled=!!reason;if(reason)button.title=reason;
-        button.onclick=()=>{api.map.closePopup();chooseBase(target,true);};
+        button.onclick=()=>{api.map.closePopup();fresh(()=>chooseBase(target,true));};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
     }
     function hoverCard(marker,content,className){
@@ -145,7 +155,7 @@
         const button=make('button','Wycofaj wojsko','land-button land-withdraw');button.type='button';
         const reason=!withdrawBases().length?'Potrzebna jest własna, sprawna i nieokupowana baza.':!(present.soldiers||present.armored||present.tanks)?'W obiekcie nie ma naszych wojsk.':'';
         button.disabled=!!reason;if(reason)button.title=reason;
-        button.onclick=()=>{api.map.closePopup();withdrawModal(occupied,name,present);};
+        button.onclick=()=>{api.map.closePopup();fresh(()=>withdrawModal(occupied,name,present));};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
     }
     // ---------- posiłki do okupowanego obiektu (22 Nov 2026) ----------
@@ -153,7 +163,7 @@
         const button=make('button','Dorzuć wojsko','land-button land-reinforce');button.type='button';
         const reason=!ownLandBases().length?'Potrzebna jest własna, sprawna i nieokupowana baza lądowa na mapie.':'';
         button.disabled=!!reason;if(reason)button.title=reason;
-        button.onclick=()=>{api.map.closePopup();reinforceModal(target);};
+        button.onclick=()=>{api.map.closePopup();fresh(()=>reinforceModal(target));};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
     }
     function reinforceModal(target){
@@ -285,7 +295,7 @@
         else if(!recapture&&!(lw().neighbors||[]).includes(enemy))reason='Atakowane państwo musi graniczyć z naszym państwem.';
         else if(!ownLandBases().length)reason='Potrzebna jest własna, sprawna baza lądowa na mapie.';
         button.disabled=!!reason;if(reason)button.title=reason;
-        button.onclick=()=>chooseBase(target);
+        button.onclick=()=>fresh(()=>chooseBase(target));
         actions.append(button);
         if(reason)actions.append(make('p',reason,'land-muted'));
     }
@@ -393,7 +403,7 @@
                 const reason=methodReason(kind);
                 const button=make('button',label,'military-action military-attack');button.type='button';button.prepend(api.image(cfg.attackIcons[kind]));
                 button.disabled=!!reason;if(reason)button.title=reason;
-                button.onclick=()=>{api.dialog.close();kind==='land'?interceptModal(army):strikeModal(army,kind,label);};
+                button.onclick=()=>{api.dialog.close();kind==='land'?fresh(()=>interceptModal(army)):strikeModal(army,kind,label);};
                 list.append(button);if(reason)list.append(make('p',reason,'land-muted'));
             }
             api.fields.append(list);

@@ -545,12 +545,12 @@
     function freeFighters(base){return (base.garrison.fighters||0)-(base.busyFighters||0);}
     function airBasesWithFighters(){return config.bases.filter(b=>b.kind==='air'&&b.health>0&&b.operational&&freeFighters(b)>0);}
     function carrierButton(base,parent){
-        const control=button(`Wyślij lotniskowiec (dostępne: ${config.carriersAvailable||0})`,()=>modal('Wysłanie lotniskowca',()=>{
+        const control=button(`Wyślij lotniskowiec (dostępne: ${config.carriersAvailable||0})`,()=>refreshState().catch(()=>{}).then(()=>modal('Wysłanie lotniskowca',()=>{
             const air=choose('Baza powietrzna','air_base_id',airBasesWithFighters().map(b=>[b.id,`${baseName(b)} — wolne myśliwce: ${freeFighters(b)}`]));
             const count=input(`Liczba myśliwców (najwyżej ${config.carrierCapacity})`,'fighters',1,config.carrierCapacity);count.min='1';
             const limit=()=>{const chosen=config.bases.find(b=>b.id===Number(air.value));count.max=String(Math.min(config.carrierCapacity,chosen?freeFighters(chosen):0));if(Number(count.value)>Number(count.max))count.value=count.max;};
             air.onchange=limit;limit();fields.append(make('p','Myśliwce pozostają przypisane do bazy powietrznej. Utrata lotniskowca oznacza utratę zaokrętowanych myśliwców. Po zatwierdzeniu wskaż punkt na morzu.'));
-        },data=>{dialog.close();startSailing(base,'carriers',{air_base_id:Number(data.get('air_base_id')),fighters:Number(data.get('fighters'))});}),parent,config.vesselIcons.carriers);
+        },data=>{dialog.close();startSailing(base,'carriers',{air_base_id:Number(data.get('air_base_id')),fighters:Number(data.get('fighters'))});})),parent,config.vesselIcons.carriers);
         control.disabled=!base.position||!(config.carriersAvailable>0)||!airBasesWithFighters().length;
         return control;
     }
@@ -594,7 +594,7 @@
                 button(vessel.kind==='carriers'?'Zmień nazwę lotniskowca':'Zmień nazwę okrętu',()=>{marker.closePopup();renameVessel(vessel);},content);
                 button('Wskaż nowy kierunek',()=>{marker.closePopup();cancelLocation();redirecting=vessel;map.getContainer().classList.add('military-locating');
                     document.getElementById('military-location-status').textContent=`${vesselName(vessel)}: wskaż nowy punkt na wodzie. Trasa ominie lądy.`;document.getElementById('military-location-cancel').hidden=false;},content);
-                button('Powrót do bazy',()=>{marker.closePopup();modal('Wybierz bazę morską',()=>choose('Baza docelowa','base_id',config.bases.filter(b=>b.kind==='naval'&&b.position&&b.health>0).map(b=>[b.id,baseName(b)])),data=>post({action:'return_vessel',vessel_id:vessel.id,base_id:Number(data.get('base_id'))}));},content);
+                button('Powrót do bazy',()=>{marker.closePopup();refreshState().catch(()=>{}).then(()=>modal('Wybierz bazę morską',()=>choose('Baza docelowa','base_id',config.bases.filter(b=>b.kind==='naval'&&b.position&&b.health>0).map(b=>[b.id,baseName(b)])),data=>post({action:'return_vessel',vessel_id:vessel.id,base_id:Number(data.get('base_id'))})));},content);
                 const launch=button('Wystrzel rakiety',()=>{selectedVessel=vessel;marker.closePopup();if(config.mode==='defense'){sessionStorage.setItem('military-vessel',vessel.id);location.href=config.warUrl;}else{document.getElementById('military-feedback').textContent=`Wybrano okręt #${vessel.id}. Kliknij miasto lub region celu, następnie „Zaatakuj z okrętu”.`;if(selected)showRegion(selected,selectedCity,selectedTarget);}},content);
                 launch.disabled=vessel.status==='returning'||!config.enemyIds.length;
                 if(vessel.kind==='carriers')launch.remove();   // z lotniskowca: „Bombarduj z powietrza” przy celu
@@ -717,8 +717,13 @@
     }
     // 15 Nov 2026: telefon — zapytanie o stan może „zawisnąć” (uśpiona karta, zmiana sieci); bez limitu czasu flaga
     // refreshing zostawała ustawiona na zawsze i mapa przestawała pokazywać utratę życia i zniszczenie obiektów.
-    let refreshStarted=0,refreshAgain=false,impactRefresh=null;
-    async function refreshState() {
+    let refreshStarted=0,refreshAgain=false,impactRefresh=null,refreshInFlight=null;
+    // 23 Nov 2026: refreshState zwraca obietnicę trwającego odświeżenia — okna z listą baz czekają na świeży stan.
+    function refreshState(){
+        if(refreshing&&performance.now()-refreshStarted<20000){refreshAgain=true;return refreshInFlight||Promise.resolve();}
+        refreshInFlight=refreshStateRun();return refreshInFlight;
+    }
+    async function refreshStateRun() {
         if(!window.L)return;
         if(refreshing&&performance.now()-refreshStarted<20000){refreshAgain=true;return;}
         refreshing=true;refreshStarted=performance.now();refreshAgain=false;

@@ -331,6 +331,12 @@ def reconcile_maintenance(session,country_id,now=None):
     moment=now or game_now();year,period=period_key(moment)
     # 13 Nov 2026: stawki utrzymania są półroczne — w kwartale połowa (roczny koszt bez zmian)
     scale=Decimal(period_months(year,period))/6
+    # 23 Nov 2026: utrzymanie wojska pobierane z góry przy zatwierdzeniu budżetu (game.military_upkeep) — w trakcie okresu
+    # nic nie jest naliczane ani wycofywane. Bez zatwierdzonego budżetu również (wcześniej brak budżetu = brak środków,
+    # co przy każdym przeliczeniu przed zatwierdzeniem wycofywało sprzęt z baz). Sprawdzane przed blokadami wierszy —
+    # harmonogram co 30 s nie blokuje wtedy baz i okrętów (wcześniej źródło zakleszczeń z żądaniami graczy i PAGA2).
+    current=session.execute(select(StateBudget.id,StateBudget.military_upkeep).where(StateBudget.panstwo_id==country_id,StateBudget.game_year==year,StateBudget.period==period)).first()
+    if current is None or current.military_upkeep is not None:return
     session.scalar(select(Panstwo.PANSTWO_ID).where(Panstwo.PANSTWO_ID==country_id).with_for_update())
     bases=list(session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id==country_id).order_by(MilitaryBase.id).with_for_update()))
     settle_vessels(session,moment,country_id)
@@ -338,12 +344,6 @@ def reconcile_maintenance(session,country_id,now=None):
     heads=sum(int((base.garrison or {}).get('warheads',0)) for base in bases if base.kind=='nuclear')   # 13 Nov 2026: tylko głowice w silosach
     orphans=list(session.scalars(select(MilitaryVessel).where(MilitaryVessel.panstwo_id==country_id,MilitaryVessel.base_id.is_(None),MilitaryVessel.kind!='carriers',MilitaryVessel.status.in_(['sailing','stationed','returning'])).with_for_update()))
     record=session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.panstwo_id==country_id,MilitaryMaintenance.game_year==year,MilitaryMaintenance.period==period).with_for_update())
-    # 23 Nov 2026: utrzymanie wojska pobierane z góry przy zatwierdzeniu budżetu (game.military_upkeep) — w trakcie okresu
-    # nic nie jest naliczane ani wycofywane. Bez zatwierdzonego budżetu również (wcześniej brak budżetu = brak środków,
-    # co przy każdym przeliczeniu przed zatwierdzeniem wycofywało sprzęt z baz).
-    current=session.execute(select(StateBudget.id,StateBudget.military_upkeep).where(StateBudget.panstwo_id==country_id,StateBudget.game_year==year,StateBudget.period==period)).first()
-    if current is None or current.military_upkeep is not None:
-        session.flush();return
     from game.military_recruitment import totals as soldier_totals,assess as assess_soldiers
     soldiers=sum(soldier_totals(army).values())
     if not bases and not heads and not orphans and not soldiers and (record is None or not record.soldier_fee):return
