@@ -28,6 +28,9 @@
     async function done(result){if(api.dialog.open)api.dialog.close();api.feedback(result.message||'Zapisano.');await api.refresh();}
     const ownLandBases=()=>(cfg.bases||[]).filter(base=>base.kind==='land'&&base.countryId===cfg.countryId&&base.position&&base.operational&&base.health>0&&!occupation('base',base.id));
     const holder=(kind,id,owner)=>occupation(kind,id)?.occupierId??owner;
+    // 23 Nov 2026: obiekt sojusznika okupowany przez inne państwo — można go wyzwolić (wraca do sojusznika).
+    const isAlly=id=>(cfg.allyIds||[]).includes(Number(id));
+    const liberable=(owner,occupied)=>!!occupied&&isAlly(owner)&&occupied.occupierId!==cfg.countryId&&occupied.occupierId!==Number(owner);
 
     // ---------- miasta: karta po najechaniu ----------
     function cityCard(cityId,city){
@@ -36,6 +39,7 @@
         const occupied=occupation('city',cityId);
         if(occupied){card.append(occupationLabel(occupied));const army=sum(armies.filter(a=>a.status==='OCCUPYING'&&a.targetKind==='city'&&String(a.targetCityId)===cityId));unitRows(army,card);
             if(city.countryId===cfg.countryId)recaptureButton(card,'Odbij miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point},occupied);
+            else if(liberable(city.countryId,occupied))recaptureButton(card,'Wyzwól miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point,liberate:true},occupied);
             if(occupied.occupierId===cfg.countryId){withdrawButton(card,occupied,city.name,ownOccupiers('city',cityId));reinforceButton(card,{kind:'city',id:Number(cityId),name:city.name,point:city.point});}
             return card;}
         if(city.countryId!==cfg.countryId)return card;
@@ -87,14 +91,14 @@
     }
 
     // ---------- odbicie własnego miasta / bazy (11 Nov 2026) ----------
-    function recaptureReason(occupied){
-        if(!cfg.enemyIds.includes(occupied.occupierId))return 'Odbicie wymaga trwającej wojny z okupantem.';
+    function recaptureReason(occupied,liberate=false){
+        if(!cfg.enemyIds.includes(occupied.occupierId))return liberate?'Wyzwolenie wymaga trwającej wojny z okupantem.':'Odbicie wymaga trwającej wojny z okupantem.';
         if(!ownLandBases().length)return 'Potrzebna jest własna, sprawna i nieokupowana baza lądowa na mapie.';
         return '';
     }
     function recaptureButton(parent,label,target,occupied){
         const button=make('button',label,'land-button land-recapture');button.type='button';
-        const reason=recaptureReason(occupied);button.disabled=!!reason;if(reason)button.title=reason;
+        const reason=recaptureReason(occupied,!!target.liberate);button.disabled=!!reason;if(reason)button.title=reason;
         button.onclick=()=>{api.map.closePopup();chooseBase(target,true);};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
     }
@@ -115,6 +119,11 @@
         if(occupied&&occupied.occupierId===cfg.countryId&&base.position){
             hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
                 withdrawButton(card,occupied,api.baseName(base),ownOccupiers('base',base.id));reinforceButton(card,{kind:'base',id:base.id,name:api.baseName(base),point:base.position});return card;},'land-city-popup');
+            return true;
+        }
+        if(occupied&&base.position&&liberable(base.countryId,occupied)){
+            hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
+                recaptureButton(card,'Wyzwól bazę',{kind:'base',id:base.id,name:api.baseName(base),owner:base.countryId,point:base.position,liberate:true},occupied);return card;},'land-city-popup');
             return true;
         }
         if(!occupied||base.countryId!==cfg.countryId||!base.position)return false;
@@ -252,14 +261,15 @@
     }
     function chooseBase(target,recapture=false){
         const bases=ownLandBases();
-        api.modal((recapture?'Odbicie — wybierz bazę lądową: ':'Wybierz bazę lądową — przemarsz na: ')+target.name,()=>{
+        api.modal((target.liberate?'Wyzwolenie — wybierz bazę lądową: ':recapture?'Odbicie — wybierz bazę lądową: ':'Wybierz bazę lądową — przemarsz na: ')+target.name,()=>{
             api.choose('Baza lądowa, z której wyruszy armia','base_id',bases.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''} (żołnierze ${api.number(base.garrison.soldiers||0)}, wozy ${api.number(base.garrison.armored||0)}, czołgi ${api.number(base.garrison.tanks||0)})`]));
             api.fields.append(make('p','Najpierw wybierz bazę; w następnym kroku wskażesz liczbę żołnierzy i sprzętu.','land-muted'));
         },async data=>{const base=bases.find(b=>b.id===Number(data.get('base_id')));if(!base)throw new Error('Wybierz bazę lądową.');api.dialog.close();invasionModal(target,base,recapture);});
     }
     function invasionModal(target,base,recapture=false){
         const settings=lw();
-        api.modal(`${recapture?(target.kind==='city'?'Odbij miasto':'Odbij bazę'):'Wprowadź armię lądową'} — ${target.name}`,()=>{
+        api.modal(`${target.liberate?(target.kind==='city'?'Wyzwól miasto':'Wyzwól bazę'):recapture?(target.kind==='city'?'Odbij miasto':'Odbij bazę'):'Wprowadź armię lądową'} — ${target.name}`,()=>{
+            if(target.liberate)api.fields.append(make('p',`Po zwycięstwie obiekt wróci do sojusznika (${countryName(target.owner)}), a armia wróci do swojej bazy.`,'land-muted'));
             api.fields.append(make('p',`Baza: ${api.baseName(base)} · wyszkolenie wojsk lądowych: ${settings.training} / 1000`,'land-muted'));
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,base.garrison?.[unit]||0)]));
             const quote=make('div',null,'land-quote');api.fields.append(quote);
@@ -269,7 +279,7 @@
                 const cost=UNITS.reduce((total,unit)=>total+units[unit]*(Number(settings.unitCosts[unit])+extra),0);
                 const distance=Math.hypot(target.point[0]-base.position[0],target.point[1]-base.position[1])*cfg.kmPerUnit;
                 const speed=units.armored>0?settings.speeds.armored:settings.speeds.foot;
-                quote.replaceChildren(make('p',`Koszt ${recapture?'odbicia':'inwazji'}: ${money(cost)} (z budżetu sił zbrojnych).`),
+                quote.replaceChildren(make('p',`Koszt ${target.liberate?'wyzwolenia':recapture?'odbicia':'inwazji'}: ${money(cost)} (z budżetu sił zbrojnych).`),
                     make('p',`Na jednostkę: żołnierz ${money(Number(settings.unitCosts.soldiers)+extra)}, wóz opancerzony ${money(Number(settings.unitCosts.armored)+extra)}, czołg ${money(Number(settings.unitCosts.tanks)+extra)} (w tym PKB per capita × 0,01).`),
                     make('p',`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
                 document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks);
@@ -474,6 +484,18 @@
                     annex.onclick=()=>api.modal('Aneksja regionu '+region,()=>api.fields.append(make('p','Region zostanie wcielony do naszego państwa razem z miastami; okupowane bazy przejdą pod nasze dowództwo.')),
                         async()=>{await done(await send(lw().occupationUrl,{action:'annex',occupation_id:row.id}));});
                     item.append(annex);
+                    // 23 Nov 2026: region anektowany wcześniej z innego państwa — zamiast aneksji można go przywrócić (albo wskrzesić państwo)
+                    if(row.restore){
+                        const target=row.restore,label=target.resurrect?`Wskrześ państwo: ${target.name}`:`Przywróć państwu: ${target.name}`;
+                        const restore=make('button',label,'land-button land-restore');restore.type='button';restore.disabled=!ready;if(!ready)restore.title=`Po ${lw().annexDays} dniach Entendy okupacji.`;
+                        restore.onclick=()=>api.modal((target.resurrect?`Wskrzeszenie państwa ${target.name} — region `:'Przywrócenie regionu ')+region,()=>{
+                            api.fields.append(make('p',target.resurrect
+                                ?`Państwo ${target.name} odzyska niepodległość w regionie ${region}: stolica powstanie w największym mieście regionu, państwo przyjmie dawną nazwę i flagę, a jego PKB zostanie wyliczone z PKB per capita obecnego właściciela regionu i ludności regionu. Zacznie bez armii i środków, jako nasz sojusznik, w wojnie z obecnym właścicielem regionu.`
+                                :`Region ${region} wraca do państwa ${target.name} razem z miastami i bazami (bazy przejdą puste). Nasze wojska okupacyjne wrócą do baz.`));
+                            api.fields.append(make('p','Decyzja jest nieodwracalna; zamiast niej możesz anektować region.','land-muted'));
+                        },async()=>{await done(await send(lw().occupationUrl,{action:'restore',occupation_id:row.id,country_id:target.countryId}));});
+                        item.append(restore);
+                    }
                 }
             } else if(row.status==='ACTIVE'){
                 const text=make('p',null);text.append(make('span',`Region ${region} — okupowany przez: `),flag(row.occupierId),make('span',` · odbij go przed ${new Intl.DateTimeFormat('pl-PL',{timeZone:'UTC',dateStyle:'short'}).format(new Date(row.annexAt))}, inaczej okupant może go anektować.`));

@@ -81,7 +81,7 @@ def render_military(mode):
             'groundInventory':{resource:getattr(army,field) or 0 if army else 0 for resource,field in [('soldiers','wojska_ladowe_ilosc'),('tanks','czolgi_ilosc'),('armored','wozy_opancerzone_ilosc')]},
             'hasWarships':bool(army and (army.okrety_wojenne_ilosc or 0)>0),
             'orderUrl':url_for('game_military.war_order'),'defenseUrl':url_for('game_military.defense_page'),'warUrl':url_for('game_military.war_page'),
-            'mode':mode,'countryId':country.PANSTWO_ID,'controlledCountryIds':controlled_ids(db.session,country.PANSTWO_ID),'enemyIds':enemy_ids,
+            'mode':mode,'countryId':country.PANSTWO_ID,'controlledCountryIds':controlled_ids(db.session,country.PANSTWO_ID),'enemyIds':enemy_ids,'allyIds':__import__('game.trade_diplomacy',fromlist=['allied_country_ids']).allied_country_ids(db.session,country.PANSTWO_ID),
             'metropolitanRegionIds':metropolitan_region_ids(country.PANSTWO_ID),
             'regions':{str(r.region_id):{'name':r.region_nazwa,'countryId':controller_id(db.session,r.panstwo_id),'coastal':r.region_polozenie_id not in (None,1),'point':region_point(r.region_id)} for r in regions},
             'countries':{str(id):name for id,name in db.session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa))},
@@ -250,7 +250,7 @@ def map_state():
     response=jsonify(airports=visible_airports(country.PANSTWO_ID,world),power=visible_power(country.PANSTWO_ID,world),factories=visible_factories(country.PANSTWO_ID,world),tradeShips=visible_shipments(db.session,country.PANSTWO_ID),gameNow=game_now().isoformat()+'Z',timeMultiplier=get_time_multiplier(),flights=visible_flights(country.PANSTWO_ID),
         defenses=visible_defenses(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),vessels=visible_vessels(country.PANSTWO_ID,bool(enemies(db.session,country.PANSTWO_ID))),bases=visible_base_data(country.PANSTWO_ID,world),mines=visible_mines(country.PANSTWO_ID,world),
         missiles={code:{'label':label,'count':getattr(army,field) or 0 if army else 0} for code,(field,label) in MISSILES.items()},
-        armies=visible_armies(db.session,country.PANSTWO_ID),occupations=visible_occupations(db.session),
+        armies=visible_armies(db.session,country.PANSTWO_ID),occupations=visible_occupations(db.session,country.PANSTWO_ID),
         radars=visible_radars(db.session,country.PANSTWO_ID,world))
     db.session.commit()
     response.headers['Cache-Control']='no-store'
@@ -304,6 +304,11 @@ def coastline(region_id):
 def visible_base_data(country_id,world=False):
     from game.intelligence_service import known_ids
     allowed=known_ids(db.session,country_id,'bases') if world else set()
+    if world:   # 23 Nov 2026: bazy sojuszników okupowane przez przeciwnika — cel wyzwolenia (bez danych o garnizonie)
+        from game.trade_diplomacy import allied_country_ids
+        from game.land_war_models import Occupation
+        allies=allied_country_ids(db.session,country_id)
+        if allies:allowed.update(id for id in db.session.scalars(select(Occupation.base_id).where(Occupation.kind=='base',Occupation.status=='ACTIVE',Occupation.owner_id.in_(allies))) if id)
     items=[];owns={}
     from game.base_permits import own_region_ids
     for base in db.session.scalars(select(MilitaryBase).where(or_(MilitaryBase.panstwo_id==country_id,MilitaryBase.id.in_(allowed))).order_by(MilitaryBase.id)):
@@ -367,7 +372,7 @@ def land_war_config(country_id,mode):
     return {'unitCosts':{unit:str(cost) for unit,cost in UNIT_COST.items()},'gdpPerCapita':str(gdp_per_capita(db.session,country_id)),
             'weights':WEIGHTS,'speeds':{'foot':SPEED_FOOT,'armored':SPEED_ARMORED},'annexDays':ANNEX_DAYS,'training':training(db.session,country_id),
             'neighbors':sorted(neighboring_countries(db.session,country_id)) if mode=='war' else [],
-            'armies':visible_armies(db.session,country_id),'occupations':visible_occupations(db.session),
+            'armies':visible_armies(db.session,country_id),'occupations':visible_occupations(db.session,country_id),
             'icons':{'city':icon('MIASTO.svg'),'invasion':icon('INWAZJA.svg'),'soldiers':icon('CZŁOWIEK.svg'),'armored':icon('WÓZ OPANCERZONY.svg'),'tanks':icon('CZOŁG.svg')},
             'invasionUrl':url_for('game_military.land_invasion'),'interceptUrl':url_for('game_military.land_intercept'),'cancelMarchUrl':url_for('game_military.land_cancel'),'strikeLoss':[1,3],'cityDefenseUrl':url_for('game_military.city_defense'),'occupationUrl':url_for('game_military.occupation_decision'),
             'capacities':{kind:[{unit:row.get(unit,0) for unit in ('soldiers','armored','tanks')} for row in rows] for kind,rows in CAPACITIES.items() if kind!='nuclear'}}
@@ -427,6 +432,10 @@ def occupation_decision():
     from game.land_war import decide_region,annex_region
     def handler(user_id,data):
         if data.get('action')=='annex':return {'id':annex_region(user_id,data),'message':'Region został anektowany.'}
+        if data.get('action')=='restore':   # 23 Nov 2026: przywrócenie regionu dawnemu państwu / wskrzeszenie państwa
+            from game.liberation import restore_region
+            result=restore_region(user_id,data)
+            return {'id':result['region_id'],'message':'Państwo zostało wskrzeszone w wyzwolonym regionie.' if result['resurrected'] else 'Region wrócił do dawnego państwa.'}
         if data.get('action')=='withdraw':
             from game.land_war import withdraw_occupation
             return withdraw_occupation(user_id,data)

@@ -132,3 +132,5 @@
 @keyframes military-blast { 0% { transform:scale(.1); opacity:1; } 35% { transform:scale(1); opacity:1; } 100% { transform:scale(1.15); opacity:0; } }
 @keyframes military-blast-ring { 0% { transform:scale(.2); opacity:.9; } 100% { transform:scale(1.6); opacity:0; } }
 @media(prefers-reduced-motion:reduce) { .military-explosion-flash { animation:none; opacity:.8; } .military-explosion-ring { display:none; } }
+/* 23 Nov 2026: przywrócenie regionu dawnemu państwu / wskrzeszenie państwa (zamiast aneksji) */
+.land-button.land-restore{margin-left:6px;background:#2c7a4b;border-color:#1f5e38}

@@ -168,6 +168,10 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     for region_id in session.scalars(select(Region.region_id).where(Region.panstwo_id==defeated)):
         seize(session,region_id,annexer,moment)
     transferred = {}
+    # 23 Nov 2026: historia przynależności — każdy region pokonanego państwa osobno (wyzwalanie spod aneksji, game.liberation)
+    from game.region_history import record
+    for region_id in list(session.scalars(select(Region.region_id).where(Region.panstwo_id == defeated))):
+        record(session, region_id, defeated, annexer, 'SOVEREIGNTY', moment, occupation_id=occupation_id)
     transferred['capitals'] = {str(k): v for k, v in demote_capitals(session, defeated, capital_region_id).items()}   # 21 Nov 2026
     transferred['regions'] = session.execute(update(Region).where(Region.panstwo_id == defeated).values(panstwo_id=annexer)
                                              .execution_options(synchronize_session=False)).rowcount

@@ -315,6 +315,7 @@ def quote(session,country_id,base,units,target_point):
 def launch_invasion(user_id,data):
     from game.military_service import enemies,military_budget,reconcile_maintenance
     from game.road_projects import neighboring_countries
+    from game.trade_diplomacy import allied_country_ids
     key=request_key(data.get('request_id'));units=units_from(data)
     kind=data.get('target_kind')
     if kind not in ('base','city'):raise FinanceError('Wybierz bazę albo miasto przeciwnika.')
@@ -332,13 +333,21 @@ def launch_invasion(user_id,data):
             holder=occupation.owner_id
         else:
             if holder==own:raise FinanceError('Ten obiekt jest już pod kontrolą naszego państwa.')
-            if holder not in enemies(session,own):raise FinanceError('Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
             recapture=owner==own
-            if not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
-            if kind=='base' and not recapture:
+            # 23 Nov 2026: wyzwolenie miasta/bazy sojusznika okupowanej przez przeciwnika — wymaga wojny z okupantem; armia
+            # może dojść przez terytorium sojusznika (wspólna granica z sojusznikiem albo z okupantem). Po zwycięstwie obiekt
+            # wraca do sojusznika, a armia — do swojej bazy (liberate).
+            liberation=not recapture and holder!=owner and owner in set(allied_country_ids(session,own))
+            if holder not in enemies(session,own):
+                raise FinanceError('Wyzwolenie obiektu sojusznika wymaga trwającej wojny z okupantem.' if liberation else 'Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
+            if liberation:
+                neighbors=set(neighboring_countries(session,own))
+                if holder not in neighbors and owner not in neighbors:raise FinanceError('Sojusznik albo okupant musi graniczyć z naszym państwem.')
+            elif not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
+            if kind=='base' and not recapture and not liberation:
                 from game.intelligence_service import known_ids
                 if target.id not in known_ids(session,own,'bases'):raise FinanceError('Lokalizacja tej bazy nie jest znana — najpierw zdobądź ją wywiadem.')
-        lock_countries(session,own,holder)
+        lock_countries(session,own,holder,owner)
         base=own_land_base(session,own,data.get('source_base_id'))
         if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
         require_overland(session,(base.map_x,base.map_y),point)
@@ -609,6 +618,10 @@ def battle(session,army,moment,rolls=None):
     if found is None:
         army.battle={'result':'TARGET_GONE'};_return_home(session,army);return
     defender,defending,defender_level,apply=found
+    from game.trade_diplomacy import allied_country_ids
+    if defender!=attacker and defender in set(allied_country_ids(session,attacker)):
+        # 23 Nov 2026: cel wyzwolenia przeszedł w międzyczasie pod kontrolę sojusznika — bez bitwy, armia wraca do bazy.
+        army.battle={'result':'TARGET_GONE','reason':'Obiekt jest już pod kontrolą sojusznika.'};_return_home(session,army);return
     if defender==attacker:
         object_id=army.target_base_id if army.target_kind=='base' else army.target_city_id
         occupation=active_occupation(session,army.target_kind,object_id)
@@ -661,6 +674,10 @@ def _return_home(session,army):
 def _conquer(session,army,defender,moment):
     kind=army.target_kind;object_id=army.target_base_id if kind=='base' else army.target_city_id
     occupation=active_occupation(session,kind,object_id)
+    if occupation is not None and occupation.owner_id!=army.panstwo_id:
+        from game.trade_diplomacy import allied_country_ids
+        if occupation.owner_id in set(allied_country_ids(session,army.panstwo_id)):
+            _liberate(session,army,occupation,moment);return
     if occupation is not None and occupation.owner_id==army.panstwo_id:
         # Recaptured by the original owner: the occupation ends and the object is usable again at once;
         # the army enters the base garrison (what does not fit returns to the national pool) or defends the city.
@@ -683,6 +700,21 @@ def _conquer(session,army,defender,moment):
     army.status='OCCUPYING';session.flush()
     if previous is not None and previous!=army.panstwo_id:_release_region(session,army.target_region_id,previous,moment)
     _check_region(session,army.target_region_id,army.panstwo_id,owner,moment)
+
+
+def _liberate(session,army,occupation,moment):
+    """23 Nov 2026: zwycięska armia wyzwoliła miasto/bazę sojusznika — okupacja się kończy, obiekt wraca do sojusznika,
+    a armia wraca do swojej bazy (nadmiar, który się nie zmieści, trafia do ogólnej puli wojsk). Gdy okupant nie trzyma
+    już żadnego obiektu w regionie, kończy się także okupacja regionu."""
+    occupation.status='ENDED';occupation.ended_at=moment
+    session.flush()
+    _return_home(session,army)
+    ally,occupier=occupation.owner_id,occupation.occupier_id
+    _release_region(session,army.target_region_id,occupier,moment)
+    n=names(session,army.panstwo_id,ally,occupier)
+    region=session.scalar(select(Region.region_nazwa).where(Region.region_id==army.target_region_id))
+    notify(session,ally,f'Wojska sojusznika {n.get(army.panstwo_id,"?")} wyzwoliły {army.target_name} (region {region}) spod okupacji państwa {n.get(occupier,"?")}. Obiekt wrócił pod nasze panowanie.')
+    notify(session,army.panstwo_id,f'Wyzwoliliśmy {army.target_name} — obiekt wrócił do sojusznika {n.get(ally,"?")}. Armia wraca do bazy.')
 
 
 def region_objects(session,region_id,owner_id):
@@ -916,6 +948,8 @@ def annex(session,row,own,now):
     region.panstwo_id=own
     for city in session.scalars(select(Miasto).options(lazyload('*')).where(Miasto.region_id==row.region_id).with_for_update()):city.panstwo_id=own
     session.flush()
+    from game.region_history import record   # 23 Nov 2026: historia przynależności (wyzwalanie spod aneksji)
+    record(session,row.region_id,row.owner_id,own,'ANNEX',now,occupation_id=row.id)
     transfer_gdp(session,row.owner_id,own,gdp,now)
     recount_country(session,own);recount_country(session,row.owner_id)
     old_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==row.owner_id).with_for_update());new_army=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==own).with_for_update())
@@ -963,10 +997,18 @@ def visible_armies(session,country_id):
     return [army_data(army) for army in session.scalars(query)]
 
 
-def visible_occupations(session):
+def visible_occupations(session,country_id=None):
+    """23 Nov 2026: `restore` — przy okupacji regionu przez `country_id`: państwo, któremu można przywrócić region
+    zamiast aneksji (game.liberation), z informacją, czy zostanie wskrzeszone."""
     stamp=lambda value:value.isoformat()+'Z' if value else None
+    from game.liberation import restore_candidate
+    def restore(row):
+        if country_id is None or row.kind!='region' or row.occupier_id!=country_id or row.status!='ACTIVE':return None
+        try:return restore_candidate(session,row,country_id)
+        except Exception:return None
     return [{'id':row.id,'kind':row.kind,'baseId':row.base_id,'cityId':row.city_id,'regionId':row.region_id,'ownerId':row.owner_id,'occupierId':row.occupier_id,
-             'status':row.status,'startedAt':stamp(row.started_at),'annexAt':stamp(row.started_at+timedelta(days=ANNEX_DAYS)) if row.kind=='region' else None}
+             'status':row.status,'startedAt':stamp(row.started_at),'annexAt':stamp(row.started_at+timedelta(days=ANNEX_DAYS)) if row.kind=='region' else None,
+             'restore':restore(row)}
             for row in session.scalars(select(Occupation).where(Occupation.status.in_(['ACTIVE','PENDING','DECLINED'])).order_by(Occupation.id))]
 
 
