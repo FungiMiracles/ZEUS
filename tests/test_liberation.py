@@ -70,7 +70,7 @@ class AllyLiberationTests(LiberationFixture):
         self.assertEqual(base.panstwo_id, 3)
         self.assertEqual(db.session.get(MilitaryBase, self.home.id).garrison['soldiers'], 5000 - round(3000 * (100 * 700 / 100) / (3000 * 300 / 100)) - round(1000 * (100 * 700 / 100) / (1000 * 300 / 100)))
 
-    def test_requires_war_with_occupier_and_a_border(self):
+    def test_requires_war_with_occupier_but_no_border(self):
         db.session.execute(update(Occupation).where(Occupation.kind == 'city').values(occupier_id=4))
         db.session.commit()
         with self.assertRaises(FinanceError) as error:
@@ -78,11 +78,12 @@ class AllyLiberationTests(LiberationFixture):
         self.assertIn('wojny z okupantem', str(error.exception))
         db.session.execute(update(Occupation).where(Occupation.kind == 'city').values(occupier_id=2))
         db.session.commit()
-        with patch('game.road_projects.neighboring_countries', return_value=set()), self.assertRaises(FinanceError) as error:
+        # Bez wspólnej granicy — np. z naszej bazy za granicą; wystarczy trasa lądowa do celu.
+        with patch('game.road_projects.neighboring_countries', return_value=set()):
+            self.assertTrue(self.invade('city', 20, soldiers=10))
+        with patch('game.land_war.overland', return_value=False), self.assertRaises(FinanceError) as error:
             self.invade('city', 20, soldiers=10)
-        self.assertIn('graniczyć', str(error.exception))
-        with patch('game.road_projects.neighboring_countries', return_value={3}):
-            self.assertTrue(self.invade('city', 20, soldiers=10), 'wystarczy granica z sojusznikiem')
+        self.assertIn('drogą lądową', str(error.exception))
 
     def test_ally_base_needs_no_intelligence(self):
         with patch('game.intelligence_service.known_ids', return_value=set()):

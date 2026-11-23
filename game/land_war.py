@@ -334,16 +334,13 @@ def launch_invasion(user_id,data):
         else:
             if holder==own:raise FinanceError('Ten obiekt jest już pod kontrolą naszego państwa.')
             recapture=owner==own
-            # 23 Nov 2026: wyzwolenie miasta/bazy sojusznika okupowanej przez przeciwnika — wymaga wojny z okupantem; armia
-            # może dojść przez terytorium sojusznika (wspólna granica z sojusznikiem albo z okupantem). Po zwycięstwie obiekt
-            # wraca do sojusznika, a armia — do swojej bazy (liberate).
+            # 23 Nov 2026: wyzwolenie miasta/bazy sojusznika okupowanej przez przeciwnika — wymaga wojny z okupantem; bez wymogu
+            # wspólnej granicy (armia może wyruszyć np. z naszej bazy za granicą), byle dotarła do celu drogą lądową
+            # (require_overland). Po zwycięstwie obiekt wraca do sojusznika, a armia — do swojej bazy (liberate).
             liberation=not recapture and holder!=owner and owner in set(allied_country_ids(session,own))
             if holder not in enemies(session,own):
                 raise FinanceError('Wyzwolenie obiektu sojusznika wymaga trwającej wojny z okupantem.' if liberation else 'Wojska lądowe można wprowadzić tylko do państwa, z którym trwa wojna.')
-            if liberation:
-                neighbors=set(neighboring_countries(session,own))
-                if holder not in neighbors and owner not in neighbors:raise FinanceError('Sojusznik albo okupant musi graniczyć z naszym państwem.')
-            elif not recapture and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
+            if not recapture and not liberation and holder not in neighboring_countries(session,own):raise FinanceError('Atakowane państwo musi graniczyć z naszym państwem.')
             if kind=='base' and not recapture and not liberation:
                 from game.intelligence_service import known_ids
                 if target.id not in known_ids(session,own,'bases'):raise FinanceError('Lokalizacja tej bazy nie jest znana — najpierw zdobądź ją wywiadem.')
