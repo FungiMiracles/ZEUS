@@ -288,19 +288,53 @@ def add_city_defense(user_id,data):
 
 
 def withdraw_city_defense(user_id,data):
+    """Wycofanie (części) oddziału broniącego miasta — 23 Nov 2026: do wybranej własnej, sprawnej bazy z wolnym miejscem
+    (domyślnie baza macierzysta) albo do rezerwy państwa (`to_reserve`, jednostki bez przydziału). Oddziały bez bazy
+    macierzystej (np. dawne wojska okupacyjne po aneksji) i takie, których baza jest pełna, można więc zawsze wycofać.
+    Bez podanych liczb wycofuje się cały oddział; reszta nadal broni miasta."""
     with Session(db.engine) as session,session.begin():
-        country=_player_country(session,user_id)
-        army=session.scalar(select(LandArmy).where(LandArmy.id==natural(data.get('army_id'),'Oddział',1),LandArmy.panstwo_id==country.PANSTWO_ID,LandArmy.status=='DEFENDING').with_for_update())
+        country=_player_country(session,user_id);own=country.PANSTWO_ID
+        army=session.scalar(select(LandArmy).where(LandArmy.id==natural(data.get('army_id'),'Oddział',1),LandArmy.panstwo_id==own,LandArmy.status=='DEFENDING').with_for_update())
         if army is None:raise FinanceError('Nie znaleziono oddziału broniącego miasta.')
-        base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==army.source_base_id,MilitaryBase.panstwo_id==country.PANSTWO_ID).with_for_update()) if army.source_base_id else None
-        if base is None:raise FinanceError('Baza macierzysta oddziału już nie istnieje.')
-        require_usable_base(session,base.id)
-        return_to_garrison(base,{unit:getattr(army,unit) for unit in UNITS})
-        army.status='WITHDRAWN';army.resolved_at=game_now()
-        for unit in UNITS:setattr(army,unit,0)
+        present=army_units(army)
+        if all(data.get(unit) is None for unit in UNITS):units=dict(present)
+        else:units={unit:natural(data.get(unit,0) or 0,UNIT_LABELS[unit]) for unit in UNITS}
+        if not any(units.values()):raise FinanceError('Wybierz żołnierzy lub sprzęt do wycofania.')
+        for unit,count in units.items():
+            if count>present[unit]:raise FinanceError(f'Oddział ma tylko {present[unit]}: {UNIT_LABELS[unit]}.')
+        if data.get('to_reserve'):
+            target='rezerwy państwa'
+        else:
+            base_id=data.get('base_id') or army.source_base_id
+            if base_id is None:raise FinanceError('Oddział nie ma bazy macierzystej — wybierz bazę albo rezerwę państwa.')
+            base=session.scalar(select(MilitaryBase).where(MilitaryBase.id==natural(base_id,'Baza',1),MilitaryBase.panstwo_id==own).with_for_update())
+            if base is None or base.health<=0 or not base.operational:raise FinanceError('Wybierz własną, sprawną bazę.')
+            require_usable_base(session,base.id)
+            free=free_capacity(base)
+            if any(count>free[unit] for unit,count in units.items()):
+                raise FinanceError('Baza nie pomieści wszystkich jednostek. Wolne miejsca: '+', '.join(f'{UNIT_LABELS[u]} {free[u]}' for u in UNITS)+'. Wybierz inną bazę, mniej jednostek albo rezerwę państwa.')
+            _into_garrison(session,base,units,own)
+            target=f'bazy {base.name or "#"+str(base.id)}'
+        for unit,count in units.items():setattr(army,unit,present[unit]-count)
+        if not any(getattr(army,unit) for unit in UNITS):army.status='WITHDRAWN';army.resolved_at=game_now()
+        session.flush()
         from game.military_service import reconcile_maintenance
-        reconcile_maintenance(session,country.PANSTWO_ID)
-        return army.id
+        reconcile_maintenance(session,own)
+        return {'id':army.id,'message':f'Oddział wrócił do {target}.' if army.status=='WITHDRAWN' else f'Część oddziału wróciła do {target}; reszta nadal broni miasta.'}
+
+
+def _into_garrison(session,base,units,country_id):
+    """Dodaje jednostki do garnizonu bazy; żołnierze lądowi w bazie morskiej/powietrznej przechodzą do tego rodzaju sił."""
+    garrison=dict(base.garrison or {})
+    for unit,count in units.items():
+        if count:garrison[unit]=int(garrison.get(unit) or 0)+count
+    base.garrison=garrison
+    field=base_soldier_field(base)
+    if units.get('soldiers') and field and field!=FIELDS['soldiers']:
+        totals=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==country_id).with_for_update())
+        if totals is not None:
+            moved=min(units['soldiers'],int(totals.wojska_ladowe_ilosc or 0))
+            totals.wojska_ladowe_ilosc=int(totals.wojska_ladowe_ilosc or 0)-moved;setattr(totals,field,int(getattr(totals,field) or 0)+moved)
 
 
 # ---------------- invasion ----------------
@@ -794,16 +828,7 @@ def withdraw_occupation(user_id,data):
         moment=game_now()
         for army in armies:
             if not any(getattr(army,unit) for unit in UNITS):army.status='WITHDRAWN';army.resolved_at=moment
-        garrison=dict(base.garrison or {})
-        for unit,count in units.items():
-            if count:garrison[unit]=int(garrison.get(unit) or 0)+count
-        base.garrison=garrison
-        field=base_soldier_field(base)
-        if units['soldiers'] and field and field!=FIELDS['soldiers']:
-            totals=session.scalar(select(Wojsko).where(Wojsko.panstwo_id==own).with_for_update())
-            if totals is not None:
-                moved=min(units['soldiers'],int(totals.wojska_ladowe_ilosc or 0))
-                totals.wojska_ladowe_ilosc=int(totals.wojska_ladowe_ilosc or 0)-moved;setattr(totals,field,int(getattr(totals,field) or 0)+moved)
+        _into_garrison(session,base,units,own)
         ended=all(army.status=='WITHDRAWN' for army in armies)
         name=next((army.target_name for army in armies),'obiekt')
         if ended:

@@ -48,8 +48,9 @@
         const defenders=armies.filter(a=>a.status==='DEFENDING'&&String(a.targetCityId)===cityId&&a.countryId===cfg.countryId);
         if(defenders.length){card.append(make('p','Obrona miasta:','land-muted'));unitRows(sum(defenders),card);
             for(const army of defenders){const row=make('div',null,'land-detachment');const base=(cfg.bases||[]).find(b=>b.id===army.sourceBaseId);
-                row.append(make('span',`Oddział z: ${base?api.baseName(base):'bazy #'+army.sourceBaseId}`));
-                const back=make('button','Wycofaj','land-small-button');back.type='button';back.onclick=async()=>{back.disabled=true;try{await done(await send(lw().cityDefenseUrl,{action:'withdraw',army_id:army.id}));}catch(error){api.feedback(error.message);back.disabled=false;}};
+                row.append(make('span',base?`Oddział z: ${api.baseName(base)}`:army.sourceBaseId?`Oddział z: bazy #${army.sourceBaseId}`:'Oddział bez bazy macierzystej'));
+                // 23 Nov 2026: wycofanie do wybranej bazy albo do rezerwy państwa, także częściowe
+                const back=make('button','Wycofaj','land-small-button');back.type='button';back.onclick=()=>{api.map.closePopup();defenseWithdrawModal(army,city.name);};
                 row.append(back);card.append(row);}
         }
         const add=make('button','Dodaj obronę wojska','land-button');add.type='button';add.onclick=()=>{api.map.closePopup();defenseModal(cityId,city);};card.append(add);
@@ -205,6 +206,33 @@
         });
     }
 
+    // 23 Nov 2026: wycofanie obrony miasta — baza macierzysta (na początku listy), inna własna baza z wolnym miejscem
+    // albo rezerwa państwa (jednostki bez przydziału); wycofać można też część oddziału.
+    function defenseWithdrawModal(army,cityName){
+        const present=army.units||{};
+        const bases=withdrawBases().sort((a,b)=>(b.id===army.sourceBaseId)-(a.id===army.sourceBaseId));
+        api.modal(`Wycofaj obronę — ${cityName}`,()=>{
+            api.fields.append(make('p',`Oddział: żołnierze ${api.number(present.soldiers||0)}, wozy opancerzone ${api.number(present.armored||0)}, czołgi ${api.number(present.tanks||0)}.`,'land-muted'));
+            const select=api.choose('Dokąd wrócą jednostki','base_id',[...bases.map(baseOption),['reserve','Rezerwa państwa — bez przydziału do bazy']]);
+            const room=make('p',null,'land-muted');api.fields.append(room);
+            const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,present[unit]||0)]));
+            for(const unit of UNITS)inputs[unit].value=present[unit]||0;
+            const update=()=>{
+                const reserve=select.value==='reserve',base=bases.find(b=>b.id===Number(select.value));
+                const free=reserve||!base?null:freeCapacity(base);
+                for(const unit of UNITS){const limit=free?Math.min(present[unit]||0,free[unit]):(present[unit]||0);inputs[unit].max=limit;if(Number(inputs[unit].value)>limit)inputs[unit].value=limit;inputs[unit].disabled=limit===0;}
+                room.textContent=free?`Wolne miejsca w bazie: żołnierze ${api.number(free.soldiers)}, wozy ${api.number(free.armored)}, czołgi ${api.number(free.tanks)}`+(base.kind!=='land'?' (sprzęt pomieści tylko baza lądowa).':'.')+' Pozostałe jednostki nadal bronią miasta.'
+                    :'Jednostki wrócą do rezerwy państwa (bez przydziału do bazy); można je później przydzielić do dowolnej bazy.';
+                document.getElementById('military-dialog-confirm').disabled=!UNITS.some(unit=>Number(inputs[unit].value)>0);
+            };
+            select.onchange=update;for(const input of Object.values(inputs))input.oninput=update;update();
+        },async data=>{
+            const payload={action:'withdraw',army_id:army.id};
+            if(data.get('base_id')==='reserve')payload.to_reserve=true;else payload.base_id=Number(data.get('base_id'));
+            for(const unit of UNITS)payload[unit]=Number(data.get(unit)||0);
+            await done(await send(lw().cityDefenseUrl,payload));
+        });
+    }
     const regionOccupied=id=>{const row=occupation('region',id);return !!row&&row.occupierId!==cfg.countryId;};
     const regionUnderOccupation=id=>!!occupation('region',id);   // 22 Nov 2026: dowolna aktywna okupacja regionu (podświetlenie na czerwono)
 

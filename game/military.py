@@ -413,7 +413,7 @@ def land_cancel():
 def city_defense():
     from game.land_war import add_city_defense,withdraw_city_defense
     def handler(user_id,data):
-        if data.get('action')=='withdraw':return {'id':withdraw_city_defense(user_id,data),'message':'Oddział wrócił do bazy.'}
+        if data.get('action')=='withdraw':return withdraw_city_defense(user_id,data)   # 23 Nov 2026: {'id','message'}
         return {'id':add_city_defense(user_id,data),'message':'Przydzielono obronę miasta.'}
     return _land_action(handler)
 
