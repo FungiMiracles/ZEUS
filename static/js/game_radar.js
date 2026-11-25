@@ -63,9 +63,7 @@
     // ---------- panel regionu (obrona państwa) ----------
     function regionPanel(regionId,actions,list){
         if(!api||cfg.mode!=='defense')return;
-        const build=api.button('Zbuduj radar',()=>buildModal(regionId),actions,cfg.radarIcon);
-        if(!rc().researched){build.disabled=true;build.title='Wymagana technologia: Rozpoznanie radarowe (Badania i rozwój).';}
-        api.lockButton(build);
+        buildButton(regionId,actions);
         for(const radar of radars().filter(r=>r.countryId===cfg.countryId&&String(r.regionId)===String(regionId))){
             const card=api.make('section',null,'military-base military-radar-card');card.id=`military-radar-${radar.id}`;
             const title=api.make('h3',`${radar.name} · poziom ${ROMAN[radar.level]} / III`);title.prepend(api.image(cfg.radarIcon));card.append(title,api.healthBar(radar.health));
@@ -86,6 +84,13 @@
         if(radar.health>0)api.defenseActions('radar',radar.id,parent);
         if(radar.upgrade){const up=api.button(`Rozbuduj do poziomu ${ROMAN[radar.upgrade.level]}`,()=>upgradeModal(radar),parent,cfg.radarIcon);if(!radar.health){up.disabled=true;up.title='Zniszczonego radaru nie można rozbudować.';}api.lockButton(up);}
         liquidateButton(radar,parent);
+    }
+    // 25 Nov 2026: także w rzędzie opcji regionu na mapie
+    function buildButton(regionId,parent){
+        if(!api||cfg.mode!=='defense')return null;
+        const build=api.button('Zbuduj radar',()=>buildModal(regionId),parent,cfg.radarIcon);
+        if(!rc().researched){build.disabled=true;build.title='Wymagana technologia: Rozpoznanie radarowe (Badania i rozwój).';}
+        return api.lockButton(build);
     }
     function buildModal(regionId){
         const rule=rc().levels[1];
@@ -114,6 +119,6 @@
         },
         attach(map){if(!api)return;api.map=map;layer=L.layerGroup().addTo(map);draw();},
         update(state){if(!api||!layer)return;cfg.radars=state.radars||cfg.radars;draw();},
-        draw,regionPanel,place,actions,
+        draw,regionPanel,place,actions,buildButton,
     };
 })();

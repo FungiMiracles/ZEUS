@@ -22,6 +22,14 @@ html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-it
 .radial-menu .radial-menu-item.is-disabled .radial-menu-icon img{opacity:.45}
 .radial-menu .radial-menu-item.is-disabled .radial-menu-label{color:#4b5563}
 html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-disabled:hover .radial-menu-icon{transform:none;border-color:#9aa8b8;background:#e4e9f0}
+/* Opcje regionu: rząd ikon w miejscu kliknięcia (bez tła koła) */
+.radial-menu.radial-menu-row::before{display:none}
+/* Opcje ataku (panel wojenny): ikony w kolorze czerwonym — maska z sylwetki SVG */
+.radial-menu .radial-menu-glyph{display:block;width:26px;height:26px;background-color:#c62828;-webkit-mask:var(--glyph) center/contain no-repeat;mask:var(--glyph) center/contain no-repeat}
+.radial-menu .radial-menu-item.is-attack .radial-menu-icon{border-color:#c62828}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-attack:hover .radial-menu-icon{border-color:#8e1c1c;background:#fdecec}
+.radial-menu .radial-menu-item.is-attack.is-disabled .radial-menu-icon{border-color:#9aa8b8}
+.radial-menu .radial-menu-item.is-attack.is-disabled .radial-menu-glyph{background-color:#8a96a6}
 /* Otwarte menu: dymki innych obiektów nie przykrywają opcji */
 .leaflet-container.radial-menu-active .leaflet-tooltip-pane{display:none}
 @media (pointer:coarse){.radial-menu .radial-menu-label{font-size:11px}}

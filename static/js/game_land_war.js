@@ -349,7 +349,9 @@
             // 25 Nov 2026: własna armia w marszu — „Anuluj przemarsz” w kole opcji po kliknięciu ikony armii.
             if(army.countryId===cfg.countryId&&army.status==='MARCHING'&&lw().cancelMarchUrl)marker.on('click',event=>{L.DomEvent.stopPropagation(event);marker.closeTooltip();
                 api.menu?.(`army:${army.id}`,marker.getLatLng(),parent=>cancelButton(parent,army),'Opcje armii w marszu');});
-            if(attackable(army))marker.on('click',event=>{L.DomEvent.stopPropagation(event);attackArmy(army);});
+            // 25 Nov 2026: sposoby ataku na wrogą armię w kole dookoła armii (czerwone ikony); bez menu — dawne okno wyboru.
+            if(attackable(army))marker.on('click',event=>{L.DomEvent.stopPropagation(event);marker.closeTooltip();
+                if(!api.menu?.(`army:${army.id}`,marker.getLatLng(),parent=>attackMethods(army,parent),'Atak na armię: '+countryName(army.countryId)))attackArmy(army);});
             marching.set(army.id,{army,marker,from,to});
         }
         for(const id of cityLayers.keys())styleCity(id);
@@ -384,20 +386,22 @@
         const point=armyPoint(army,now+hi*36e5);return {hours:hi,km:Math.hypot(point[0]-from[0],point[1]-from[1])*cfg.kmPerUnit};
     }
     const hoursText=h=>h.toLocaleString('pl-PL',{maximumFractionDigits:2})+' godz. Entendy';
+    function attackMethods(army,parent,inDialog=false){
+        for(const [kind,label] of ARMY_ATTACKS){
+            const reason=methodReason(kind);
+            const button=make('button',label,'military-action military-attack');button.type='button';button.prepend(api.image(cfg.attackIcons[kind]));
+            button.disabled=!!reason;if(reason)button.title=reason;
+            button.onclick=()=>{if(api.dialog.open)api.dialog.close();kind==='land'?fresh(()=>interceptModal(army)):strikeModal(army,kind,label);};
+            parent.append(button);if(reason&&inDialog)parent.append(make('p',reason,'land-muted'));
+        }
+    }
+    const ARMY_ATTACKS=[['air','Bombarduj z powietrza'],['missile','Wystrzel rakiety z własnego terytorium'],['naval','Zaatakuj z okrętu'],['land','Wyślij armię lądową']];
     function attackArmy(army){
-        const methods=[['air','Bombarduj z powietrza'],['missile','Wystrzel rakiety z własnego terytorium'],['naval','Zaatakuj z okrętu'],['land','Wyślij armię lądową']];
         api.modal('Atak na armię w marszu — '+countryName(army.countryId),()=>{
             const info=make('div',null,'land-army-tooltip');info.append(flag(army.countryId));unitRows(army.units,info);
             info.append(make('p',`Cel armii: ${army.targetName} · dotarcie: ${new Intl.DateTimeFormat('pl-PL',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(army.arrivesAt))} (Entenda)`,'land-muted'));
             api.fields.append(info,make('p','Wybierz sposób ataku:'));
-            const list=make('div',null,'land-attack-methods');
-            for(const [kind,label] of methods){
-                const reason=methodReason(kind);
-                const button=make('button',label,'military-action military-attack');button.type='button';button.prepend(api.image(cfg.attackIcons[kind]));
-                button.disabled=!!reason;if(reason)button.title=reason;
-                button.onclick=()=>{api.dialog.close();kind==='land'?fresh(()=>interceptModal(army)):strikeModal(army,kind,label);};
-                list.append(button);if(reason)list.append(make('p',reason,'land-muted'));
-            }
+            const list=make('div',null,'land-attack-methods');attackMethods(army,list,true);
             api.fields.append(list);
             document.getElementById('military-dialog-confirm').hidden=true;
             api.dialog.addEventListener('close',()=>{document.getElementById('military-dialog-confirm').hidden=false;},{once:true});

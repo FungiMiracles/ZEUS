@@ -1,12 +1,15 @@
-/* 25 Nov 2026: opcje obiektu na mapie obrony i w panelu wojennym wyświetlane w kole dookoła obiektu.
-   GameRadialMenu.open(map, latlng, items, options) — items: [{label, icon, run, disabled, title}].
+/* 25 Nov 2026: opcje obiektu na mapie obrony i w panelu wojennym wyświetlane w kole dookoła obiektu,
+   a opcje regionu — w rzędzie w miejscu kliknięcia (options.layout='row').
+   GameRadialMenu.open(map, latlng, items, options) — items: [{label, icon, run, disabled, title, tone}];
+   tone 'attack' — ikona w kolorze czerwonym (opcje ataku w panelu wojennym).
    Menu zamyka kliknięcie poza obiektem i opcjami, klawisz Esc albo wybór opcji. */
 (() => {
     'use strict';
     let current=null;
-    const PANE='radialMenu',ITEM_SPACE=86,MIN_RADIUS=68,EDGE=58;
+    const PANE='radialMenu',ITEM_SPACE=104,MIN_RADIUS=72,EDGE=58,ROW_SPACE=102;
     const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     function radiusFor(count){return Math.max(MIN_RADIUS,Math.ceil(count*ITEM_SPACE/(2*Math.PI)));}
+    function rowPoints(count){return Array.from({length:count},(_,index)=>[Math.round((index-(count-1)/2)*ROW_SPACE),0]);}
     function points(count,radius){
         return Array.from({length:count},(_,index)=>{const angle=-Math.PI/2+2*Math.PI*index/count;return [Math.round(Math.cos(angle)*radius),Math.round(Math.sin(angle)*radius)];});
     }
@@ -28,30 +31,31 @@
         const step={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[event.key];
         if(step&&index>=0){event.preventDefault();buttons[(index+step+buttons.length)%buttons.length].focus();}
     }
-    function keepInView(map,latlng,radius){
-        const size=map.getSize(),point=map.latLngToContainerPoint(latlng),extent=radius+EDGE;
-        if(size.x<2*extent||size.y<2*extent)return;
-        const dx=point.x-extent<0?point.x-extent:point.x+extent>size.x?point.x+extent-size.x:0;
-        const dy=point.y-extent<0?point.y-extent:point.y+extent+14>size.y?point.y+extent+14-size.y:0;
+    function keepInView(map,latlng,extentX,extentY){
+        const size=map.getSize(),point=map.latLngToContainerPoint(latlng);
+        if(size.x<2*extentX||size.y<2*extentY)return;
+        const dx=point.x-extentX<0?point.x-extentX:point.x+extentX>size.x?point.x+extentX-size.x:0;
+        const dy=point.y-extentY<0?point.y-extentY:point.y+extentY+14>size.y?point.y+extentY+14-size.y:0;
         if(dx||dy)map.panBy([dx,dy],{animate:!reduced(),duration:.25});
     }
     function open(map,latlng,items,options={}){
         if(!window.L||!map||!latlng)return null;
         const key=options.key||null;
-        if(current&&key&&current.key===key&&current.map===map){current.keep=true;return current;}
+        if(current&&key&&current.key===key&&current.map===map){current.keep=true;if(options.layout==='row')current.marker.setLatLng(latlng);return current;}
         close({immediate:true});
         const usable=(items||[]).filter(item=>item&&item.label);
         if(!usable.length)return null;
         map.closePopup?.();
-        const radius=radiusFor(usable.length),root=document.createElement('div');
-        root.className='radial-menu';root.setAttribute('role','group');root.setAttribute('aria-label',options.label||'Opcje obiektu');
+        const row=options.layout==='row',radius=radiusFor(usable.length),root=document.createElement('div');
+        root.className='radial-menu'+(row?' radial-menu-row':'');root.setAttribute('role','group');root.setAttribute('aria-label',options.label||'Opcje obiektu');
         root.style.setProperty('--radius',radius+'px');
-        points(usable.length,radius).forEach(([x,y],index)=>{
+        (row?rowPoints(usable.length):points(usable.length,radius)).forEach(([x,y],index)=>{
             const item=usable[index],button=document.createElement('button');
             button.type='button';button.className='radial-menu-item';
             button.style.setProperty('--x',x+'px');button.style.setProperty('--y',y+'px');button.style.setProperty('--i',String(index));
             const icon=document.createElement('span');icon.className='radial-menu-icon';
-            if(item.icon){const image=document.createElement('img');image.src=item.icon;image.alt='';image.width=26;image.height=26;icon.append(image);}
+            if(item.icon&&item.tone==='attack'){const glyph=document.createElement('span');glyph.className='radial-menu-glyph';glyph.style.setProperty('--glyph',`url("${String(item.icon).replace(/["\\]/g,'\\$&')}")`);icon.append(glyph);button.classList.add('is-attack');}
+            else if(item.icon){const image=document.createElement('img');image.src=item.icon;image.alt='';image.width=26;image.height=26;icon.append(image);}
             const label=document.createElement('span');label.className='radial-menu-label';label.textContent=item.label;
             button.append(icon,label);
             if(item.title)button.title=item.title;
@@ -71,7 +75,7 @@
         document.addEventListener('keydown',keydown,true);
         if(reduced())root.classList.add('is-open');
         else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('is-open')));
-        keepInView(map,latlng,radius);
+        if(row)keepInView(map,latlng,usable.length*ROW_SPACE/2+8,EDGE+10);else keepInView(map,latlng,radius+EDGE,radius+EDGE);
         if(options.focus)root.querySelector('.radial-menu-item:not(.is-disabled)')?.focus({preventScroll:true});
         return current;
     }

@@ -57,3 +57,27 @@ class RadialMenuScriptTests(MilitaryFixture):
         land = (ROOT / 'static/js/game_land_war.js').read_text()
         self.assertIn("api.menu?.(`army:${army.id}`", land)
         self.assertIn('window.GameRadialMenu?.follow(`army:${army.id}`', land)
+
+    def test_region_row_and_red_attack_options(self):
+        """Region — opcje w rzędzie; panel wojenny — opcje ataku w kole (czerwone ikony) dla miasta, bazy, okrętu, lotniskowca, statku handlowego i armii wroga."""
+        military = (ROOT / 'static/js/game_military.js').read_text()
+        radial = (ROOT / 'static/js/game_radial_menu.js').read_text()
+        css = (ROOT / 'static/css/game_radial_menu.css').read_text()
+        land = (ROOT / 'static/js/game_land_war.js').read_text()
+        radar = (ROOT / 'static/js/game_radar.js').read_text()
+        self.assertIn("{layout:'row'}", military)
+        self.assertIn("if(!regionMenu(id,event.latlng))revealManagement();", military)
+        for text in ("defenseActions('region',Number(id),sink)", "button('Rozmieść bazę',()=>deployDialog(id),sink", 'window.GameRadar?.buildButton?.(id,sink)', 'else attackButtons(String(id),sink)'):
+            self.assertIn(text, military)
+        self.assertIn('buildButton(regionId,actions)', radar)
+        self.assertIn("const ATTACK_TARGETS=['base','vessel','shipment'];", military)
+        self.assertIn("if(config.mode==='war'&&!mine&&(ATTACK_TARGETS.includes(kind)||kind==='city'))attackButtons(String(selected),sink);", military)
+        self.assertIn("objectMenu('shipment'", military)
+        self.assertIn("objectMenu('vessel',{...vessel,regionId}", military)
+        self.assertIn("tone:'attack'", military)
+        self.assertIn("'Wystrzel rakiety z głowicą nuklearną z silosu':'Wystrzel rakietę nuklearną'", military)
+        self.assertIn("api.menu?.(`army:${army.id}`,marker.getLatLng(),parent=>attackMethods(army,parent)", land)
+        self.assertIn("item.tone==='attack'", radial)
+        self.assertIn("layout==='row'", radial)
+        self.assertIn('background-color:#c62828', css)
+        self.assertIn('mask:var(--glyph)', css)

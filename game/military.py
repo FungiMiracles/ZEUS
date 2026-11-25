@@ -137,7 +137,7 @@ def render_military(mode):
             'menuIcons':{code:url_for('static',filename='icons/'+name+'.svg') for code,name in
                          [('defense','OBRONA PRZECIWRAKIETOWA'),('defensePlus','OBRONA PRZECIWRAKIETOWA PLUS'),('rename','ZMIEŃ NAZWĘ'),('move','PRZENIEŚ'),
                           ('reorganize','REORGANIZUJ'),('withdraw','WYCOFAJ'),('liquidate','ZLIKWIDUJ'),('upgrade','ROZBUDUJ'),('repair','PRACE BUDOWLANE'),
-                          ('ammo','AMMO'),('course','gps'),('army','ARMIA'),('recapture','INWAZJA'),('manage','OBRONA PAŃSTWA'),('base','BAZA')]},
+                          ('ammo','AMMO'),('course','gps'),('army','ARMIA'),('recapture','INWAZJA'),('manage','OBRONA PAŃSTWA'),('base','BAZA'),('nuclear','BROŃ ATOMOWA')]},
             'attackIcons':{code:url_for('static',filename='icons/'+name+'.svg') for code,name in
                            [('air','BOMBARDUJ'),('missile','WYSTRZEL Z TERYTORIUM'),('naval','WYSTRZEL Z OKRĘTU'),('land','WPROWADŹ ARMIĘ LĄDOWĄ')]},
         })
