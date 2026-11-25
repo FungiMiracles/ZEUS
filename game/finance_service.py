@@ -28,7 +28,9 @@ from game.finance_models import (
 )
 
 
-CALCULATION_VERSION = 5
+# 25 Nov 2026: wersja 6 — utrzymanie wojska i obiektów miejskich pokrywane z budżetów sektorów za poprzedni okres,
+# bez sektora „Propaganda” (game.military_upkeep.ARREARS_VERSION).
+CALCULATION_VERSION = 6
 
 CENT = Decimal("0.01")
 HUNDRED = Decimal("100")
@@ -499,7 +501,28 @@ def _reserve_for_account(account, previous):
     return account.reserve_balance
 
 
-SWEEP_EXCLUDED = ("reserve", "social_policy")
+# 25 Nov 2026: także niewykorzystane środki polityki socjalnej i prorodzinnej przechodzą do rezerwy (wcześniej
+# przechodziły na świadczenia kolejnego okresu).
+SWEEP_EXCLUDED = ("reserve",)
+
+
+def _retired_unspent(session, previous):
+    """{sektor wycofany: kwota} — środki sektorów usuniętych z budżetu (propaganda) w budżetach sprzed zmiany; nic z nich
+    nie jest wydawane, więc całość (z przesunięciami i korektami) wraca do rezerwy."""
+    from sqlalchemy import func
+    from game.budget_categories import RETIRED
+    from game.budget_transfers import transfer_delta
+    from game.civic_models import TreasuryAdjustment
+    result = {}
+    for code in RETIRED:
+        amount = session.scalar(select(func.coalesce(func.sum(StateBudgetAllocation.amount), 0)).where(
+            StateBudgetAllocation.budget_id == previous.id, StateBudgetAllocation.category_code == code)) or ZERO
+        amount += session.scalar(select(func.coalesce(func.sum(TreasuryAdjustment.amount), 0)).where(
+            TreasuryAdjustment.budget_id == previous.id, TreasuryAdjustment.category == code)) or ZERO
+        amount += transfer_delta(session, previous.id, code)
+        if money(max(ZERO, amount)) > 0:
+            result[code] = money(amount)
+    return result
 
 
 def unspent_sectors(session, previous):
@@ -508,8 +531,9 @@ def unspent_sectors(session, previous):
         return {}
     from game.budget_transfers import sector_balances
     balances = sector_balances(session, previous)
-    return {code: money(item["remaining"]) for code, item in balances.items()
-            if code not in SWEEP_EXCLUDED and money(item["remaining"]) > 0}
+    result = {code: money(item["remaining"]) for code, item in balances.items()
+              if code not in SWEEP_EXCLUDED and money(item["remaining"]) > 0}
+    return {**result, **_retired_unspent(session, previous)}
 
 
 def pending_sweep(session, country_id, previous, account):
@@ -545,7 +569,47 @@ def sweep_unspent(session, country_id, previous, account, game_moment):
     return total
 
 
-def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO, military_upkeep=None):
+def previous_dues(session, country_id, previous, moment):
+    """25 Nov 2026: utrzymanie za poprzedni okres pokrywane z budżetów sektorów przy zatwierdzeniu nowego budżetu.
+
+    {'military': należność za wojsko (game.military_upkeep.due_for_previous), 'cities': {sektor: kwota} obiektów
+    miejskich, 'sectors': {sektor: łączna kwota}, 'months': długość poprzedniego okresu (0 — nic do pobrania),
+    'prepaid': poprzedni budżet sprzed zasady opłacił swój okres z góry, 'period': (rok, okres) poprzedniego budżetu}."""
+    from game.military_upkeep import due_for_previous
+    military = due_for_previous(session, country_id, previous)
+    months = 0
+    if previous is not None and not military["prepaid"]:
+        months = period_months(previous.game_year, previous.period)
+    from game.cities import maintenance_due
+    cities = maintenance_due(session, country_id, months, moment)
+    sectors = {code: ZERO for code in EXPENDITURE_CODES}
+    for code, amount in cities.items():
+        sectors[code] = money(sectors[code] + amount)
+    sectors["armed_forces"] = money(sectors["armed_forces"] + military["total"])
+    return {
+        "military": military,
+        "cities": cities,
+        "sectors": sectors,
+        "months": months,
+        "prepaid": military["prepaid"],
+        "period": (previous.game_year, previous.period) if previous is not None else None,
+    }
+
+
+def cover_dues(calculation, sectors):
+    """Podgląd: przydział sektora pomniejszony o utrzymanie za poprzedni okres (może być ujemny) i część pokrywana z rezerwy."""
+    net = {code: calculation["allocations"][code] - sectors.get(code, ZERO) for code in EXPENDITURE_CODES}
+    shortfall = sum((max(ZERO, -value) for value in net.values()), ZERO)
+    return {
+        "sector_dues": sectors,
+        "sector_net": net,
+        "dues_total": sum(sectors.values(), ZERO),
+        "dues_from_reserve": shortfall,
+        "reserve_after_dues": calculation["closing_reserve"] - shortfall,
+    }
+
+
+def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_population=0, rail_infrastructure=100, air_income=ZERO, dues=None):
     """Znacznik wykrywający zmianę podstaw od ostatniego podglądu."""
 
     from game.civic_models import CountryTaxPolicy
@@ -566,8 +630,9 @@ def _basis_token(country, year, period, reserve, previous, imf_due=ZERO, rail_po
         "controlled_country_ids": controlled_ids(object_session(country), country.PANSTWO_ID),
         "calculation_version": CALCULATION_VERSION,
     }
-    if military_upkeep:
-        data["military_upkeep"] = str(money(military_upkeep))   # 23 Nov 2026: zmiana stanu wojska zmienia kwotę do podziału
+    if dues:
+        # 23 Nov 2026 / 25 Nov 2026: zmiana stanu wojska lub obiektów miejskich zmienia utrzymanie pokrywane z sektorów
+        data["sector_dues"] = {code: str(money(amount)) for code, amount in dues.items() if amount}
     if imf_due:
         data["imf_due"] = str(money(imf_due))   # 18 Nov 2026: zmiana zaległości w MFW wymaga odświeżenia podglądu
     if rail_population:
@@ -640,8 +705,8 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
         rail_infrastructure = rail_level(session, country.PANSTWO_ID)
         from game.airports import income as air_level
         air_income = air_level(session, country.PANSTWO_ID)
-        from game.military_upkeep import assess as assess_upkeep, serializable as upkeep_data
-        upkeep = assess_upkeep(session, country.PANSTWO_ID, year, period)
+        from game.military_upkeep import serializable as upkeep_data
+        dues = previous_dues(session, country.PANSTWO_ID, previous, moment)
         from game.admin_finance import tax_plan
         plan = tax_plan(session,country.PANSTWO_ID,_previous_plan(session, previous))
 
@@ -670,9 +735,13 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
             air_income=air_income,
-            military_upkeep=upkeep["total"],
         )
-        result["military_upkeep_details"] = upkeep_data(upkeep)
+        # 25 Nov 2026: utrzymanie za poprzedni okres pokrywane z sektorów (wojsko — siły zbrojne; obiekty miejskie —
+        # ochrona zdrowia, edukacja, infrastruktura, polityka socjalna); brakującą część pokrywa rezerwa.
+        result["military_upkeep_details"] = upkeep_data(dues["military"])
+        result.update(cover_dues(result, dues["sectors"]))
+        result["dues_prepaid"] = dues["prepaid"]
+        result["dues_period"] = period_label(*dues["period"]) if dues["period"] else None
 
         from game.social_benefits import expectations,carryover
         result["benefits"]={"expected":expectations(session,country.PANSTWO_ID),"carry_in":carryover(session,previous)}
@@ -690,7 +759,7 @@ def preview_budget(user_id, pit_rate=None, cit_rate=None, shares=None,
             "period": period,
             "has_previous": previous is not None,
             "basis_token": _basis_token(
-                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, upkeep["total"]
+                country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, dues["sectors"]
             ),
         })
 
@@ -788,8 +857,12 @@ def approve_in_transaction(
     expected_basis=None,
     benefits=None,
     crime_funding=None,
+    forced_by=None,
 ):
     """Wspólny mechanizm księgowania.
+
+    `forced_by` (25 Nov 2026) — administrator wymusza zatwierdzenie w imieniu gracza (game.finance_service.force_approve_budget):
+    bez znacznika podglądu, plan poprzedniego okresu (albo domyślny przy pierwszym budżecie).
 
     Nie wykonuje commit.
 
@@ -845,6 +918,11 @@ def approve_in_transaction(
             "Pierwszy budżet musi zostać zatwierdzony ręcznie."
         )
 
+    if forced_by is not None and previous is None:
+        # Wymuszenie pierwszego budżetu: domyślny plan (podatek 5%, wszystko w rezerwie), bez świadczeń.
+        default = _previous_plan(session, None)
+        pit_rate, cit_rate, shares = default["pit_rate"], default["cit_rate"], default["shares"]
+
     account = session.scalar(
         select(StateFinancialAccount)
         .where(StateFinancialAccount.panstwo_id == country.PANSTWO_ID)
@@ -863,12 +941,12 @@ def approve_in_transaction(
     rail_infrastructure = rail_level(session, country.PANSTWO_ID)
     from game.airports import income as air_level
     air_income = air_level(session, country.PANSTWO_ID)
-    from game.military_upkeep import assess as assess_upkeep, serializable as upkeep_data
-    upkeep = assess_upkeep(session, country.PANSTWO_ID, year, period)
+    from game.military_upkeep import serializable as upkeep_data
+    dues = previous_dues(session, country.PANSTWO_ID, previous, captured_game_time)
 
-    if not automatic:
+    if not automatic and forced_by is None:
         actual_basis = _basis_token(
-            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, upkeep["total"]
+            country, year, period, reserve, previous, imf_due, rail_population, rail_infrastructure, air_income, dues["sectors"]
         )
 
         if (
@@ -907,8 +985,35 @@ def approve_in_transaction(
             rail_population=rail_population,
             rail_infrastructure=rail_infrastructure,
             air_income=air_income,
-            military_upkeep=upkeep["total"],
     )
+
+    # 25 Nov 2026: utrzymanie wojska za poprzedni okres — z przydziału sił zbrojnych, brakująca część z rezerwy (przydział
+    # rezerwy maleje, sił zbrojnych rośnie), a przy dalszym niedoborze demobilizacja. Wszystko PRZED zapisem budżetu:
+    # zatwierdzonych budżetów nie wolno zmieniać (wyzwalacz trg_gsb_no_update — przyczyna błędu zatwierdzania 25 Nov 2026).
+    from game.military_upkeep import collect as collect_upkeep, holdings as military_holdings
+    military = dues["military"]
+    upkeep_from_reserve = ZERO
+    if military["total"] > 0:
+        upkeep_from_reserve = min(
+            max(ZERO, military["total"] - calculation["allocations"]["armed_forces"]),
+            calculation["closing_reserve"],
+        )
+        if upkeep_from_reserve:
+            calculation["allocations"]["armed_forces"] += upkeep_from_reserve
+            calculation["allocations"]["reserve"] -= upkeep_from_reserve
+            calculation["closing_reserve"] -= upkeep_from_reserve
+            calculation["expenditure_total"] += upkeep_from_reserve
+    upkeep_collected = min(military["total"], calculation["allocations"]["armed_forces"])
+    demobilized = collect_upkeep(session, country.PANSTWO_ID, military, upkeep_collected, captured_game_time)
+    upkeep_details = {
+        **upkeep_data(military),
+        "mode": "arrears",
+        "collected": str(upkeep_collected),
+        "from_reserve": str(upkeep_from_reserve),
+        "demobilized": demobilized,
+        # stan wojska na początku nowego okresu — podstawa naliczenia przy kolejnym budżecie
+        "snapshot": military_holdings(session, country.PANSTWO_ID),
+    }
 
     financial_period = _get_period(
         session,
@@ -948,8 +1053,8 @@ def approve_in_transaction(
         tax_total=calculation["tax_total"],
         budget_total=calculation["budget_total"],
         imf_collection=calculation["imf_collection"],
-        military_upkeep=calculation["military_upkeep"],
-        military_upkeep_details={**upkeep_data(upkeep), "collected": str(calculation["military_upkeep"])},
+        military_upkeep=ZERO,
+        military_upkeep_details=upkeep_details,
         rail_income=calculation["rail_income"],
         air_income=calculation["air_income"],
         expenditure_total=calculation["expenditure_total"],
@@ -1046,16 +1151,9 @@ def approve_in_transaction(
         from game.imf import record_collection
         record_collection(session, country.PANSTWO_ID, budget, calculation["imf_collection"], captured_game_time)
 
-    # 23 Nov 2026: utrzymanie wojska przed podziałem środków; niedobór → proporcjonalna demobilizacja.
-    if calculation["military_upkeep"] > 0:
-        _post_transaction(
-            session, account, budget,
-            "MILITARY_UPKEEP", "DEBIT",
-            calculation["military_upkeep"],
-            captured_real_time, captured_game_time,
-        )
-    from game.military_upkeep import settle as settle_upkeep
-    settle_upkeep(session, country.PANSTWO_ID, budget, upkeep, calculation["military_upkeep"], captured_game_time)
+    # 25 Nov 2026: pobrane utrzymanie wojska to wydatek sektora sił zbrojnych nowego budżetu.
+    from game.military_upkeep import record as record_upkeep
+    record_upkeep(session, country.PANSTWO_ID, budget, military, upkeep_collected)
 
     for code in EXPENDITURE_CODES:
         _post_transaction(
@@ -1075,7 +1173,7 @@ def approve_in_transaction(
     # 21 Nov 2026: utrzymanie obiektów miejskich (game.cities) — z budżetów sektorów, brakująca część z rezerwy,
     # a bez środków likwidacja obiektów od najtańszego w utrzymaniu.
     from game.cities import charge_maintenance
-    charge_maintenance(session, country.PANSTWO_ID, budget, account, captured_game_time)
+    charge_maintenance(session, country.PANSTWO_ID, budget, account, captured_game_time, months=dues["months"])
 
     financial_period.status = "APPROVED"
     financial_period.resolved_at = captured_real_time
@@ -1135,3 +1233,47 @@ def approve_manual_budget(
             )
 
         return result
+
+
+def force_approve_budget(country_id, actor):
+    """25 Nov 2026: wymuszenie zatwierdzenia budżetu bieżącego okresu przez administratora WIKI (zabezpieczenie na wypadek
+    błędów zatwierdzania). Dotyczy państw z graczem; gra przyjmuje podatek, podział budżetu, świadczenia i środki na walkę
+    z przestępczością z poprzedniego okresu (pierwszy budżet — plan domyślny). Budżet jest zapisywany w imieniu gracza
+    (MANUAL_REPEAT / FIRST), gracz dostaje powiadomienie. Zwraca {'budget_id', 'already_approved', 'user_id', 'label'}."""
+    from game.forum_models import GameNotification
+    from game.sovereignty import require_sovereign
+    year, period = period_key(game_now())
+    with Session(db.engine, expire_on_commit=False) as session:
+        with session.begin():
+            assignment = session.scalar(
+                select(GamePlayerCountry).where(GamePlayerCountry.panstwo_id == country_id).with_for_update()
+            )
+            if assignment is None:
+                raise FinanceError("Państwo nie ma przypisanego gracza.")
+            user = session.scalar(select(GameUser).where(GameUser.id == assignment.user_id).with_for_update())
+            if user is None:
+                raise FinanceError("Konto gracza nie istnieje.")
+            country = session.scalar(
+                select(Panstwo).options(lazyload("*")).where(Panstwo.PANSTWO_ID == country_id).with_for_update()
+            )
+            if country is None:
+                raise FinanceError("Nie znaleziono państwa.")
+            if country.czy_suwerenny != "TAK":
+                raise FinanceError("Państwo niesuwerenne nie zatwierdza własnego budżetu.")
+            require_sovereign(session, country_id)
+            previous = _previous_budget(session, country_id, year, period)
+            result = approve_in_transaction(
+                session, country, year, period,
+                user_id=user.id,
+                repeat_previous=previous is not None,
+                forced_by=actor,
+            )
+            label = period_label(year, period)
+            if not result["already_approved"]:
+                session.add(GameNotification(
+                    user_id=user.id, notification_type="SYSTEM", created_at=utc_now(),
+                    system_text=(f"Administrator zatwierdził budżet państwa na {label} — "
+                                 + ("z tym samym podatkiem i podziałem środków co w poprzednim okresie."
+                                    if previous is not None else "według planu domyślnego (pierwszy budżet).")),
+                ))
+    return {**result, "user_id": user.id, "label": label}

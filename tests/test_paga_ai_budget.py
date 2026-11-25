@@ -146,23 +146,44 @@ class BudgetAdapterTests(unittest.TestCase):
         result=self.call('game_finance.approve:POST',{'rationale':'Wypłacamy świadczenia w ramach dostępnego przydziału, świadomie akceptując częściowe pokrycie oczekiwań.','accept_social_shortfall':True})
         self.assertEqual(result['status'],200,result)
         paid=sum(row.paid for row in db.session.scalars(select(BenefitPayment)))
-        # 23 Nov 2026: przed podziałem pobierane jest utrzymanie wojska (85,1 mln ROI w tej fiksturze) — sektor socjalny (50%)
-        # dostaje o 42,55 mln mniej niż wcześniej (367 899 375).
-        self.assertEqual(str(paid),'325349375.00')
-    def test_approval_takes_military_upkeep_before_allocation(self):
-        # 23 Nov 2026: utrzymanie posiadanego wojska pobierane przy zatwierdzeniu (transakcja MILITARY_UPKEEP), rozliczenie okresu
-        # bez kosztów w sektorze sił zbrojnych (MilitaryMaintenance.amount = 0, opłata za żołnierzy zapisana).
+        # 25 Nov 2026: utrzymanie wojska jest pobierane za poprzedni okres z przydziału sił zbrojnych — przy pierwszym budżecie
+        # nic (wcześniej 85,1 mln przed podziałem, sektor socjalny dostawał 325 349 375).
+        self.assertEqual(str(paid),'367899375.00')
+    def test_upkeep_for_previous_period_is_charged_to_armed_forces_and_reserve(self):
+        # 25 Nov 2026: pierwszy budżet nie pobiera utrzymania (brak poprzedniego okresu), zapisuje stan wojska (snapshot).
+        # Kolejny budżet pokrywa utrzymanie za poprzedni okres z przydziału sił zbrojnych — przy udziale 0% z rezerwy —
+        # licząc wojsko posiadane w poprzednim okresie (także zwolnione przed jego końcem). Budżet nie jest zmieniany po zapisie.
+        from sqlalchemy import event
         from game.finance_models import StateFinancialTransaction
         from game.military_models import MilitaryMaintenance
-        preview=self.plan();self.assertEqual(preview['status'],200,preview)
+        from game.budget_transfers import sector_balances
+        updates=[]
+        listener=lambda mapper,connection,target:updates.append(target.id)
+        event.listen(StateBudget,'before_update',listener);self.addCleanup(event.remove,StateBudget,'before_update',listener)
+        self.assertEqual(self.plan()['status'],200)
         self.assertEqual(self.call('game_finance.approve:POST',{'rationale':self.reason})['status'],200)
-        budget=db.session.query(StateBudget).one()
-        self.assertEqual(budget.military_upkeep,Decimal('85100000.00'))
-        self.assertEqual(budget.military_upkeep_details['items']['soldiers']['count'],150000)
-        debit=db.session.scalar(select(StateFinancialTransaction).where(StateFinancialTransaction.operation_type=='MILITARY_UPKEEP'))
-        self.assertEqual((debit.direction,debit.amount),('DEBIT',Decimal('85100000.00')))
-        record=db.session.query(MilitaryMaintenance).one()
-        self.assertEqual((record.amount,record.soldier_fee),(0,Decimal('75000000.00')))
+        first=db.session.query(StateBudget).one()
+        self.assertEqual((first.military_upkeep,first.military_upkeep_details['total'],first.calculation_version),(Decimal('0.00'),'0.00',6))
+        self.assertEqual(first.military_upkeep_details['snapshot']['soldiers'],150000)
+        db.session.execute(text('UPDATE wojsko SET wojska_ladowe_ilosc=0 WHERE panstwo_id=1'));db.session.commit()   # zwolnieni przed końcem okresu
+        with patch('game.finance_service.game_now',return_value=datetime(2990,7,1)):
+            preview=self.call('game_finance.preview:POST',{'repeat_previous':True});self.assertEqual(preview['status'],200,preview)
+            approved=self.call('game_finance.approve:POST',{'rationale':self.reason});self.assertEqual(approved['status'],200,approved)
+        db.session.expire_all()
+        second=db.session.scalar(select(StateBudget).where(StateBudget.period==2))
+        details=second.military_upkeep_details
+        self.assertEqual((details['total'],details['collected'],details['from_reserve']),('85100000.00','85100000.00','85100000.00'))
+        self.assertEqual(details['items']['soldiers']['count'],150000)
+        self.assertEqual(second.military_upkeep,Decimal('0.00'))
+        armed=db.session.scalar(select(StateBudgetAllocation).where(StateBudgetAllocation.budget_id==second.id,StateBudgetAllocation.category_code=='armed_forces'))
+        self.assertEqual((armed.share_percent,armed.amount),(0,Decimal('85100000.00')))
+        self.assertEqual(Decimal(second.budget_total),Decimal(second.expenditure_total)+Decimal(second.closing_reserve))
+        record=db.session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.budget_id==second.id))
+        self.assertEqual(record.amount,Decimal('85100000.00'))
+        balance=sector_balances(db.session,second)['armed_forces']
+        self.assertEqual((balance['spent'],balance['remaining']),(Decimal('85100000.00'),0))
+        self.assertIsNone(db.session.scalar(select(StateFinancialTransaction).where(StateFinancialTransaction.operation_type=='MILITARY_UPKEEP')))
+        self.assertEqual(updates,[],'zatwierdzony budżet nie może być zmieniany (wyzwalacz trg_gsb_no_update)')
     def test_policy_never_clamps_an_explicit_amount_request(self):
         bad=self.call('game_finance.preview:POST',{'benefit_policy':'available_proportional','benefits_millions':{'children':500}})
         self.assertEqual(bad['status'],400,bad)

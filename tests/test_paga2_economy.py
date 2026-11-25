@@ -144,10 +144,11 @@ class IndustryTests(unittest.TestCase):
 class FinanceTests(unittest.TestCase):
     def test_transfer_to_sector_needed_by_plan_from_least_important_donor(self):
         ctx=EconomyCtx(screens={'finance':{'finance_state':{'budget_id':9,'can_transfer':True,'sector_transfers_allowed':True}}},priorities=['offensive_army','research'],
-                       sectors={'research':1e9,'propaganda':2e10,'armed_forces':5e9,'reserve':0})
+                       sectors={'research':1e9,'administration':2e10,'armed_forces':5e9,'reserve':0})
         with patch('game.paga2.finance.plan_needs',return_value={'research':4e9}):options=finance.transfer_options(ctx)
         [option]=options
-        self.assertEqual((option.payload['source'],option.payload['destination'],option.payload['budget_id']),('propaganda','research',9))
+        # 25 Nov 2026: bez sektora „Propaganda” — dawcą jest najmniej ważny sektor z nadwyżką (administracja)
+        self.assertEqual((option.payload['source'],option.payload['destination'],option.payload['budget_id']),('administration','research',9))
         self.assertEqual(Decimal(option.payload['amount']),Decimal('4000000000.00'))
 
     def test_low_trust_allows_only_reserve_transfers(self):

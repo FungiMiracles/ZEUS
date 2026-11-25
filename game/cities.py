@@ -7,8 +7,9 @@ albo — na telefonie — kliknij obiekt, potem kratkę).
 Zasady:
 - budowa: koszt z niewydanych środków sektora finansującego obiekt w bieżącym okresie; brakującą część pokrywa rezerwa
   budżetowa (gracz widzi podział w oknie potwierdzenia); jedna budowla na kratkę;
-- utrzymanie: przy zatwierdzeniu budżetu (game.finance_service.approve_in_transaction) roczne koszty działających
-  obiektów, przeliczone na długość okresu (kwartał — ¼, półrocze — ½), są pobierane z budżetów sektorów; brakującą część
+- utrzymanie: przy zatwierdzeniu budżetu (game.finance_service.approve_in_transaction) roczne koszty obiektów działających
+  na koniec poprzedniego okresu, przeliczone na jego długość (kwartał — ¼, półrocze — ½), są pobierane z budżetów sektorów
+  za poprzedni okres (od 25 Nov 2026; wcześniej z góry za bieżący); brakującą część
   pokrywa rezerwa budżetowa, a gdy i jej brakuje — obiekty sektora przechodzą (od najtańszego w utrzymaniu) w status
   „Niedofinansowany”, aż koszt zmieści się w środkach: obiekt zostaje, ale nie daje efektów i nie jest opłacany; przy
   kolejnym zatwierdzeniu budżetu odzyskuje finansowanie, jeśli wystarczy środków (21 Nov 2026; wcześniej likwidacja);
@@ -300,8 +301,25 @@ def upkeep_summary(session, country, now=None):
                       for code, label in (('social', 'Żłobki'), ('culture', 'Monumenty')) if annual[code]]}
 
 
-def charge_maintenance(session, country, budget, account, now):
-    """Utrzymanie obiektów przy zatwierdzeniu budżetu (w transakcji księgowania, bez commit)."""
+def maintenance_due(session, country, months, now=None):
+    """25 Nov 2026: {sektor: kwota} utrzymania obiektów istniejących teraz (na koniec poprzedniego okresu) za `months`
+    miesięcy — ochrona zdrowia (kliniki, szpitale), edukacja (szkoły, uniwersytety), infrastruktura (komunikacja miejska,
+    monumenty), polityka socjalna (żłobki). Bez blokad — podgląd budżetu."""
+    result = {code: Decimal(0) for code in SECTORS}
+    if not months or not tables_ready(session):
+        return result
+    now = now or game_now()
+    cities = own_cities(session, country, with_points=False)
+    for b in _buildings(session, [c['id'] for c in cities]):
+        if operational(b, now):
+            result[b.sector] += Decimal(b.maintenance)
+    return {code: _money(amount * Decimal(months) / 12) for code, amount in result.items()}
+
+
+def charge_maintenance(session, country, budget, account, now, months=None):
+    """Utrzymanie obiektów przy zatwierdzeniu budżetu (w transakcji księgowania, bez commit).
+    25 Nov 2026: pobierane za poprzedni okres (`months` — jego długość; 0 — okres już opłacony z góry, wtedy obiekty
+    tylko odzyskują finansowanie)."""
     if not tables_ready(session):
         return
     if session.scalar(select(CityExpense.id).where(CityExpense.budget_id == budget.id, CityExpense.kind == 'maintenance').limit(1)):
@@ -312,7 +330,7 @@ def charge_maintenance(session, country, budget, account, now):
     buildings = [b for b in _buildings(session, names.keys(), lock=True) if operational(b, now)]
     if not buildings:
         return
-    scale = Decimal(period_months(budget.game_year, budget.period)) / 12
+    scale = Decimal(period_months(budget.game_year, budget.period) if months is None else months) / 12
     funds = sector_funds(session, budget)
     changed = False
     for sector in SECTORS:

@@ -10,9 +10,9 @@ from game.paga2.engine import Adapter,register
 from game.paga2.scoring import Option,clip
 from game.paga2.catalog import priority_weights
 
-SECTORS=('administration','infrastructure','armed_forces','social_policy','environment','healthcare','education','research','security_services','propaganda')
+SECTORS=('administration','infrastructure','armed_forces','social_policy','environment','healthcare','education','research','security_services')
 SECTOR_PRIORITY={'infrastructure':'infrastructure','armed_forces':'defensive_army','social_policy':'welfare','environment':'environment','healthcare':'welfare',
-                 'education':'research','research':'research','security_services':'intelligence','propaganda':'alliances','administration':'financial_stability','reserve':'financial_stability'}
+                 'education':'research','research':'research','security_services':'intelligence','administration':'financial_stability','reserve':'financial_stability'}
 MIN_TRANSFER=1e8     # przesunięcia poniżej 0,1 MLD nie mają sensu
 CENT=Decimal('0.01')
 

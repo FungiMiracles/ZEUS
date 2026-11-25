@@ -87,7 +87,7 @@ class GeneralTaxTests(MilitaryFixture):
                 self.assertEqual(social.zadowolenie_spoleczne,61)
                 self.assertEqual(db.session.query(GameNotification).count(),0)
             result=approve_manual_budget(2,**arguments);self.assertTrue(approve_manual_budget(2,**arguments)['already_approved'])
-        assessment=db.session.scalar(select(StateTaxAssessment));self.assertEqual(assessment.cit_rate,0);self.assertEqual(assessment.calculation_version,5)
+        assessment=db.session.scalar(select(StateTaxAssessment));self.assertEqual(assessment.cit_rate,0);self.assertEqual(assessment.calculation_version,6)
         self.assertEqual(assessment.general_tax_basis['basis']['working_population'],600)
         self.assertEqual(assessment.total_amount,Decimal('15027.24')*rate)
         self.assertEqual(db.session.get(StateFinancialAccount,2).reserve_balance,assessment.total_amount)

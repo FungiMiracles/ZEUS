@@ -65,9 +65,10 @@ def details(session,budget):
 
 @precise
 def carryover(session,previous):
-    if previous is None:return Decimal(0)
-    from game.budget_transfers import sector_balances
-    return sector_balances(session,previous)['social_policy']['remaining']
+    """25 Nov 2026 (decyzja administratora): niewykorzystane środki polityki socjalnej i prorodzinnej przechodzą do rezerwy
+    budżetowej (game.finance_service.sweep_unspent), a nie na świadczenia kolejnego okresu — przeniesienie wynosi 0.
+    Historyczne budżety zachowują zapisane carry_in."""
+    return Decimal(0)
 
 
 @precise

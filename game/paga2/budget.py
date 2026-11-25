@@ -16,18 +16,19 @@ from game.paga2.catalog import priority_weights
 
 PREVIEW='/game/finanse/podglad'
 APPROVE='/game/finanse/zatwierdz'
-SECTORS=('administration','infrastructure','armed_forces','social_policy','environment','healthcare','education','research','security_services','propaganda')
-BASE={'administration':8,'infrastructure':12,'armed_forces':12,'social_policy':14,'environment':4,'healthcare':12,'education':10,'research':6,'security_services':5,'propaganda':2,'reserve':5}
+# 25 Nov 2026: sektor „Propaganda” usunięty z budżetu — jego wagi przejmują administracja i służby.
+SECTORS=('administration','infrastructure','armed_forces','social_policy','environment','healthcare','education','research','security_services')
+BASE={'administration':8,'infrastructure':12,'armed_forces':12,'social_policy':14,'environment':4,'healthcare':12,'education':10,'research':6,'security_services':5,'reserve':5}
 PRIORITY_SECTORS={'infrastructure':{'infrastructure':1},'research':{'research':1,'education':.5},'offensive_army':{'armed_forces':1},
                   'defensive_army':{'armed_forces':1,'security_services':.3},'welfare':{'social_policy':1,'healthcare':.6,'education':.4},
                   'trade':{'infrastructure':.6},'production':{'infrastructure':.6,'research':.6},'environment':{'environment':1.2},
                   'conquest':{'armed_forces':1.2},'intelligence':{'security_services':1.2},'financial_stability':{'reserve':1.2},
-                  'alliances':{'propaganda':.5,'administration':.3}}
+                  'alliances':{'administration':.6}}
 TRAIT_SECTORS={'prosociality':{'social_policy':1},'health':{'healthcare':1},'ecology':{'environment':1},'militarism':{'armed_forces':1},
-               'espionage':{'security_services':.8},'subversion':{'security_services':.6,'propaganda':.4},'industrialism':{'infrastructure':.8},
-               'secrecy':{'security_services':.4},'provocation':{'propaganda':.6},'fiscal_conservatism':{'reserve':1}}
+               'espionage':{'security_services':.8},'subversion':{'security_services':.8},'industrialism':{'infrastructure':.8},
+               'secrecy':{'security_services':.4},'provocation':{'security_services':.3},'fiscal_conservatism':{'reserve':1}}
 CATEGORY_SECTORS={'imperialist':{'armed_forces':.6},'economic':{'infrastructure':.4,'research':.3},'welfare':{'social_policy':.5,'healthcare':.4,'education':.3},
-                  'isolationist':{'armed_forces':.3,'reserve':.3},'terrorist':{'security_services':.6,'propaganda':.4},'hegemonic':{'armed_forces':.4,'propaganda':.3,'administration':.2}}
+                  'isolationist':{'armed_forces':.3,'reserve':.3},'terrorist':{'security_services':.8},'hegemonic':{'armed_forces':.5,'administration':.3}}
 SITUATION_SECTORS={'war':{'armed_forces':2.0,'security_services':1.4,'environment':.4,'research':.8,'social_policy':.85,'reserve':.6},
                    'threat':{'armed_forces':1.4,'security_services':1.2}}
 CENT=Decimal('0.01')
@@ -110,6 +111,23 @@ def social_coverage_target(ctx):
     value=.35+.55*ctx.traits.get('prosociality',50)/100+.4*weights.get('welfare',0)+(.15 if 'welfare' in ctx.categories else 0)
     if ctx.situation.get('level')=='war':value-=.15
     return clip(value,.4,1.0)
+
+
+def with_dues_floor(shares,state):
+    """25 Nov 2026: sektory pokrywają utrzymanie za poprzedni okres (wojsko, obiekty miejskie) — udział sektora nie mniejszy
+    niż należność (najwyżej 50% budżetu na sektor); pozostałe sektory oddają proporcjonalnie, rezerwa bez zmian."""
+    dues={s:dec(v) for s,v in (state.get('sector_dues') or {}).items() if s in SECTORS and dec(v)>0}
+    budget=dec(state.get('budget_total'))
+    if not dues or budget<=0:return shares,False
+    need={s:min(Decimal('50'),(due*100/budget).quantize(CENT,rounding=ROUND_HALF_UP)+CENT) for s,due in dues.items()}
+    raised={s:v for s,v in need.items() if v>shares[s]}
+    if not raised:return shares,False
+    total=sum(shares.values());fixed=sum(max(shares[s],need.get(s,0)) for s in raised)
+    others=[s for s in SECTORS if s not in raised];rest=sum(shares[s] for s in others)
+    room=total-fixed
+    if room<0 or rest<=0:return shares,False
+    scaled={s:(shares[s]*room/rest).quantize(CENT,rounding=ROUND_DOWN) for s in others}
+    return {**scaled,**raised},True
 
 
 def with_social_floor(shares,state,coverage):
@@ -251,7 +269,9 @@ def propose(ctx):
     for rate in rates:
         body={'pit_rate':str(rate),'shares':{k:str(v) for k,v in shares.items()}}
         state=preview(ctx,body)
-        adjusted,changed=with_social_floor(shares,state,coverage)
+        adjusted,dues_changed=with_dues_floor(shares,state)
+        adjusted,changed=with_social_floor(adjusted,state,coverage)
+        changed=changed or dues_changed
         adjusted,crime_changed=with_crime_floor(adjusted,state,crime_ratio)
         adjusted,imf_changed=with_imf_reserve(adjusted,state,imf_target,war)
         if changed or crime_changed or imf_changed:

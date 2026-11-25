@@ -3,6 +3,15 @@
 {% set required = finance_required | default(false) %}
 {# 16 Nov 2026: teksty zależne od okresu planu (kwartał od 1 października 3001, wcześniej półrocze) #}
 {% set fp = (game_period(state.year, state.period) if state else game_period()) if game_period is defined else {'nom':'okres','gen':'okresu','loc':'okresie','current':'bieżący okres','months':6,'share':50,'per_year':'przy budżecie każdego okresu'} %}
+{% set quarterly = fp.nom == 'kwartał' %}
+{% set cols = 7 if approved else 5 %}
+{# 25 Nov 2026: nowy układ okna budżetu — podstawa naliczenia, środki do podziału, wykres, podział z utrzymaniem za poprzedni okres #}
+{% set due_notes = {
+    'infrastructure': 'Pokrywa utrzymanie infrastruktury za poprzedni ' ~ fp.nom ~ '.',
+    'armed_forces': 'Pokrywa utrzymanie żołnierzy i sprzętu za poprzedni ' ~ fp.nom ~ '.',
+    'healthcare': 'Pokrywa utrzymanie szpitali i klinik za poprzedni ' ~ fp.nom ~ '.',
+    'education': 'Pokrywa utrzymanie szkół i uniwersytetów za poprzedni ' ~ fp.nom ~ '.'
+} %}
 
 {% if required %}
 <dialog id="finance-modal"
@@ -10,7 +19,7 @@
         aria-labelledby="finance-form-title">
 {% endif %}
 
-<section class="finance-editor" data-finance-root>
+<section class="finance-editor finance-editor-v2" id="finance-editor-v2" data-finance-root>
     <script type="application/json" data-finance-config>
         {{ {
             "state": finance_state,
@@ -32,21 +41,26 @@
     </script>
 
     <header class="finance-heading">
-        <div>
-            <h2 id="finance-form-title">
-                {% if approved %}
-                    Zatwierdzony budżet
-                {% else %}
-                    Plan budżetowy państwa
-                {% endif %}
-            </h2>
+        <div class="finance-heading-main">
+            {% if game_country and game_country.flaga %}
+            <img class="finance-heading-flag" src="{{ game_country.flaga }}" alt="Flaga państwa {{ game_country.nazwa }}" width="54" height="36" onerror="this.remove()">
+            {% endif %}
+            <div>
+                <h2 id="finance-form-title">
+                    {% if approved %}
+                        Zatwierdzony budżet
+                    {% else %}
+                        Plan budżetowy państwa
+                    {% endif %}
+                </h2>
 
-            <p>
-                <strong>{{ game_country.nazwa }}</strong>
-                {% if state %}
-                    · {{ period_label(state.year, state.period) if period_label is defined else state.year ~ ' rok' }}
-                {% endif %}
-            </p>
+                <p class="finance-heading-sub">
+                    <strong>{{ game_country.nazwa }}</strong>
+                    {% if state %}
+                        · {{ period_label(state.year, state.period) if period_label is defined else state.year ~ ' rok' }}
+                    {% endif %}
+                </p>
+            </div>
         </div>
 
         <span class="finance-badge">
@@ -55,12 +69,12 @@
     </header>
 
     {% if required %}
-    <p class="finance-help">
+    <div class="finance-intro">
         Stopy podatkowe ustalasz przy budżecie każdego okresu —
         {{ fp.per_year }} kalendarza gry. Ustal nowe wysokości
         podatków i podział wydatków budżetowych lub zatwierdź
         budżet bez zmian względem poprzedniego.
-    </p>
+    </div>
     {% endif %}
 
     <div class="finance-notifications"
@@ -76,39 +90,19 @@
 
     {% if finance_state %}
     <form data-finance-form>
-<div class="finance-basis-tax"><h3>Podstawy naliczenia</h3><h3>Podatki</h3></div>
-<dl class="finance-metrics finance-six-metrics">
+        <section class="finance-section finance-basis-section">
+            <h3>Podstawa naliczenia budżetu</h3>
+            <dl class="finance-metrics finance-basis-metrics">
                 <div>
                     <dt>PKB</dt>
                     <dd data-value="gdp" data-money>—</dd>
                 </div>
                 <div>
-                    <dt>PKB per capita</dt>
-                    <dd data-value="gdp_per_capita" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Ludność</dt>
+                    <dt>Populacja</dt>
                     <dd data-value="population">—</dd>
                 </div>
-                <div>
-                    <dt>Rezerwa początkowa</dt>
-                    <dd data-value="opening_reserve" data-money>—</dd>
-                </div>
-            
-                <div>
-                    <dt>Roczne wpływy ogólne</dt>
-                    <dd data-value="annual_pit" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Wpływy ogólne okresu ({{ fp.nom }})</dt>
-                    <dd data-value="half_year_pit" data-money>—</dd>
-                </div>
-            </dl>
-<section class="finance-section">            {% if finance_tax_policy %}<p>Podatek ogólny administratora dla kolejnych budżetów: {{ finance_tax_policy.pit_rate }}%.</p>{% endif %}
-
-            <div class="finance-tax-fields">
-                <div class="finance-tax-field">
-                    <span class="finance-tax-label">
+                <div class="finance-tax-card">
+                    <dt class="finance-tax-label">
                         <label for="finance-pit-rate">Podatek ogólny (%)</label>
                         {# 13 Nov 2026: objaśnienie naliczania w tooltipie (komputer i telefon) #}
                         <span class="finance-info">
@@ -119,112 +113,113 @@
                                 <span>Podatek powyżej 20% może obniżyć zadowolenie, stabilność i zaufanie do władzy. Kara jest naliczana przy zatwierdzeniu budżetu. {{ 'Naliczona' if approved else 'Przewidywana' }} kara dla każdego z trzech wskaźników: <strong data-value="tax_penalty">—</strong> pkt (do dolnej granicy 0).</span>
             {% else %}<span>Podstawa roczna: ludność 18–64 × 10 000 ROI × stawka podatku + infrastruktura × 2 mld ROI + zadowolenie × 500 mln ROI + stabilność × 100 mln ROI + edukacja × 200 mln ROI. Stawka dotyczy składnika ludności.</span>{% endif %}{% else %}{% if approved %}<span>Plan historyczny zachowuje wpływy obliczone według zasad obowiązujących podczas zatwierdzenia.</span>{% endif %}{% endif %}
                                 <span>Transza bieżącego {{ fp.gen }} wynosi {{ fp.share }}% rocznych wpływów.</span>
+                                {% if finance_tax_policy %}<span>Stawkę podatku ogólnego ustalił administrator: {{ finance_tax_policy.pit_rate }}%.</span>{% endif %}
                             </span>
                         </span>
-                    </span>
-                    <input type="number"
-                           id="finance-pit-rate"
-                           name="pit_rate"
-                           class="finance-rate"
-                           min="0"
-                           max="100"
-                           step="0.01"
-                           value="{{ state.pit_rate }}"
-                           required
-                           {% if approved or finance_tax_policy %}readonly{% endif %}>
+                    </dt>
+                    <dd>
+                        <input type="number"
+                               id="finance-pit-rate"
+                               name="pit_rate"
+                               class="finance-rate"
+                               min="0"
+                               max="100"
+                               step="0.01"
+                               value="{{ state.pit_rate }}"
+                               required
+                               {% if approved or finance_tax_policy %}readonly{% endif %}>
+                    </dd>
                 </div>
-            </div>
-</section>
-
-        {# 13 Nov 2026: wykres kołowy (lewa kolumna) i podsumowanie planu (prawa kolumna); szczegóły podziału pod spodem #}
-        <div class="finance-split">
-        <section class="finance-section finance-chart-section">
-            <h3>{{ 'Zatwierdzony podział i wykorzystanie środków' if approved else 'Podział dostępnych środków' }}</h3>
-            {% if approved %}<p class="finance-help">Wykres i udziały przedstawiają bieżące środki sektorów — po przesunięciach, wpływach i korektach. Pierwotny plan znajdziesz w tabeli poniżej.</p>{% endif %}
-
-            <div data-finance-budget-chart></div>
-
-            <p class="finance-help">
-                Niewykorzystany udział oraz końcówki groszowe pozostają
-                w rezerwie. Rezerwa przechodzi na kolejny okres budżetowy.
-                Niewydane środki sektorów (poza polityką socjalną) trafiają
-                do rezerwy przy zatwierdzeniu budżetu kolejnego okresu.
-            </p>
+            </dl>
         </section>
 
-
-        <section class="finance-section finance-summary-section">
-            <h3 class="finance-icon-heading"><img src="{{ url_for('static',filename='icons/PODSUMOWANIE.svg') }}" alt="">{{ 'Podsumowanie zatwierdzonego planu' if approved else 'Podsumowanie' }}</h3>
-
-            <dl class="finance-metrics">
+        <section class="finance-section finance-income-section">
+            <h3>Środki na {{ fp.current }}</h3>
+            <dl class="finance-metrics finance-income-metrics">
                 <div>
-                    <dt>Nowa transza podatkowa</dt>
+                    <dt>{{ 'Kwartalna' if quarterly else 'Półroczna' }} transza podatkowa</dt>
                     <dd data-value="tax_total" data-money>—</dd>
                 </div>
-                <div>
-                    <dt>Środki dostępne do podziału</dt>
-                    <dd data-value="budget_total" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Przydziały wydatkowe</dt>
-                    <dd data-value="expenditure_total" data-money>—</dd>
-                </div>
-                <div>
-                    <dt>Rezerwa końcowa</dt>
-                    <dd data-value="closing_reserve" data-money>—</dd>
-                </div>
                 {# 19 Nov 2026: dochody z kolei — PKB per capita × 0,01 × ludność miast połączonych koleją #}
-                <div data-rail-income-row hidden>
+                <div>
                     <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/KOLEJ.svg') }}" alt="">Dochody z kolei</dt>
                     <dd data-value="rail_income" data-money>—</dd>
                 </div>
                 {# 20 Nov 2026: dochody z połączeń lotniczych — (ludność A + ludność B) × 10 ROI za czynne połączenie #}
-                <div data-air-income-row hidden>
-                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="">Dochody z lotnictwa</dt>
+                <div>
+                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/SAMOLOT.svg') }}" alt="">Dochody z lotnisk</dt>
                     <dd data-value="air_income" data-money>—</dd>
                 </div>
-                {# 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem środków (najwyżej 65% budżetu) #}
-                <div data-imf-collection-row hidden>
-                    <dt>Spłata zaległości w MFW</dt>
-                    <dd data-value="imf_collection" data-money>—</dd>
+                <div>
+                    <dt>Pozostało z poprzedniego {{ fp.gen }}</dt>
+                    <dd data-value="opening_reserve" data-money>—</dd>
                 </div>
-                {# 23 Nov 2026: utrzymanie wojska pobierane przed podziałem środków (od posiadanego wojska) #}
-                <div data-military-upkeep-row hidden>
-                    <dt class="finance-metric-icon"><img src="{{ url_for('static',filename='icons/ARMIA.svg') }}" alt="">Utrzymanie wojska</dt>
-                    <dd data-value="military_upkeep" data-money>—</dd>
-                    <dd class="finance-upkeep-details" data-military-upkeep-details data-money-fixed></dd>
+                {# 18 Nov 2026: zaległy dług w MFW pobierany przed podziałem środków (najwyżej 65% budżetu) #}
+                <div class="finance-metric-debit" data-imf-collection-row hidden>
+                    <dt>Spłata zaległości w MFW</dt>
+                    <dd data-value="imf_collection" data-money data-negative>—</dd>
+                </div>
+                <div class="finance-metric-total">
+                    <dt>Suma dostępnych do podziału środków na {{ fp.current }}</dt>
+                    <dd data-value="budget_total" data-money>—</dd>
                 </div>
             </dl>
-
-            <p class="finance-help"
-               data-finance-preview-status
-               role="status"></p>
         </section>
-        </div>
+
+        <section class="finance-section finance-chart-section">
+            <h3 class="finance-section-title">
+                {{ 'Zatwierdzony podział i wykorzystanie środków' if approved else 'Podział środków na ' ~ fp.current }}
+                <span class="finance-info">
+                    <button type="button" class="finance-info-button" aria-label="Rezerwa i niewydane środki" aria-describedby="finance-reserve-tooltip" aria-expanded="false">i</button>
+                    <span class="finance-info-tooltip" id="finance-reserve-tooltip" role="tooltip">
+                        <span>Rezerwa przechodzi na kolejny okres budżetowy.</span>
+                        <span>Niewydane środki sektorów (także polityki socjalnej i prorodzinnej) trafiają do rezerwy przy zatwierdzeniu budżetu kolejnego okresu.</span>
+                        {% if approved %}<span>Wykres i udziały przedstawiają bieżące środki sektorów — po przesunięciach, wpływach i korektach. Pierwotny plan znajdziesz w tabeli poniżej.</span>{% endif %}
+                    </span>
+                </span>
+            </h3>
+
+            <div data-finance-budget-chart></div>
+        </section>
 
         <section class="finance-section finance-allocation-section">
-            <details class="finance-allocation-editor">
-            <summary>
-                {{ 'Szczegóły podziału' if approved else 'Ustal udziały wydatków' }}
-            </summary>
+            <h3 class="finance-section-title">{{ 'Szczegóły podziału' if approved else 'Podział budżetu' }}</h3>
 
             <div class="finance-table-scroll">
-                <table class="finance-table">
+                <table class="finance-table finance-allocation-table">
                     <thead>
                         <tr>
-                            <th scope="col">Kategoria</th>
+                            <th scope="col">Sektor</th>
                             <th scope="col">Udział (%)</th>
-                            <th scope="col">Zatwierdzona kwota</th>
-                            {% if approved %}<th scope="col">Po przesunięciach i wpływach</th><th scope="col">Wydane / zobowiązania</th><th scope="col">Pozostało</th>{% endif %}
+                            <th scope="col">{{ 'Zatwierdzona kwota' if approved else 'Kwota z podziału' }}</th>
+                            <th scope="col">
+                                <span class="finance-th-info">Utrzymanie za poprzedni {{ fp.nom }}
+                                <span class="finance-info">
+                                    <button type="button" class="finance-info-button" aria-label="Utrzymanie za poprzedni okres" aria-describedby="finance-dues-tooltip" aria-expanded="false">i</button>
+                                    <span class="finance-info-tooltip" id="finance-dues-tooltip" role="tooltip">
+                                        <span>Przy zatwierdzeniu budżetu sektory pokrywają koszty utrzymania za poprzedni {{ fp.nom }}:</span>
+                                        <span>Infrastruktura — komunikacja miejska i monumenty. Siły zbrojne — cały sprzęt i żołnierze posiadani w poprzednim {{ fp.loc }}, także zniszczeni lub sprzedani przed jego końcem. Ochrona zdrowia — szpitale i kliniki, edukacja — szkoły i uniwersytety, polityka socjalna — żłobki istniejące na koniec poprzedniego {{ fp.gen }}.</span>
+                                        <span>Gdy udział sektora nie wystarcza (kwota na minusie), brakującą część pokrywa rezerwa budżetowa. Bez środków w rezerwie wojsko jest częściowo demobilizowane, a obiekty miejskie tracą finansowanie.</span>
+                                    </span>
+                                </span></span>
+                            </th>
+                            {% if approved %}
+                            <th scope="col">Po przesunięciach i wpływach</th>
+                            <th scope="col">Wydane / zobowiązania</th>
+                            <th scope="col">Pozostało</th>
+                            {% else %}
+                            <th scope="col">Do dyspozycji</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
                         {% for category in finance_categories %}
-                        <tr>
+                        <tr class="finance-sector-row" data-sector-row="{{ category.code }}">
                             <th scope="row">
                                 <label for="finance-share-{{ category.code }}">
                                     {{ category.name }}
                                 </label>
+                                {% if due_notes.get(category.code) %}<small class="finance-sector-note">{{ due_notes[category.code] }}</small>{% endif %}
                             </th>
                             <td data-label="Udział (%)">
                                 <input
@@ -242,28 +237,60 @@
                                     {% endif %}
                                 >
                             </td>
-                            <td data-allocation="{{ category.code }}" data-label="Zatwierdzona kwota">—</td>
-                            {% if approved %}{% for field, label in [("allocated","Po przesunięciach i wpływach"),("spent","Wydane / zobowiązania"),("remaining","Pozostało")] %}<td data-sector="{{ category.code }}" data-balance="{{ field }}" data-label="{{ label }}">—</td>{% endfor %}{% endif %}
+                            <td data-allocation="{{ category.code }}" data-label="{{ 'Zatwierdzona kwota' if approved else 'Kwota z podziału' }}">—</td>
+                            <td data-due="{{ category.code }}" data-label="Utrzymanie za poprzedni {{ fp.nom }}">—</td>
+                            {% if approved %}{% for field, label in [("allocated","Po przesunięciach i wpływach"),("spent","Wydane / zobowiązania"),("remaining","Pozostało")] %}<td data-sector="{{ category.code }}" data-balance="{{ field }}" data-label="{{ label }}">—</td>{% endfor %}
+                            {% else %}<td data-net="{{ category.code }}" data-label="Do dyspozycji">—</td>{% endif %}
                         </tr>
-                        {% if category.code == 'social_policy' %}
-                        <tr class="finance-benefits-row"><td colspan="{{ 6 if approved else 3 }}">
-                            <p data-benefits-expectations></p>
+                        {% if category.code == 'armed_forces' %}
+                        {# 23 Nov 2026 / 25 Nov 2026: utrzymanie wojska — składniki i ostrzeżenie o demobilizacji przy rekordzie sił zbrojnych #}
+                        <tr class="finance-subrow finance-upkeep-row" data-military-upkeep-row hidden><td colspan="{{ cols }}">
+                            <div class="finance-upkeep-details" data-military-upkeep-details></div>
+                        </td></tr>
+                        {% elif category.code == 'social_policy' %}
+                        <tr class="finance-subrow finance-benefits-row"><td colspan="{{ cols }}">
+                            <div class="finance-subrow-head">
+                                <p data-benefits-expectations></p>
+                                <span class="finance-info">
+                                    <button type="button" class="finance-info-button" aria-label="Zasady wypłaty świadczeń" aria-describedby="finance-benefits-tooltip" aria-expanded="false">i</button>
+                                    <span class="finance-info-tooltip" id="finance-benefits-tooltip" role="tooltip">
+                                        <span>Wypłata obu świadczeń następuje po zatwierdzeniu budżetu.</span>
+                                        <span>Niewykorzystane środki polityki socjalnej i prorodzinnej trafiają do rezerwy przy zatwierdzeniu budżetu kolejnego okresu.</span>
+                                        <span>Skutki społeczne są rozliczane raz po zakończeniu roku, osobno dla każdego świadczenia.</span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="finance-subrow-fields">
                             {% for kind,label in [('children','Świadczenia na dzieci'),('seniors','Emerytury')] %}
                             <label>{{ label }} (MLD)
                                 <input type="number" data-benefit="{{ kind }}" min="0" step="0.00000000001" value="0" {% if approved %}readonly{% endif %}>
                             </label>
                             {% endfor %}
-                            <p>Wypłata obu świadczeń następuje po zatwierdzeniu budżetu. Pozostałe środki socjalne przechodzą na następny okres budżetowy. Skutki społeczne są rozliczane raz po zakończeniu roku, osobno dla każdego świadczenia.</p>
+                            </div>
+                            <p class="finance-row-warning" data-benefits-warning hidden></p>
                         </td></tr>
                         {% elif category.code == 'security_services' %}
                         {# 16 Nov 2026: oczekiwania społeczne wobec środków na walkę z przestępczością #}
-                        <tr class="finance-benefits-row finance-crime-row"><td colspan="{{ 6 if approved else 3 }}">
-                            <p data-crime-expectations></p>
+                        <tr class="finance-subrow finance-benefits-row finance-crime-row"><td colspan="{{ cols }}">
+                            <div class="finance-subrow-head">
+                                <p data-crime-expectations></p>
+                                <span class="finance-info">
+                                    <button type="button" class="finance-info-button" aria-label="Zasady finansowania walki z przestępczością" aria-describedby="finance-crime-tooltip" aria-expanded="false">i</button>
+                                    <span class="finance-info-tooltip" id="finance-crime-tooltip" role="tooltip">
+                                        <span>Środki pochodzą z budżetu służb specjalnych i porządkowych.</span>
+                                        <span>Społeczeństwo oczekuje kwoty równej liczbie ludności pomnożonej przez poziom przestępczości (zaokrąglonej do setek milionów).</span>
+                                        <span>Niedofinansowanie podnosi przestępczość: do 35% o 1 pkt, do 60% o 2 pkt, powyżej 60% o 3 pkt. Nadwyżka obniża ją: powyżej 5% o 1 pkt, powyżej 20% o 2 pkt.</span>
+                                        <span>Rozliczenie następuje tydzień Entendy przed zatwierdzeniem kolejnego budżetu.</span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="finance-subrow-fields">
                             <label>Walka z przestępczością (MLD)
                                 <input type="number" data-crime-funding min="0" step="0.00000000001" value="0" {% if approved %}readonly{% endif %}>
                             </label>
+                            </div>
+                            <p class="finance-row-warning" data-crime-warning hidden></p>
                             <p data-crime-result></p>
-                            <p>Środki pochodzą z budżetu służb specjalnych i porządkowych. Społeczeństwo oczekuje kwoty równej liczbie ludności pomnożonej przez poziom przestępczości (zaokrąglonej do setek milionów). Niedofinansowanie podnosi przestępczość: do 35% o 1 pkt, do 60% o 2 pkt, powyżej 60% o 3 pkt. Nadwyżka obniża ją: powyżej 5% o 1 pkt, powyżej 20% o 2 pkt. Rozliczenie następuje tydzień Entendy przed zatwierdzeniem kolejnego budżetu.</p>
                         </td></tr>
                         {% endif %}
                         {% endfor %}
@@ -271,7 +298,7 @@
                 </table>
             </div>
 
-            </details>
+            <div class="finance-dues-summary" data-dues-summary hidden></div>
         </section>
 
         {% if not approved %}
@@ -289,16 +316,15 @@
                 Nie wprowadzaj zmian i zatwierdź
             </button>
             {% endif %}
-        </div>
 
-        <p class="finance-help">
-            Po zatwierdzeniu stawki podatkowe pozostają bez zmian.
-            Niewydane środki możesz przesuwać między sektorami w bieżącym {{ fp.loc }}.
-        </p>
+            <p class="finance-help finance-preview-status"
+               data-finance-preview-status
+               role="status"></p>
+        </div>
         {% else %}
         <p class="finance-help">
             Tabela pokazuje zatwierdzony plan oraz bieżące wykorzystanie środków.
-            Kwoty obejmują zobowiązania z rozpoczętych prac i utrzymania wojska.
+            Kwoty obejmują zobowiązania z rozpoczętych prac oraz utrzymanie za poprzedni okres.
         </p>
         {% endif %}
     </form>

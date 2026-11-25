@@ -90,7 +90,7 @@ function formatRatio(numerator, denominator, digits = 2) {
         administration: "#7fa7d9", infrastructure: "#f0b35a", armed_forces: "#d9665b",
         social_policy: "#9b7fd1", environment: "#5fbf8a", health: "#e889b5",
         education: "#5ec3d6", research: "#c9d35a", security_services: "#8e9bb0",
-        propaganda: "#e07fdc", reserve: "#f2e6c9"
+        healthcare: "#e889b5", reserve: "#f2e6c9"
     };
     const fallbackColors = ["#7fa7d9", "#f0b35a", "#d9665b", "#9b7fd1", "#5fbf8a", "#e889b5", "#5ec3d6", "#c9d35a", "#8e9bb0", "#e07fdc", "#f2e6c9"];
     const svgNS = "http://www.w3.org/2000/svg";
@@ -270,9 +270,44 @@ function formatRatio(numerator, denominator, digits = 2) {
         catch { throw Error('Podaj nieujemną kwotę na walkę z przestępczością w MLD.'); }
     }
     const crimeInput=form?.querySelector('[data-crime-funding]');
+    // 25 Nov 2026: domyślnie kwoty oczekiwane przez społeczeństwo (świadczenia i walka z przestępczością) — gracz może je zmienić.
+    const billionsInput=value=>benefitBillions(value).replace(/\.?0+$/,'') || '0';
     if(crimeInput && config.state && !config.state.approved) {
-        const initial=config.state.crime?.previous_paid ?? config.state.crime?.expected;
-        if(initial!=null) crimeInput.value=benefitBillions(initial).replace(/\.?0+$/,'') || '0';
+        const initial=config.state.crime?.expected ?? config.state.crime?.previous_paid;
+        if(initial!=null) crimeInput.value=billionsInput(initial);
+    }
+    if(form && config.state && !config.state.approved && config.state.benefits?.expected) {
+        form.querySelectorAll('[data-benefit]').forEach(input=>{
+            const expected=config.state.benefits.expected[input.dataset.benefit];
+            if(expected!=null) input.value=billionsInput(expected);
+        });
+    }
+    function amountCents(value) {
+        const parts=decimalParts(value ?? '0');
+        if(!parts) return 0n;
+        return parts.value*100n/parts.scale;
+    }
+    function inputCents(input) {
+        try { return benefitCents(benefitAmount(input.value)); } catch { return null; }
+    }
+    // Ostrzeżenie przy wierszu, gdy kwota przekracza przydział sektora (zatwierdzenie zostałoby odrzucone).
+    function renderLimits(state) {
+        if(!form || state.approved) return;
+        const benefitWarning=form.querySelector('[data-benefits-warning]');
+        if(benefitWarning) {
+            const values=Array.from(form.querySelectorAll('[data-benefit]'),inputCents);
+            const total=values.reduce((sum,value)=>sum+(value ?? 0n),0n);
+            const available=amountCents(state.allocations?.social_policy);
+            benefitWarning.hidden=!(total>available);
+            benefitWarning.textContent=benefitWarning.hidden ? '' : `Świadczenia (${window.GameMoney.formatCents(total)}) przekraczają przydział polityki socjalnej i prorodzinnej (${moneyText(state.allocations?.social_policy)}). Zwiększ udział sektora albo zmniejsz kwoty.`;
+        }
+        const crimeWarning=form.querySelector('[data-crime-warning]');
+        if(crimeWarning && crimeInput) {
+            const value=inputCents(crimeInput) ?? 0n;
+            const available=amountCents(state.allocations?.security_services);
+            crimeWarning.hidden=!(value>available);
+            crimeWarning.textContent=crimeWarning.hidden ? '' : `Środki na walkę z przestępczością (${window.GameMoney.formatCents(value)}) przekraczają przydział służb specjalnych i porządkowych (${moneyText(state.allocations?.security_services)}). Zwiększ udział sektora albo zmniejsz kwotę.`;
+        }
     }
     function renderCrime(state) {
         const crime=state.crime;
@@ -293,15 +328,17 @@ function formatRatio(numerator, denominator, digits = 2) {
         renderCrime(state);
         const benefits=state.benefits;
         const info=form.querySelector('[data-benefits-expectations]');
-        if(info) info.textContent=benefits?.expected ? `Oczekiwania na ${document.body.dataset.periodNom||'okres'}: dzieci ${moneyText(benefits.expected.children)}, emerytury ${moneyText(benefits.expected.seniors)}, razem ${window.GameMoney.formatCents(benefitCents(benefits.expected.children)+benefitCents(benefits.expected.seniors))}. Przeniesione środki: ${moneyText(benefits.carry_in || '0')}.` : 'Brak struktury wieku ludności — oczekiwania świadczeń są niedostępne.';
+        const carried=(decimalParts(benefits?.carry_in || '0')?.value ?? 0n)>0n ? ` Przeniesione środki: ${moneyText(benefits.carry_in)}.` : '';
+        if(info) info.textContent=benefits?.expected ? `Oczekiwania społeczne na ${document.body.dataset.periodNom||'okres'}: dzieci ${moneyText(benefits.expected.children)}, emerytury ${moneyText(benefits.expected.seniors)}, razem ${window.GameMoney.formatCents(benefitCents(benefits.expected.children)+benefitCents(benefits.expected.seniors))}.${carried}` : 'Brak struktury wieku ludności — oczekiwania świadczeń są niedostępne.';
         if(benefits?.paid) form.querySelectorAll('[data-benefit]').forEach(input=>{input.value=benefitBillions(benefits.paid[input.dataset.benefit]);});
 
         root.querySelectorAll("[data-value]").forEach(element => {
             const value = state[element.dataset.value];
 
-            element.textContent = element.hasAttribute("data-money")
+            const text = element.hasAttribute("data-money")
                 ? moneyText(value)
                 : decimalText(value);
+            element.textContent = element.hasAttribute("data-negative") && text !== "—" ? "−" + text : text;
         });
 
         root.querySelectorAll("[data-rail-income-row]").forEach(row => {
@@ -317,35 +354,78 @@ function formatRatio(numerator, denominator, digits = 2) {
             row.hidden = !((decimalParts(state.imf_collection || "0")?.value ?? 0n) > 0n);
         });
 
-        // 23 Nov 2026: utrzymanie wojska pobierane przed podziałem — składniki w zwijanej liście; ostrzeżenie o demobilizacji.
+        // 25 Nov 2026: utrzymanie wojska za poprzedni okres przy rekordzie sił zbrojnych — składniki, część z rezerwy, demobilizacja.
         root.querySelectorAll("[data-military-upkeep-row]").forEach(row => {
             const details = state.military_upkeep_details;
-            row.hidden = !details || !((decimalParts(details.total || "0")?.value ?? 0n) > 0n);
             const box = row.querySelector("[data-military-upkeep-details]");
+            const due = details?.total || "0";
+            const positive = value => (decimalParts(value || "0")?.value ?? 0n) > 0n;
+            row.hidden = !details || (!positive(due) && !details.prepaid);
             if (!box) return;
             box.replaceChildren();
             if (row.hidden) return;
-            const due = details.total, paid = state.military_upkeep ?? state.military_upkeep_due;
-            if ((decimalParts(paid || "0")?.value ?? 0n) < (decimalParts(due)?.value ?? 0n)) {
-                const warning = document.createElement("p");
-                warning.className = "finance-upkeep-warning";
-                warning.textContent = `Środków nie starcza na pełne utrzymanie (należne ${moneyText(due)}). `
-                    + (state.approved ? "Przeprowadzono proporcjonalną demobilizację." : "Po zatwierdzeniu nastąpi proporcjonalna demobilizacja: zwolnienie żołnierzy i likwidacja sprzętu.");
-                box.append(warning);
+            const line = (text, className) => { const p = document.createElement("p"); if (className) p.className = className; p.textContent = text; box.append(p); return p; };
+            if (details.prepaid && !positive(due)) {
+                line("Utrzymanie wojska za poprzedni okres zostało opłacone według wcześniejszej zasady — w tym budżecie nic nie jest pobierane.");
+                return;
+            }
+            line(`Utrzymanie wojska za poprzedni okres${state.dues_period ? ` (${state.dues_period})` : ""}: ${moneyText(due)}.`, "finance-upkeep-total");
+            if (state.approved) {
+                if (positive(details.from_reserve)) line(`W tym z rezerwy budżetowej: ${moneyText(details.from_reserve)}.`);
+                const demobilized = Object.entries(details.demobilized || {}).filter(([, count]) => count);
+                if (demobilized.length) line("Środków nie starczyło — przeprowadzono proporcjonalną demobilizację: "
+                    + demobilized.map(([code, count]) => `${(details.items?.[code]?.label || code).toLowerCase()}: ${new Intl.NumberFormat("pl-PL").format(count)}`).join(", ") + ".", "finance-upkeep-warning");
+            } else {
+                const net = state.sector_net?.armed_forces;
+                if ((decimalParts(net || "0")?.value ?? 0n) < 0n) {
+                    const reserveLeft = decimalParts(state.reserve_after_dues || "0")?.value ?? 0n;
+                    line(reserveLeft < 0n
+                        ? "Przydział sił zbrojnych i rezerwa nie wystarczą na utrzymanie — po zatwierdzeniu nastąpi proporcjonalna demobilizacja: zwolnienie żołnierzy i likwidacja sprzętu."
+                        : `Przydział sił zbrojnych nie wystarcza — brakujące ${moneyText(String(net).replace("-", ""))} pokryje rezerwa budżetowa.`, "finance-upkeep-warning");
+                }
             }
             const list = document.createElement("details");
             const summary = document.createElement("summary");
-            summary.textContent = "Składniki (stan wojska w chwili zatwierdzenia budżetu)";
+            summary.textContent = "Składniki — wojsko posiadane w poprzednim okresie";
             list.append(summary);
             for (const item of Object.values(details.items || {})) {
-                const line = document.createElement("div");
-                line.className = "finance-upkeep-item";
-                line.textContent = item.count != null
+                const entry = document.createElement("div");
+                entry.className = "finance-upkeep-item";
+                entry.textContent = item.count != null
                     ? `${item.label}: ${new Intl.NumberFormat("pl-PL").format(item.count)} × ${new Intl.NumberFormat("pl-PL", {maximumFractionDigits: 2}).format(Number(item.rate))} ROI = ${moneyText(item.amount)}`
                     : `${item.label}: ${moneyText(item.amount)}`;
-                list.append(line);
+                list.append(entry);
             }
             box.append(list);
+        });
+
+        // 25 Nov 2026: utrzymanie za poprzedni okres i kwota do dyspozycji sektora (ujemna — na czerwono).
+        const isZero = value => (decimalParts(value || "0")?.value ?? 0n) === 0n;
+        root.querySelectorAll("[data-due]").forEach(element => {
+            const code = element.dataset.due;
+            const value = code === "reserve" ? state.dues_from_reserve : state.sector_dues?.[code];
+            element.textContent = value == null || isZero(value) ? "—" : "−" + moneyText(value);
+            element.classList.toggle("finance-due-cell", !(value == null || isZero(value)));
+        });
+        root.querySelectorAll("[data-net]").forEach(element => {
+            const code = element.dataset.net;
+            const value = code === "reserve" ? state.reserve_after_dues : state.sector_net?.[code];
+            element.textContent = moneyText(value ?? state.allocations?.[code]);
+            element.classList.toggle("finance-negative", (decimalParts(value || "0")?.value ?? 0n) < 0n);
+        });
+        root.querySelectorAll("[data-dues-summary]").forEach(box => {
+            box.replaceChildren();
+            const total = state.dues_total;
+            if (state.approved || !total || isZero(total)) { box.hidden = true; return; }
+            const reserveLeft = decimalParts(state.reserve_after_dues || "0")?.value ?? 0n;
+            const add = (text, className) => { const p = document.createElement("p"); if (className) p.className = className; p.textContent = text; box.append(p); };
+            add(`Utrzymanie za poprzedni okres${state.dues_period ? ` (${state.dues_period})` : ""}: ${moneyText(total)} — pobierane z budżetów sektorów przy zatwierdzeniu.`);
+            if (!isZero(state.dues_from_reserve)) {
+                add(reserveLeft < 0n
+                    ? `Brakuje ${moneyText(String(state.reserve_after_dues).replace("-", ""))} — rezerwa nie pokryje utrzymania. Wojsko zostanie częściowo zdemobilizowane, a obiekty miejskie stracą finansowanie.`
+                    : `Z rezerwy budżetowej zostanie pokryte ${moneyText(state.dues_from_reserve)} (sektory na minusie).`, reserveLeft < 0n ? "finance-upkeep-warning" : "");
+            }
+            box.hidden = false;
         });
 
         root.querySelectorAll("[data-allocation]").forEach(element => {
@@ -360,6 +440,7 @@ function formatRatio(numerator, denominator, digits = 2) {
         root.querySelectorAll("[data-finance-budget-chart]").forEach(container => {
             renderBudgetBar(container, state);
         });
+        renderLimits(state);
     }
 
     function percentagePoints(input) {
@@ -661,6 +742,7 @@ function formatRatio(numerator, denominator, digits = 2) {
 
         if (!displayedState.approved) {
             form.addEventListener("input", () => {
+                renderLimits(displayedState);
                 cancelPreview();
                 previewValid = false;
                 updateButtons();
@@ -711,7 +793,7 @@ function formatRatio(numerator, denominator, digits = 2) {
         document.body.classList.add("finance-modal-open");
 
         modal.scrollTop = 0;
-        modal.querySelector("input, button")?.focus({
+        modal.querySelector("input:not([readonly]), .finance-actions button")?.focus({
             preventScroll: true
         });
     }

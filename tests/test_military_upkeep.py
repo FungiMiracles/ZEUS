@@ -1,5 +1,5 @@
-"""23 Nov 2026: utrzymanie wojska pobierane z budżetu przed podziałem — od posiadanego wojska, bez względu na rozmieszczenie;
-niedobór → proporcjonalna demobilizacja; w trakcie okresu nic nie jest naliczane ani wycofywane."""
+"""23 Nov 2026: utrzymanie wojska od posiadanego wojska, bez względu na rozmieszczenie; niedobór → proporcjonalna demobilizacja;
+w trakcie okresu nic nie jest naliczane ani wycofywane. 25 Nov 2026: rozliczane za poprzedni okres z sektora sił zbrojnych."""
 from decimal import Decimal
 from unittest.mock import patch
 from sqlalchemy import text
@@ -93,19 +93,51 @@ class DemobilizationTests(UpkeepFixture):
         self.assertEqual(army.wojska_ladowe_ilosc + army.wojska_powietrzne_ilosc + army.wojska_morskie_ilosc, 75000)
         self.assertEqual(army.mysliwce_ilosc, 25)
 
-    def test_settle_full_payment_records_period_without_sector_cost(self):
+    def test_collect_and_record_full_payment(self):
+        # 25 Nov 2026: pełna zapłata włącza silosy, rozliczenie okresu jest wydatkiem sektora sił zbrojnych.
         from game.finance_models import StateBudget
         db.session.execute(text("UPDATE game_state_budgets SET period=2"))
         db.session.commit()
         budget = db.session.get(StateBudget, 1)
         silo = MilitaryBase(panstwo_id=1, region_id=1, kind='nuclear', level=1, garrison={}, operational=False)
         db.session.add(silo); db.session.commit()
-        assessment = military_upkeep.assess(db.session, 1, 2990, 2)
-        military_upkeep.settle(db.session, 1, budget, assessment, assessment['total'], NOW); db.session.commit()
+        due = military_upkeep.assess(db.session, 1, 2990, 2)
+        self.assertEqual(military_upkeep.collect(db.session, 1, due, due['total'], NOW), {})
+        military_upkeep.record(db.session, 1, budget, due, due['total']); db.session.commit()
         record = db.session.query(MilitaryMaintenance).one()
-        self.assertEqual((record.amount, record.soldier_count, record.soldier_fee), (0, 150000, Decimal('1500000000.00')))
+        self.assertEqual((record.amount, record.soldier_count, record.soldier_fee), (due['total'], 150000, Decimal('1500000000.00')))
         self.assertIsNotNone(record.soldiers_assessed_at)
         self.assertTrue(self.bases()[silo.id].operational, 'opłacony silos wraca do pracy')
+
+    def test_collect_shortfall_demobilizes_current_army(self):
+        db.session.add(MilitaryBase(panstwo_id=1, region_id=1, kind='land', level=7, garrison={'soldiers': 50000, 'tanks': 400, 'armored': 0}))
+        db.session.commit()
+        due = military_upkeep.assess(db.session, 1, 2990, 2)
+        result = military_upkeep.collect(db.session, 1, due, due['total'] / 2, NOW); db.session.commit()
+        self.assertEqual((result['tanks'], self.wojsko().czolgi_ilosc), (250, 250))
+
+
+class PreviousPeriodTests(UpkeepFixture):
+    """25 Nov 2026: utrzymanie za poprzedni okres — wojsko posiadane w tym okresie (większa liczba: początek albo koniec)."""
+
+    def budget(self, version, snapshot=None):
+        from types import SimpleNamespace
+        return SimpleNamespace(game_year=2990, period=1, calculation_version=version,
+                               military_upkeep_details={'snapshot': snapshot} if snapshot is not None else None)
+
+    def test_first_and_transition_budgets_owe_nothing(self):
+        self.assertEqual(military_upkeep.due_for_previous(db.session, 1, None)['total'], 0)
+        old = military_upkeep.due_for_previous(db.session, 1, self.budget(5))
+        self.assertEqual((old['total'], old['prepaid']), (0, True))
+
+    def test_units_lost_before_period_end_are_still_charged(self):
+        now = military_upkeep.holdings(db.session, 1)
+        snapshot = {**now, 'tanks': now['tanks'] + 100, 'soldiers': now['soldiers'] - 1000}
+        due = military_upkeep.due_for_previous(db.session, 1, self.budget(6, snapshot))
+        self.assertEqual(due['items']['tanks']['count'], now['tanks'] + 100, 'czołgi zniszczone w trakcie okresu')
+        self.assertEqual(due['items']['soldiers']['count'], now['soldiers'], 'rekruci z końca okresu')
+        self.assertEqual((due['prepaid'], due['period']), (False, [2990, 1]))
+        self.assertEqual(due['total'], sum(item['amount'] for item in due['items'].values()))
 
 
 class InPeriodTests(UpkeepFixture):

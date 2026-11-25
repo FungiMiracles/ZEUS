@@ -44,7 +44,7 @@
 window.addEventListener('error',e=>{const src=String(e.filename||'');if(!src||/game_|leaflet/.test(src))show((e.message||'nieznany błąd')+' ['+src.split('/').pop().split('?')[0]+':'+(e.lineno||0)+':'+(e.colno||0)+'] · '+navigator.userAgent);});
 window.addEventListener('unhandledrejection',e=>show(String(e.reason&&e.reason.stack||e.reason)+' · '+navigator.userAgent));
 window.addEventListener('load',()=>{if(!window.L)show('nie wczytano biblioteki Leaflet (unpkg.com) · '+navigator.userAgent);});})();</script>
-<script src="{{ url_for('static',filename='js/game_trade_navigation.js',v='20261123-ui-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_trade_navigation.js',v='20261125-train-2x') }}" defer></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static', filename='js/game_military_flight_math.js', v='20261114-heading-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui4') }}" defer></script>

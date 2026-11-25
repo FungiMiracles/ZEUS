@@ -913,6 +913,11 @@ main.container {
                     Konta graczy
                 </a>
 
+                {# 25 Nov 2026: wymuszenie zatwierdzenia budżetu państw z graczami #}
+                <a href="{{ url_for('wiki_civic.player_budgets') }}">
+                    Budżety graczy
+                </a>
+
                 {% else %}
 
                 <a href="#" onclick="zeusToast('Twoja obecna rola nie pozwala na tę akcję')">

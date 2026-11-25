@@ -60,7 +60,7 @@ class MineDefenseTests(MilitaryFixture):
 class BudgetOverviewTests(MilitaryFixture):
     def test_current_half_year_only_and_remaining_after_spending(self):
         with patch('game.budget_overview.game_now',return_value=NOW):
-            overview=budget_overview(db.session,1);self.assertEqual((overview['year'],overview['period']),(2990,1));self.assertEqual(len(overview['items']),11)
+            overview=budget_overview(db.session,1);self.assertEqual((overview['year'],overview['period']),(2990,1));self.assertEqual(len(overview['items']),10);self.assertNotIn('propaganda',[item['code'] for item in overview['items']])   # 25 Nov 2026: bez propagandy
             values={item['code']:item['remaining'] for item in overview['items']};self.assertEqual(values['armed_forces'],Decimal(1000000000000))
             self.change('defense_place',target_kind='region',target_id=1)
             self.assertEqual(next(i['remaining'] for i in budget_overview(db.session,1)['items'] if i['code']=='armed_forces'),values['armed_forces']-100000000)

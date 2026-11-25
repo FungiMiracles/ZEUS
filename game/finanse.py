@@ -149,6 +149,36 @@ def _unseen_notifications(database_session, user_id):
     ]
 
 
+def _paid_dues(database_session, budget):
+    """25 Nov 2026: utrzymanie za poprzedni okres pobrane przy zatwierdzeniu budżetu — {sektor: kwota} (wojsko z zapisu
+    budżetu, obiekty miejskie z wydatków 'maintenance') i część pokryta z rezerwy."""
+    from decimal import Decimal
+    from sqlalchemy import func
+    from game.finance_service import EXPENDITURE_CODES
+    dues = {code: Decimal(0) for code in EXPENDITURE_CODES}
+    from_reserve = Decimal(0)
+    details = getattr(budget, "military_upkeep_details", None) or {}
+    if details.get("mode") == "arrears":
+        dues["armed_forces"] += Decimal(details.get("collected") or 0)
+        from_reserve += Decimal(details.get("from_reserve") or 0)
+    try:
+        from game.cities import tables_ready
+        from game.city_models import CityExpense
+        if tables_ready(database_session):
+            for sector, amount, reserve in database_session.execute(
+                    select(CityExpense.sector, func.coalesce(func.sum(CityExpense.amount), 0), func.coalesce(func.sum(CityExpense.reserve_amount), 0))
+                    .where(CityExpense.budget_id == budget.id, CityExpense.kind == "maintenance").group_by(CityExpense.sector)):
+                if sector in dues:
+                    dues[sector] += Decimal(amount or 0) + Decimal(reserve or 0)
+                from_reserve += Decimal(reserve or 0)
+    except SQLAlchemyError:
+        current_app.logger.exception("Finanse: utrzymanie obiektów miejskich w szczegółach budżetu")
+    from game.finance_service import period_label
+    period = details.get("period")
+    return {"sector_dues": dues, "dues_from_reserve": from_reserve, "dues_total": sum(dues.values(), Decimal(0)),
+            "dues_period": period_label(*period) if period else None}
+
+
 def _approved_details(database_session, budget_id, country_id):
     budget = database_session.scalar(
         select(StateBudget).where(
@@ -183,6 +213,7 @@ def _approved_details(database_session, budget_id, country_id):
     from game.social_benefits import details
     from game.crime_funding import details as crime_details
     return {
+        **_paid_dues(database_session, budget),
         "benefits":details(database_session,budget),
         "crime":crime_details(database_session,budget),
         "balances":balances,

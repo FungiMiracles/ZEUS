@@ -90,6 +90,82 @@ def budget(country_id):
         changes=list(db.session.scalars(select(TreasuryAdjustment).where(TreasuryAdjustment.panstwo_id==country_id).order_by(TreasuryAdjustment.id.desc()).limit(50)))) ,400 if error else 200
 
 
+def player_budget_rows():
+    """25 Nov 2026: państwa graczy ludzkich i stan budżetu bieżącego okresu (wymuszenie zatwierdzenia przez administratora)."""
+    from game.models import GameUser, GamePlayerCountry
+    from game.paga_ai_models import PagaAiIdentity
+    from game.finance_models import StateFinancialPeriod
+    from game.finance_service import game_now, period_key, period_label, _previous_budget
+    year, period = period_key(game_now())
+    rows = db.session.execute(
+        select(GamePlayerCountry.panstwo_id, Panstwo.panstwo_nazwa, Panstwo.czy_suwerenny, GameUser.username, GameUser.is_active)
+        .join(GameUser, GameUser.id == GamePlayerCountry.user_id)
+        .join(Panstwo, Panstwo.PANSTWO_ID == GamePlayerCountry.panstwo_id)
+        .where(GameUser.id.not_in(select(PagaAiIdentity.user_id)))
+        .order_by(Panstwo.panstwo_nazwa)).all()
+    result = []
+    for country_id, name, sovereign, username, active in rows:
+        budget = db.session.scalar(select(StateBudget).where(StateBudget.panstwo_id == country_id, StateBudget.game_year == year, StateBudget.period == period))
+        financial = db.session.scalar(select(StateFinancialPeriod.status).where(StateFinancialPeriod.panstwo_id == country_id, StateFinancialPeriod.game_year == year,
+                                                                                 StateFinancialPeriod.period == period))
+        previous = _previous_budget(db.session, country_id, year, period)
+        assessment = db.session.scalar(select(StateTaxAssessment).where(StateTaxAssessment.budget_id == previous.id)) if previous else None
+        result.append({'country_id': country_id, 'country': name, 'player': username, 'active': bool(active), 'sovereign': sovereign == 'TAK',
+                       'approved': budget is not None, 'approval_mode': budget.approval_mode if budget else None,
+                       'pending': budget is None and financial in (None, 'PENDING') and sovereign == 'TAK',
+                       'previous': period_label(previous.game_year, previous.period) if previous else None,
+                       'previous_tax': assessment.pit_rate if assessment else None})
+    return period_label(year, period), result
+
+
+@wiki_civic_bp.get('/budzety-graczy')
+@wymaga_roli('wszechmocny')
+def player_budgets():
+    label, rows = player_budget_rows()
+    return render_template('admin_player_budgets.html', period=label, rows=rows, csrf=token())
+
+
+@wiki_civic_bp.post('/budzety-graczy/wymus')
+@wymaga_roli('wszechmocny')
+def force_player_budgets():
+    """Wymusza zatwierdzenie budżetu bieżącego okresu: jednego państwa (country_id) albo wszystkich oczekujących (all=1).
+    Gra przyjmuje podatek i podział budżetu z poprzedniego okresu (game.finance_service.force_approve_budget)."""
+    from flask import current_app
+    from game.finance_service import force_approve_budget
+    validate()
+    _, rows = player_budget_rows()
+    pending = {row['country_id']: row for row in rows if row['pending']}
+    if request.form.get('all'):
+        targets = list(pending)
+    else:
+        country_id = request.form.get('country_id', type=int)
+        if country_id not in pending:
+            flash('Budżet tego państwa nie oczekuje na zatwierdzenie.', 'error')
+            return redirect(url_for('wiki_civic.player_budgets'), code=303)
+        targets = [country_id]
+    if not targets:
+        flash('Żadne państwo gracza nie oczekuje na zatwierdzenie budżetu.', 'success')
+        return redirect(url_for('wiki_civic.player_budgets'), code=303)
+    done, failed = [], []
+    for country_id in targets:
+        name = pending[country_id]['country']
+        try:
+            result = force_approve_budget(country_id, actor())
+            done.append(name)
+            current_app.logger.info('WIKI: administrator %s wymusił zatwierdzenie budżetu państwa #%s (%s) — %s, budżet #%s.',
+                                    actor(), country_id, name, result['label'], result['budget_id'])
+        except FinanceError as exc:
+            failed.append(f'{name}: {exc}')
+        except Exception:
+            current_app.logger.exception('WIKI: wymuszenie zatwierdzenia budżetu państwa #%s nie powiodło się.', country_id)
+            failed.append(f'{name}: błąd systemu — szczegóły w dzienniku serwera')
+    if done:
+        flash('Zatwierdzono budżet: ' + ', '.join(done) + '.', 'success')
+    for message in failed:
+        flash('Nie zatwierdzono — ' + message, 'error')
+    return redirect(url_for('wiki_civic.player_budgets'), code=303)
+
+
 @wiki_civic_bp.get('/struktura-ludnosci')
 @wymaga_roli('wszechmocny')
 def population_page():

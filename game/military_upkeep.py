@@ -1,18 +1,26 @@
-"""Utrzymanie wojska pobierane z budżetu przed jego podziałem (UAT, 23 Nov 2026).
+"""Utrzymanie wojska rozliczane przy zatwierdzeniu budżetu (UAT, 23 Nov 2026; od 25 Nov 2026 — za poprzedni kwartał).
 
 Zasady zatwierdzone przez administratora:
 * Utrzymanie liczy się od POSIADANEGO wojska, bez względu na rozmieszczenie (baza, rezerwa, armia w operacji):
   żołnierze w służbie czynnej (PKB per capita × 0,01 za żołnierza na okres), sprzęt (UPKEEP_RATES za półrocze),
   silosy (500 mln ROI) i rakiety z głowicą nuklearną (650 mln ROI), dopłata za sprzęt w bazach za granicą (2× stawka).
   W okresie kwartalnym stawki sprzętu, silosów i głowic są o połowę niższe (stawka za żołnierza jest już „na okres”).
-* Kwota jest pobierana przy zatwierdzeniu budżetu — po spłacie zaległości w MFW, przed podziałem środków (mniej do podziału).
-  Stan wojska liczy się z chwili zatwierdzenia: rekruci i zakupy z bieżącego okresu płacą od następnego, za straty
-  w trakcie okresu nie ma zwrotu.
-* Gdy środków nie starcza, gra pobiera tyle, ile jest, i demobilizuje proporcjonalnie to, na co państwa nie stać:
+* 25 Nov 2026: budżet sił zbrojnych pokrywa utrzymanie za POPRZEDNI kwartał. Gra liczy całe wojsko posiadane w tym kwartale —
+  także sprzęt i żołnierzy, których państwo pozbyło się przed jego końcem (zniszczenie, sprzedaż, zwolnienie): dla każdej
+  pozycji większa z liczb — stan z początku kwartału (zapisany w budżecie jako `snapshot`) albo stan z końca kwartału
+  (chwila zatwierdzenia kolejnego budżetu).
+* Kwota jest pobierana przy zatwierdzeniu budżetu z przydziału sił zbrojnych; brakującą część pokrywa rezerwa budżetowa
+  (przydział rezerwy zmniejsza się, przydział sił zbrojnych rośnie). W formularzu gracz widzi przydział pomniejszony o tę
+  kwotę — przy zbyt małym udziale (także 0%) na minusie.
+* Gdy nie starcza i rezerwy, gra pobiera tyle, ile jest, i demobilizuje proporcjonalnie to, na co państwa nie stać:
   zwalnia żołnierzy i likwiduje sprzęt (najpierw z rezerwy, potem z garnizonów baz — bez jednostek w misjach),
   rozbraja głowice (najpierw z magazynu) i wyłącza silosy do następnego okresu.
-* Nowa zasada obowiązuje od budżetów zatwierdzonych po wdrożeniu (StateBudget.military_upkeep IS NOT NULL);
-  dla takich budżetów utrzymanie nie jest już naliczane z budżetu sił zbrojnych w trakcie okresu (reconcile_maintenance).
+* Wszystko, co trafia do budżetu, jest ustalane PRZED jego zapisem — zatwierdzonych budżetów nie wolno zmieniać
+  (wyzwalacz bazy trg_gsb_no_update). Do 25 Nov 2026 dopisanie wyniku demobilizacji po zapisie blokowało zatwierdzanie.
+* Przejście: budżety sprzed 25 Nov 2026 (calculation_version < 6) opłaciły utrzymanie swojego okresu z góry albo w trakcie
+  okresu, więc przy pierwszym budżecie według nowej zasady za poprzedni okres nic nie jest pobierane.
+* Dla budżetów z military_upkeep IS NOT NULL utrzymanie nie jest naliczane z budżetu sił zbrojnych w trakcie okresu
+  (reconcile_maintenance); nowe budżety zapisują military_upkeep = 0 (kwota jest w przydziale sił zbrojnych).
 """
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 from sqlalchemy import select
@@ -33,30 +41,54 @@ def equipment_codes():
     return [code for code, rate in UPKEEP_RATES.items() if rate and code not in ('soldiers', 'warheads') and RESOURCES.get(code, (None, None))[1]]
 
 
-def assess(session, country_id, year, period):
-    """{'total', 'items': {kod: {'label','count','rate','amount'}}} — utrzymanie posiadanego wojska na okres (year, period)."""
-    from game.military_service import UPKEEP_RATES, RESOURCES
-    from game.finance_service import period_months
+ARREARS_VERSION = 6   # wersja obliczeń budżetu, od której utrzymanie jest rozliczane za poprzedni okres
+
+
+def holdings(session, country_id):
+    """{kod: liczba} wojska posiadanego teraz (bez względu na rozmieszczenie)."""
+    from game.military_service import RESOURCES
     from game.governance import army_for_country
-    from game.military_recruitment import totals, soldier_rate
+    from game.military_recruitment import totals
     from game.nuclear import total as warheads_total
-    from game.base_permits import own_region_ids, ABROAD_UPKEEP
-    scale = Decimal(period_months(year, period)) / 6
     army = army_for_country(session, country_id)
-    items = {}
-
-    def add(code, count, rate):
-        count = int(count or 0)
-        if count > 0 and rate > 0:
-            items[code] = {'label': LABELS[code], 'count': count, 'rate': str(_money(rate)), 'amount': _money(Decimal(count) * rate)}
-
-    soldiers = sum(totals(army).values()) if army is not None else 0
-    add('soldiers', soldiers, soldier_rate(session, country_id))
+    counts = {'soldiers': sum(totals(army).values()) if army is not None else 0}
     for code in equipment_codes():
-        add(code, getattr(army, RESOURCES[code][1]) or 0 if army is not None else 0, Decimal(UPKEEP_RATES[code]) * scale)
+        counts[code] = int(getattr(army, RESOURCES[code][1]) or 0) if army is not None else 0
+    bases = session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id == country_id))
+    counts['silos'] = sum(1 for base in bases if base.kind == 'nuclear')
+    counts['warheads'] = int(warheads_total(session, country_id) or 0)
+    return counts
+
+
+def rates(session, country_id, year, period):
+    """{kod: stawka utrzymania za okres (year, period)}."""
+    from game.military_service import UPKEEP_RATES
+    from game.finance_service import period_months
+    from game.military_recruitment import soldier_rate
+    scale = Decimal(period_months(year, period)) / 6
+    result = {'soldiers': Decimal(soldier_rate(session, country_id))}
+    for code in equipment_codes():
+        result[code] = Decimal(UPKEEP_RATES[code]) * scale
+    result['silos'] = SILO_UPKEEP * scale
+    result['warheads'] = Decimal(UPKEEP_RATES['warheads']) * scale
+    return result
+
+
+def assess(session, country_id, year, period, counts=None):
+    """{'total', 'items': {kod: {'label','count','rate','amount'}}} — utrzymanie wojska na okres (year, period);
+    `counts` — liczby do naliczenia (domyślnie stan posiadania teraz)."""
+    from game.military_service import UPKEEP_RATES
+    from game.finance_service import period_months
+    from game.base_permits import own_region_ids, ABROAD_UPKEEP
+    counts = holdings(session, country_id) if counts is None else counts
+    rate = rates(session, country_id, year, period)
+    items = {}
+    for code in ('soldiers', *equipment_codes(), 'silos', 'warheads'):
+        count, value = int(counts.get(code) or 0), rate[code]
+        if count > 0 and value > 0:
+            items[code] = {'label': LABELS[code], 'count': count, 'rate': str(_money(value)), 'amount': _money(Decimal(count) * value)}
+    scale = Decimal(period_months(year, period)) / 6
     bases = list(session.scalars(select(MilitaryBase).where(MilitaryBase.panstwo_id == country_id)))
-    add('silos', sum(1 for base in bases if base.kind == 'nuclear'), SILO_UPKEEP * scale)
-    add('warheads', warheads_total(session, country_id), Decimal(UPKEEP_RATES['warheads']) * scale)
     own = own_region_ids(session, country_id)
     surcharge = sum((Decimal(count) * UPKEEP_RATES.get(resource, 0) * (ABROAD_UPKEEP - 1) * scale
                      for base in bases if base.region_id is not None and base.region_id not in own
@@ -66,8 +98,22 @@ def assess(session, country_id, year, period):
     return {'total': _money(sum((item['amount'] for item in items.values()), Decimal(0))), 'items': items}
 
 
+def due_for_previous(session, country_id, previous):
+    """Utrzymanie za okres poprzedniego budżetu (25 Nov 2026). Dla każdej pozycji większa liczba: stan z początku okresu
+    (`snapshot` zapisany w poprzednim budżecie) albo stan obecny. Budżet sprzed zasady (wersja < 6) opłacił swój okres
+    inaczej — wtedy nic nie jest należne (`prepaid`)."""
+    if previous is None or int(previous.calculation_version or 0) < ARREARS_VERSION:
+        return {'total': _money(0), 'items': {}, 'prepaid': previous is not None, 'period': None}
+    counts = holdings(session, country_id)
+    for code, count in ((previous.military_upkeep_details or {}).get('snapshot') or {}).items():
+        if code in counts:
+            counts[code] = max(counts[code], int(count or 0))
+    result = assess(session, country_id, previous.game_year, previous.period, counts)
+    return {**result, 'prepaid': False, 'period': [previous.game_year, previous.period]}
+
+
 def serializable(assessment):
-    return {'total': str(assessment['total']),
+    return {**{key: value for key, value in assessment.items() if key not in ('total', 'items')}, 'total': str(assessment['total']),
             'items': {code: {**item, 'amount': str(item['amount'])} for code, item in assessment['items'].items()}}
 
 
@@ -154,38 +200,44 @@ def summary_text(result):
     return ', '.join(f'{LABELS[code].lower()}: {count}' for code, count in result.items() if count)
 
 
-def settle(session, country_id, budget, assessment, collected, moment):
-    """Po pobraniu utrzymania przy zatwierdzeniu budżetu: demobilizacja niedoboru albo ponowne włączenie silosów;
-    rozliczenie okresu (MilitaryMaintenance) bez kosztów w budżecie sił zbrojnych."""
+def collect(session, country_id, due, collected, moment):
+    """Przed zapisem budżetu: przy niedoborze proporcjonalna demobilizacja obecnego wojska, przy pełnej zapłacie ponowne
+    włączenie silosów. Zwraca {kod: liczba zdemobilizowanych}."""
+    total = Decimal(due['total'])
+    collected = Decimal(collected or 0)
+    if total > 0 and collected < total:
+        from game.finance_service import game_now, period_key
+        current = assess(session, country_id, *period_key(moment or game_now()))
+        result = demobilize(session, country_id, current, collected / total, moment)
+        _notify(session, country_id, f'Środki budżetu nie wystarczyły na utrzymanie wojska za poprzedni okres (należne {_fmt(total)} ROI, '
+                                     f'pobrano {_fmt(collected)} ROI). Przeprowadzono proporcjonalną demobilizację — {summary_text(result) or "bez zmian"}.')
+        return result
+    enable_silos(session, country_id)
+    return {}
+
+
+def record(session, country_id, budget, due, collected):
+    """Po zapisie budżetu: rozliczenie okresu (MilitaryMaintenance) — pobrana kwota jest wydatkiem sektora sił zbrojnych."""
     from game.military_models import MilitaryMaintenance
     from game.models import utc_now
-    due = assessment['total']
-    collected = Decimal(collected or 0)
-    result = {}
-    if due > 0 and collected < due:
-        result = demobilize(session, country_id, assessment, collected / due, moment)
-        _notify(session, country_id, f'Środki budżetu nie wystarczyły na utrzymanie wojska (należne {_fmt(due)} ROI, pobrano {_fmt(collected)} ROI). '
-                                     f'Przeprowadzono proporcjonalną demobilizację — {summary_text(result) or "bez zmian"}.')
-    else:
-        enable_silos(session, country_id)
-    budget.military_upkeep_details = {**(budget.military_upkeep_details or {}), 'demobilized': result}
     record = session.scalar(select(MilitaryMaintenance).where(MilitaryMaintenance.panstwo_id == country_id, MilitaryMaintenance.game_year == budget.game_year,
                                                               MilitaryMaintenance.period == budget.period).with_for_update())
     if record is None:
         record = MilitaryMaintenance(panstwo_id=country_id, game_year=budget.game_year, period=budget.period, amount=0)
         session.add(record)
-    soldiers = assessment['items'].get('soldiers')
-    record.budget_id, record.amount, record.assessed_at = budget.id, Decimal(0), utc_now()
+    soldiers = due['items'].get('soldiers')
+    record.budget_id, record.amount, record.assessed_at = budget.id, _money(collected or 0), utc_now()
     record.soldier_count = soldiers['count'] if soldiers else 0
     record.soldier_rate = Decimal(soldiers['rate']) if soldiers else Decimal(0)
-    record.soldier_fee = soldiers['amount'] if soldiers else Decimal(0)
+    record.soldier_fee = Decimal(soldiers['amount']) if soldiers else Decimal(0)
     record.soldiers_assessed_at = utc_now()
     session.flush()
-    return result
+    return record
 
 
 def upfront(session, country_id, now=None):
-    """Bieżący budżet państwa rozlicza utrzymanie z góry (zatwierdzony po 23 Nov 2026)."""
+    """Bieżący budżet państwa rozlicza utrzymanie przy zatwierdzeniu (zatwierdzony po 23 Nov 2026) — w trakcie okresu
+    reconcile_maintenance nic nie nalicza."""
     from game.finance_models import StateBudget
     from game.finance_service import game_now, period_key
     year, period = period_key(now or game_now())

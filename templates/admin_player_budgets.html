@@ -1,0 +1,68 @@
+{% extends 'base_layout.html' %}
+{% block title %}Budżety graczy — WIKI{% endblock %}
+{% block content %}
+{# 25 Nov 2026: wymuszenie zatwierdzenia budżetu państw z graczami (zabezpieczenie na wypadek błędów zatwierdzania) #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wiki_player_accounts.css', v='20261116-1') }}">
+<style>
+.budgets-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #d3d7dc;border-radius:12px;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.budgets-table th,.budgets-table td{padding:10px 12px;border-bottom:1px solid #e3e7eb;text-align:left;vertical-align:middle}
+.budgets-table thead th{background:#1E3A5F;color:#fff;font-size:.82rem;letter-spacing:.04em;text-transform:uppercase}
+.budgets-status{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.8rem;font-weight:700}
+.budgets-status.ok{background:#e6f4ec;color:#1f6b3f}.budgets-status.wait{background:#fff4dc;color:#8a5300}.budgets-status.off{background:#eef1f4;color:#667788}
+.budgets-actions{display:flex;justify-content:flex-end;margin:0 0 14px}
+.budgets-page form{margin:0}
+.budgets-page button{padding:9px 14px;border:0;border-radius:6px;background:#1E3A5F;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.budgets-page button:hover,.budgets-page button:focus-visible{background:#2b4f7c}
+.budgets-table-scroll{overflow-x:auto}
+</style>
+<div class="accounts-page budgets-page">
+    <header class="accounts-header">
+        <h1>Budżety graczy — {{ period }}</h1>
+        <p>Wymuszenie zatwierdzenia budżetu bieżącego okresu dla państw z graczami. Gra przyjmuje ten sam podatek, podział budżetu, świadczenia i środki na walkę z przestępczością co w poprzednim okresie (przy pierwszym budżecie — plan domyślny: podatek 5%, całość w rezerwie). Budżet jest zapisywany w imieniu gracza, a gracz otrzymuje powiadomienie.</p>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<p class="accounts-message {{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    {% set waiting = rows | selectattr('pending') | list %}
+    {% if waiting %}
+    <div class="budgets-actions">
+        <form method="post" action="{{ url_for('wiki_civic.force_player_budgets') }}" onsubmit="return confirm('Wymusić zatwierdzenie budżetu dla wszystkich oczekujących państw ({{ waiting|length }})?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <input type="hidden" name="all" value="1">
+            <button type="submit">Wymuś dla wszystkich oczekujących ({{ waiting|length }})</button>
+        </form>
+    </div>
+    {% endif %}
+    <div class="budgets-table-scroll">
+    <table class="budgets-table">
+        <thead><tr><th scope="col">Państwo</th><th scope="col">Gracz</th><th scope="col">Budżet bieżącego okresu</th><th scope="col">Poprzedni budżet</th><th scope="col"></th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+            <tr>
+                <th scope="row"><a href="{{ url_for('wiki_civic.budget', country_id=row.country_id) }}">{{ row.country }}</a></th>
+                <td>{{ row.player }}{% if not row.active %} <span class="accounts-badge">nieaktywne</span>{% endif %}</td>
+                <td>
+                    {% if row.approved %}<span class="budgets-status ok">Zatwierdzony</span>
+                    {% elif not row.sovereign %}<span class="budgets-status off">Państwo niesuwerenne</span>
+                    {% elif row.pending %}<span class="budgets-status wait">Oczekuje</span>
+                    {% else %}<span class="budgets-status off">Okres zamknięty</span>{% endif %}
+                </td>
+                <td>{% if row.previous %}{{ row.previous }}{% if row.previous_tax is not none %} · podatek {{ row.previous_tax }}%{% endif %}{% else %}— (pierwszy budżet){% endif %}</td>
+                <td>
+                    {% if row.pending %}
+                    <form method="post" action="{{ url_for('wiki_civic.force_player_budgets') }}" onsubmit="return confirm('Wymusić zatwierdzenie budżetu państwa {{ row.country }}?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                        <input type="hidden" name="country_id" value="{{ row.country_id }}">
+                        <button type="submit">Wymuś zatwierdzenie</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">Brak państw z graczami.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

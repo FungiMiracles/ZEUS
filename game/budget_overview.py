@@ -5,7 +5,8 @@ from game.finance_service import game_now,period_key
 from game.budget_transfers import sector_balances
 from game.budget_categories import CODES
 
-LABELS=dict(zip(CODES,('Administracja','Infrastruktura','Siły zbrojne','Polityka społeczna','Środowisko','Ochrona zdrowia','Edukacja','Badania i rozwój','Służby bezpieczeństwa','Propaganda','Rezerwa')))
+LABELS={'administration':'Administracja','infrastructure':'Infrastruktura','armed_forces':'Siły zbrojne','social_policy':'Polityka społeczna','environment':'Środowisko',
+        'healthcare':'Ochrona zdrowia','education':'Edukacja','research':'Badania i rozwój','security_services':'Służby bezpieczeństwa','reserve':'Rezerwa'}
 
 
 def budget_overview(session,country_id):

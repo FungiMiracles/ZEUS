@@ -9,7 +9,7 @@ function mode(ship,now){const current=leg(ship,now);return current?current.mode:
 const PACKAGE_ICON='/static/icons/PACZKA.svg';
 // 23 Nov 2026: pociąg towarowy wygląda jak pociąg na mapach (czerwony prostokąt 11 × 5 px, obrócony w kierunku jazdy),
 // a obok — plakietka z ikoną paczki (i flagą sprzedającego) z „dzióbkiem” wskazującym jadący pociąg. Plakietka 28 × 28,
-// punkt zaczepienia = środek pociągu.
+// punkt zaczepienia = środek pociągu. 25 Nov 2026: ikona paczki (36 px) i flaga (26 × 18 px) dwukrotnie większe.
 function trainSymbol(ship){const box=document.createElement('div');box.className='trade-freight-train';
   const train=document.createElement('span');train.className='trade-freight-loco rail-train';box.append(train);
   const bubble=document.createElement('span');bubble.className='trade-freight-parcel';const icon=document.createElement('img');icon.src=PACKAGE_ICON;icon.alt='Pociąg towarowy';bubble.append(icon);box.append(bubble);
@@ -18,10 +18,10 @@ function trainSymbol(ship){const box=document.createElement('div');box.className
 if(!document.getElementById('trade-freight-style')){const style=document.createElement('style');style.id='trade-freight-style';
   style.textContent='.trade-freight-train{position:relative;width:28px;height:28px;pointer-events:auto}'
     +'.trade-freight-loco{position:absolute;left:8.5px;top:11.5px;width:11px;height:5px;box-sizing:border-box;border:1px solid #fff;border-radius:1.5px;background:#b3261e;box-shadow:0 0 1.5px #0009;transform-origin:50% 50%}'
-    +'.trade-freight-parcel{position:absolute;left:17px;top:-9px;box-sizing:border-box;width:18px;height:18px;padding:2px;border:1.5px solid #f57c00;border-radius:4px;background:#fff;box-shadow:0 1px 3px #0006}'
-    +'.trade-freight-parcel::after{content:"";position:absolute;left:-1.5px;bottom:-7px;border-style:solid;border-width:7px 7px 0 0;border-color:#f57c00 transparent transparent transparent;transform:skewX(-20deg)}'
+    +'.trade-freight-parcel{position:absolute;left:17px;top:-27px;box-sizing:border-box;width:36px;height:36px;padding:4px;border:2px solid #f57c00;border-radius:6px;background:#fff;box-shadow:0 1px 3px #0006}'
+    +'.trade-freight-parcel::after{content:"";position:absolute;left:-2px;bottom:-9px;border-style:solid;border-width:9px 9px 0 0;border-color:#f57c00 transparent transparent transparent;transform:skewX(-20deg)}'
     +'.trade-freight-parcel>img:first-child{display:block;width:100%;height:100%;object-fit:contain}'
-    +'.trade-freight-flag{position:absolute;top:-5px;right:-8px;width:13px;height:9px;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px #0007}';
+    +'.trade-freight-flag{position:absolute;top:-10px;right:-16px;width:26px;height:18px;object-fit:cover;border:1px solid #fff;box-shadow:0 1px 2px #0007}';
   document.head.append(style);}
 // Obrót pociągu w kierunku jazdy (kierunek z pozycji teraz i chwilę później w czasie gry).
 function orient(marker,ship,now){const loco=marker.getElement?.()?.querySelector('.trade-freight-loco');if(!loco)return;
