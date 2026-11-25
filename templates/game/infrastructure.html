@@ -5,7 +5,7 @@
 {% block title %}Infrastruktura i energetyka — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure.css', v='20261122-product-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_infrastructure.css', v='20261125-infra-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_radial_menu.css', v='20261125-infra-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261123-ui-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_cities.css', v='20261121-cities-4') }}">
 {% endblock %}
@@ -21,18 +21,11 @@
 {% if city_config %}<div id="infrastructure-cities-panel" role="tabpanel" aria-labelledby="infrastructure-tab-cities" hidden>{% include 'game/_cities.html' %}</div>{% endif %}
 <div id="infrastructure-regions-panel" role="tabpanel" aria-labelledby="infrastructure-tab-regions">
 <section class="war-readiness" aria-label="Przegląd infrastruktury"><div><span>Regiony kraju</span><strong>{{ infrastructure_map.regions|length }}</strong></div><div><span>Rezerwa budżetowa</span><strong id="infrastructure-reserve-summary">—</strong></div><div><span>Prace w toku</span><strong id="infrastructure-project-count">—</strong></div></section>
-<div class="infrastructure-layout"><section class="game-panel" aria-label="Mapa infrastruktury regionów">
-    <div class="war-panel-bar"><div><span class="war-eyebrow">01 / TERYTORIUM</span><h2>Mapa infrastruktury</h2></div><span class="infrastructure-map-caption">WYBIERZ REGION</span></div><div class="infrastructure-map-guide">Kliknij region, aby sprawdzić sieci i zaplanować inwestycję. Ikony prac oznaczają trwającą rozbudowę.</div><div id="infrastructure-map" aria-label="Mapa regionów zarządzanego kraju"></div>
+<div class="infrastructure-layout infrastructure-layout-full"><section class="game-panel" aria-label="Mapa infrastruktury regionów">
+    <div class="war-panel-bar"><div><span class="war-eyebrow">01 / TERYTORIUM</span><h2>Mapa infrastruktury</h2></div><span class="infrastructure-map-caption">WYBIERZ REGION</span></div><div class="infrastructure-map-guide">Kliknij region, aby zobaczyć stan sieci i zaplanować rozbudowę. Ikony prac oznaczają trwającą rozbudowę. Stan infrastruktury wpływa na efektywność produkcji energii, produkcji przemysłowej, wydobycia oraz przepustowości portów w danym regionie. Koszt rozbudowy zależny jest od populacji regionu.</div><div id="infrastructure-map" aria-label="Mapa regionów zarządzanego kraju"></div>
     <p id="infrastructure-map-status" role="status" hidden></p>
 </section>
-<aside class="game-panel infrastructure-details" id="infrastructure-details">
-<div class="war-panel-bar"><div><span class="war-eyebrow">02 / INWESTYCJE</span><h2>Zaplanuj rozbudowę</h2></div><span class="war-crosshair" aria-hidden="true">⌖</span></div><div class="infrastructure-details-body">
-<label for="infrastructure-region-select">Region</label>
-<select id="infrastructure-region-select"><option value="">Wybierz region</option>{% for id, region in infrastructure_map.regions.items() %}<option value="{{ id }}">{{ region.name }}</option>{% endfor %}</select>
-<p class="infrastructure-effects-note">Stan infrastruktury wpływa na efektywność produkcji energii, produkcji przemysłowej, wydobycia oraz przepustowości portów w danym regionie.</p>
-<p class="infrastructure-effects-note">Koszt rozbudowy zależny jest od populacji regionu.</p>
-<div id="infrastructure-region-details" aria-live="polite"><p>Wybierz region na mapie lub z listy.</p></div>
-</div></aside></div>
+</div>
 <dialog id="infrastructure-expand-dialog" aria-labelledby="expand-title">
 <form id="infrastructure-expand-form">
 <h2 class="infrastructure-modal-title"><img id="expand-icon" alt="" width="32" height="32"><span id="expand-title">Rozbudowa infrastruktury</span></h2>
@@ -49,12 +42,12 @@
 <div class="infrastructure-modal-actions"><button type="button" id="expand-cancel">Anuluj</button>
 <button type="submit" id="expand-confirm">Zatwierdź rozbudowę</button></div>
 </form></dialog>
-<p>Wskaźniki w skali 0–100. Kliknij region, aby sprawdzić jego infrastrukturę i zaplanować rozbudowę.</p>
+<p>Wskaźniki w skali 0–100. Kliknij region na mapie albo jego nazwę w tabeli, aby zaplanować rozbudowę.</p>
 <details class="game-panel">
 <summary class="game-panel-heading">Wartości w regionach</summary>
 <div class="game-panel-body infrastructure-table-scroll">
 <table class="infrastructure-table"><thead><tr><th scope="col">Region</th>{% for metric in metrics %}<th scope="col"><img src="{{ metric.icon }}" alt="{{ metric.label }}" width="28" height="28" title="{{ metric.label }}"></th>{% endfor %}</tr></thead>
-<tbody>{% for id, region in infrastructure_map.regions.items() %}<tr><th scope="row">{{ region.name }}</th>{% for metric in metrics %}{% set item = region.indicators[metric.code] %}<td style="color:{{ item.color }}">{{ item.value if item.value is not none else '—' }}</td>{% endfor %}</tr>{% else %}<tr><td colspan="7">Brak regionów przypisanych do państwa.</td></tr>{% endfor %}</tbody></table>
+<tbody>{% for id, region in infrastructure_map.regions.items() %}<tr><th scope="row"><button type="button" class="infrastructure-table-region" data-infrastructure-region="{{ id }}">{{ region.name }}</button></th>{% for metric in metrics %}{% set item = region.indicators[metric.code] %}<td style="color:{{ item.color }}">{{ item.value if item.value is not none else '—' }}</td>{% endfor %}</tr>{% else %}<tr><td colspan="7">Brak regionów przypisanych do państwa.</td></tr>{% endfor %}</tbody></table>
 </div>
 </details>
 <noscript><p>Mapa wymaga JavaScript. Wskaźniki są dostępne w tabeli „Wartości w regionach”.</p></noscript>
@@ -67,10 +60,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui5') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_region_tooltip.js',v='20261117-tooltip-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_industry.js',v='20261123-modal-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_industry.js',v='20261125-infra-1') }}" defer></script>
 {% if rail_config %}<script id="rail-config" type="application/json">{{ rail_config|tojson }}</script><script src="{{ url_for('static',filename='js/game_rail_trains.js',v='20261123-ui-1') }}" defer></script><script src="{{ url_for('static',filename='js/game_rail.js',v='20261122-partner-1') }}" defer></script>{% endif %}
 <script src="{{ url_for('static',filename='js/game_infrastructure_tabs.js',v='20261123-locked-1') }}" defer></script>
 {% if airport_config %}<script src="{{ url_for('static',filename='js/game_airports.js',v='20261121-airports-3') }}" defer></script>{% endif %}
 {% if city_config %}<script src="{{ url_for('static',filename='js/game_cities.js',v='20261121-cities-4') }}" defer></script>{% endif %}
-<script src="{{ url_for('static', filename='js/game_infrastructure.js', v='20261121-airports-3') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_radial_menu.js', v='20261125-infra-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_infrastructure.js', v='20261125-infra-1') }}" defer></script>
 {% endblock %}

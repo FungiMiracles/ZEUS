@@ -1,15 +1,21 @@
 /* 25 Nov 2026: opcje obiektu na mapie obrony i w panelu wojennym wyświetlane w kole dookoła obiektu,
    a opcje regionu — w rzędzie w miejscu kliknięcia (options.layout='row').
    GameRadialMenu.open(map, latlng, items, options) — items: [{label, icon, run, disabled, title, tone}];
-   tone 'attack' — ikona w kolorze czerwonym (opcje ataku w panelu wojennym).
+   tone — ikona przebarwiona maską: 'attack' czerwona (opcje ataku w panelu wojennym), 'infra' jasnoniebieska (rozbudowa infrastruktury).
+   Rząd szerszy niż mapa zawija się w kilka wierszy (telefon).
    Menu zamyka kliknięcie poza obiektem i opcjami, klawisz Esc albo wybór opcji. */
 (() => {
     'use strict';
     let current=null;
-    const PANE='radialMenu',ITEM_SPACE=104,MIN_RADIUS=72,EDGE=58,ROW_SPACE=102;
+    const PANE='radialMenu',ITEM_SPACE=104,MIN_RADIUS=72,EDGE=58,ROW_SPACE=102,ROW_HEIGHT=92;
     const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     function radiusFor(count){return Math.max(MIN_RADIUS,Math.ceil(count*ITEM_SPACE/(2*Math.PI)));}
-    function rowPoints(count){return Array.from({length:count},(_,index)=>[Math.round((index-(count-1)/2)*ROW_SPACE),0]);}
+    function rowColumns(count,width){return Math.max(1,Math.min(count,Math.floor((width-16)/ROW_SPACE)||1));}
+    function rowPoints(count,columns){
+        const rows=Math.ceil(count/columns);
+        return Array.from({length:count},(_,index)=>{const row=Math.floor(index/columns),inRow=row<rows-1?columns:count-row*columns,column=index%columns;
+            return [Math.round((column-(inRow-1)/2)*ROW_SPACE),Math.round((row-(rows-1)/2)*ROW_HEIGHT)];});
+    }
     function points(count,radius){
         return Array.from({length:count},(_,index)=>{const angle=-Math.PI/2+2*Math.PI*index/count;return [Math.round(Math.cos(angle)*radius),Math.round(Math.sin(angle)*radius)];});
     }
@@ -49,12 +55,13 @@
         const row=options.layout==='row',radius=radiusFor(usable.length),root=document.createElement('div');
         root.className='radial-menu'+(row?' radial-menu-row':'');root.setAttribute('role','group');root.setAttribute('aria-label',options.label||'Opcje obiektu');
         root.style.setProperty('--radius',radius+'px');
-        (row?rowPoints(usable.length):points(usable.length,radius)).forEach(([x,y],index)=>{
+        const columns=row?rowColumns(usable.length,map.getSize().x):0,lines=row?Math.ceil(usable.length/columns):0;
+        (row?rowPoints(usable.length,columns):points(usable.length,radius)).forEach(([x,y],index)=>{
             const item=usable[index],button=document.createElement('button');
             button.type='button';button.className='radial-menu-item';
             button.style.setProperty('--x',x+'px');button.style.setProperty('--y',y+'px');button.style.setProperty('--i',String(index));
             const icon=document.createElement('span');icon.className='radial-menu-icon';
-            if(item.icon&&item.tone==='attack'){const glyph=document.createElement('span');glyph.className='radial-menu-glyph';glyph.style.setProperty('--glyph',`url("${String(item.icon).replace(/["\\]/g,'\\$&')}")`);icon.append(glyph);button.classList.add('is-attack');}
+            if(item.icon&&item.tone){const glyph=document.createElement('span');glyph.className='radial-menu-glyph';glyph.style.setProperty('--glyph',`url("${String(item.icon).replace(/["\\]/g,'\\$&')}")`);icon.append(glyph);button.classList.add('is-'+item.tone);}
             else if(item.icon){const image=document.createElement('img');image.src=item.icon;image.alt='';image.width=26;image.height=26;icon.append(image);}
             const label=document.createElement('span');label.className='radial-menu-label';label.textContent=item.label;
             button.append(icon,label);
@@ -75,7 +82,7 @@
         document.addEventListener('keydown',keydown,true);
         if(reduced())root.classList.add('is-open');
         else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('is-open')));
-        if(row)keepInView(map,latlng,usable.length*ROW_SPACE/2+8,EDGE+10);else keepInView(map,latlng,radius+EDGE,radius+EDGE);
+        if(row)keepInView(map,latlng,columns*ROW_SPACE/2+8,(lines-1)*ROW_HEIGHT/2+EDGE+10);else keepInView(map,latlng,radius+EDGE,radius+EDGE);
         if(options.focus)root.querySelector('.radial-menu-item:not(.is-disabled)')?.focus({preventScroll:true});
         return current;
     }

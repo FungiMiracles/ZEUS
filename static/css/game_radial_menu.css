@@ -30,6 +30,12 @@ html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-it
 html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-attack:hover .radial-menu-icon{border-color:#8e1c1c;background:#fdecec}
 .radial-menu .radial-menu-item.is-attack.is-disabled .radial-menu-icon{border-color:#9aa8b8}
 .radial-menu .radial-menu-item.is-attack.is-disabled .radial-menu-glyph{background-color:#8a96a6}
+/* Rozbudowa infrastruktury: jasnoniebieskie ikony */
+.radial-menu .radial-menu-item.is-infra .radial-menu-glyph{background-color:#3fa7e6}
+.radial-menu .radial-menu-item.is-infra .radial-menu-icon{border-color:#3fa7e6}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-infra:hover .radial-menu-icon{border-color:#1f7fbf;background:#eaf6fe}
+.radial-menu .radial-menu-item.is-infra.is-disabled .radial-menu-icon{border-color:#9aa8b8}
+.radial-menu .radial-menu-item.is-infra.is-disabled .radial-menu-glyph{background-color:#8a96a6}
 /* Otwarte menu: dymki innych obiektów nie przykrywają opcji */
 .leaflet-container.radial-menu-active .leaflet-tooltip-pane{display:none}
 @media (pointer:coarse){.radial-menu .radial-menu-label{font-size:11px}}

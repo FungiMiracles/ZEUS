@@ -57,3 +57,13 @@
 .industry-product-row img{width:22px;height:22px;object-fit:contain;flex:0 0 auto}
 .industry-confirm-product{margin:2px 0 8px}
 .industry-confirm-product .industry-product-row img{width:40px;height:40px;padding:3px;border:1px solid #c5d0dd;border-radius:8px;background:#fff}
+
+/* 25 Nov 2026: bez panelu „Zaplanuj rozbudowę” — mapa na całą szerokość; nazwy regionów w tabeli otwierają opcje na mapie */
+.game-app .infrastructure-layout.infrastructure-layout-full{grid-template-columns:minmax(0,1fr)}
+.game-app .infrastructure-table th button.infrastructure-table-region{all:unset;cursor:pointer;font-weight:700;color:#1E3A5F;text-decoration:underline;text-underline-offset:3px}
+.game-app .infrastructure-table th button.infrastructure-table-region:hover{color:#2b6cb0}
+.game-app .infrastructure-table th button.infrastructure-table-region:focus-visible{outline:2px solid #1E3A5F;outline-offset:2px}
+/* 25 Nov 2026: dymek obiektu przemysłowego (bez przycisków — opcje w kole dookoła obiektu) */
+.game-app .leaflet-tooltip.industry-object-tooltip{width:min(250px,calc(100vw - 70px));white-space:normal;padding:10px;font-size:11px;line-height:1.35}
+.game-app .leaflet-tooltip.industry-object-tooltip p{margin:4px 0}
+.game-app .leaflet-tooltip.industry-object-tooltip img{max-width:24px;max-height:24px}

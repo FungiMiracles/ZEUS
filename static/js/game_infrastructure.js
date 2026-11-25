@@ -10,50 +10,53 @@
     const metropolitanIds = new Set(config.metropolitanRegionIds);
     const status = document.getElementById('infrastructure-map-status');
     function warn(message) { status.textContent = message; status.hidden = false; }
-    const panel = document.getElementById('infrastructure-region-details');
-    const selector = document.getElementById('infrastructure-region-select');
     const dialog = document.getElementById('infrastructure-expand-dialog');
-    let selected, chosen, levels = 1, maximum = 1;
+    let selected, chosen, levels = 1, maximum = 1, map = null;
     const money = value => window.GameMoney.format(value,false);
-    function selectRegion(id) {
-        selected = id; selector.value = id; panel.replaceChildren();
-        const region = config.regions[id];
-        if (!region || region.foreign) return;
-        const title = document.createElement('h2'); title.textContent = region.name; panel.append(title);
-        for (const metric of config.metrics) {
-            const item = region.indicators[metric.code], project = region.projects[metric.code];
-            const row = document.createElement('div'); row.className = 'infrastructure-detail-row';
-            const heading = document.createElement('div'); heading.className = 'infrastructure-detail-heading';
-            const label = document.createElement('div'); label.className = 'infrastructure-detail-label';
-            const icon = document.createElement('img'); icon.src = metric.icon; icon.alt = ''; icon.width = 28; icon.height = 28;
-            const text = document.createElement('span'); text.textContent = `${metric.label}: `;
-            const value = document.createElement('strong'); value.textContent = `${item.value ?? '—'} / 100`; value.style.color = item.value == null ? '#849180' : item.value >= 75 ? '#52745b' : item.value >= 40 ? '#947342' : '#aa665a'; text.append(value);
-            label.append(icon, text); heading.append(label); row.append(heading);
-            const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Rozbuduj'; button.className = 'infrastructure-expand-button';
-            const buildIcon = document.createElement('img'); buildIcon.src = config.expandButtonIcon; buildIcon.alt = ''; buildIcon.width = 18; buildIcon.height = 18;
-            button.prepend(buildIcon);
-            button.disabled = !!project || item.value == null || item.value >= 100 || !region.quotes[metric.code] || (metric.code === 'port' && !region.coastal);
-            button.addEventListener('click', () => {
-                chosen = metric.code; levels = 1; maximum = 100 - item.value;
-                document.getElementById('expand-icon').src = metric.icon;
-                document.getElementById('expand-title').textContent = `${region.name} — ${metric.label}`;
-                document.getElementById('expand-description').textContent = `Obecny poziom: ${item.value} / 100. Wybierz liczbę dodatkowych poziomów.`;
-                document.getElementById('expand-reserve').checked = false;
-                document.getElementById('expand-error').textContent = '';
-                updateQuote(); dialog.showModal();
-            }); heading.append(button);
-            if (metric.code === 'port' && !region.coastal) {
-                const reason = document.createElement('p'); reason.textContent = 'Region nie jest nadmorski.'; row.append(reason);
-            }
-            if (project) {
-                const progress = document.createElement('progress'); progress.max = 100; progress.value = project.progress;
-                progress.setAttribute('aria-label', 'Postęp rozbudowy');
-                const text = document.createElement('p'); text.textContent = `Trwa rozbudowa infrastruktury. Planowany koniec: ${project.end} (+${project.levels})`;
-                row.append(progress, text);
-            }
-            panel.append(row);
-        }
+    const regionLayers = new Map(), regionAnchors = new Map();
+    // 25 Nov 2026: rozbudowa infrastruktury z mapy — po kliknięciu regionu rząd jasnoniebieskich ikon (game_radial_menu.js);
+    // dotychczasowy panel „Zaplanuj rozbudowę” z prawej strony usunięty, mapa na całą szerokość.
+    function openExpand(id, metric) {
+        const region = config.regions[id], item = region.indicators[metric.code];
+        selected = id; chosen = metric.code; levels = 1; maximum = 100 - item.value;
+        document.getElementById('expand-icon').src = metric.icon;
+        document.getElementById('expand-title').textContent = `${region.name} — ${metric.label}`;
+        document.getElementById('expand-description').textContent = `Obecny poziom: ${item.value} / 100. Wybierz liczbę dodatkowych poziomów.`;
+        document.getElementById('expand-reserve').checked = false;
+        document.getElementById('expand-error').textContent = '';
+        updateQuote(); dialog.showModal();
     }
+    function metricItem(id, metric) {
+        const region = config.regions[id], item = region.indicators[metric.code], project = region.projects[metric.code];
+        const name = ({connection: 'skomunikowanie'})[metric.code] || metric.label.replace(/^Infrastruktura /, '');
+        const label = `${name.charAt(0).toUpperCase()}${name.slice(1)} ${item.value ?? '—'}/100` + (project ? ` · w budowie ${project.progress}%` : '');
+        const reason = project ? `Trwa rozbudowa (+${project.levels}), planowany koniec: ${project.end}.`
+            : item.value == null ? 'Brak danych o tej infrastrukturze.'
+            : item.value >= 100 ? 'Infrastruktura osiągnęła maksymalny poziom.'
+            : metric.code === 'port' && !region.coastal ? 'Region nie jest nadmorski.'
+            : !region.quotes[metric.code] ? 'Rozbudowa tej infrastruktury nie jest dostępna.' : '';
+        return {label, icon: metric.icon, tone: 'infra', disabled: !!reason, title: reason || `Rozbuduj: ${metric.label}`, run: () => openExpand(id, metric)};
+    }
+    function highlight(id) {
+        for (const [key, layers] of regionLayers) for (const layer of layers) layer.setStyle(key === String(id) ? {fillColor: '#E8B65C', weight: 2.4} : {fillColor: '#B8C9B0', weight: 1.5});
+    }
+    function selectRegion(id, point) {
+        if (!config.regions[id] || config.regions[id].foreign) return;
+        selected = id; highlight(id);
+        if (!map || !window.GameRadialMenu || !point) return;
+        window.GameRadialMenu.open(map, point, config.metrics.map(metric => metricItem(id, metric)), {key: `region:${id}`, layout: 'row',
+            label: `Rozbudowa infrastruktury: ${config.regions[id].name}`, onDisabled: text => warn(text)});
+    }
+    // Tabela „Wartości w regionach”: nazwa regionu przybliża mapę i otwiera opcje (dostęp z klawiatury i na telefonie).
+    document.querySelectorAll('[data-infrastructure-region]').forEach(button => button.addEventListener('click', () => {
+        const id = button.dataset.infrastructureRegion, layers = regionLayers.get(id);
+        if (!map || !layers) return;
+        document.getElementById('infrastructure-map').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center'});
+        const box = L.latLngBounds([]); for (const layer of layers) box.extend(layer.getBounds());
+        map.fitBounds(box, {padding: [40, 40], maxZoom: 6, animate: false});
+        selectRegion(id, regionAnchors.get(id)?.point || box.getCenter());
+        setTimeout(() => document.querySelector('.radial-menu-item:not(.is-disabled)')?.focus({preventScroll: true}), 60);
+    }));
     window.addEventListener('game:infrastructure-budget',event=>{for(const code of Object.keys(config.funds))config.funds[code]=event.detail.available;if(dialog.open&&chosen)updateQuote();});
     function updateQuote() {
         const quote = config.regions[selected].quotes[chosen];
@@ -82,7 +85,6 @@
         document.getElementById('expand-error').textContent = '';
         updateFundingWarning();
     });
-    selector.addEventListener('change', () => selectRegion(selector.value));
     document.getElementById('expand-minus').onclick = () => { levels = Math.max(1, levels - 1); updateQuote(); };
     document.getElementById('expand-plus').onclick = () => { levels = Math.min(maximum, levels + 1); updateQuote(); };
     document.getElementById('expand-cancel').onclick = () => dialog.close();
@@ -99,17 +101,16 @@
     };
     if (Object.values(config.regions).some(region => Object.keys(region.projects||{}).length)) {
         setInterval(() => {
-            if (!dialog.open && document.getElementById('infrastructure-regions-panel')?.hidden !== true) {
+            if (!dialog.open && !window.GameRadialMenu?.isOpen() && document.getElementById('infrastructure-regions-panel')?.hidden !== true) {
                 if (selected) sessionStorage.setItem('infrastructure-selected', selected);
                 location.reload();
             }
         }, 60000);
     }
     const saved = sessionStorage.getItem('infrastructure-selected');
-    if (saved && config.regions[saved]) selectRegion(saved);
     if (!window.L) { warn('Nie udało się załadować mapy. Wskaźniki są dostępne w tabeli poniżej.'); return; }
     const element = document.getElementById('infrastructure-map');
-    const map = L.map(element, {crs: L.CRS.Simple, minZoom: -10, maxZoom: 8, zoomSnap: 0.25, attributionControl: false});
+    map = L.map(element, {crs: L.CRS.Simple, minZoom: -10, maxZoom: 8, zoomSnap: 0.25, attributionControl: false});
     map.setView([0, 0], 0);
     let bounds;
     const reset = L.DomUtil.create('button', 'infrastructure-map-reset');
@@ -174,7 +175,9 @@
             coordsToLatLng: coords => L.latLng(coords[1], coords[0]),
             filter: feature => !!config.regions[String(feature.properties?.region_id)] || !!config.foreignRegions?.[String(feature.properties?.region_id)],
             // 13 Nov 2026: paleta mapy panelu państwa (regiony #B8C9B0, granice #667C63, najechany #D5E5C6, wybrany #E8B65C)
-            style: feature => ({color: '#667C63', weight: 1.5, fillColor: config.foreignRegions?.[String(feature.properties.region_id)]?.permit ? '#65b96e' : '#B8C9B0', fillOpacity: 1}),
+            // 25 Nov 2026: regiony obce jaśniejsze — terytorium gracza wyraźnie widoczne
+            style: feature => {const foreign = config.foreignRegions?.[String(feature.properties.region_id)];
+                return foreign ? {color: '#9aab96', weight: .8, fillColor: foreign.permit ? '#65b96e' : '#e2e8de', fillOpacity: 1} : {color: '#667C63', weight: 1.5, fillColor: '#B8C9B0', fillOpacity: 1};},
             onEachFeature: (feature, layer) => {
                 const id = String(feature.properties.region_id);
                 const label = document.createElement('span'); label.textContent = (config.regions[id]||config.foreignRegions[id]).name;
@@ -188,18 +191,18 @@
                 }else layer.bindTooltip(label, {sticky: true});
                 if(!config.regions[id])return;
                 anchors.set(id, true);
+                if (!regionLayers.has(id)) regionLayers.set(id, []);
+                regionLayers.get(id).push(layer);
+                const center = constructionAnchor(feature.geometry);
+                if (center && (!regionAnchors.has(id) || center.score > regionAnchors.get(id).score)) regionAnchors.set(id, center);
                 if (Object.keys(config.regions[id].projects).length) {
                     const anchor = constructionAnchor(feature.geometry);
                     if (anchor && (!constructionAnchors.has(id) || anchor.score > constructionAnchors.get(id).score)) constructionAnchors.set(id, anchor);
                 }
                 layer.on({
-                    click: () => {
-                        if (window.__infraSelected && window.__infraSelected !== layer) regionsLayer.resetStyle(window.__infraSelected);
-                        window.__infraSelected = layer; layer.setStyle({fillColor: '#E8B65C', weight: 2.4});
-                        selectRegion(id);
-                    },
-                    mouseover: () => { if (window.__infraSelected !== layer) layer.setStyle({fillColor: '#D5E5C6', weight: 2.2}); },
-                    mouseout: () => { if (window.__infraSelected !== layer) regionsLayer.resetStyle(layer); }
+                    click: event => selectRegion(id, event.latlng),
+                    mouseover: () => { if (selected !== id) layer.setStyle({fillColor: '#D5E5C6', weight: 2.2}); },
+                    mouseout: () => { if (selected !== id) regionsLayer.resetStyle(layer); }
                 });
             }
         }).addTo(map);
@@ -217,7 +220,7 @@
                 const name = document.createElement('span'); name.textContent = city.name;
                 // 21 Nov 2026: budowa lotnisk przeniesiona do zakładki „Transport lotniczy” — tu tylko nazwa miasta
                 layer.bindTooltip(name, {direction: 'top'});
-                layer.on('click', () => { if (config.regions[city.regionId]) selectRegion(city.regionId); });
+                layer.on('click', event => { if (config.regions[city.regionId]) selectRegion(city.regionId, event.latlng); });
             }
         }).addTo(map);
         for (const [id, anchor] of constructionAnchors) {
@@ -235,9 +238,13 @@
             L.marker(anchor.point, {
                 icon: L.icon({iconUrl: config.constructionIcon, iconSize: [36, 36], iconAnchor: [18, 18], className: 'infrastructure-construction-marker'}),
                 title: description, alt: description, riseOnHover: true
-            }).bindTooltip(tooltip,{className:'infrastructure-construction-leaflet-tooltip'}).on('click', () => selectRegion(id)).addTo(map);
+            }).bindTooltip(tooltip,{className:'infrastructure-construction-leaflet-tooltip'}).on('click', event => selectRegion(id, event.latlng)).addTo(map);
         }
-        bounds = regionsLayer.getBounds();
+        // 25 Nov 2026: widok domyślny — terytorium państwa gracza (bez regionów zagranicznych z koncesjami wydobywczymi)
+        bounds = L.latLngBounds([]);
+        for (const id of metropolitanIds) for (const layer of regionLayers.get(id) || []) bounds.extend(layer.getBounds());
+        if (!bounds.isValid()) bounds = regionsLayer.getBounds();
+        if (saved && config.regions[saved]) { selected = saved; highlight(saved); }
         if (bounds.isValid()) { reset.disabled = false; focus(); }
         else warnings.push('Brak geometrii zarządzanego państwa.');
         const missing = [...metropolitanIds].filter(id => !anchors.has(id)).length;
