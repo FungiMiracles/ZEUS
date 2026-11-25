@@ -31,6 +31,8 @@
 .military-base-tooltip { min-width:180px; }
 .military-base-tooltip .military-resource-label { margin:5px 0; }
 .military-base-tooltip img { width:22px; height:22px; }
+/* 25 Nov 2026: ikony w dymkach obiektów mapy (np. produkt fabryki) — nigdy w rozmiarze źródłowym SVG */
+.military-wrapping-tooltip .military-resource-label img { width:22px; height:22px; object-fit:contain; flex-shrink:0; }
 #military-map.military-locating { cursor:crosshair; }
 .military-range-error,#military-location-status { color:#c12727; }
 .military-missile { background:transparent; border:0; }

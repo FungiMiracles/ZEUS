@@ -242,12 +242,13 @@
         if(card!==actions)card.parentElement.prepend(card);
         if(scroll)card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
     }
+    // 25 Nov 2026: kliknięcie obiektu na mapie otwiera koło opcji — bez wyróżniania i przewijania do karty w prawym panelu
+    // (na telefonie przewijanie odciągało od mapy). Wyróżnienie karty zostaje tylko dla wejścia z linku ?base= (menu=false).
     function selectObject(kind,item,menu=true) {
-        focusedObject={kind,id:item.id};
+        focusedObject=menu?null:{kind,id:item.id};
         framedRegion=null;
         showRegion(String(item.regionId),null,{kind,id:item.id,countryId:item.countryId,name:kind==='base'?baseName(item):item.name,point:item.position,health:item.health});
-        highlightSelection(true);
-        if(menu)objectMenu(kind,item);
+        if(menu)objectMenu(kind,item);else highlightSelection(true);
     }
     function bindObjectTooltip(marker,content,options={}) {
         if(config.mode!=='defense')return marker.bindTooltip(content,options);
@@ -589,7 +590,8 @@
         if(config.mode==='defense'&&factory.countryId!==config.countryId)continue;
         const symbol=make('div',null,'military-factory-symbol military-map-badge');if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='factory'&&item.targetId===factory.id))symbol.classList.add('military-object-protected');symbol.append(image(config.factoryIcon));if(factory.productIcon){const product=image(factory.productIcon);product.alt=factory.productName;product.className='military-factory-product military-map-subbadge';symbol.append(product);}
         const life=make('progress');life.className='map-health-bar';life.max=100;life.value=factory.health;window.GameHealth?.paint(life,factory.health);symbol.append(life);
-        const tooltip=make('div');tooltip.append(make('strong',factory.name));
+        const tooltip=make('div',null,'military-base-tooltip');tooltip.append(make('strong',factory.name));   // 25 Nov 2026: klasa ogranicza rozmiar ikon (22 px)
+        
         if(factory.productName){const row=make('div',null,'military-resource-label');if(factory.productIcon)row.append(image(factory.productIcon));row.append(make('span',`Produkuje: ${factory.productName}`));tooltip.append(row);}   // 22 Nov 2026
         tooltip.append(healthBar(factory.health),make('p',factory.health?`${factory.dailyProduction} szt. / cykl produkcji Entendy`:'Fabryka zniszczona — produkcja zatrzymana.'));
         bindObjectTooltip(L.marker([factory.position[1],factory.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tooltip).on('click',()=>{if(config.mode==='war'&&factory.health<=0){document.getElementById('military-feedback').textContent='Fabryka została zniszczona.';return;}if(!locating&&!sailing&&config.mode==='defense'){selectObject('factory',factory);return;}if(!locating&&!sailing){showRegion(factory.regionId,null,{kind:'factory',id:factory.id,countryId:factory.countryId,name:factory.name,point:factory.position,health:factory.health});objectMenu('factory',factory);}}).addTo(factoryLayer);
@@ -910,7 +912,7 @@
         map.createPane('militaryCities'); map.getPane('militaryCities').style.zIndex = '450'; applyCityFilter();
         L.geoJSON(cities,{coordsToLatLng:coordinates,filter:feature => !!config.cities[String(feature.properties?.miasto_id)] && (config.mode === 'war' || config.cities[String(feature.properties.miasto_id)].countryId !== config.countryId || metropolitan.has(config.cities[String(feature.properties.miasto_id)].regionId)),
             pointToLayer:(feature,latlng)=>L.circleMarker(latlng,{pane:'militaryCities',radius:warTheme?3.5:4,color:DEF.cityBorder,weight:1.2,fillColor:DEF.city,fillOpacity:1}),
-            onEachFeature:(feature,layer)=>{const city=config.cities[String(feature.properties.miasto_id)];if(window.GameLandWar)window.GameLandWar.bindCity(layer,String(feature.properties.miasto_id),city);else bindObjectTooltip(layer,make('span',city.name));layer.on('click',()=>{if(!locating&&!sailing&&config.regions[city.regionId]&&(config.mode==='war'||own(city.regionId))){if(config.mode==='defense'){focusedObject={kind:'city',id:String(feature.properties.miasto_id)};framedRegion=null;}showRegion(city.regionId,String(feature.properties.miasto_id));highlightSelection(config.mode==='defense');
+            onEachFeature:(feature,layer)=>{const city=config.cities[String(feature.properties.miasto_id)];if(window.GameLandWar)window.GameLandWar.bindCity(layer,String(feature.properties.miasto_id),city);else bindObjectTooltip(layer,make('span',city.name));layer.on('click',()=>{if(!locating&&!sailing&&config.regions[city.regionId]&&(config.mode==='war'||own(city.regionId))){if(config.mode==='defense'){focusedObject=null;framedRegion=null;}showRegion(city.regionId,String(feature.properties.miasto_id));highlightSelection();
                     objectMenu('city',{id:String(feature.properties.miasto_id),regionId:city.regionId,countryId:city.countryId,name:city.name},{point:layer.getLatLng()});}});}
         }).addTo(map);
         const myCountryButton=document.getElementById('war-map-country');
