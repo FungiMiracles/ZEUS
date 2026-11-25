@@ -44,34 +44,47 @@
     const isAlly=id=>(cfg.allyIds||[]).includes(Number(id));
     const liberable=(owner,occupied)=>!!occupied&&isAlly(owner)&&occupied.occupierId!==cfg.countryId&&occupied.occupierId!==Number(owner);
 
-    // ---------- miasta: karta po najechaniu ----------
+    // ---------- miasta: karta po najechaniu (informacje) i opcje w kole na mapie (25 Nov 2026) ----------
     function cityCard(cityId,city){
         const card=make('div',null,'land-city-card');
         const title=make('div',null,'land-city-title');title.append(icon(lw().icons.city),make('strong',city.name));card.append(title);
         const occupied=occupation('city',cityId);
-        if(occupied){card.append(occupationLabel(occupied));const army=sum(armies.filter(a=>a.status==='OCCUPYING'&&a.targetKind==='city'&&String(a.targetCityId)===cityId));unitRows(army,card);
-            if(city.countryId===cfg.countryId)recaptureButton(card,'Odbij miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point},occupied);
-            else if(liberable(city.countryId,occupied))recaptureButton(card,'Wyzwól miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point,liberate:true},occupied);
-            if(occupied.occupierId===cfg.countryId){withdrawButton(card,occupied,city.name,ownOccupiers('city',cityId));reinforceButton(card,{kind:'city',id:Number(cityId),name:city.name,point:city.point});}
-            return card;}
+        if(occupied){card.append(occupationLabel(occupied));unitRows(sum(armies.filter(a=>a.status==='OCCUPYING'&&a.targetKind==='city'&&String(a.targetCityId)===cityId)),card);return card;}
         if(city.countryId!==cfg.countryId)return card;
         const defenders=armies.filter(a=>a.status==='DEFENDING'&&String(a.targetCityId)===cityId&&a.countryId===cfg.countryId);
         if(defenders.length){card.append(make('p','Obrona miasta:','land-muted'));unitRows(sum(defenders),card);
-            for(const army of defenders){const row=make('div',null,'land-detachment');const base=(cfg.bases||[]).find(b=>b.id===army.sourceBaseId);
-                row.append(make('span',base?`Oddział z: ${api.baseName(base)}`:army.sourceBaseId?`Oddział z: bazy #${army.sourceBaseId}`:'Oddział bez bazy macierzystej'));
-                // 23 Nov 2026: wycofanie do wybranej bazy albo do rezerwy państwa, także częściowe
-                const back=make('button','Wycofaj','land-small-button');back.type='button';back.onclick=()=>{api.map.closePopup();fresh(()=>{const current=armies.find(a=>a.id===army.id&&a.status==='DEFENDING');if(current)defenseWithdrawModal(current,city.name);else api.feedback('Oddział nie broni już tego miasta.');});};
-                row.append(back);card.append(row);}
+            for(const army of defenders){const base=(cfg.bases||[]).find(b=>b.id===army.sourceBaseId);
+                card.append(make('div',base?`Oddział z: ${api.baseName(base)}`:army.sourceBaseId?`Oddział z: bazy #${army.sourceBaseId}`:'Oddział bez bazy macierzystej','land-detachment'));}
         }
-        const add=make('button','Dodaj obronę wojska','land-button');add.type='button';add.onclick=()=>{api.map.closePopup();fresh(()=>defenseModal(cityId,city));};card.append(add);
         return card;
+    }
+    function cityActions(cityId,parent){
+        const city=cfg.cities[cityId];if(!city)return;
+        const occupied=occupation('city',cityId);
+        if(occupied){
+            if(city.countryId===cfg.countryId)recaptureButton(parent,'Odbij miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point},occupied);
+            else if(liberable(city.countryId,occupied))recaptureButton(parent,'Wyzwól miasto',{kind:'city',id:Number(cityId),name:city.name,owner:city.countryId,point:city.point,liberate:true},occupied);
+            if(occupied.occupierId===cfg.countryId){withdrawButton(parent,occupied,city.name,ownOccupiers('city',cityId));reinforceButton(parent,{kind:'city',id:Number(cityId),name:city.name,point:city.point});}
+            return;
+        }
+        if(city.countryId!==cfg.countryId)return;
+        const add=make('button','Dodaj obronę wojska','land-button');add.type='button';add.onclick=()=>fresh(()=>defenseModal(cityId,city));parent.append(add);
+        const defenders=armies.filter(a=>a.status==='DEFENDING'&&String(a.targetCityId)===cityId&&a.countryId===cfg.countryId);
+        defenders.forEach((army,index)=>{
+            const base=(cfg.bases||[]).find(b=>b.id===army.sourceBaseId),units=army.units||{};
+            // 23 Nov 2026: wycofanie do wybranej bazy albo do rezerwy państwa, także częściowe
+            const back=make('button',defenders.length>1?`Wycofaj oddział ${index+1}`:'Wycofaj obronę wojska','land-small-button');back.type='button';
+            back.title=`${base?`Oddział z: ${api.baseName(base)}`:army.sourceBaseId?`Oddział z: bazy #${army.sourceBaseId}`:'Oddział bez bazy macierzystej'} — żołnierze ${api.number(units.soldiers||0)}, wozy ${api.number(units.armored||0)}, czołgi ${api.number(units.tanks||0)}`;
+            back.onclick=()=>fresh(()=>{const current=armies.find(a=>a.id===army.id&&a.status==='DEFENDING');if(current)defenseWithdrawModal(current,city.name);else api.feedback('Oddział nie broni już tego miasta.');});
+            parent.append(back);
+        });
     }
     function bindCity(marker,cityId,city){
         cityLayers.set(cityId,{marker,city});
         let timer=null,popup=null;
         const close=()=>{timer=setTimeout(()=>{if(popup)api.map.closePopup(popup);},280);};
         marker.on('mouseover',()=>{
-            clearTimeout(timer);
+            clearTimeout(timer);if(window.GameRadialMenu?.isOpen())return;
             popup=L.popup({closeButton:false,autoPan:false,className:'land-city-popup',offset:[0,-4]}).setLatLng(marker.getLatLng()).setContent(cityCard(cityId,city)).openOn(api.map);
             const element=popup.getElement();if(element){element.addEventListener('mouseenter',()=>clearTimeout(timer));element.addEventListener('mouseleave',close);}
         });
@@ -115,34 +128,12 @@
         button.onclick=()=>{api.map.closePopup();fresh(()=>chooseBase(target,true));};
         parent.append(button);if(reason)parent.append(make('p',reason,'land-muted'));
     }
-    function hoverCard(marker,content,className){
-        let timer=null,popup=null;
-        const close=()=>{timer=setTimeout(()=>{if(popup)api.map.closePopup(popup);},280);};
-        marker.on('mouseover',()=>{
-            clearTimeout(timer);
-            popup=L.popup({closeButton:false,autoPan:false,className,offset:[0,-14]}).setLatLng(marker.getLatLng()).setContent(content()).openOn(api.map);
-            const element=popup.getElement();if(element){element.addEventListener('mouseenter',()=>clearTimeout(timer));element.addEventListener('mouseleave',close);}
-        });
-        marker.on('mouseout',close);
-    }
-    function bindBase(marker,base,tooltip){
-        // Własna, okupowana baza: zamiast zwykłego tooltipa karta z przyciskiem „Odbij bazę”;
-        // baza okupowana przez nasze wojska: karta z przyciskiem „Wycofaj wojsko”.
-        const occupied=occupation('base',base.id);
-        if(occupied&&occupied.occupierId===cfg.countryId&&base.position){
-            hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
-                withdrawButton(card,occupied,api.baseName(base),ownOccupiers('base',base.id));reinforceButton(card,{kind:'base',id:base.id,name:api.baseName(base),point:base.position});return card;},'land-city-popup');
-            return true;
-        }
-        if(occupied&&base.position&&liberable(base.countryId,occupied)){
-            hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
-                recaptureButton(card,'Wyzwól bazę',{kind:'base',id:base.id,name:api.baseName(base),owner:base.countryId,point:base.position,liberate:true},occupied);return card;},'land-city-popup');
-            return true;
-        }
-        if(!occupied||base.countryId!==cfg.countryId||!base.position)return false;
-        hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(tooltip.cloneNode(true));
-            recaptureButton(card,'Odbij bazę',{kind:'base',id:base.id,name:api.baseName(base),owner:base.countryId,point:base.position},occupied);return card;},'land-city-popup');
-        return true;
+    // 25 Nov 2026: operacje na okupowanej bazie (odbicie, wyzwolenie, wycofanie wojsk, posiłki) — w kole opcji na mapie.
+    function baseActions(base,parent){
+        const occupied=occupation('base',base.id);if(!occupied||!base.position)return;
+        if(occupied.occupierId===cfg.countryId){withdrawButton(parent,occupied,api.baseName(base),ownOccupiers('base',base.id));reinforceButton(parent,{kind:'base',id:base.id,name:api.baseName(base),point:base.position});return;}
+        if(liberable(base.countryId,occupied)){recaptureButton(parent,'Wyzwól bazę',{kind:'base',id:base.id,name:api.baseName(base),owner:base.countryId,point:base.position,liberate:true},occupied);return;}
+        if(base.countryId===cfg.countryId)recaptureButton(parent,'Odbij bazę',{kind:'base',id:base.id,name:api.baseName(base),owner:base.countryId,point:base.position},occupied);
     }
     // ---------- wycofanie wojsk okupacyjnych ----------
     const ownOccupiers=(kind,id)=>sum(armies.filter(a=>a.status==='OCCUPYING'&&a.countryId===cfg.countryId&&a.targetKind===kind&&String(kind==='city'?a.targetCityId:a.targetBaseId)===String(id)));
@@ -354,9 +345,10 @@
             if(returning){symbol.classList.add('land-returning-symbol');tooltip.querySelector('p:nth-of-type(2)')?.replaceWith(make('p',`Powrót do bazy (przemarsz anulowany; cel był: ${army.targetName})`));}
             if(attackable(army)){symbol.classList.add('land-attackable');tooltip.append(make('p','Kliknij, aby zaatakować armię.','land-attack-hint'));}
             const marker=L.marker(from,{icon:L.divIcon({html:symbol,className:'land-invasion-marker',iconSize:[34,34],iconAnchor:[17,17]}),zIndexOffset:2000}).addTo(layer);
-            // 22 Nov 2026: własna armia w marszu — karta po najechaniu z przyciskiem „Anuluj przemarsz” (zwykły tooltip nie przyjmuje kliknięć).
-            if(army.countryId===cfg.countryId&&army.status==='MARCHING'&&lw().cancelMarchUrl)hoverCard(marker,()=>{const card=make('div',null,'land-city-card');card.append(armyTooltip(army));cancelButton(card,army);return card;},'land-city-popup');
-            else marker.bindTooltip(tooltip,{direction:'top',offset:[0,-16],className:'military-wrapping-tooltip'});
+            marker.bindTooltip(tooltip,{direction:'top',offset:[0,-16],className:'military-wrapping-tooltip'});
+            // 25 Nov 2026: własna armia w marszu — „Anuluj przemarsz” w kole opcji po kliknięciu ikony armii.
+            if(army.countryId===cfg.countryId&&army.status==='MARCHING'&&lw().cancelMarchUrl)marker.on('click',event=>{L.DomEvent.stopPropagation(event);marker.closeTooltip();
+                api.menu?.(`army:${army.id}`,marker.getLatLng(),parent=>cancelButton(parent,army),'Opcje armii w marszu');});
             if(attackable(army))marker.on('click',event=>{L.DomEvent.stopPropagation(event);attackArmy(army);});
             marching.set(army.id,{army,marker,from,to});
         }
@@ -366,15 +358,15 @@
         for(const {army,marker,from,to} of marching.values()){
             const start=Date.parse(army.startsAt),end=Date.parse(army.arrivesAt);
             const f=end>start?Math.min(1,Math.max(0,(now-start)/(end-start))):1;
-            marker.setLatLng(L.latLng(from.lat+(to.lat-from.lat)*f,from.lng+(to.lng-from.lng)*f));
+            const point=L.latLng(from.lat+(to.lat-from.lat)*f,from.lng+(to.lng-from.lng)*f);marker.setLatLng(point);window.GameRadialMenu?.follow(`army:${army.id}`,point);
         }
     }
 
     function cancelButton(card,army){
         const button=make('button','Anuluj przemarsz','land-button land-cancel-march');button.type='button';
-        card.append(make('p','Armia zawróci do bazy; powrót potrwa tyle, ile dotychczasowy marsz. Koszt inwazji nie jest zwracany.','land-muted'));
-        button.onclick=async()=>{if(!confirm('Anulować przemarsz tej armii? Armia zawróci do bazy macierzystej.'))return;button.disabled=true;
-            try{api.map.closePopup();await done(await send(lw().cancelMarchUrl,{army_id:army.id}));}catch(error){api.feedback(error.message);button.disabled=false;}};
+        button.title='Armia zawróci do bazy; powrót potrwa tyle, ile dotychczasowy marsz. Koszt inwazji nie jest zwracany.';
+        button.onclick=async()=>{if(!confirm('Anulować przemarsz tej armii? Armia zawróci do bazy macierzystej. Powrót potrwa tyle, ile dotychczasowy marsz; koszt inwazji nie jest zwracany.'))return;button.disabled=true;
+            try{await done(await send(lw().cancelMarchUrl,{army_id:army.id}));}catch(error){api.feedback(error.message);button.disabled=false;}};
         card.append(button);
     }
     // ---------- atak na wrogą armię w marszu (22 Nov 2026) ----------
@@ -566,6 +558,6 @@
         init(context){api=context;cfg=context.config;armies=lw().armies||[];occupations=lw().occupations||[];layer=L.layerGroup().addTo(api.map);draw();renderOccupations();askPending();},
         update(state){if(!api)return;armies=state.armies||armies;occupations=state.occupations||occupations;draw();drawOccupiedRegions();renderOccupations();askPending();},
         setRegions(regions,coordinates){regionGeometry=regions;toLatLng=coordinates;drawOccupiedRegions();},
-        bindCity,bindBase,regionOccupied,regionUnderOccupation,baseTooltip,baseSymbol,regionTooltip,warActions,tick,
+        bindCity,cityActions,baseActions,regionOccupied,regionUnderOccupation,baseTooltip,baseSymbol,regionTooltip,warActions,tick,
     };
 })();

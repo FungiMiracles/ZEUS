@@ -534,8 +534,10 @@ class RecaptureInterfaceTests(LandWarFixture):
         from pathlib import Path
         root=Path(__file__).resolve().parents[1]/'static/js'
         land=(root/'game_land_war.js').read_text();military=(root/'game_military.js').read_text()
-        for text in ("'Odbij miasto'","'Odbij bazę'",'bindBase','regionOccupied','Odbicie wymaga trwającej wojny z okupantem.'):self.assertIn(text,land)
-        self.assertIn('GameLandWar?.bindBase(baseMarker,base,tooltip)',military)
+        for text in ("'Odbij miasto'","'Odbij bazę'",'baseActions','cityActions','regionOccupied','Odbicie wymaga trwającej wojny z okupantem.'):self.assertIn(text,land)
+        # 25 Nov 2026: operacje na bazach i miastach (także odbicie) w kole opcji na mapie
+        self.assertIn('window.GameLandWar?.baseActions?.(item,sink)',military)
+        self.assertIn('window.GameLandWar?.cityActions?.(String(item.id),sink)',military)
         self.assertIn('GameLandWar?.regionUnderOccupation?.(id)?DEF.occupiedHover:DEF.hover',military)
         self.assertIn('baseKindBadge(base,symbol)',military)
         self.assertIn("lockButton(button('Dodaj obronę przeciwrakietową'",military)

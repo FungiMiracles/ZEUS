@@ -133,6 +133,11 @@ def render_military(mode):
             'radars':visible_radars(db.session,country.PANSTWO_ID,mode=='war'),'radarIcon':url_for('static',filename='icons/RADAR.svg'),
             'radar':{**radar_config(db.session,country.PANSTWO_ID),'url':url_for('game_military.radar_change'),
                      'chipIcon':url_for('static',filename='icons/CHIP NATSYTOWY.svg'),'ironIcon':url_for('static',filename='icons/ŻELAZO.svg')},
+            # 25 Nov 2026: ikony opcji w kole dookoła obiektu na mapie (game_radial_menu.js)
+            'menuIcons':{code:url_for('static',filename='icons/'+name+'.svg') for code,name in
+                         [('defense','OBRONA PRZECIWRAKIETOWA'),('defensePlus','OBRONA PRZECIWRAKIETOWA PLUS'),('rename','ZMIEŃ NAZWĘ'),('move','PRZENIEŚ'),
+                          ('reorganize','REORGANIZUJ'),('withdraw','WYCOFAJ'),('liquidate','ZLIKWIDUJ'),('upgrade','ROZBUDUJ'),('repair','PRACE BUDOWLANE'),
+                          ('ammo','AMMO'),('course','gps'),('army','ARMIA'),('recapture','INWAZJA'),('manage','OBRONA PAŃSTWA'),('base','BAZA')]},
             'attackIcons':{code:url_for('static',filename='icons/'+name+'.svg') for code,name in
                            [('air','BOMBARDUJ'),('missile','WYSTRZEL Z TERYTORIUM'),('naval','WYSTRZEL Z OKRĘTU'),('land','WPROWADŹ ARMIĘ LĄDOWĄ')]},
         })

@@ -1,0 +1,30 @@
+/* 25 Nov 2026: koło opcji obiektu na mapie obrony i w panelu wojennym (game_radial_menu.js).
+   Selektory wzmocnione — ogólne style przycisków motywu (game_civic.css, game_defense_navy.css) mają wysoką specyficzność. */
+.leaflet-marker-icon.radial-menu-marker{background:none;border:0;box-shadow:none;width:0!important;height:0!important;overflow:visible;pointer-events:none}
+.radial-menu{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+.radial-menu::before{content:"";position:absolute;left:calc(var(--radius) * -1);top:calc(var(--radius) * -1);width:calc(var(--radius) * 2);height:calc(var(--radius) * 2);box-sizing:border-box;border-radius:50%;border:2px solid rgb(30 58 95 / 35%);background:radial-gradient(circle,rgb(255 255 255 / 0%) 0 26px,rgb(255 255 255 / 30%) 27px);opacity:0;transform:scale(.35);transition:transform .2s cubic-bezier(.2,.8,.3,1),opacity .16s ease-out;pointer-events:none}
+.radial-menu.is-open::before{opacity:1;transform:scale(1)}
+.radial-menu.is-closing::before{opacity:0;transform:scale(.35);transition-duration:.12s}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item{all:unset;position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;padding:0;box-sizing:border-box;display:block;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;
+    opacity:0;transform:translate(0,0) scale(.3);transition:transform .22s cubic-bezier(.18,.9,.32,1.22) calc(var(--i) * 16ms),opacity .14s ease-out calc(var(--i) * 16ms)}
+html body .leaflet-container .radial-menu.is-open button.radial-menu-item.radial-menu-item{opacity:1;transform:translate(var(--x),var(--y)) scale(1)}
+html body .leaflet-container .radial-menu.is-closing button.radial-menu-item.radial-menu-item{opacity:0;transform:translate(0,0) scale(.3);transition-duration:.12s;transition-delay:0s}
+.radial-menu .radial-menu-icon{display:flex;align-items:center;justify-content:center;width:46px;height:46px;box-sizing:border-box;border-radius:50%;background:#fff;border:2px solid #1E3A5F;box-shadow:0 3px 10px rgb(15 30 50 / 35%);transition:transform .12s ease-out,border-color .12s,background-color .12s}
+.radial-menu .radial-menu-icon img{display:block;width:26px;height:26px;object-fit:contain;padding:0;margin:0;background:none;border:0}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:hover .radial-menu-icon{transform:scale(1.1);border-color:#e07a1f;background:#fff7ec}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:focus-visible{outline:none}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:focus-visible .radial-menu-icon{transform:scale(1.1);box-shadow:0 0 0 3px #fff,0 0 0 5px #1E3A5F}
+/* Nazwa operacji: niewielki czarny druk z białą obwódką */
+.radial-menu .radial-menu-label{position:absolute;top:49px;left:50%;width:98px;margin-left:-49px;font:700 10.5px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0;text-transform:none;color:#000;text-align:center;white-space:normal;overflow-wrap:anywhere;pointer-events:auto;
+    text-shadow:-1px -1px 0 #fff,0 -1px 0 #fff,1px -1px 0 #fff,1px 0 0 #fff,1px 1px 0 #fff,0 1px 0 #fff,-1px 1px 0 #fff,-1px 0 0 #fff,0 0 3px #fff}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-disabled{cursor:not-allowed}
+.radial-menu .radial-menu-item.is-disabled .radial-menu-icon{background:#e4e9f0;border-color:#9aa8b8;box-shadow:0 2px 6px rgb(15 30 50 / 20%)}
+.radial-menu .radial-menu-item.is-disabled .radial-menu-icon img{opacity:.45}
+.radial-menu .radial-menu-item.is-disabled .radial-menu-label{color:#4b5563}
+html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item.is-disabled:hover .radial-menu-icon{transform:none;border-color:#9aa8b8;background:#e4e9f0}
+/* Otwarte menu: dymki innych obiektów nie przykrywają opcji */
+.leaflet-container.radial-menu-active .leaflet-tooltip-pane{display:none}
+@media (pointer:coarse){.radial-menu .radial-menu-label{font-size:11px}}
+@media (prefers-reduced-motion:reduce){
+    .radial-menu::before,html body .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item,.radial-menu .radial-menu-icon{transition:none}
+}

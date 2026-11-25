@@ -113,6 +113,59 @@
         const node = make('button', text, 'military-action' + (attack ? ' military-attack' : '')); node.type = 'button';
         if (icon) node.prepend(image(icon)); node.addEventListener('click', handler); parent.append(node); return node;
     }
+    // 25 Nov 2026: opcje obiektu wyświetlane w kole dookoła obiektu na mapie (game_radial_menu.js) zamiast przycisków w prawym panelu.
+    // Przyciski budują te same funkcje co dotąd (do niewidocznego kontenera); menu przejmuje ich etykiety, stan i obsługę kliknięcia.
+    const MENU_ICONS=config.menuIcons||{};
+    const MENU_RULES=[[/^Dodaj obronę przeciwrakietową/,'defense'],[/^Wzmocnij obronę/,'defensePlus'],[/^Zmień nazwę/,'rename'],[/^Zmień lokalizację/,'move'],[/^Reorganizuj/,'reorganize'],
+        [/^(Wycofaj|Anuluj przemarsz)/,'withdraw'],[/^Powrót do bazy/,'base'],[/^Zlikwiduj/,'liquidate'],[/^Rozbuduj/,'upgrade'],[/^Napraw/,'repair'],[/^Uzupełnij/,'ammo'],
+        [/^Wskaż nowy kierunek/,'course'],[/^(Dodaj obronę wojska|Dorzuć wojsko)/,'army'],[/^(Odbij|Wyzwól)/,'recapture'],[/^Zarządzaj/,'manage']];
+    function menuEntry(node){
+        let label=node.textContent.trim().replace(/\s+/g,' ');
+        if(/^Obrona: poziom/.test(label))label='Wzmocnij obronę przeciwrakietową';
+        const rule=MENU_RULES.find(([pattern])=>pattern.test(label));
+        const icon=(rule&&MENU_ICONS[rule[1]])||node.querySelector('img')?.getAttribute('src')||MENU_ICONS.manage;
+        const link=node.tagName==='A'?node.href:null;
+        return {label,icon,disabled:!!node.disabled,title:node.title||'',run:link?()=>{location.href=link;}:()=>node.click()};
+    }
+    function menuItems(fill){const sink=make('div');fill(sink);return [...sink.querySelectorAll('button,a[href]')].map(menuEntry);}
+    function openMenu(key,point,fill,label,options={}){
+        if(!window.L||!window.GameRadialMenu||!point)return false;
+        const items=menuItems(fill);
+        if(!items.length)return false;
+        return !!window.GameRadialMenu.open(map,point,items,{key,label,focus:options.focus,returnFocus:options.returnFocus,
+            onDisabled:text=>{document.getElementById('military-feedback').textContent=text;}});
+    }
+    function objectPoint(item){const point=item?.position||item?.point;return point&&window.L?L.latLng(point[1],point[0]):null;}
+    function objectMenu(kind,item,options={}){
+        if(!window.L||!item)return false;
+        const mine=Number(item.countryId)===config.countryId,locked=regionLocked;
+        regionLocked=!!window.GameLandWar?.regionOccupied(String(item.regionId));
+        const name=kind==='base'?baseName(item):kind==='vessel'?vesselName(item):item.name||'';
+        try{
+            return openMenu(`${kind}:${item.id}`,options.point||objectPoint(item),sink=>{
+                if(kind==='base'){if(mine)baseActions(item,sink);window.GameLandWar?.baseActions?.(item,sink);}
+                else if(kind==='city'){if(own(item.regionId))defenseActions('city',Number(item.id),sink);window.GameLandWar?.cityActions?.(String(item.id),sink);}
+                else if(kind==='radar'){if(mine&&config.mode==='defense')window.GameRadar?.actions?.(item,sink);}
+                else if(kind==='vessel'){if(mine)vesselActions(item,sink);}
+                else if(kind==='defense'){if(mine)defenseOperations(item,sink);}
+                else if(mine&&(kind==='mine'||item.health>0))defenseActions(kind,item.id,sink);
+            },name?`Opcje: ${name}`:'Opcje obiektu',options);
+        }finally{regionLocked=locked;}
+    }
+    // Karta obiektu w prawym panelu: przycisk przybliża mapę do obiektu i otwiera koło opcji.
+    function mapOptionsButton(kind,item,parent){
+        if(!window.L||!objectPoint(item))return null;
+        return button('Opcje na mapie',event=>{
+            const trigger=event.currentTarget;
+            if(mobileLayout())document.querySelector('.war-map-panel')?.scrollIntoView({behavior:smoothScroll(),block:'start'});
+            map.setView(objectPoint(item),Math.max(map.getZoom(),3),{animate:false});
+            if(!objectMenu(kind,item,{focus:true,returnFocus:trigger}))document.getElementById('military-feedback').textContent='Brak dostępnych operacji dla tego obiektu.';
+        },parent,MENU_ICONS.manage);
+    }
+    function defenseNote(kind,targetId,parent){
+        const defense=(config.defenses||[]).find(item=>item.countryId===config.countryId&&item.targetKind===kind&&item.targetId===targetId);
+        parent.append(make('p',defense?`Obrona przeciwrakietowa: poziom ${defense.level} / 7 · pociski ${number(defense.ammunition)} / ${number(defense.capacity)}`:'Bez obrony przeciwrakietowej.','military-defense-note'));
+    }
     const baseName=base=>base.name || `${base.label} #${base.id}`;
     const baseIcon=base=>base.kind==='nuclear'?config.siloIcon:config.baseIcon;
     function fitRegion(id) {
@@ -189,11 +242,12 @@
         if(card!==actions)card.parentElement.prepend(card);
         if(scroll)card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
     }
-    function selectObject(kind,item) {
+    function selectObject(kind,item,menu=true) {
         focusedObject={kind,id:item.id};
         framedRegion=null;
         showRegion(String(item.regionId),null,{kind,id:item.id,countryId:item.countryId,name:kind==='base'?baseName(item):item.name,point:item.position,health:item.health});
         highlightSelection(true);
+        if(menu)objectMenu(kind,item);
     }
     function bindObjectTooltip(marker,content,options={}) {
         if(config.mode!=='defense')return marker.bindTooltip(content,options);
@@ -223,8 +277,10 @@
         const region = config.regions[id];
         document.getElementById('military-region-name').textContent = selectedTarget ? (selectedTarget.kind==='vessel'?selectedTarget.name:`${selectedTarget.name} — ${region.name}`) : selectedCity ? `${config.cities[selectedCity].name} — ${region.name}` : region?.name || 'Wybierz region na mapie';
         if (!region) return;
-        if(config.mode!=='defense'&&['base','mine','factory','power','airport'].includes(selectedTarget?.kind)&&selectedTarget.countryId===config.countryId&&(selectedTarget.kind!=='factory'||selectedTarget.health>0))defenseActions(selectedTarget.kind,selectedTarget.id,actions);
-        if(own(id)&&!selectedTarget)defenseActions(selectedCity?'city':'region',selectedCity?Number(selectedCity):Number(id),actions);
+        // 25 Nov 2026: opcje obiektów (także miast) w kole na mapie; w panelu zostają operacje regionu.
+        if(config.mode!=='defense'&&['base','mine','factory','power','airport'].includes(selectedTarget?.kind)&&selectedTarget.countryId===config.countryId)actions.append(make('p','Opcje obiektu są wyświetlane na mapie, w kole dookoła obiektu.','military-region-note'));
+        if(own(id)&&!selectedTarget&&!selectedCity)defenseActions('region',Number(id),actions);
+        if(own(id)&&!selectedTarget&&selectedCity){defenseNote('city',Number(selectedCity),actions);actions.append(make('p','Opcje miasta są wyświetlane na mapie, w kole dookoła miasta.','military-region-note'));}
         if (config.mode === 'defense' && manageable(id)) {
             if(own(id)||permitRegion(id)){button('Rozmieść bazę', () => deployDialog(id),actions,config.baseIcon);lockButton(actions.lastElementChild);}
             if(!own(id)){const host=config.countries?.[String(config.allyRegions?.[String(id)]?.countryId??region.countryId)]||'państwo gospodarza';
@@ -237,43 +293,31 @@
                     const info = config.resources[resource], row = make('p', `${info.label}: ${number(base.garrison[resource] || 0)} / ${number(capacity)}`, 'military-resource-label');
                     row.prepend(image(info.icon)); card.append(row);
                 }
-                card.append(healthBar(base.health));
-                const menu=make('details',null,'military-base-menu');const toggle=make('summary','⋮');toggle.setAttribute('aria-label','Opcje bazy');menu.append(toggle);
-                const controls = make('div',null,'military-base-actions');menu.append(controls);
-                defenseActions('base',base.id,controls);
-                button('Zmień nazwę',()=>modal('Nazwa bazy',()=>{const label=make('label','Nazwa'),field=make('input');field.name='name';field.value=baseName(base);field.maxLength=120;field.required=true;label.append(field);fields.append(label);},data=>post({action:'rename',base_id:base.id,name:data.get('name')})),controls);
-                button(base.position ? 'Zmień lokalizację' : 'Wskaż miejsce na mapie',()=>startLocation(base),controls,config.baseIcon);
-                if(base.position)button('Pokaż bazę',()=>map.setView([base.position[1],base.position[0]],Math.max(map.getZoom(),2)),controls);
-                reorganizeButton(base,controls);
-                button('Wycofaj garnizon', () => modal('Wycofać garnizon?', () => fields.append(make('p','Żołnierze i sprzęt wrócą do dostępnych zasobów państwa.')), () => post({action:'withdraw',base_id:base.id})),controls);
-                button('Zlikwiduj bazę', () => modal('Zlikwidować bazę?', () => {
-                    fields.append(make('p',`${baseName(base)} zniknie z mapy, a liczba baz tego rodzaju zmniejszy się o 1.`),
-                        make('p','Żołnierze i sprzęt z garnizonu wrócą do dostępnych zasobów państwa. Koszty budowy i rozbudowy nie są zwracane; obrona przeciwrakietowa bazy zostanie usunięta.'));
-                }, () => post({action:'liquidate',base_id:base.id})),controls);
-                upgradeButton(base,controls);
-                if(base.kind==='naval')for(const kind of ['warships','submarines']){
-                    const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(base,kind),controls,config.resources[kind].icon);
-                    control.disabled=!base.position||(base.garrison[kind]||0)<=(base.busyVessels[kind]||0);
-                }
-                if(base.kind==='naval')carrierButton(base,controls);
+                card.append(healthBar(base.health));defenseNote('base',base.id,card);
                 if(!base.operational)card.append(make('p','Silos wyłączony — brak środków na utrzymanie.','military-range-error'));
                 if(base.kind==='nuclear'){const months=Number(document.body.dataset.periodMonths)||6,period=document.body.dataset.periodNom||'okres';   // 16 Nov 2026: stawki za bieżący okres (kwartał — połowa półrocza)
                     card.append(make('p',`Utrzymanie: ${500*months/6} mln ROI / ${period}. Rakieta z głowicą nuklearną w silosie: ${650*months/6} mln ROI / ${period}.`));}
-                card.append(menu); bases.append(card);
+                // 25 Nov 2026: opcje bazy na mapie (koło dookoła bazy); baza bez lokalizacji nie ma jeszcze ikony — opcje zostają w menu karty.
+                if(base.position)mapOptionsButton('base',base,card);
+                else{
+                    const menu=make('details',null,'military-base-menu');const toggle=make('summary','⋮');toggle.setAttribute('aria-label','Opcje bazy');menu.append(toggle);
+                    const controls=make('div',null,'military-base-actions');menu.append(controls);baseActions(base,controls);card.append(menu);
+                }
+                bases.append(card);
             }
             // 20 Nov 2026: porty lotnicze regionu — obrona przeciwrakietowa na wszystkich poziomach
-            for(const airport of (config.visibleAirports||[]).filter(a=>a.countryId===config.countryId&&a.regionId===String(id))){const card=make('section',null,'military-base military-airport-card'),title=make('h3',airport.name);card.id=`military-airport-${airport.id}`;title.prepend(image(config.airportIcon));card.append(title,healthBar(airport.health),make('p',airport.completed?`Port lotniczy w mieście ${airport.cityName} — czynny.`:`Budowa portu lotniczego: ${airport.progress}%.`));if(airport.health>0)defenseActions('airport',airport.id,card);button('Pokaż lotnisko',()=>map.setView([airport.position[1],airport.position[0]],Math.max(map.getZoom(),3)),card,config.airportIcon);bases.append(card);}
-            for(const plant of (config.visiblePower||[]).filter(p=>p.countryId===config.countryId&&p.regionId===String(id))){const card=make('section',null,'military-base military-power-card'),title=make('h3',plant.name);card.id=`military-power-${plant.id}`;title.prepend(image('/static/icons/'+plant.icon));card.append(title,healthBar(plant.health,false),make('p',plant.status+` · ${plant.dailyProduction} e/dzień przy sprawnej elektrowni i dostępnym paliwie`));if(plant.health>0)defenseActions('power',plant.id,card);button('Pokaż elektrownię',()=>map.setView([plant.position[1],plant.position[0]],Math.max(map.getZoom(),3)),card);bases.append(card);}
+            for(const airport of (config.visibleAirports||[]).filter(a=>a.countryId===config.countryId&&a.regionId===String(id))){const card=make('section',null,'military-base military-airport-card'),title=make('h3',airport.name);card.id=`military-airport-${airport.id}`;title.prepend(image(config.airportIcon));card.append(title,healthBar(airport.health),make('p',airport.completed?`Port lotniczy w mieście ${airport.cityName} — czynny.`:`Budowa portu lotniczego: ${airport.progress}%.`));defenseNote('airport',airport.id,card);mapOptionsButton('airport',airport,card);bases.append(card);}
+            for(const plant of (config.visiblePower||[]).filter(p=>p.countryId===config.countryId&&p.regionId===String(id))){const card=make('section',null,'military-base military-power-card'),title=make('h3',plant.name);card.id=`military-power-${plant.id}`;title.prepend(image('/static/icons/'+plant.icon));card.append(title,healthBar(plant.health,false),make('p',plant.status+` · ${plant.dailyProduction} e/dzień przy sprawnej elektrowni i dostępnym paliwie`));defenseNote('power',plant.id,card);mapOptionsButton('power',plant,card);bases.append(card);}
             for(const factory of (config.visibleFactories||[]).filter(f=>f.countryId===config.countryId&&f.regionId===String(id))){
                 const card=make('section',null,'military-base military-factory-card'),title=make('h3',factory.name);card.id=`military-factory-${factory.id}`;title.prepend(image(config.factoryIcon));card.append(title,healthBar(factory.health),make('p',factory.health?`Produkcja: ${factory.dailyProduction} szt. / cykl produkcji Entendy`:'Fabryka zniszczona — produkcja zatrzymana.'));
-                if(factory.health>0)defenseActions('factory',factory.id,card);
-                button('Pokaż fabrykę',()=>map.setView([factory.position[1],factory.position[0]],Math.max(map.getZoom(),3)),card,config.factoryIcon);bases.append(card);
+                if(factory.health>0){defenseNote('factory',factory.id,card);mapOptionsButton('factory',factory,card);}   // zniszczona fabryka znika z mapy
+                bases.append(card);
             }
             for(const mine of (config.visibleMines||[]).filter(item=>item.countryId===config.countryId&&String(item.regionId)===String(id))){
                 const card=make('section',null,'military-base military-mine-card');card.id=`military-mine-${mine.id}`;
                 const title=make('h3',mine.name);title.prepend(image(config.mineIcon));card.append(title,healthBar(mine.health));
                 if(!mine.ready)card.append(make('p',`Budowa kopalni: ${mine.progress}%`));
-                defenseActions('mine',mine.id,card);bases.append(card);
+                defenseNote('mine',mine.id,card);mapOptionsButton('mine',mine,card);bases.append(card);
             }
             window.GameRadar?.regionPanel(id,actions,bases);
             if(focusedObject?.kind==='power'){const chosen=document.getElementById(`military-power-${focusedObject.id}`);if(chosen)bases.prepend(chosen);}
@@ -281,7 +325,7 @@
             highlightSelection();
         } else if (config.mode === 'war') {
             const ownBase=selectedTarget?.kind==='base'&&config.bases.find(base=>base.id===selectedTarget.id);
-            if(ownBase){const link=make('a',`Zarządzaj: ${baseName(ownBase)}`);link.href=config.defenseUrl+'?base='+ownBase.id;actions.append(link);reorganizeButton(ownBase,actions);upgradeButton(ownBase,actions);if(ownBase.kind==='naval')for(const kind of ['warships','submarines']){const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(ownBase,kind),actions,config.resources[kind].icon);control.disabled=!ownBase.position||(ownBase.garrison[kind]||0)<=(ownBase.busyVessels[kind]||0);}if(ownBase.kind==='naval')carrierButton(ownBase,actions);return;}
+            if(ownBase){const link=make('a',`Zarządzaj: ${baseName(ownBase)}`);link.href=config.defenseUrl+'?base='+ownBase.id;actions.append(link);mapOptionsButton('base',ownBase,actions);return;}   // 25 Nov 2026: opcje w kole na mapie
             if (!config.enemyIds.includes(selectedTarget?.countryId ?? region.countryId)) { actions.append(make('p','Działania wojenne są dostępne tylko przeciwko państwom, z którymi trwa wojna.')); return; }
             if(selectedVessel)actions.append(make('p',`Wybrany okręt #${selectedVessel.id}. Kliknij go ponownie, aby zmienić rozkaz.`));
             const methods=[['air','Bombarduj z powietrza'],['missile','Wystrzel rakiety z własnego terytorium'],['naval','Zaatakuj z okrętu'],['land','Wprowadź armię lądową']];
@@ -361,6 +405,35 @@
             window.GameLandWar?.warActions(actions,{regionId:id,cityId:selectedCity,target:selectedTarget});
         }
     }
+    // 25 Nov 2026: wszystkie opcje własnej bazy — koło na mapie (obrona i panel wojenny) albo menu karty bazy bez lokalizacji.
+    function baseActions(base,parent){
+        defenseActions('base',base.id,parent);
+        if(config.mode==='defense'){
+            button('Zmień nazwę',()=>modal('Nazwa bazy',()=>{const label=make('label','Nazwa'),field=make('input');field.name='name';field.value=baseName(base);field.maxLength=120;field.required=true;label.append(field);fields.append(label);},data=>post({action:'rename',base_id:base.id,name:data.get('name')})),parent);
+            button(base.position ? 'Zmień lokalizację' : 'Wskaż miejsce na mapie',()=>startLocation(base),parent,config.baseIcon);
+        }else if(config.defenseUrl){const link=make('a','Zarządzaj w panelu obrony');link.href=config.defenseUrl+'?base='+base.id;parent.append(link);}
+        reorganizeButton(base,parent);
+        if(config.mode==='defense'){
+            button('Wycofaj garnizon', () => modal('Wycofać garnizon?', () => fields.append(make('p','Żołnierze i sprzęt wrócą do dostępnych zasobów państwa.')), () => post({action:'withdraw',base_id:base.id})),parent);
+            button('Zlikwiduj bazę', () => modal('Zlikwidować bazę?', () => {
+                fields.append(make('p',`${baseName(base)} zniknie z mapy, a liczba baz tego rodzaju zmniejszy się o 1.`),
+                    make('p','Żołnierze i sprzęt z garnizonu wrócą do dostępnych zasobów państwa. Koszty budowy i rozbudowy nie są zwracane; obrona przeciwrakietowa bazy zostanie usunięta.'));
+            }, () => post({action:'liquidate',base_id:base.id})),parent);
+        }
+        upgradeButton(base,parent);
+        if(base.kind==='naval')for(const kind of ['warships','submarines']){
+            const control=button(`Wyślij: ${config.resources[kind].label}`,()=>startSailing(base,kind),parent,config.resources[kind].icon);
+            control.disabled=!base.position||(base.garrison[kind]||0)<=(base.busyVessels[kind]||0);
+            if(control.disabled)control.title=base.position?'Wszystkie jednostki tego rodzaju są w rejsie albo baza nie ma ich w garnizonie.':'Najpierw wskaż lokalizację bazy.';
+        }
+        if(base.kind==='naval')carrierButton(base,parent);
+    }
+    // 25 Nov 2026: koło opcji obrony przeciwrakietowej — każda operacja otwiera okno z wybraną operacją.
+    function defenseOperations(defense,parent){
+        if(defense.health>0&&defense.level<7)button('Rozbuduj obronę',()=>showDefense(defense,'upgrade'),parent);
+        if(defense.health<100)button('Napraw obronę',()=>showDefense(defense,'repair'),parent);
+        if(defense.health>0&&defense.ammunition<defense.capacity)button('Uzupełnij pociski',()=>showDefense(defense,'refill'),parent);
+    }
     function defenseActions(kind,targetId,parent){
         const defense=(config.defenses||[]).find(item=>item.countryId===config.countryId&&item.targetKind===kind&&item.targetId===targetId);
         if(!defense){
@@ -369,7 +442,7 @@
         }
         button(`Obrona: poziom ${defense.level} · pociski ${number(defense.ammunition)} / ${number(defense.capacity)}`,()=>showDefense(defense),parent,config.defenseIcon);
     }
-    async function showDefense(defense){
+    async function showDefense(defense,preset=null){
         if(config.mode==='defense'){focusedObject=null;highlightSelection();}
         let ammunition=0;if(defense.countryId===config.countryId){try{ammunition=(await load(config.ammunitionStockUrl)).ammunition;}catch{}}
         modal('Obrona przeciwrakietowa',()=>{
@@ -386,6 +459,7 @@
             source.querySelector('option[value=stock]').disabled=ammunition<1;
             const quote=make('p');fields.append(quote);
             function update(reset=false){const repair=action.value==='repair',quantity=repair||action.value==='refill';count.closest('label').hidden=!quantity;count.disabled=!quantity;source.closest('label').hidden=action.value!=='refill';source.disabled=action.value!=='refill';count.max=repair?100-defense.health:Math.min(defense.capacity-defense.ammunition,source.value==='stock'?ammunition:Infinity);if(reset)count.value=count.max;quote.textContent=quantity?`Koszt: ${number(Number(count.value)*(repair?10000:source.value==='stock'?0:15000))} ROI z budżetu wojskowego.`:'Rozbudowa zwiększa pojemność i dodaje pociski wynikające z różnicy pojemności poziomów.';}
+            if(preset&&options.some(([value])=>value===preset))action.value=preset;
             action.onchange=()=>update(true);source.onchange=()=>update(true);count.oninput=()=>update();update(true);
         },data=>post({action:{repair:'defense_repair',refill:'defense_refill',upgrade:'defense_upgrade'}[data.get('operation')],defense_id:defense.id,count:Number(data.get('count')),source:data.get('source')||'purchase'}));
         if(config.mode==='defense')dialog.classList.add('military-object-selected');
@@ -406,7 +480,8 @@
             // 19 Nov 2026: jak w panelu państwa — prawy górny róg plakietki 28 px; 23 Nov 2026: przy bazie lewy górny róg (prawy zajmuje rodzaj bazy)
             const offset=defense.targetKind==='region'?[14,14]:defense.targetKind==='city'?[-3,20]:onBase?[23,24]:[-6,24];
             bindObjectTooltip(L.marker([position[1],position[0]],{icon:L.divIcon({html:badge,className:'military-defense-marker military-map-marker',iconSize:[size,size],iconAnchor:offset}),zIndexOffset:1800}),tooltip,{className:'military-wrapping-tooltip',direction:'auto'})
-                .on('click',()=>{if(locating||sailing)return;if(config.mode==='war'&&defense.countryId!==config.countryId&&defense.health>0)showRegion(defense.regionId,null,{kind:'defense',id:defense.id,countryId:defense.countryId,name:'Obrona przeciwrakietowa #'+defense.id,point:position});else showDefense(defense);}).addTo(defenseLayer);
+                .on('click',()=>{if(locating||sailing)return;if(config.mode==='war'&&defense.countryId!==config.countryId&&defense.health>0)showRegion(defense.regionId,null,{kind:'defense',id:defense.id,countryId:defense.countryId,name:'Obrona przeciwrakietowa #'+defense.id,point:position});
+                    else if(!objectMenu('defense',{...defense,name:'Obrona przeciwrakietowa',position}))showDefense(defense);}).addTo(defenseLayer);   // 25 Nov 2026: własna obrona — koło opcji
         }
     }
     // 22 Nov 2026: „Reorganizuj” i „Rozbuduj” — wspólne dla ekranu obrony i panelu wojennego (własna baza).
@@ -487,7 +562,7 @@
         finally { confirm.disabled = false; }
     };
     // The radar module must be ready before the first region panel is drawn (that can happen before the map exists).
-    window.GameRadar?.init({config,make,image,number,modal,fields,dialog,input,choose,button,lockButton,defenseActions,healthBar,bindObjectTooltip,mapFilters,startLocation,
+    window.GameRadar?.init({config,make,image,number,modal,fields,dialog,input,choose,button,lockButton,defenseActions,healthBar,bindObjectTooltip,mapFilters,startLocation,mapOptionsButton,
         selectObject,showRegion:(...args)=>showRegion(...args),busy:()=>!!(locating||sailing),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     const saved = sessionStorage.getItem('military-selected'); if (saved && config.regions[saved] && (config.mode === 'war' || manageable(saved))) setTimeout(()=>showRegion(saved),0);   // 16 Nov 2026: po pełnej inicjalizacji skryptu (mapa, stałe pomocnicze)
     const status = document.getElementById('military-map-status');
@@ -505,10 +580,10 @@
         if(!airport.completed){const crane=image(config.craneIcon);crane.className='military-map-subbadge';symbol.append(crane);const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=airport.progress;bar.setAttribute('aria-label',`Budowa lotniska: ${airport.progress}%`);symbol.append(bar);}
         const life=make('progress');life.className='map-health-bar';life.max=100;life.value=airport.health;window.GameHealth?.paint(life,airport.health);life.setAttribute('aria-label',`Życie lotniska: ${airport.health} / 100`);symbol.append(life);
         const tip=make('div');tip.append(make('strong',airport.name),make('p',`${airport.cityName} · ${airport.country}`),make('p',airport.completed?'Port lotniczy czynny.':`Budowa: ${airport.progress}%`),healthBar(airport.health));
-        bindObjectTooltip(L.marker([airport.position[1],airport.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[-6,14]}),zIndexOffset:900}),tip).on('click',()=>{if(locating||sailing)return;if(config.mode==='defense'){selectObject('airport',airport);return;}if(airport.health>0)showRegion(airport.regionId,null,{kind:'airport',id:airport.id,countryId:airport.countryId,name:airport.name,point:airport.position,health:airport.health});}).addTo(airportLayer);
+        bindObjectTooltip(L.marker([airport.position[1],airport.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[-6,14]}),zIndexOffset:900}),tip).on('click',()=>{if(locating||sailing)return;if(config.mode==='defense'){selectObject('airport',airport);return;}if(airport.health>0){showRegion(airport.regionId,null,{kind:'airport',id:airport.id,countryId:airport.countryId,name:airport.name,point:airport.position,health:airport.health});objectMenu('airport',airport);}}).addTo(airportLayer);
     }}
-    function drawMines(){mineLayer.clearLayers();if(!mapFilters.has('mines'))return;for(const mine of config.visibleMines||[]){const symbol=make('div',null,'military-mine-symbol military-map-badge');symbol.style.position='relative';if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='mine'&&item.targetId===mine.id))symbol.classList.add('military-object-protected');const main=image(config.mineIcon);const badge=image(config.mineralIcons[mine.resource].icon);badge.className='military-map-subbadge';symbol.append(main,badge);const life=make('progress');life.className='map-health-bar';life.max=100;life.value=mine.health;window.GameHealth?.paint(life,mine.health);symbol.append(life);if(!mine.ready){const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=mine.progress;bar.setAttribute('aria-label',`Budowa kopalni: ${mine.progress}%`);symbol.append(bar);}const tip=make('div');tip.append(make('strong',mine.name),healthBar(mine.health));bindObjectTooltip(L.marker([mine.position[1],mine.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-map-marker'})}),tip).on('click',()=>{if(!locating&&!sailing&&config.mode==='defense'){selectObject('mine',mine);return;}if(!locating&&!sailing)showRegion(mine.regionId,null,{kind:'mine',id:mine.id,countryId:mine.countryId,name:mine.name,point:mine.position});}).addTo(mineLayer);}}
-    function drawPower(){powerLayer.clearLayers();if(!mapFilters.has('power'))return;for(const plant of config.visiblePower||[]){const symbol=make('div',null,'military-power-symbol military-map-badge');symbol.append(image('/static/icons/'+plant.icon));const bar=make('progress');bar.className='map-health-bar';bar.max=100;bar.value=plant.health;bar.setAttribute('aria-label','Życie elektrowni');window.GameHealth?.paint(bar,plant.health);symbol.append(bar);const tip=make('div');tip.append(make('strong',plant.name),make('p',plant.status),healthBar(plant.health,false));bindObjectTooltip(L.marker([plant.position[1],plant.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tip).on('click',()=>{if(!locating&&!sailing){if(config.mode==='defense')selectObject('power',plant);else if(plant.health>0)showRegion(plant.regionId,null,{kind:'power',id:plant.id,countryId:plant.countryId,name:plant.name,point:plant.position,health:plant.health});}}).addTo(powerLayer);}}
+    function drawMines(){mineLayer.clearLayers();if(!mapFilters.has('mines'))return;for(const mine of config.visibleMines||[]){const symbol=make('div',null,'military-mine-symbol military-map-badge');symbol.style.position='relative';if(config.mode==='defense'&&mapFilters.has('defenses')&&config.defenses.some(item=>item.targetKind==='mine'&&item.targetId===mine.id))symbol.classList.add('military-object-protected');const main=image(config.mineIcon);const badge=image(config.mineralIcons[mine.resource].icon);badge.className='military-map-subbadge';symbol.append(main,badge);const life=make('progress');life.className='map-health-bar';life.max=100;life.value=mine.health;window.GameHealth?.paint(life,mine.health);symbol.append(life);if(!mine.ready){const bar=make('progress');bar.className='mining-build-progress military-mine-progress';bar.max=100;bar.value=mine.progress;bar.setAttribute('aria-label',`Budowa kopalni: ${mine.progress}%`);symbol.append(bar);}const tip=make('div');tip.append(make('strong',mine.name),healthBar(mine.health));bindObjectTooltip(L.marker([mine.position[1],mine.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-map-marker'})}),tip).on('click',()=>{if(!locating&&!sailing&&config.mode==='defense'){selectObject('mine',mine);return;}if(!locating&&!sailing){showRegion(mine.regionId,null,{kind:'mine',id:mine.id,countryId:mine.countryId,name:mine.name,point:mine.position});objectMenu('mine',mine);}}).addTo(mineLayer);}}
+    function drawPower(){powerLayer.clearLayers();if(!mapFilters.has('power'))return;for(const plant of config.visiblePower||[]){const symbol=make('div',null,'military-power-symbol military-map-badge');symbol.append(image('/static/icons/'+plant.icon));const bar=make('progress');bar.className='map-health-bar';bar.max=100;bar.value=plant.health;bar.setAttribute('aria-label','Życie elektrowni');window.GameHealth?.paint(bar,plant.health);symbol.append(bar);const tip=make('div');tip.append(make('strong',plant.name),make('p',plant.status),healthBar(plant.health,false));bindObjectTooltip(L.marker([plant.position[1],plant.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tip).on('click',()=>{if(!locating&&!sailing){if(config.mode==='defense')selectObject('power',plant);else if(plant.health>0){showRegion(plant.regionId,null,{kind:'power',id:plant.id,countryId:plant.countryId,name:plant.name,point:plant.position,health:plant.health});objectMenu('power',plant);}}}).addTo(powerLayer);}}
     function drawFactories(){factoryLayer.clearLayers();if(!mapFilters.has('factories'))return;for(const factory of config.visibleFactories||[]){
         if(!(factory.health>0))continue;   // 22 Nov 2026: zniszczona fabryka znika z mapy (karta w panelu regionu zostaje)
         if(config.mode==='defense'&&factory.countryId!==config.countryId)continue;
@@ -517,7 +592,7 @@
         const tooltip=make('div');tooltip.append(make('strong',factory.name));
         if(factory.productName){const row=make('div',null,'military-resource-label');if(factory.productIcon)row.append(image(factory.productIcon));row.append(make('span',`Produkuje: ${factory.productName}`));tooltip.append(row);}   // 22 Nov 2026
         tooltip.append(healthBar(factory.health),make('p',factory.health?`${factory.dailyProduction} szt. / cykl produkcji Entendy`:'Fabryka zniszczona — produkcja zatrzymana.'));
-        bindObjectTooltip(L.marker([factory.position[1],factory.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tooltip).on('click',()=>{if(config.mode==='war'&&factory.health<=0){document.getElementById('military-feedback').textContent='Fabryka została zniszczona.';return;}if(!locating&&!sailing&&config.mode==='defense'){selectObject('factory',factory);return;}if(!locating&&!sailing)showRegion(factory.regionId,null,{kind:'factory',id:factory.id,countryId:factory.countryId,name:factory.name,point:factory.position,health:factory.health});}).addTo(factoryLayer);
+        bindObjectTooltip(L.marker([factory.position[1],factory.position[0]],{icon:L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]})}),tooltip).on('click',()=>{if(config.mode==='war'&&factory.health<=0){document.getElementById('military-feedback').textContent='Fabryka została zniszczona.';return;}if(!locating&&!sailing&&config.mode==='defense'){selectObject('factory',factory);return;}if(!locating&&!sailing){showRegion(factory.regionId,null,{kind:'factory',id:factory.id,countryId:factory.countryId,name:factory.name,point:factory.position,health:factory.health});objectMenu('factory',factory);}}).addTo(factoryLayer);
     }}
     // 22 Nov 2026: rodzaj bazy — mała pomarańczowa ikona (samolot / czołg / okręt) w prawym górnym rogu plakietki.
     function baseKindBadge(base,symbol){
@@ -542,7 +617,8 @@
             const symbol=make('div',null,'military-base-symbol military-map-badge');symbol.append(image(baseIcon(base)));baseKindBadge(base,symbol);window.GameLandWar?.baseSymbol(base,symbol);
             const life=make('progress');life.className='map-health-bar';life.max=100;life.value=base.health;window.GameHealth?.paint(life,base.health);life.setAttribute('aria-label',`Życie bazy: ${base.health} / 100`);symbol.append(life);
             const baseMarker=L.marker([base.position[1],base.position[0]],{icon:L.divIcon({html:symbol,iconSize:[28,28],iconAnchor:[14,14],className:'military-base-map-marker military-map-marker'}),title:baseName(base)});
-            (window.GameLandWar?.bindBase(baseMarker,base,tooltip)?baseMarker:bindObjectTooltip(baseMarker,tooltip)).on('click',event=>{if(locating)saveLocation(event.latlng);else if(config.mode==='defense'&&base.countryId===config.countryId){selectObject('base',base);}else if(config.mode==='war'){showRegion(base.regionId,null,{kind:'base',id:base.id,countryId:base.countryId,name:baseName(base),point:base.position});}}).addTo(baseLayer);
+            // 25 Nov 2026: opcje bazy (także odbicie, wycofanie i posiłki dla okupowanych baz) w kole na mapie — zwykły dymek po najechaniu.
+            bindObjectTooltip(baseMarker,tooltip).on('click',event=>{if(locating)saveLocation(event.latlng);else if(config.mode==='defense'&&base.countryId===config.countryId){selectObject('base',base);}else if(config.mode==='war'){showRegion(base.regionId,null,{kind:'base',id:base.id,countryId:base.countryId,name:baseName(base),point:base.position});objectMenu('base',base);}}).addTo(baseLayer);
         }
     }
     const shipLayer=L.layerGroup().addTo(map),shipMarkers=new Map(),cargoLayer=L.layerGroup().addTo(map),cargoMarkers=new Map(),defenseLayer=L.layerGroup().addTo(map);
@@ -578,8 +654,18 @@
     function renameVessel(vessel){
         modal(vessel.kind==='carriers'?'Nazwa lotniskowca':'Nazwa okrętu',()=>{const label=make('label','Nazwa'),field=make('input');field.name='name';field.value=vesselName(vessel);field.maxLength=120;field.required=true;label.append(field);fields.append(label);},data=>post({action:'rename_vessel',vessel_id:vessel.id,name:data.get('name')}));
     }
+    // 25 Nov 2026: opcje okrętu, okrętu podwodnego i lotniskowca (koło na mapie).
+    function vesselActions(vessel,parent){
+        button(vessel.kind==='carriers'?'Zmień nazwę lotniskowca':'Zmień nazwę okrętu',()=>renameVessel(vessel),parent);
+        button('Wskaż nowy kierunek',()=>{cancelLocation();redirecting=vessel;map.getContainer().classList.add('military-locating');
+            document.getElementById('military-location-status').textContent=`${vesselName(vessel)}: wskaż nowy punkt na wodzie. Trasa ominie lądy.`;document.getElementById('military-location-cancel').hidden=false;},parent);
+        button('Powrót do bazy',()=>{refreshState().catch(()=>{}).then(()=>modal('Wybierz bazę morską',()=>choose('Baza docelowa','base_id',config.bases.filter(b=>b.kind==='naval'&&b.position&&b.health>0).map(b=>[b.id,baseName(b)])),data=>post({action:'return_vessel',vessel_id:vessel.id,base_id:Number(data.get('base_id'))})));},parent);
+        if(vessel.kind==='carriers')return;   // z lotniskowca: „Bombarduj z powietrza” przy celu
+        const launch=button('Wystrzel rakiety',()=>{selectedVessel=vessel;if(config.mode==='defense'){sessionStorage.setItem('military-vessel',vessel.id);location.href=config.warUrl;}else{document.getElementById('military-feedback').textContent=`Wybrano okręt #${vessel.id}. Kliknij miasto lub region celu, następnie „Zaatakuj z okrętu”.`;if(selected)showRegion(selected,selectedCity,selectedTarget);}},parent,config.attackIcons?.naval);
+        launch.disabled=vessel.status==='returning'||!config.enemyIds.length;
+        if(launch.disabled)launch.title=vessel.status==='returning'?'Okręt wraca do bazy.':'Nie trwa żadna wojna.';
+    }
     function drawShips(){
-        const openVessel=[...shipMarkers].find(([id,marker])=>marker.isPopupOpen())?.[0];
         const hoveredVessel=[...shipMarkers].find(([id,marker])=>marker.isTooltipOpen())?.[0];   // odświeżenie stanu nie zamyka tooltipu
         shipLayer.clearLayers();shipMarkers.clear();
         // 17 Nov 2026: okręty stojące w tym samym punkcie (np. na pozycji w porcie) rozsuwamy wachlarzem,
@@ -593,28 +679,18 @@
             const route=(vessel.status==='sailing'||vessel.status==='returning')?L.polyline((vessel.route||[vessel.source,vessel.target]).map(p=>[p[1],p[0]]),{color:'#ffffff',dashArray:'5 5',weight:2,opacity:.85,interactive:false}):null;
             const symbol=make('div',null,'military-vessel-symbol military-map-badge military-map-vessel');symbol.append(image(config.vesselIcons[vessel.kind]));const life=make('progress');life.className='map-health-bar';life.max=100;life.value=vessel.health;window.GameHealth?.paint(life,vessel.health);symbol.append(life);
             if(vessel.countryId!==config.countryId){const flag=image(config.flags[String(vessel.countryId)],config.countries[String(vessel.countryId)]);flag.className='military-vessel-flag';symbol.append(flag);}
-            const marker=bindObjectTooltip(L.marker([position[1],position[0]],{icon:L.divIcon({html:symbol,className:'military-vessel military-map-marker',iconSize:[28,28],iconAnchor:stackAnchor(vessel)}),zIndexOffset:1700}),make('span',`${vessel.countryId!==config.countryId?(config.countries[String(vessel.countryId)]||'Obce państwo')+' · ':''}${vesselName(vessel)} · życie: ${vessel.health}/100 · ${vessel.status==='returning'?'powrót do bazy':vessel.status==='sailing'?'w rejsie':'na pozycji'} · ${config.vesselSpeed} km/h`)).addTo(shipLayer);
-            if(route){const sync=()=>{if(marker.isTooltipOpen()||marker.isPopupOpen())route.addTo(shipLayer);else route.remove();};marker.on('tooltipopen popupopen',()=>route.addTo(shipLayer)).on('tooltipclose popupclose',()=>setTimeout(sync,0));}
+            const marker=bindObjectTooltip(L.marker([position[1],position[0]],{icon:L.divIcon({html:symbol,className:'military-vessel military-map-marker',iconSize:[28,28],iconAnchor:stackAnchor(vessel)}),zIndexOffset:1700}),make('span',`${vessel.countryId!==config.countryId?(config.countries[String(vessel.countryId)]||'Obce państwo')+' · ':''}${vesselName(vessel)} · życie: ${vessel.health}/100 · ${vessel.status==='returning'?'powrót do bazy':vessel.status==='sailing'?'w rejsie':'na pozycji'} · ${config.vesselSpeed} km/h${vessel.kind==='carriers'&&vessel.countryId===config.countryId?` · myśliwce: ${(vessel.fighters||0)-(vessel.busyFighters||0)} wolne z ${vessel.fighters||0}`:''}`)).addTo(shipLayer);
+            if(route){const sync=()=>{if(marker.isTooltipOpen()||window.GameRadialMenu?.key()===`vessel:${vessel.id}`)route.addTo(shipLayer);else route.remove();};marker.on('tooltipopen click',()=>route.addTo(shipLayer)).on('tooltipclose',()=>setTimeout(sync,0));}
             marker.on('click',()=>{
                 if(vessel.countryId!==config.countryId){
                     if(config.mode==='war'){const home=config.visibleBases.find(base=>base.id===vessel.baseId),regionId=home?.regionId||vessel.regionId||Object.keys(config.regions).find(id=>config.regions[id].countryId===vessel.countryId);if(regionId)showRegion(regionId,null,{kind:'vessel',id:vessel.id,countryId:vessel.countryId,name:vesselName(vessel),point:shipPosition(vessel,currentGameTime())});}
                     return;
                 }
                 if(config.mode==='defense'){focusedObject=null;highlightSelection();}
-                const content=make('div',null,config.mode==='defense'?'military-object-selected':'');content.append(make('strong',vesselName(vessel)),healthBar(vessel.health));
-                if(vessel.kind==='carriers')content.append(make('p',`Myśliwce: ${(vessel.fighters||0)-(vessel.busyFighters||0)} wolne z ${vessel.fighters||0} · zasięg ${config.fighterRange} km`));
-                button(vessel.kind==='carriers'?'Zmień nazwę lotniskowca':'Zmień nazwę okrętu',()=>{marker.closePopup();renameVessel(vessel);},content);
-                button('Wskaż nowy kierunek',()=>{marker.closePopup();cancelLocation();redirecting=vessel;map.getContainer().classList.add('military-locating');
-                    document.getElementById('military-location-status').textContent=`${vesselName(vessel)}: wskaż nowy punkt na wodzie. Trasa ominie lądy.`;document.getElementById('military-location-cancel').hidden=false;},content);
-                button('Powrót do bazy',()=>{marker.closePopup();refreshState().catch(()=>{}).then(()=>modal('Wybierz bazę morską',()=>choose('Baza docelowa','base_id',config.bases.filter(b=>b.kind==='naval'&&b.position&&b.health>0).map(b=>[b.id,baseName(b)])),data=>post({action:'return_vessel',vessel_id:vessel.id,base_id:Number(data.get('base_id'))})));},content);
-                const launch=button('Wystrzel rakiety',()=>{selectedVessel=vessel;marker.closePopup();if(config.mode==='defense'){sessionStorage.setItem('military-vessel',vessel.id);location.href=config.warUrl;}else{document.getElementById('military-feedback').textContent=`Wybrano okręt #${vessel.id}. Kliknij miasto lub region celu, następnie „Zaatakuj z okrętu”.`;if(selected)showRegion(selected,selectedCity,selectedTarget);}},content);
-                launch.disabled=vessel.status==='returning'||!config.enemyIds.length;
-                if(vessel.kind==='carriers')launch.remove();   // z lotniskowca: „Bombarduj z powietrza” przy celu
-                marker.bindPopup(content).openPopup();
+                objectMenu('vessel',vessel,{point:marker.getLatLng()});   // 25 Nov 2026: opcje okrętu w kole na mapie
             });shipMarkers.set(vessel.id,marker);
         }
-        if(openVessel&&!dialog.open)shipMarkers.get(openVessel)?.fire('click');
-        else if(hoveredVessel&&!dialog.open)shipMarkers.get(hoveredVessel)?.openTooltip();
+        if(hoveredVessel&&!dialog.open)shipMarkers.get(hoveredVessel)?.openTooltip();
         const remembered=Number(sessionStorage.getItem('military-vessel'));if(remembered&&!selectedVessel)selectedVessel=(config.vessels||[]).find(v=>v.id===remembered)||null;
     }
     function drawCargoShips(){
@@ -636,7 +712,7 @@
         const flag=image(config.flags[String(ship.originCountryId)],'Kraj wysyłki');flag.className='military-vessel-flag';symbol.append(flag);
         const life=make('progress');life.className='map-health-bar';life.max=100;life.value=ship.health;window.GameHealth?.paint(life,ship.health);symbol.append(life);
         return L.divIcon({html:symbol,className:'military-map-marker',iconSize:[28,28],iconAnchor:[14,14]});}
-    function animateShips(now){for(const ship of config.tradeShips||[]){const entry=cargoMarkers.get(ship.id);if(!entry)continue;if(now>=Date.parse(ship.arrivesAt)){entry.marker.remove();entry.route.remove();cargoMarkers.delete(ship.id);}else{const point=window.GameTradeNavigation.position(ship,now);entry.marker.setLatLng([point[1],point[0]]);window.GameTradeNavigation.syncIcon(entry.marker,ship,now,m=>cargoIcon(ship,m));}}for(const vessel of config.vessels||[]){const point=shipPosition(vessel,now);shipMarkers.get(vessel.id)?.setLatLng([point[1],point[0]]);}}
+    function animateShips(now){for(const ship of config.tradeShips||[]){const entry=cargoMarkers.get(ship.id);if(!entry)continue;if(now>=Date.parse(ship.arrivesAt)){entry.marker.remove();entry.route.remove();cargoMarkers.delete(ship.id);}else{const point=window.GameTradeNavigation.position(ship,now);entry.marker.setLatLng([point[1],point[0]]);window.GameTradeNavigation.syncIcon(entry.marker,ship,now,m=>cargoIcon(ship,m));}}for(const vessel of config.vessels||[]){const point=shipPosition(vessel,now);shipMarkers.get(vessel.id)?.setLatLng([point[1],point[0]]);window.GameRadialMenu?.follow(`vessel:${vessel.id}`,[point[1],point[0]]);}}
     // 22 Nov 2026: mała flaga państwa-właściciela w prawym górnym rogu ikony (myśliwce, armie w marszu).
     function ownerFlag(parent,countryId){const src=config.flags?.[String(countryId)];if(!src)return;const flag=image(src,'');flag.className='military-owner-flag';flag.onerror=()=>flag.remove();parent.append(flag);}
     function updateFlights(items,now) {
@@ -759,6 +835,7 @@
     // Po trafieniu (animacja dociera do celu) stan odświeżany od razu, nie dopiero przy kolejnym cyklu 5 s.
     function refreshAfterImpact(){clearTimeout(impactRefresh);impactRefresh=setTimeout(refreshState,1500);}
     window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,ownerFlag,
+        menu:(key,point,fill,label)=>openMenu(key,point,fill,label),
         showRegion:(...args)=>showRegion(...args),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     window.GameRadar?.attach(map);
     const rawDistance=map.distance.bind(map);map.distance=(a,b)=>rawDistance(a,b)*config.kmPerUnit*1000;
@@ -833,7 +910,8 @@
         map.createPane('militaryCities'); map.getPane('militaryCities').style.zIndex = '450'; applyCityFilter();
         L.geoJSON(cities,{coordsToLatLng:coordinates,filter:feature => !!config.cities[String(feature.properties?.miasto_id)] && (config.mode === 'war' || config.cities[String(feature.properties.miasto_id)].countryId !== config.countryId || metropolitan.has(config.cities[String(feature.properties.miasto_id)].regionId)),
             pointToLayer:(feature,latlng)=>L.circleMarker(latlng,{pane:'militaryCities',radius:warTheme?3.5:4,color:DEF.cityBorder,weight:1.2,fillColor:DEF.city,fillOpacity:1}),
-            onEachFeature:(feature,layer)=>{const city=config.cities[String(feature.properties.miasto_id)];if(window.GameLandWar)window.GameLandWar.bindCity(layer,String(feature.properties.miasto_id),city);else bindObjectTooltip(layer,make('span',city.name));layer.on('click',()=>{if(!locating&&!sailing&&config.regions[city.regionId]&&(config.mode==='war'||own(city.regionId))){if(config.mode==='defense'){focusedObject={kind:'city',id:String(feature.properties.miasto_id)};framedRegion=null;}showRegion(city.regionId,String(feature.properties.miasto_id));highlightSelection(config.mode==='defense');}});}
+            onEachFeature:(feature,layer)=>{const city=config.cities[String(feature.properties.miasto_id)];if(window.GameLandWar)window.GameLandWar.bindCity(layer,String(feature.properties.miasto_id),city);else bindObjectTooltip(layer,make('span',city.name));layer.on('click',()=>{if(!locating&&!sailing&&config.regions[city.regionId]&&(config.mode==='war'||own(city.regionId))){if(config.mode==='defense'){focusedObject={kind:'city',id:String(feature.properties.miasto_id)};framedRegion=null;}showRegion(city.regionId,String(feature.properties.miasto_id));highlightSelection(config.mode==='defense');
+                    objectMenu('city',{id:String(feature.properties.miasto_id),regionId:city.regionId,countryId:city.countryId,name:city.name},{point:layer.getLatLng()});}});}
         }).addTo(map);
         const myCountryButton=document.getElementById('war-map-country');
         if(myCountryButton){const home=L.geoJSON(regions,{coordsToLatLng:coordinates,filter:feature=>metropolitan.has(String(feature.properties?.region_id))});const homeBounds=home.getBounds();myCountryButton.disabled=!homeBounds.isValid();myCountryButton.onclick=()=>{if(homeBounds.isValid())map.fitBounds(homeBounds,{padding:[30,30],maxZoom:5});};}
@@ -847,7 +925,7 @@
     drawBases();drawMines();drawFactories();window.GameRadar?.draw();drawPower();drawAirports();
     updateFlights(config.flights,config.gameNow);drawShips();drawCargoShips();drawDefenses();
     const requested=Number(new URLSearchParams(location.search).get('base'));
-    const requestedBase=config.bases.find(base=>base.id===requested);if(requestedBase&&config.mode==='defense')selectObject('base',requestedBase);
+    const requestedBase=config.bases.find(base=>base.id===requested);if(requestedBase&&config.mode==='defense')selectObject('base',requestedBase,false);
     map.on('click',event=>{if(locating)saveLocation(event.latlng);else if(redirecting){const request={action:'redirect_vessel',vessel_id:redirecting.id,x:event.latlng.lng,y:event.latlng.lat};modal('Zmienić kierunek okrętu?',()=>fields.append(make('p',`${vesselName(redirecting)} popłynie z obecnej pozycji do wskazanego punktu (${config.vesselSpeed} km/h Entendy).`)),()=>post(request));}else if(sailing){const request=sailing.kind==='carriers'?{action:'sail_carrier',base_id:sailing.base.id,...sailing.extra,x:event.latlng.lng,y:event.latlng.lat}:{action:'sail',base_id:sailing.base.id,vessel_kind:sailing.kind,x:event.latlng.lng,y:event.latlng.lat};modal('Wysłać okręt?',()=>fields.append(make('p',`Prędkość: ${config.vesselSpeed} km/h Entendy. Okręt popłynie do wskazanego punktu.`)),()=>post(request));}});
     setInterval(()=>{if(!document.hidden)refreshState();},5000);
     if(window.ResizeObserver)new ResizeObserver(()=>{map.invalidateSize({pan:false});if(framedRegion)fitRegion(framedRegion);}).observe(map.getContainer());

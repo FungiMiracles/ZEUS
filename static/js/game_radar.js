@@ -70,15 +70,22 @@
             const card=api.make('section',null,'military-base military-radar-card');card.id=`military-radar-${radar.id}`;
             const title=api.make('h3',`${radar.name} · poziom ${ROMAN[radar.level]} / III`);title.prepend(api.image(cfg.radarIcon));card.append(title,api.healthBar(radar.health));
             card.append(api.make('p',radar.health?`Zasięg wykrywania obcych rakiet i samolotów: ${api.number(radar.rangeKm)} km.`:'Radar zniszczony — nie wykrywa obiektów. Możesz go zlikwidować.'));
-            if(radar.health>0)api.defenseActions('radar',radar.id,card);
-            if(radar.upgrade){const up=api.button(`Rozbuduj do poziomu ${ROMAN[radar.upgrade.level]}`,()=>upgradeModal(radar),card,cfg.radarIcon);if(!radar.health){up.disabled=true;up.title='Zniszczonego radaru nie można rozbudować.';}api.lockButton(up);}
-            api.button('Pokaż radar',()=>{api.map.setView([radar.position[1],radar.position[0]],Math.max(api.map.getZoom(),3));showRange(radar);},card,cfg.radarIcon);
-            api.button('Zlikwiduj radar',()=>api.modal('Zlikwidować radar?',()=>{
-                api.fields.append(api.make('p',`${radar.name} zniknie z mapy.`),api.make('p','Do magazynu wróci 1 chip natsytowy i 20 żelaza (0 ROI), niezależnie od poziomu radaru. Obrona przeciwrakietowa radaru zostanie usunięta.'));
-            },()=>send({action:'liquidate',radar_id:radar.id},regionId)),card);
+            // 25 Nov 2026: opcje radaru w kole na mapie; zniszczony radar znika z mapy — likwidacja zostaje w karcie.
+            if(radar.health>0)api.mapOptionsButton('radar',radar,card);else liquidateButton(radar,card);
             card.append(api.make('p','Lokalizacji radaru nie można zmienić.','land-muted'));
             list.append(card);
         }
+    }
+    function liquidateButton(radar,parent){
+        return api.button('Zlikwiduj radar',()=>api.modal('Zlikwidować radar?',()=>{
+            api.fields.append(api.make('p',`${radar.name} zniknie z mapy.`),api.make('p','Do magazynu wróci 1 chip natsytowy i 20 żelaza (0 ROI), niezależnie od poziomu radaru. Obrona przeciwrakietowa radaru zostanie usunięta.'));
+        },()=>send({action:'liquidate',radar_id:radar.id},radar.regionId)),parent);
+    }
+    // 25 Nov 2026: opcje własnego radaru (koło na mapie obrony).
+    function actions(radar,parent){
+        if(radar.health>0)api.defenseActions('radar',radar.id,parent);
+        if(radar.upgrade){const up=api.button(`Rozbuduj do poziomu ${ROMAN[radar.upgrade.level]}`,()=>upgradeModal(radar),parent,cfg.radarIcon);if(!radar.health){up.disabled=true;up.title='Zniszczonego radaru nie można rozbudować.';}api.lockButton(up);}
+        liquidateButton(radar,parent);
     }
     function buildModal(regionId){
         const rule=rc().levels[1];
@@ -107,6 +114,6 @@
         },
         attach(map){if(!api)return;api.map=map;layer=L.layerGroup().addTo(map);draw();},
         update(state){if(!api||!layer)return;cfg.radars=state.radars||cfg.radars;draw();},
-        draw,regionPanel,place,
+        draw,regionPanel,place,actions,
     };
 })();
