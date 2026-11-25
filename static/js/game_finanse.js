@@ -271,7 +271,13 @@ function formatRatio(numerator, denominator, digits = 2) {
     }
     const crimeInput=form?.querySelector('[data-crime-funding]');
     // 25 Nov 2026: domyślnie kwoty oczekiwane przez społeczeństwo (świadczenia i walka z przestępczością) — gracz może je zmienić.
-    const billionsInput=value=>benefitBillions(value).replace(/\.?0+$/,'') || '0';
+    // 25 Nov 2026: kwota w MLD z dwoma miejscami po przecinku, zaokrąglona w górę (0,01 MLD = 10 mln ROI = 10^9 groszy).
+    const billionsInput=value=>{
+        const cents=benefitCents(value), unit=1000000000n;
+        const hundredths=(cents+unit-1n)/unit;
+        const fraction=String(hundredths%100n).padStart(2,'0').replace(/0+$/,'');
+        return `${hundredths/100n}${fraction ? '.'+fraction : ''}`;
+    };
     if(crimeInput && config.state && !config.state.approved) {
         const initial=config.state.crime?.expected ?? config.state.crime?.previous_paid;
         if(initial!=null) crimeInput.value=billionsInput(initial);
