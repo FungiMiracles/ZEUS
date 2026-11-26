@@ -125,5 +125,7 @@
         missionLayer=L.layerGroup().addTo(map);drawMissionMarkers();
         if(layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[20,20],maxZoom:4});
     }).catch(()=>document.getElementById('intel-map-status').textContent='Nie udało się wczytać mapy. Wybierz region z listy.');
+    // 26 Nov 2026: satelity szpiegowskie — kliknięcie własnego satelity otwiera opcje misji w kole wokół niego
+    window.GameSatellites?.attach(map,{mode:'intelligence',csrf:config.csrf});window.GameSatellites?.panel(document.getElementById('satellite-panel'));
     if(window.ResizeObserver)new ResizeObserver(()=>map.invalidateSize()).observe(map.getContainer());
 })();

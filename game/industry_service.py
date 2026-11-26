@@ -298,9 +298,9 @@ def change_industry(user_id,data):
                 budget=current_budget(session,country,Decimal(0))
                 session.add(IndustryMovement(panstwo_id=country,budget_id=budget.id,amount=0,request_id=key,payload=data,sector='armed_forces'))
                 return obj.id
-            if on_demand and action in ('pause','resume','upgrade'):raise FinanceError('Fabryka rakiet z głowicą nuklearną produkuje wyłącznie na zamówienie.')
+            if on_demand and action in ('pause','resume','upgrade'):raise FinanceError(FACTORIES[obj.kind]['label']+' produkuje wyłącznie na zamówienie.')
             if action=='remove':
-                if on_demand:value=0   # koszt budowy pokryty z budżetu sił zbrojnych — likwidacja bez zwrotu
+                if on_demand and FACTORIES[obj.kind].get('budget_sector')=='armed_forces':value=0   # koszt budowy pokryty z budżetu sił zbrojnych — likwidacja bez zwrotu (fabryka satelitów: zwrot jak zwykła fabryka, 26 Nov 2026)
                 elif category=='factory':value=FACTORIES[obj.kind]['levels'][obj.level-1]['cost']
                 elif category=='power':value=min(Decimal(POWER_PLANTS[obj.kind]['costs'][obj.level-1]),Decimal(obj.investment))   # 21 Nov 2026: nie więcej niż faktyczny nakład (podwyżka cen elektrowni)
                 else:value=MINE_RULES[obj.resource][2][obj.level-1]*1000000000
@@ -397,7 +397,8 @@ def object_data(obj,category,powered=None):
         # 13 Nov 2026: fabryka rakiet z głowicą nuklearną — budowa 31 dni, produkcja na zamówienie
         from sqlalchemy.orm import object_session
         from game.nuclear import factory_info
-        info=factory_info(object_session(obj),obj,game_now());extra.update(info);refund=Decimal(0)
+        info=factory_info(object_session(obj),obj,game_now());extra.update(info)
+        if rule.get('budget_sector')=='armed_forces':refund=Decimal(0)
         status='zniszczona' if obj.health<=0 else 'w budowie' if not info['ready'] else 'produkuje' if info['order'] else 'czeka na zamówienie'
     return dict(refund=str(refund),id=obj.id,category=category,kind=obj.kind,countryId=obj.panstwo_id,regionId=str(obj.region_id),name=label+f' #{obj.id}',icon=icon,level=obj.level,position=[obj.map_x,obj.map_y],health=health,status=status,**extra)
 

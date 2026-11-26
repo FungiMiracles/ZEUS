@@ -79,6 +79,13 @@
         for (const [value, text] of options) { const option = make('option', text); option.value = value; node.append(option); }
         row.append(node); fields.append(row); return node;
     }
+    // 26 Nov 2026: domyślne źródło ataku — opcja (baza, okręt, lotniskowiec, silos) położona najbliżej celu
+    function nearestOption(select,point,positionOf){
+        if(!select||!point)return null;let best=null,distance=Infinity;
+        for(const option of select.options){const position=positionOf(option.value);if(!position)continue;
+            const d=Math.hypot(point[0]-position[0],point[1]-position[1]);if(d<distance){distance=d;best=option.value;}}
+        if(best!=null)select.value=best;return best;
+    }
     function modal(title, build, handler) {
         dialog.classList.remove('military-object-selected');
         document.getElementById('military-dialog-title').textContent = title; fields.replaceChildren();
@@ -376,6 +383,9 @@
                 } else {
                     const options=kind==='naval'?ships.map(v=>[v.id,vesselName(v)]):sources.map(base=>[base.id,`${baseName(base)} — ${config.regions[base.regionId]?.name || ''}`]).concat(carriers.map(v=>['c'+v.id,`${vesselName(v)} — myśliwce: ${(v.fighters||0)-(v.busyFighters||0)}/${v.fighters}`]));
                     const source=choose(kind==='naval'?'Okręt':kind==='air'?'Baza powietrzna lub lotniskowiec':nuclear?'Silos atomowy (rakiety z głowicą nuklearną)':'Baza startowa',kind==='naval'?'vessel_id':'source_base_id',nuclear?sources.map(base=>[base.id,`${baseName(base)} — rakiety: ${number(base.garrison.warheads||0)}`]):options);source.required=true;
+                    {const point=selectedTarget?.point || (selectedCity ? config.cities[selectedCity].point : region.point),now=currentGameTime();
+                        nearestOption(source,point,value=>{const text=String(value);if(text.startsWith('c')){const v=carriers.find(c=>'c'+c.id===text);return v&&shipPosition(v,now);}
+                            if(kind==='naval'){const v=ships.find(c=>c.id===Number(text));return v&&shipPosition(v,now);}return sources.find(base=>base.id===Number(text))?.position;});}
                     if(kind==='naval'&&selectedVessel&&ships.some(v=>v.id===selectedVessel.id))source.value=selectedVessel.id;
                     // 17 Nov 2026: wyjaśnienie, gdy żadna baza na terytorium kraju nie ma wyrzutni (np. sprzęt wycofany przy braku środków na utrzymanie).
                     if(kind==='missile'&&!nuclear&&!sources.some(base=>own(base.regionId))){
@@ -459,6 +469,14 @@
             if(control.disabled)control.title=base.position?'Wszystkie jednostki tego rodzaju są w rejsie albo baza nie ma ich w garnizonie.':'Najpierw wskaż lokalizację bazy.';
         }
         if(base.kind==='naval')carrierButton(base,parent);
+        // 26 Nov 2026: wyniesienie satelity szpiegowskiego na orbitę z własnej bazy lotniczej w kraju
+        if(config.mode==='defense'&&base.kind==='air'&&config.satellite?.available&&window.GameSatellites){
+            const sat=config.satellite,missiles=config.missiles?.long?.count||0;
+            const control=button('Wynieś satelitę na orbitę',()=>window.GameSatellites.launch({id:base.id,name:baseName(base)},config.csrf,()=>{sat.stock=Math.max(0,sat.stock-1);sat.oil-=sat.oilNeed;refreshState();}),parent,sat.launchIcon);
+            const reason=!own(base.regionId)?'Satelitę można wynieść tylko z bazy lotniczej na terytorium kraju.':!base.position||base.health<=0||!base.operational?'Baza musi być sprawna i rozmieszczona na mapie.'
+                :sat.stock<1?'Brak satelity w magazynie — zamów produkcję w fabryce satelitów.':missiles<1?'Potrzebna jest 1 rakieta dalekiego zasięgu.':sat.oil<sat.oilNeed?`Potrzeba ${sat.oilNeed} ropy naftowej (w magazynie ${number(sat.oil)}).`:'';
+            if(reason){control.disabled=true;control.title=reason;}
+        }
     }
     // 25 Nov 2026: koło opcji obrony przeciwrakietowej — każda operacja otwiera okno z wybraną operacją.
     function defenseOperations(defense,parent){
@@ -867,7 +885,8 @@
     }
     // Po trafieniu (animacja dociera do celu) stan odświeżany od razu, nie dopiero przy kolejnym cyklu 5 s.
     function refreshAfterImpact(){clearTimeout(impactRefresh);impactRefresh=setTimeout(refreshState,1500);}
-    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,ownerFlag,
+    window.GameSatellites?.attach(map,{mode:config.mode,csrf:config.csrf,filterHost:document.querySelector('.military-map-filters')});   // 26 Nov 2026
+    window.GameLandWar?.init({map,config,make,image,number,modal,fields,dialog,input,choose,nearestOption,currentGameTime,refresh:()=>refreshState(),own,baseName,sourceBases,shipPosition,vesselName,ownerFlag,
         menu:(key,point,fill,label)=>openMenu(key,point,fill,label),
         showRegion:(...args)=>showRegion(...args),feedback:text=>{document.getElementById('military-feedback').textContent=text;}});
     window.GameRadar?.attach(map);

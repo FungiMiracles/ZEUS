@@ -19,7 +19,7 @@
             ('Wojska lądowe', ['wojska_ladowe_ilosc', 'czolgi_ilosc', 'wozy_opancerzone_ilosc', 'wyrzutnie_rakiet_ilosc', 'liczba_baz_ladowych']),
             ('Marynarka wojenna', ['wojska_morskie_ilosc', 'okrety_wojenne_ilosc', 'okrety_podwodne_ilosc', 'lotniskowce_ilosc', 'liczba_baz_morskich']),
             ('Siły powietrzne', ['wojska_powietrzne_ilosc', 'mysliwce_ilosc', 'drony_ilosc', 'liczba_baz_powietrznych']),
-            ('Rakiety i broń strategiczna', ['rakiety_krotkiego_zasiegu', 'rakiety_sredniego_zasiegu', 'rakiety_dalekiego_zasiegu', 'bron_atomowa_ilosc'])
+            ('Rakiety i broń strategiczna', ['rakiety_krotkiego_zasiegu', 'rakiety_sredniego_zasiegu', 'rakiety_dalekiego_zasiegu', 'bron_atomowa_ilosc', 'satellites'])
         ] %}
         {# 16 Nov 2026: rekrutacja do służby czynnej i opłata za żołnierzy #}
         <section class="game-army-group game-army-recruitment" aria-labelledby="army-recruitment-title">
@@ -41,7 +41,14 @@
         <h3 class="game-army-group-title" id="army-group-{{ loop.index }}">{{ title }}</h3>
         <dl class="game-army-grid">
             {% for field in fields %}
-            {% if field == 'ammunition' %}
+            {% if field == 'satellites' %}
+            {# 26 Nov 2026: satelity szpiegowskie — w magazynie i na orbicie #}
+            <div class="game-army-resource">
+                <dt>{{ icon('satellite') }}<span>Satelity szpiegowskie</span></dt>
+                <dd>{{ satellites.total|spacenum }}</dd>
+                <div class="game-army-active">W magazynie: <strong>{{ satellites.stock|spacenum }}</strong> · na orbicie: <strong>{{ satellites.orbit|spacenum }}</strong>{% if satellites.launching %} · wynoszone: <strong>{{ satellites.launching|spacenum }}</strong>{% endif %}</div>
+            </div>
+            {% elif field == 'ammunition' %}
             <div class="game-army-resource">
                 <dt>{{ icon('ammo') }}<span>Amunicja przeciwrakietowa własnej produkcji</span></dt>
                 <dd>{{ interceptor_ammunition|spacenum }}</dd>

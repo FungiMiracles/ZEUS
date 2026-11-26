@@ -183,7 +183,13 @@
         </section>
 
         <section class="finance-section finance-allocation-section">
-            <h3 class="finance-section-title">{{ 'Szczegóły podziału' if approved else 'Podział budżetu' }}</h3>
+            {% if approved %}
+            {# 26 Nov 2026: szczegóły zatwierdzonego podziału domyślnie zwinięte #}
+            <details class="finance-allocation-details" data-allocation-details>
+            <summary class="finance-allocation-summary"><h3 class="finance-section-title">Szczegóły podziału</h3></summary>
+            {% else %}
+            <h3 class="finance-section-title">Podział budżetu</h3>
+            {% endif %}
 
             <div class="finance-table-scroll">
                 <table class="finance-table finance-allocation-table">
@@ -299,6 +305,7 @@
             </div>
 
             <div class="finance-dues-summary" data-dues-summary hidden></div>
+            {% if approved %}</details>{% endif %}
         </section>
 
         {% if not approved %}

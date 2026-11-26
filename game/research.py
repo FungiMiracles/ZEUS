@@ -95,6 +95,8 @@ def technology_layout():
     for i,key in enumerate(['chip_simple','chip_kerbit','chip_natsyt','chip_cemium_i','chip_cemium_ii']):place(key,47,160+i*55)
     # Radar reconnaissance (11 Nov 2026): a side bubble branching off the natsyt chip.
     place('radar',-43,70,'chip_natsyt')
+    # Satelita szpiegowski (26 Nov 2026): kolejny bąbel odchodzący od rozpoznania radarowego.
+    place('spy_satellite',-43,70,'radar')
     place('energy_industry',135,95)
     for key,angle in [('power_coal',111),('power_nuclear',127),('power_wind',143),('power_solar',159)]:place(key,angle,190,'energy_industry')
     # Environmental protection branch (10 Nov 2026), straight below the research method.

@@ -162,6 +162,7 @@
         api.modal(`Dorzuć wojsko — ${target.name}`,()=>{
             api.fields.append(make('p','Wybrane jednostki pomaszerują z bazy lądowej do okupowanego obiektu i po dotarciu dołączą do wojsk okupacyjnych.','land-muted'));
             const select=api.choose('Baza lądowa, z której wyruszą jednostki','base_id',bases.map(baseOption));
+            api.nearestOption?.(select,target.point,value=>bases.find(b=>b.id===Number(value))?.position);
             const room=make('p',null,'land-muted');api.fields.append(room);
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,0)]));
             const quote=make('div',null,'land-quote');api.fields.append(quote);
@@ -293,7 +294,8 @@
     function chooseBase(target,recapture=false){
         const bases=ownLandBases();
         api.modal((target.liberate?'Wyzwolenie — wybierz bazę lądową: ':recapture?'Odbicie — wybierz bazę lądową: ':'Wybierz bazę lądową — przemarsz na: ')+target.name,()=>{
-            api.choose('Baza lądowa, z której wyruszy armia','base_id',bases.map(baseOption));
+            const select=api.choose('Baza lądowa, z której wyruszy armia','base_id',bases.map(baseOption));
+            api.nearestOption?.(select,target.point,value=>bases.find(b=>b.id===Number(value))?.position);   // 26 Nov 2026: domyślnie najbliższa celowi
             api.fields.append(make('p','Najpierw wybierz bazę; w następnym kroku wskażesz liczbę żołnierzy i sprzętu.','land-muted'));
         },async data=>{const base=bases.find(b=>b.id===Number(data.get('base_id')));if(!base)throw new Error('Wybierz bazę lądową.');api.dialog.close();invasionModal(target,base,recapture);});
     }
@@ -420,6 +422,9 @@
         api.modal(label+' — armia '+countryName(army.countryId),()=>{
             const options=kind==='naval'?ships.map(v=>[v.id,api.vesselName(v)]):sources.map(base=>[base.id,`${api.baseName(base)} — ${cfg.regions[base.regionId]?.name||''}`]).concat(carriers.map(v=>['c'+v.id,`${api.vesselName(v)} — myśliwce: ${(v.fighters||0)-(v.busyFighters||0)}/${v.fighters}`]));
             const source=api.choose(kind==='naval'?'Okręt':kind==='air'?'Baza powietrzna lub lotniskowiec':'Baza startowa',kind==='naval'?'vessel_id':'source_base_id',options);source.required=true;
+            {const now=api.currentGameTime();   // 26 Nov 2026: domyślnie źródło najbliższe bieżącej pozycji armii
+                api.nearestOption?.(source,armyPoint(army,now),value=>{const text=String(value);if(text.startsWith('c')){const v=carriers.find(c=>'c'+c.id===text);return v&&api.shipPosition(v,now);}
+                    if(kind==='naval'){const v=ships.find(c=>c.id===Number(text));return v&&api.shipPosition(v,now);}return sources.find(base=>base.id===Number(text))?.position;});}
             const missile=api.choose('Rodzaj rakiet','missile_type',Object.entries(cfg.missiles).map(([code,item])=>[code,`${item.label} — zapas: ${api.number(item.count)}`]));
             const quantity=api.input('Liczba rakiet','missiles',1,cfg.maxSalvo);quantity.min='1';
             const loss=lw().strikeLoss||[1,3];

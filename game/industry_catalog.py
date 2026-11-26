@@ -14,6 +14,9 @@ for code,label,cost in [('simple','Chip prosty',100),('kerbit','Chip kerbitowy',
     tech('chip_'+code,label,cost,parent,'it','computer');parent='chip_'+code
 # Radar reconnaissance (administrator, 11 Nov 2026): branches off the natsyt chip; unlocks radars on the defence map.
 tech('radar','Rozpoznanie radarowe',600,'chip_natsyt','it','radar')
+# Satelita szpiegowski (administrator, 26 Nov 2026): bąbel odchodzący od rozpoznania radarowego; 900 pkt, 60 dni Entendy.
+# Umożliwia budowę fabryki satelitów (Infrastruktura) i wynoszenie satelitów na orbitę z bazy lotniczej (game.satellites).
+tech('spy_satellite','Satelita szpiegowski',900,'radar','it','satellite')
 tech('energy_industry','Krajowa produkcja energii',15,'method','energy','energy')
 for code,label,cost in [('coal','Elektrownia węglowa',15),('nuclear','Elektrownia atomowa',350),('wind','Elektrownia wiatrowa',100),('solar','Elektrownia słoneczna',150)]:tech('power_'+code,label,cost,'energy_industry','energy','energy')
 # Environmental protection branch (administrator rules, 10 Nov 2026): pollution filter for coal power plants (previously
@@ -66,6 +69,7 @@ TECHNOLOGY_DESCRIPTIONS={
     'chip_kerbit': 'Pozwala na produkcję kerbitowych chipów wykorzystywanych m.in. w dronach.',
     'chip_natsyt': 'Pozwala na produkcję natsytowych chipów wykorzystywanych m.in. w rakietach dalekiego zasięgu.',
     'radar': 'Umożliwia budowę radarów na ekranie „Obrona państwa”. Radar wykrywa obce rakiety i samoloty w promieniu 400 / 800 / 1200 km (poziom I / II / III) i powiadamia o ich liczbie i celu.',
+    'spy_satellite': 'Umożliwia budowę fabryki satelitów, produkcję satelitów szpiegowskich i wynoszenie ich na orbitę z bazy lotniczej. Satelita na orbicie rozpoznaje bazy, obronę przeciwrakietową, kopalnie, elektrownie i silosy atomowe całego wybranego państwa (ekran „Wywiad wojskowy”).',
     'chip_cemium_i': 'Pozwala na produkcję chipów z cemium wykorzystywanych m.in. w rakietach przenoszących ładunki jądrowe.',
     'chip_cemium_ii': 'Pozwala na produkcję chipów z cemium II wykorzystywanych m.in. w budowie sztucznej inteligencji i superkomputerów.',
     'air_transport': 'Umożliwia budowę portów lotniczych w miastach powyżej 100 000 mieszkańców, połączenia lotnicze zwiększające dochody budżetu i transport towarów drogą lotniczą.',
@@ -91,7 +95,14 @@ factory('chips','Fabryka chipów',[recipe(8,['chip_simple'],'chip_simple',{'zela
 # Fabryka rakiet z głowicą nuklearną (13 Nov 2026): 37,4 mld ROI z budżetu sił zbrojnych, budowa 31 dni Entendy; produkuje
 # wyłącznie na zamówienie (game.nuclear) — 1 rakieta / 14 dni, na sztukę 7 uranu, 37 żelaza i 1 chip cemium I; pobór 700 e/dzień w trakcie realizacji zamówienia (18 Nov 2026).
 factory('nuclear_missiles','Fabryka rakiet z głowicą nuklearną',[recipe(37.4,['nuclear_missiles'],'nuclear_missiles',{'uran':7,'zelazo':37,'chip_cemium_i':1},700,1,14)])
-FACTORIES['nuclear_missiles'].update(on_demand=True,build_days=31,budget_sector='armed_forces',icon='FABRYKA.svg')
+FACTORIES['nuclear_missiles'].update(on_demand=True,build_days=31,budget_sector='armed_forces',icon='FABRYKA.svg',
+    units=dict(one='rakieta',gen='rakiety',many='rakiet',plural='rakiety',title='Zamów rakiety z głowicą nuklearną'))
+# Fabryka satelitów (administrator, 26 Nov 2026): 21,5 mld ROI z budżetu infrastruktury, budowa 24 dni Entendy; produkuje
+# wyłącznie na zamówienie — 1 satelita szpiegowski / 90 dni, na sztukę 300 żelaza, 25 ropy naftowej i 3 chipy cemium I;
+# pobór 600 e/dzień w trakcie realizacji zamówienia. Satelity trafiają do magazynu (game_resource_stocks: spy_satellites).
+factory('satellites','Fabryka satelitów',[recipe(21.5,['spy_satellite'],'spy_satellites',{'zelazo':300,'ropa_naftowa':25,'chip_cemium_i':3},600,1,90)])
+FACTORIES['satellites'].update(on_demand=True,build_days=24,icon='FABRYKA.svg',
+    units=dict(one='satelita',gen='satelity',many='satelitów',plural='satelity',title='Zamów satelity szpiegowskie'))
 POWER_PLANTS={}
 for code,label,costs,production,fuel,amounts in [('coal','Elektrownia węglowa',[2300000000,4400000000,6800000000],[100,200,300],'wegiel_kamienny',[1,2,3]),('nuclear','Elektrownia atomowa',[25700000000,36300000000,53500000000],[1000,2000,3000],'uran',[1,2,3]),('wind','Elektrownia wiatrowa',[1200000000,1200000000,1600000000],[6,12,18],None,[0,0,0]),('solar','Elektrownia słoneczna',[1500000000,1000000000,1300000000],[8,16,24],None,[0,0,0])]:POWER_PLANTS[code]=dict(label=label,technology='power_'+code,costs=costs,production=production,fuel=fuel,amounts=amounts,icon=label.upper()+'.svg')
 # 21 Nov 2026 (administrator): budowa elektrowni wiatrowej 1,2 mld ROI, słonecznej 1,5 mld ROI; produkcja 6 i 8 e/dzień

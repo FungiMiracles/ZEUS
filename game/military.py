@@ -133,6 +133,8 @@ def render_military(mode):
             'radars':visible_radars(db.session,country.PANSTWO_ID,mode=='war'),'radarIcon':url_for('static',filename='icons/RADAR.svg'),
             'radar':{**radar_config(db.session,country.PANSTWO_ID),'url':url_for('game_military.radar_change'),
                      'chipIcon':url_for('static',filename='icons/CHIP NATSYTOWY.svg'),'ironIcon':url_for('static',filename='icons/ŻELAZO.svg')},
+            # 26 Nov 2026: satelity szpiegowskie — wyniesienie z bazy lotniczej (ikona LAUNCH), warstwa satelitów na mapie
+            'satellite':satellite_config(country.PANSTWO_ID),
             # 25 Nov 2026: ikony opcji w kole dookoła obiektu na mapie (game_radial_menu.js)
             'menuIcons':{code:url_for('static',filename='icons/'+name+'.svg') for code,name in
                          [('defense','OBRONA PRZECIWRAKIETOWA'),('defensePlus','OBRONA PRZECIWRAKIETOWA PLUS'),('rename','ZMIEŃ NAZWĘ'),('move','PRZENIEŚ'),
@@ -144,6 +146,19 @@ def render_military(mode):
 
     db.session.commit()
     return response
+
+
+def satellite_config(country_id):
+    try:
+        from game.satellites import tables_ready,in_stock,TECHNOLOGY,LAUNCH_INPUTS,LAUNCH_ICON
+        from game.industry_service import researched,available
+        if not tables_ready(db.session):return {'available':False}
+        return {'available':researched(db.session,country_id,TECHNOLOGY),'stock':in_stock(db.session,country_id),
+                'oil':available(db.session,country_id,'ropa_naftowa'),'oilNeed':LAUNCH_INPUTS['ropa_naftowa'],
+                'launchIcon':url_for('static',filename='icons/'+LAUNCH_ICON)}
+    except Exception:
+        from flask import current_app
+        current_app.logger.exception('Satelity: konfiguracja ekranu obrony');return {'available':False}
 
 
 @military_bp.get('/strefy-skazenia')
@@ -340,7 +355,7 @@ def visible_factories(country_id,world=False):
     from game.industry_catalog import FACTORIES
     from game.commerce import goods_catalog
     products=goods_catalog()
-    for code,label,file in [('warships','Okręty wojenne','OKRĘT WOJENNY.svg'),('submarines','Okręty podwodne','SUBMARINE.svg'),('carriers','Lotniskowce','LOTNISKOWIEC.svg'),('nuclear_missiles','Rakiety z głowicą nuklearną','BROŃ ATOMOWA.svg')]:
+    for code,label,file in [('warships','Okręty wojenne','OKRĘT WOJENNY.svg'),('submarines','Okręty podwodne','SUBMARINE.svg'),('carriers','Lotniskowce','LOTNISKOWIEC.svg'),('nuclear_missiles','Rakiety z głowicą nuklearną','BROŃ ATOMOWA.svg'),('spy_satellites','Satelity szpiegowskie','SATELITA SZPIEGOWSKI.svg')]:
         products[code]={'label':label,'icon':url_for('static',filename='icons/'+file)}
     query=select(AmmunitionFactory).where(AmmunitionFactory.removed_at.is_(None)).order_by(AmmunitionFactory.id)
     if not world:query=query.where(AmmunitionFactory.panstwo_id==country_id)

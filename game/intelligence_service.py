@@ -158,7 +158,7 @@ def collect_report(session,mission):
         from game.trade_goods import trade_warehouse
         from services.natural_resources import RESOURCES
         from game.industry_catalog import GOODS
-        labels={**dict(RESOURCES),**{code:rule[0] for code,rule in GOODS.items()},'interceptor_ammunition':'Amunicja przeciwrakietowa','nuclear_missiles':'Rakiety z głowicą nuklearną'}
+        labels={**dict(RESOURCES),**{code:rule[0] for code,rule in GOODS.items()},'interceptor_ammunition':'Amunicja przeciwrakietowa','nuclear_missiles':'Rakiety z głowicą nuklearną','spy_satellites':'Satelity szpiegowskie'}
         snapshot=trade_warehouse(session,mission.target_country_id)
         from game.commerce_models import ResourceStock
         for stock in session.scalars(select(ResourceStock).where(ResourceStock.panstwo_id==mission.target_country_id)):
@@ -254,7 +254,10 @@ def complete_missions(session,now,country_id=None):
 def known_ids(session,country_id,kind):
     kinds={'bases':['bases','silos'],'defenses':['defenses'],'mines':['mines'],'power':['power']}[kind]
     key={'bases':'base_ids','defenses':'defense_ids','mines':'mine_ids','power':'power_ids'}[kind]
-    return {int(id) for report in session.scalars(select(IntelligenceMission.report).where(IntelligenceMission.panstwo_id==country_id,IntelligenceMission.kind.in_(kinds),IntelligenceMission.success.is_(True),IntelligenceMission.completed_at.is_not(None))) for id in (report or {}).get(key,[])}
+    known={int(id) for report in session.scalars(select(IntelligenceMission.report).where(IntelligenceMission.panstwo_id==country_id,IntelligenceMission.kind.in_(kinds),IntelligenceMission.success.is_(True),IntelligenceMission.completed_at.is_not(None))) for id in (report or {}).get(key,[])}
+    # 26 Nov 2026: obiekty rozpoznane przez satelity szpiegowskie (całe państwo celu, zawsze skutecznie)
+    from game.satellites import known_report_ids
+    return known|known_report_ids(session,country_id,kinds,key)
 
 
 def mission_details(mission):

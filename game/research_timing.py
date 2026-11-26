@@ -19,6 +19,7 @@ DURATION_DAYS={
     'national_hubs':14,'rail_transport':21,   # kolej (19 Nov 2026)
     'air_transport':28,   # transport lotniczy (20 Nov 2026)
     'radar':30,   # nie podano w wymaganiach — przyjęto 30 dni
+    'spy_satellite':60,   # satelita szpiegowski (26 Nov 2026)
 }
 
 

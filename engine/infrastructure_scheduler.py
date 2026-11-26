@@ -69,6 +69,9 @@ def run_intelligence_tick(app):
     from game.intelligence_service import complete_missions
     with app.app_context():
         with Session(db.engine) as session,session.begin():complete_missions(session,game_now())
+        # 26 Nov 2026: satelity szpiegowskie — orbita, dryf i zakończone misje rozpoznawcze
+        from game.satellites import settle as settle_satellites
+        with Session(db.engine) as session,session.begin():settle_satellites(session,game_now())
 
 
 def run_commerce_tick(app):

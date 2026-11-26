@@ -76,6 +76,8 @@ class FeatureTestCase(unittest.TestCase):
         for model in (PowerPlant,IndustryClock,IndustryMovement):model.__table__.create(db.engine,checkfirst=True)
         from game.nuclear_models import NuclearOrder,NuclearZone   # 13 Nov 2026: rakiety z głowicą nuklearną
         for model in (NuclearOrder,NuclearZone):model.__table__.create(db.engine,checkfirst=True)
+        from game.satellite_models import SpySatellite,SatelliteMission   # 26 Nov 2026: satelity szpiegowskie
+        for model in (SpySatellite,SatelliteMission):model.__table__.create(db.engine,checkfirst=True)
         from game.population_structure import PopulationStructure
         PopulationStructure.__table__.create(db.engine,checkfirst=True)
         from game.loan_models import StateLoan,LoanMovement

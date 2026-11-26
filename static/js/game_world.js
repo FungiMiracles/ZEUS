@@ -12,6 +12,8 @@ const mln = value => value == null ? 'brak danych' : (Number(value) / 1e6).toLoc
 const coordinates = c => L.latLng(c[1], c[0]);
 const load = url => fetch(url, { credentials: 'same-origin' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
 const map = L.map('world-map', { crs: L.CRS.Simple, minZoom: -10, maxZoom: 8, zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: false });
+// 26 Nov 2026: satelity szpiegowskie (własne; obce — gdy państwo ma satelitę na orbicie) i obiekty rozpoznane przez satelity
+window.GameSatellites?.attach(map, { mode: 'world', filterHost: document.getElementById('world-satellite-filters'), filterStyle: 'checkbox' });
 for (const [name, z] of [['worldGrid', 380], ['worldRegions', 400], ['worldCountries', 410], ['worldBorders', 420], ['worldCities', 600]]) { map.createPane(name); map.getPane(name).style.zIndex = String(z); }
 map.getPane('worldGrid').style.pointerEvents = 'none'; map.getPane('worldBorders').style.pointerEvents = 'none';
 const tipOptions = { sticky: true, direction: 'auto', offset: L.point(16, 0), className: 'world-tooltip' };

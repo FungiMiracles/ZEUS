@@ -31,25 +31,39 @@ function railLine(path,line){
   L.polyline(latlngs,{pane:'railLines',color,weight:7,opacity:building||pending?.55:.95,dashArray:'1.5 9',lineCap:'butt',interactive:false}).addTo(group);
   if(line){
     const hit=L.polyline(latlngs,{pane:'railLines',color:'#000',weight:14,opacity:0}).addTo(group);
-    hit.bindTooltip(lineTip(line),{sticky:true,className:'panel-map-tooltip'});
+    hit.bindTooltip(()=>lineTip(line),{...TIP,sticky:true});
   }
   if(building||pending){
     const mid=latlngs[Math.floor(latlngs.length/2)];
     const icon=make('div',null,'rail-crane');const img=make('img');img.src=cfg.craneIcon;img.alt='';icon.append(img);
     L.marker(mid,{pane:'railCranes',icon:L.divIcon({html:icon,className:'rail-crane-marker',iconSize:[22,22],iconAnchor:[11,11]})})
-      .bindTooltip(lineTip(line),{direction:'top',offset:[0,-10],className:'panel-map-tooltip'}).addTo(group);
+      .bindTooltip(()=>lineTip(line),{...TIP,offset:[0,-10]}).addTo(group);
   }
   return group;
 }
 
-function lineTip(line){
-  const box=make('div');box.append(make('strong',`${line.cityAName} – ${line.cityBName}`));
-  box.append(make('div',`${km(line.distanceKm)} · ${money(line.cost)}`));
-  if(line.status==='PENDING')box.append(make('div',`Czeka na zgodę: ${line.partner} (współfinansowanie)`));
-  else if(line.completed)box.append(make('div','Linia ukończona'));
-  else if(line.status==='ACTIVE')box.append(make('div',`Budowa torów: ${line.progress}%`),make('div',`Ukończenie: ${date(line.readyAt)}`));
-  else box.append(make('div','Wniosek odrzucony'));
+// 26 Nov 2026: dymki w nowym wyglądzie gry (jak kopalnie i fabryki): nagłówek, lista wartości z ikonami, notka.
+const TIP={className:'mine-region-tooltip rail-tooltip',direction:'top'};
+function tipBox(title,subtitle,rows,note){
+  const box=make('div',null,'mine-tip'),head=make('div',null,'mine-tip-head');head.append(make('strong',title));if(subtitle)head.append(make('span',subtitle));box.append(head);
+  if(rows.length){const list=make('div',null,'mine-tip-list');
+    for(const [icon,label,value] of rows){const row=make('div',null,'mine-tip-row');if(icon){const img=make('img');img.src=icon;img.alt='';row.append(img);}row.append(make('span',label),make('strong',value));list.append(row);}
+    box.append(list);}
+  if(note)box.append(make('p',note,'mine-tip-note'));
   return box;
+}
+function lineStatus(line){
+  if(line.status==='PENDING')return line.awaitingMe?'Czeka na Twoją decyzję':`Czeka na zgodę: ${line.partner}`;
+  if(line.completed)return 'Linia ukończona';
+  if(line.status==='ACTIVE')return `Budowa torów: ${line.progress}%`;
+  return 'Wniosek odrzucony';
+}
+function lineTip(line){
+  const share=line.shares?.[String(state.countryId)];
+  const rows=[[cfg.railIcon,'Długość',km(line.distanceKm)],[cfg.moneyIcon,'Koszt całkowity',money(line.cost)]];
+  if(line.partnerId&&share)rows.push([cfg.moneyIcon,'Twój udział',`${km(share.distanceKm)} · ${money(share.cost)}`]);
+  if(line.status==='ACTIVE'&&!line.completed)rows.push([cfg.timeIcon,'Ukończenie',date(line.readyAt)]);
+  return tipBox(`${line.cityAName} – ${line.cityBName}`,lineStatus(line),rows,line.partnerId?`Linia międzynarodowa: ${line.initiator} – ${line.partner}.`:'');
 }
 
 function drawLines(){
@@ -67,9 +81,9 @@ function drawCities(){
   for(const city of state.cities){
     const chosen=selected.includes(city.id),inNetwork=network.has(city.id);   // 20 Nov 2026: zielony obrys — miasto liczone do bonusu
     const marker=L.circleMarker(coords(city.point),{pane:'railCities',radius:chosen?7.5:city.own?5:4,color:inNetwork?'#1f8a3b':'#22301f',weight:inNetwork?2.6:1.6,fillColor:chosen?'#E8B65C':city.own?'#ffffff':'#c9ced6',fillOpacity:1});
-    const tip=make('div');tip.append(make('strong',city.name),make('div',`${state.countries[String(city.countryId)]||''} · ${number(city.population)} mieszk.`));
-    if(inNetwork)tip.append(make('div','W spójnej sieci kolejowej — liczone do dochodów z kolei'));
-    marker.bindTooltip(tip,{direction:'top',offset:[0,-6],className:'panel-map-tooltip'});
+    const lines=state.lines.filter(l=>l.status==='ACTIVE'&&l.completed&&(l.cityA===city.id||l.cityB===city.id)).length;
+    const note=inNetwork?'W spójnej sieci kolejowej — liczone do dochodów z kolei.':city.own?'Kliknij, aby wybrać miasto początkowe lub docelowe.':'Miasto sąsiada — może być celem linii współfinansowanej.';
+    marker.bindTooltip(()=>tipBox(city.name,state.countries[String(city.countryId)]||'',[[cfg.cityIcon,'Ludność',`${number(city.population)}`],[cfg.railIcon,'Ukończone linie',number(lines)]],note),{...TIP,offset:[0,-6]});
     marker.on('click',()=>choose(city));marker.addTo(cityLayer);
   }
 }
@@ -113,31 +127,48 @@ function renderSelection(){
 
 function renderLists(){
   $('rail-connected').textContent=`${number(state.connectedPopulation)} mieszk.`;
-  $('rail-bonus').textContent=money(state.bonus)+(state.partnerBonusPercent?` (w tym +${state.partnerBonusPercent}% za połączenia z sieciami sąsiadów)`:'');   // 22 Nov 2026$('rail-funds').textContent=money(state.funds);
+  $('rail-bonus').textContent=money(state.bonus)+(state.partnerBonusPercent?` (w tym +${state.partnerBonusPercent}% za połączenia z sieciami sąsiadów)`:'');   // 22 Nov 2026
+  $('rail-funds').textContent=money(state.funds);   // 26 Nov 2026: wcześniej instrukcja trafiła do komentarza (zawsze „—”)
   const infra=$('rail-infrastructure');if(infra)infra.textContent=`${Number(state.railInfrastructure||0).toLocaleString('pl-PL',{maximumFractionDigits:1})} / 100`;
   const noTech=$('rail-no-tech');if(noTech)noTech.hidden=!!state.available;
   const requests=$('rail-requests'),lines=$('rail-lines');requests.replaceChildren();lines.replaceChildren();
-  const pending=state.lines.filter(l=>l.status==='PENDING');
-  if(!pending.length)requests.append(make('p','Brak wniosków.'));
-  for(const line of pending){
-    const row=make('div',null,'rail-row');
-    row.append(make('strong',`${line.cityAName} – ${line.cityBName}`));
-    const share=line.shares[String(state.countryId)];
-    row.append(make('span',line.awaitingMe?`${line.initiator} proponuje współfinansowanie: Twój odcinek ${km(share?.distanceKm)}, ${money(share?.cost)}`:`Czeka na decyzję: ${line.partner}`));
+  const pending=state.lines.filter(l=>l.status==='PENDING'),mine=pending.filter(l=>l.awaitingMe).length;
+  $('rail-requests-count').textContent=pending.length?`${number(pending.length)}`+(mine?` · ${number(mine)} czeka na Twoją decyzję`:''):'Brak';
+  if(!pending.length)requests.append(make('p','Brak wniosków. Wniosek powstaje, gdy wybierzesz trasę do miasta sąsiada.','rail-empty'));
+  // 26 Nov 2026: wnioski jako karty decyzji — najpierw te, które czekają na decyzję gracza
+  for(const line of [...pending].sort((a,b)=>Number(b.awaitingMe)-Number(a.awaitingMe))){
+    const card=make('article',null,'rail-request-card'+(line.awaitingMe?' rail-request-incoming':''));
+    const head=make('header');const img=make('img');img.src=cfg.railIcon;img.alt='';
+    const title=make('div');title.append(make('strong',`${line.cityAName} – ${line.cityBName}`),make('span',line.awaitingMe?`Wniosek od: ${line.initiator}`:`Wniosek do: ${line.partner}`));
+    head.append(img,title,make('span',line.awaitingMe?'Do decyzji':'Oczekuje','rail-request-badge'));card.append(head);
+    const list=make('dl');const add=(label,value)=>{const row=make('div');row.append(make('dt',label),make('dd',value));list.append(row);};
+    const own=line.shares?.[String(state.countryId)],otherId=line.awaitingMe?line.initiatorId:line.partnerId,other=line.shares?.[String(otherId)];
+    add('Długość trasy',km(line.distanceKm));add('Koszt całkowity',money(line.cost));
+    if(own)add('Twój odcinek',`${km(own.distanceKm)} · ${money(own.cost)}`);
+    if(other)add(`Odcinek: ${state.countries[String(otherId)]||'sąsiad'}`,`${km(other.distanceKm)} · ${money(other.cost)}`);
+    add('Czas budowy',`${number(line.buildDays)} dni Entendy`);
+    card.append(list);
     const actions=make('div',null,'rail-row-actions');
     const act=(label,action,cls)=>{const b=make('button',label,cls);b.type='button';b.addEventListener('click',()=>decide(line,action));actions.append(b);};
-    if(line.awaitingMe){act('Akceptuj','accept','rail-primary');act('Odrzuć','reject');}else if(line.own)act('Wycofaj wniosek','cancel');
-    row.append(actions);requests.append(row);
+    if(line.awaitingMe){act('Akceptuj i współfinansuj','accept','rail-primary');act('Odrzuć','reject');}else if(line.own)act('Wycofaj wniosek','cancel');
+    card.append(actions);requests.append(card);
   }
-  const built=state.lines.filter(l=>l.status==='ACTIVE');
-  if(!built.length)lines.append(make('p','Brak linii kolejowych.'));
+  const built=state.lines.filter(l=>l.status==='ACTIVE').sort((a,b)=>Number(a.completed)-Number(b.completed));
+  const building=built.filter(l=>!l.completed).length;
+  $('rail-lines-count').textContent=built.length?`(${number(built.length)}${building?` · w budowie ${number(building)}`:''})`:'';
+  if(!built.length){lines.append(make('p','Brak linii kolejowych.','rail-empty'));return;}
+  // 26 Nov 2026: zwinięta tabela zamiast bardzo długiej listy kart
+  const table=make('table',null,'rail-lines-table'),thead=make('thead'),hr=make('tr');
+  for(const label of ['Trasa','Długość','Koszt (Twój udział)','Stan'])hr.append(make('th',label));thead.append(hr);table.append(thead);
+  const body=make('tbody');
   for(const line of built){
-    const row=make('div',null,'rail-row');
-    row.append(make('strong',`${line.cityAName} – ${line.cityBName}`),make('span',`${km(line.distanceKm)} · ${money(line.shares[String(state.countryId)]?.cost??line.cost)}`));
-    if(line.completed)row.append(make('span','Ukończona','rail-done'));
-    else{const bar=make('progress');bar.max=100;bar.value=line.progress;bar.setAttribute('aria-label','Postęp budowy');row.append(bar,make('span',`${line.progress}% · ukończenie ${date(line.readyAt)}`));}
-    lines.append(row);
+    const tr=make('tr');tr.append(make('th',`${line.cityAName} – ${line.cityBName}`),make('td',km(line.distanceKm)),make('td',money(line.shares?.[String(state.countryId)]?.cost??line.cost)));
+    const cell=make('td');
+    if(line.completed)cell.append(make('span','Ukończona','rail-done'));
+    else{const bar=make('progress');bar.max=100;bar.value=line.progress;bar.setAttribute('aria-label','Postęp budowy');cell.append(bar,make('span',` ${line.progress}% · ${date(line.readyAt)}`));}
+    tr.append(cell);body.append(tr);
   }
+  table.append(body);lines.append(table);
 }
 
 async function decide(line,action){

@@ -83,8 +83,18 @@ def contamination_until(moment):
 
 # ---------------- fabryka i produkcja na zamówienie ----------------
 
+def on_demand_spec(kind):
+    """26 Nov 2026: reguły fabryki produkującej na zamówienie (rakiety z głowicą nuklearną, satelity szpiegowskie) z katalogu."""
+    from game.industry_catalog import FACTORIES
+    rule = FACTORIES.get(kind) or FACTORIES[TECHNOLOGY]
+    level = rule['levels'][0]
+    units = rule.get('units') or {}
+    return dict(kind=kind, label=rule['label'], build_days=rule.get('build_days', FACTORY_BUILD_DAYS), days=level['days'],
+                inputs=dict(level['inputs']), product=level['product'], one=units.get('one', 'sztuka'), many=units.get('many', 'sztuk'))
+
+
 def factory_ready_at(factory):
-    return factory.created_game_at + timedelta(days=FACTORY_BUILD_DAYS)
+    return factory.created_game_at + timedelta(days=on_demand_spec(factory.kind)['build_days'])
 
 
 def _active_order(session, factory_id, lock=False):
@@ -109,44 +119,50 @@ def settle_orders(session, country_id, now):
     from game.industry_service import notify
     for order in session.scalars(select(NuclearOrder).where(NuclearOrder.panstwo_id == country_id, NuclearOrder.status == 'active').with_for_update()):
         factory = session.get(AmmunitionFactory, order.factory_id) if order.factory_id else None
+        spec = on_demand_spec(factory.kind if factory is not None else TECHNOLOGY)   # 26 Nov 2026: także fabryka satelitów
         end = _production_end(factory, now) if factory is not None else order.started_at
         start = max(order.started_at, factory_ready_at(factory)) if factory is not None else order.started_at
-        finished = min(order.quantity, max(0, int((end - start) / timedelta(days=MISSILE_DAYS)))) if end > start else 0
+        finished = min(order.quantity, max(0, int((end - start) / timedelta(days=spec['days'])))) if end > start else 0
         if finished > order.produced:
-            change_total(session, country_id, finished - order.produced)
+            from game.mining_service import stock
+            row = stock(session, country_id, spec['product'])
+            row.quantity = max(0, int(row.quantity) + finished - order.produced)
             order.produced = finished
         if order.produced >= order.quantity:
             order.status = 'done'
-            notify(session, country_id, f'{FACTORY_LABEL} #{order.factory_id}: zakończono produkcję {order.quantity} szt. rakiet z głowicą nuklearną.')
+            notify(session, country_id, f'{spec["label"]} #{order.factory_id}: zakończono produkcję {order.quantity} szt. ({spec["many"]}).')
         elif factory is None or factory.removed_at is not None or factory.health <= 0:
             order.status = 'stopped'
-            notify(session, country_id, f'{FACTORY_LABEL} #{order.factory_id}: produkcja przerwana (fabryka zniszczona lub zlikwidowana). Wyprodukowano {order.produced} z {order.quantity} szt.')
+            notify(session, country_id, f'{spec["label"]} #{order.factory_id}: produkcja przerwana (fabryka zniszczona lub zlikwidowana). Wyprodukowano {order.produced} z {order.quantity} szt.')
 
 
 def order_missiles(session, country_id, factory, count, key, now):
     from game.nuclear_models import NuclearOrder
     from game.industry_service import available, consume
     from game.finance_service import FinanceError
-    if factory.kind != TECHNOLOGY:
-        raise FinanceError('Ta fabryka nie produkuje rakiet z głowicą nuklearną.')
+    from game.industry_catalog import FACTORIES
+    if not FACTORIES.get(factory.kind, {}).get('on_demand'):
+        raise FinanceError('Ta fabryka nie produkuje na zamówienie.')
+    spec = on_demand_spec(factory.kind)
     if factory.health <= 0:
         raise FinanceError('Zniszczona fabryka nie może produkować.')
     if now < factory_ready_at(factory):
         raise FinanceError('Fabryka jest jeszcze w budowie.')
     if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= 1000:
-        raise FinanceError('Podaj liczbę rakiet od 1 do 1000.')
+        raise FinanceError(f'Podaj liczbę sztuk od 1 do 1000.')
     existing = session.scalar(select(NuclearOrder).where(NuclearOrder.panstwo_id == country_id, NuclearOrder.request_id == key))
     if existing is not None:
         return existing.id
     if _active_order(session, factory.id, lock=True) is not None:
         raise FinanceError('Fabryka realizuje już zamówienie. Poczekaj na jego zakończenie albo je anuluj.')
-    missing = [f'{INPUT_LABELS.get(code, code)} (potrzeba {need * count}, w magazynie {available(session, country_id, code)})'
-               for code, need in MISSILE_INPUTS.items() if available(session, country_id, code) < need * count]
+    labels = {**INPUT_LABELS, 'ropa_naftowa': 'ropa naftowa'}
+    missing = [f'{labels.get(code, code)} (potrzeba {need * count}, w magazynie {available(session, country_id, code)})'
+               for code, need in spec['inputs'].items() if available(session, country_id, code) < need * count]
     if missing:
         raise FinanceError('Za mało surowców w magazynie: ' + ', '.join(missing) + '.')
-    consume(session, country_id, MISSILE_INPUTS, count)
+    consume(session, country_id, spec['inputs'], count)
     order = NuclearOrder(panstwo_id=country_id, factory_id=factory.id, quantity=count, produced=0, started_at=now, status='active',
-                         materials=dict(MISSILE_INPUTS), request_id=key)
+                         materials=dict(spec['inputs']), request_id=key)
     session.add(order)
     session.flush()
     return order.id
@@ -171,17 +187,19 @@ def cancel_order(session, country_id, factory, now):
 
 def factory_info(session, factory, now):
     """Dane fabryki dla interfejsu: stan budowy i bieżącego zamówienia."""
+    spec = on_demand_spec(factory.kind)
     ready = factory_ready_at(factory)
     built = now >= ready
-    total_days = FACTORY_BUILD_DAYS
+    total_days = spec['build_days']
     progress = 100 if built else max(0, min(99, int((now - factory.created_game_at) / timedelta(days=total_days) * 100)))
     order = _active_order(session, factory.id)
-    data = dict(onDemand=True, ready=built, readyAt=ready.isoformat() + 'Z', progress=progress, missileDays=MISSILE_DAYS,
-                missileInputs=dict(MISSILE_INPUTS), order=None)
+    days = spec['days']
+    data = dict(onDemand=True, ready=built, readyAt=ready.isoformat() + 'Z', progress=progress, missileDays=days,
+                missileInputs=dict(spec['inputs']), order=None)
     if order is not None:
         start = max(order.started_at, ready)
-        next_at = start + timedelta(days=MISSILE_DAYS * (order.produced + 1))
-        done_at = start + timedelta(days=MISSILE_DAYS * order.quantity)
+        next_at = start + timedelta(days=days * (order.produced + 1))
+        done_at = start + timedelta(days=days * order.quantity)
         data['order'] = dict(id=order.id, quantity=order.quantity, produced=order.produced, nextAt=next_at.isoformat() + 'Z', doneAt=done_at.isoformat() + 'Z')
     return data
 

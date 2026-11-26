@@ -15,7 +15,7 @@ from sqlalchemy.engine import make_url
 
 TARGETS = {'uat': (Path('/home/oskar_zeus_admin/ZEUS_UAT/.env.uat'), 'entenda_uat_db'),
            'preprod': (Path('/home/oskar_zeus_admin/ZEUS_PREPROD/.env.preprod'), 'entenda_preprod_db')}
-ON_DEMAND = ('nuclear_missiles',)
+ON_DEMAND = ('nuclear_missiles', 'satellites')   # 26 Nov 2026: fabryka satelitów
 
 
 def database_url(env_file):

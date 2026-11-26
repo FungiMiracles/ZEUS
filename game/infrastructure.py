@@ -134,7 +134,8 @@ def _rail_config(country_id):
             "csrf": session["game_csrf_token"], "countryId": country_id,
             "regionsUrl": url_for("static", filename="maps/entenda_regiony.geojson"),
             "countriesUrl": url_for('region_sovereignty.country_boundaries'),
-            "craneIcon": url_for("static", filename="icons/PRACE BUDOWLANE.svg"), "railIcon": url_for("static", filename="icons/KOLEJ.svg")}
+            "craneIcon": url_for("static", filename="icons/PRACE BUDOWLANE.svg"), "railIcon": url_for("static", filename="icons/KOLEJ.svg"),
+            "cityIcon": url_for("static", filename="icons/MIASTO.svg"), "timeIcon": url_for("static", filename="icons/CZAS.svg"), "moneyIcon": url_for("static", filename="icons/BANK.svg")}   # 26 Nov 2026: ikony dymków
 
 
 def _airport_config(country_id):

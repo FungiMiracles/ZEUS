@@ -56,6 +56,7 @@ def page():
         game_active_page="army", army=army, weapon_parameters=weapon_parameters, active=active, military_budget_total=total,interceptor_ammunition=ammunition,
         training=training,training_fields=ARMY_FIELDS,recruitment=recruitment,
         nuclear_total=__import__('game.nuclear',fromlist=['total']).total(db.session,country.PANSTWO_ID),
+        satellites=__import__('game.satellites',fromlist=['summary']).summary(db.session,country.PANSTWO_ID),   # 26 Nov 2026
     )
     db.session.commit()
     return rendered

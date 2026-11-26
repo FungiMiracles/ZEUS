@@ -48,7 +48,7 @@ class IndustryTests(CommerceFixture):
     def refresh(self):db.session.expire_all()
 
     def test_catalog_exact_counts_and_iron_dependency(self):
-        self.assertEqual(len(TECHNOLOGIES),41,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026) + Transport i komunikacja, Transport kolejowy (19 Nov 2026) + Transport lotniczy (20 Nov 2026)')
+        self.assertEqual(len(TECHNOLOGIES),42,'33 + Technologie ochrony środowiska, Filtr zanieczyszczeń, Filtr odpadów fabrycznych (10 Nov 2026) + Rozpoznanie radarowe (11 Nov 2026) + Rakieta z głowicą nuklearną (13 Nov 2026) + Transport i komunikacja, Transport kolejowy (19 Nov 2026) + Transport lotniczy (20 Nov 2026) + Satelita szpiegowski (26 Nov 2026)')
         self.assertNotIn('ammunition',TECHNOLOGIES)
         for factory in FACTORIES.values():
             for level in factory['levels']:self.assertNotIn('ammunition',level['technologies'])
@@ -89,7 +89,7 @@ class IndustryTests(CommerceFixture):
                     self.assertEqual(db.session.scalar(select(MilitaryExpense.amount).order_by(MilitaryExpense.id.desc()).limit(1)),spec['cost'])
                     self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),0)
                 else:self.assertEqual(db.session.scalar(select(IndustryMovement.amount).order_by(IndustryMovement.id.desc()).limit(1)),spec['cost'])
-        self.assertEqual(db.session.query(AmmunitionFactory).count(),17)
+        self.assertEqual(db.session.query(AmmunitionFactory).count(),18)   # 26 Nov 2026: + fabryka satelitów
 
     def test_shipyard_requires_the_same_coastal_band_as_a_naval_base(self):
         with self.assertRaises(FinanceError):self.operation(kind='shipyard')
@@ -296,7 +296,7 @@ class IndustryTests(CommerceFixture):
         from game.research import technology_layout
         response=self.client.get('/game/badania/stan');self.assertEqual(response.status_code,200)
         layout=technology_layout()
-        self.assertEqual(len(layout['positions']),41);self.assertEqual(len(layout['edges']),40)   # 19 Nov 2026: + 2 technologie kolei; 20 Nov 2026: + transport lotniczy (nieaktywny)
+        self.assertEqual(len(layout['positions']),42);self.assertEqual(len(layout['edges']),41)   # 26 Nov 2026: + satelita szpiegowski;   # 19 Nov 2026: + 2 technologie kolei; 20 Nov 2026: + transport lotniczy (nieaktywny)
         before=db.session.get(ResearchAccount,1).points
         # 10 Nov 2026: the planned 'Filtry powietrza' node became the regular technology 'Filtr zanieczyszczeń'.
         self.assertNotIn('air_filters',PLANNED_TECHNOLOGIES)
@@ -323,9 +323,9 @@ class IndustryTests(CommerceFixture):
         for kind,rule in FACTORIES.items():
             for level in range(1,len(rule['levels'])+1):
                 with patch('game.military_geography.naval_location_allowed',return_value=True):self.operation(kind=kind,level=level)
-        expected={'nuclear_missiles':'BROŃ ATOMOWA.svg','chip_simple':'CHIP PROSTY.svg','chip_kerbit':'CHIP KERBITOWY.svg','chip_natsyt':'CHIP NATSYTOWY.svg','chip_cemium_i':'CHIP CEMIUM I.svg','chip_cemium_ii':'CHIP CEMIUM II.svg','tanks':'CZOŁG.svg','fighters':'MYŚLIWIEC.svg','armored':'WÓZ OPANCERZONY.svg','drones':'DRON.svg','short_missiles':'WYRZUTNIA RAKIET.svg','medium_missiles':'WYRZUTNIA RAKIET.svg','long_missiles':'WYRZUTNIA RAKIET.svg','warships':'OKRĘT WOJENNY.svg','submarines':'SUBMARINE.svg','carriers':'LOTNISKOWIEC.svg','interceptor_ammunition':'AMMO.svg'}
+        expected={'nuclear_missiles':'BROŃ ATOMOWA.svg','chip_simple':'CHIP PROSTY.svg','chip_kerbit':'CHIP KERBITOWY.svg','chip_natsyt':'CHIP NATSYTOWY.svg','chip_cemium_i':'CHIP CEMIUM I.svg','chip_cemium_ii':'CHIP CEMIUM II.svg','tanks':'CZOŁG.svg','fighters':'MYŚLIWIEC.svg','armored':'WÓZ OPANCERZONY.svg','drones':'DRON.svg','short_missiles':'WYRZUTNIA RAKIET.svg','medium_missiles':'WYRZUTNIA RAKIET.svg','long_missiles':'WYRZUTNIA RAKIET.svg','warships':'OKRĘT WOJENNY.svg','submarines':'SUBMARINE.svg','carriers':'LOTNISKOWIEC.svg','interceptor_ammunition':'AMMO.svg','spy_satellites':'SATELITA SZPIEGOWSKI.svg'}
         def check(rows):
-            self.assertEqual(len(rows),17)
+            self.assertEqual(len(rows),18)   # 26 Nov 2026: + fabryka satelitów
             for row in rows:
                 self.assertEqual(unquote(urlsplit(row['productIcon']).path),'/static/icons/'+expected[row['product']])
                 self.assertTrue(row['productName'])

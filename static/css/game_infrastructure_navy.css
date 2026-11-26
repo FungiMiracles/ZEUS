@@ -171,3 +171,48 @@ html body.game-app.game-navy.game-civic.infrastructure-room #industry-confirm.is
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-confirm.is-danger #industry-apply:hover:not(:disabled){background:#8f1d17;border-color:#8f1d17}
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-confirm .industry-modal-actions button:focus{outline:2px solid #9fb3cc;outline-offset:2px;box-shadow:none}
 html body.game-app.game-navy.game-civic.infrastructure-room #industry-confirm .industry-modal-actions button:focus:not(:focus-visible){outline:none}
+/* 26 Nov 2026: zakładka „Transport kolejowy” w nowym wyglądzie gry — podpowiedzi „i”, karty wniosków, tabela linii, dymki */
+.rail-summary dt{display:flex;align-items:center;gap:6px}
+.rail-info{position:relative;display:inline-flex;vertical-align:middle;text-transform:none;letter-spacing:0}
+.rail-info-button{display:inline-grid;place-items:center;width:18px;height:18px;min-height:0;padding:0;border:1px solid #1E3A5F;border-radius:50%;background:#fff;color:#1E3A5F;font:700 11px/1 Georgia,serif;cursor:help;box-shadow:none}
+.rail-info-button:hover,.rail-info-button:focus-visible{background:#1E3A5F;color:#fff}
+.rail-info-tooltip{position:absolute;z-index:1200;top:calc(100% + 8px);right:-10px;width:min(300px,calc(100vw - 40px));padding:10px 12px;background:#fff;color:#24324a;border:1px solid #d3dce9;border-top:3px solid #1E3A5F;border-radius:8px;box-shadow:0 8px 24px #0b1d3333;font-size:12px;font-weight:400;line-height:1.45;text-transform:none;letter-spacing:0;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease}
+.rail-info:hover .rail-info-tooltip,.rail-info:focus-within .rail-info-tooltip{opacity:1;visibility:visible}
+.rail-hint .rail-info-tooltip{right:auto;left:-10px}
+.rail-requests-panel{margin:0 0 14px;padding:12px 14px;background:#f7f9fd;border:1px solid #d3dce9;border-radius:8px}
+.rail-requests-panel h3,.rail-lines-panel h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;color:#1E3A5F;font-size:14px;text-transform:uppercase;letter-spacing:.05em}
+.rail-requests-panel h3 img{width:22px;height:22px;object-fit:contain}
+.rail-request-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:10px}
+.rail-empty{margin:0;color:#4d5f78;font-size:13px}
+.rail-request-card{display:grid;gap:10px;padding:12px;background:#fff;border:1px solid #d3dce9;border-left:4px solid #7a8597;border-radius:8px}
+.rail-request-card.rail-request-incoming{border-left-color:#E8B65C;box-shadow:0 2px 10px #e8b65c33}
+.rail-request-card header{display:flex;align-items:center;gap:10px}
+.rail-request-card header img{flex:0 0 30px;width:30px;height:30px;padding:3px;box-sizing:border-box;border:1px solid #d3dce9;border-radius:7px;background:#fff}
+.rail-request-card header div{display:grid;flex:1 1 auto;min-width:0}
+.rail-request-card header strong{color:#1E3A5F;font-size:14px}
+.rail-request-card header div span{color:#4d5f78;font-size:12px}
+.rail-request-badge{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:#eef3fa;color:#1E3A5F;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.rail-request-incoming .rail-request-badge{background:#E8B65C;color:#1E3A5F}
+.rail-request-card dl{display:grid;gap:4px;margin:0;padding:8px 10px;background:#eef3fa;border:1px solid #d3dce9;border-left:3px solid #1E3A5F;border-radius:6px}
+.rail-request-card dl div{display:flex;justify-content:space-between;gap:10px;font-size:12.5px}
+.rail-request-card dt{color:#4d5f78}
+.rail-request-card dd{margin:0;color:#1E3A5F;font-weight:700;font-family:Consolas,monospace;text-align:right}
+.rail-lines-panel{margin-top:14px;padding:12px 14px;background:#fff;border:1px solid #d3dce9;border-radius:8px}
+.rail-lines-panel>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none}
+.rail-lines-panel>summary::-webkit-details-marker{display:none}
+.rail-lines-panel>summary::before{content:'';width:8px;height:8px;border-right:2px solid #1E3A5F;border-bottom:2px solid #1E3A5F;transform:rotate(-45deg);transition:transform .15s ease}
+.rail-lines-panel[open]>summary::before{transform:rotate(45deg)}
+.rail-lines-panel>summary h3{margin:0}
+.rail-lines-panel #rail-lines-count{color:#4d5f78;font-weight:600;text-transform:none;letter-spacing:0}
+.rail-lines-scroll{max-height:420px;margin-top:10px;overflow:auto}
+.rail-lines-table{width:100%;border-collapse:collapse;font-size:13px}
+.rail-lines-table thead th{position:sticky;top:0;padding:7px 9px;background:#1E3A5F;color:#fff;font-size:11px;letter-spacing:.04em;text-transform:uppercase;text-align:left}
+.rail-lines-table :is(tbody th,tbody td){padding:6px 9px;border-top:1px solid #d3dce9;text-align:left;font-weight:400}
+.rail-lines-table tbody th{color:#1E3A5F;font-weight:700}
+.rail-lines-table tbody tr:hover>*{background:#f4f8fd}
+.rail-lines-table progress{width:90px;height:8px;vertical-align:middle}
+html body.game-app.game-navy.game-civic .leaflet-tooltip.rail-tooltip{max-width:min(300px,calc(100vw - 40px))}
+html body.game-app.game-navy.game-civic .rail-panel .rail-info-button{display:inline-grid;place-items:center;width:18px;height:18px;min-width:0;min-height:0;padding:0;margin:0;border:1px solid #1E3A5F;border-radius:50%;background:#fff;color:#1E3A5F;font:700 11px/1 Georgia,serif;box-shadow:none;cursor:help}
+html body.game-app.game-navy.game-civic .rail-panel .rail-info-button:is(:hover,:focus-visible){background:#1E3A5F;color:#fff}
+.rail-request-cards>.rail-empty{grid-column:1/-1}
+.rail-panel .rail-info-tooltip{right:auto;left:-12px}
