@@ -170,7 +170,7 @@ class SatelliteMissionTests(SatelliteFixture):
         result = satellites.order_mission_in_transaction(db.session, 1, {'satellite_id': sat_id, 'kind': kind, 'country_id': country, 'request_id': str(uuid4())}, self.now)
         db.session.commit(); db.session.expire_all(); return result
 
-    def test_mission_flies_at_500_kmh_costs_120_million_and_reports_whole_country(self):
+    def test_mission_flies_at_600_kmh_costs_120_million_and_reports_whole_country(self):
         enemy_base = MilitaryBase(panstwo_id=2, region_id=2, kind='land', level=2, garrison={}, map_x=90, map_y=5, health=100)
         silo = MilitaryBase(panstwo_id=2, region_id=2, kind='nuclear', level=1, garrison={}, map_x=95, map_y=5, health=100)
         db.session.add_all([enemy_base, silo, CounterIntelligence(panstwo_id=2, level=7)]); db.session.commit()   # kontrwywiad nie działa na satelity
@@ -179,7 +179,7 @@ class SatelliteMissionTests(SatelliteFixture):
         mission_id = self.mission(sat_id)
         mission = db.session.get(SatelliteMission, mission_id); sat = db.session.get(SpySatellite, sat_id)
         distance = ((100 - start[0]) ** 2 + start[1] ** 2) ** .5
-        self.assertAlmostEqual((mission.arrives_at - self.now).total_seconds() / 3600, max(distance / 500, 1 / 60), places=3)
+        self.assertAlmostEqual((mission.arrives_at - self.now).total_seconds() / 3600, max(distance / 600, 1 / 60), places=3)
         self.assertEqual((sat.mode, sat.to_x, sat.to_y), ('mission', 100, 0))
         self.assertEqual(db.session.scalar(select(IntelligenceExpense.amount)), Decimal('120000000'))
         with self.assertRaisesRegex(FinanceError, 'wykonuje już misję'): self.mission(sat_id)
@@ -234,3 +234,68 @@ class SatelliteMissionTests(SatelliteFixture):
         response = self.client.post('/game/satelity/wystrzel', json={'base_id': base_id, 'request_id': str(uuid4())}, headers={'X-CSRF-Token': 'token'})
         self.assertEqual(response.status_code, 200, response.get_json())
         self.assertEqual(response.get_json()['seconds'], 60)
+
+
+class SatelliteUpgradeAndCancelTests(SatelliteFixture):
+    def setUp(self):
+        super().setUp()
+        db.session.execute(text("UPDATE game_state_budget_allocations SET amount=200000000000 WHERE category_code='security_services'")); db.session.commit()
+
+    def upgrade(self, sat_id, expected):
+        result = satellites.upgrade_in_transaction(db.session, 1, {'satellite_id': sat_id, 'expected_level': expected, 'request_id': str(uuid4())}, self.now)
+        db.session.commit(); db.session.expire_all(); return result
+
+    def mission(self, sat_id):
+        result = satellites.order_mission_in_transaction(db.session, 1, {'satellite_id': sat_id, 'kind': 'bases', 'country_id': 2, 'request_id': str(uuid4())}, self.now)
+        db.session.commit(); db.session.expire_all(); return result
+
+    def test_levels_speeds_and_costs(self):
+        self.assertEqual({level: speed for level, (speed, _) in satellites.LEVELS.items()}, {1: 600, 2: 900, 3: 1200, 4: 1500})
+        self.assertEqual([cost for _, cost in list(satellites.LEVELS.values())[1:]], [Decimal('17500000000'), Decimal('29000000000'), Decimal('36200000000')])
+
+    def test_upgrade_charges_security_budget_and_speeds_up_missions(self):
+        sat_id = self.orbit()
+        self.assertEqual(self.upgrade(sat_id, 1), 2)
+        self.assertEqual(db.session.scalar(select(IntelligenceExpense.amount).order_by(IntelligenceExpense.id.desc()).limit(1)), Decimal('17500000000'))
+        with self.assertRaises(FinanceError): self.upgrade(sat_id, 1)   # nieaktualny poziom
+        self.assertEqual(self.upgrade(sat_id, 2), 3); self.assertEqual(self.upgrade(sat_id, 3), 4)
+        with self.assertRaisesRegex(FinanceError, 'najwyższy poziom'): self.upgrade(sat_id, 4)
+        sat = db.session.get(SpySatellite, sat_id); start = satellites.position(sat, self.now)
+        mission = db.session.get(SatelliteMission, self.mission(sat_id))
+        distance = ((100 - start[0]) ** 2 + start[1] ** 2) ** .5
+        self.assertAlmostEqual((mission.arrives_at - self.now).total_seconds() / 3600, max(distance / 1500, 1 / 60), places=3)
+
+    def test_upgrade_blocked_during_mission_and_budget_checked(self):
+        sat_id = self.orbit(); self.mission(sat_id)
+        with self.assertRaisesRegex(FinanceError, 'nie wykonuje misji'): self.upgrade(sat_id, 1)
+        sat2 = self.orbit_second()
+        db.session.execute(text("UPDATE game_state_budget_allocations SET amount=17000000000 WHERE category_code='security_services'")); db.session.commit()
+        with self.assertRaisesRegex(FinanceError, 'służb'): self.upgrade(sat2, 1)
+
+    def orbit_second(self):
+        sat = SpySatellite(panstwo_id=1, status='orbit', mode='drift', level=1, launched_at=NOW, orbit_at=NOW, from_x=0, from_y=0, to_x=1, to_y=0,
+                           seg_start=self.now, seg_end=self.now + timedelta(hours=5), request_id=str(uuid4()))
+        db.session.add(sat); db.session.commit(); return sat.id
+
+    def test_cancel_mission_keeps_cost_and_returns_to_drift(self):
+        sat_id = self.orbit(); mission_id = self.mission(sat_id)
+        spent = db.session.scalar(select(IntelligenceExpense.amount).order_by(IntelligenceExpense.id.desc()).limit(1))
+        self.now = self.now + timedelta(minutes=1)
+        here = satellites.position(db.session.get(SpySatellite, sat_id), self.now)
+        satellites.cancel_mission_in_transaction(db.session, 1, {'satellite_id': sat_id}, self.now); db.session.commit(); db.session.expire_all()
+        sat = db.session.get(SpySatellite, sat_id); mission = db.session.get(SatelliteMission, mission_id)
+        self.assertEqual((sat.mode, sat.mission_id), ('drift', None))
+        self.assertAlmostEqual(sat.from_x, here[0], places=6); self.assertAlmostEqual(sat.from_y, here[1], places=6)
+        self.assertTrue(mission.report['cancelled']); self.assertIsNotNone(mission.completed_at)
+        self.assertEqual(db.session.scalar(select(IntelligenceExpense.amount).order_by(IntelligenceExpense.id.desc()).limit(1)), spent)   # bez zwrotu
+        from game.intelligence_service import known_ids
+        self.assertEqual(known_ids(db.session, 1, 'bases'), set())
+        with self.assertRaisesRegex(FinanceError, 'nie wykonuje misji'):
+            satellites.cancel_mission_in_transaction(db.session, 1, {'satellite_id': sat_id}, self.now)
+
+    def test_routes(self):
+        sat_id = self.orbit()
+        response = self.client.post('/game/satelity/rozbuduj', json={'satellite_id': sat_id, 'expected_level': 1, 'request_id': str(uuid4())}, headers={'X-CSRF-Token': 'token'})
+        self.assertEqual(response.status_code, 200, response.get_json()); self.assertEqual(response.get_json()['level'], 2)
+        response = self.client.post('/game/satelity/anuluj-misje', json={'satellite_id': sat_id, 'request_id': str(uuid4())}, headers={'X-CSRF-Token': 'token'})
+        self.assertEqual(response.status_code, 400)

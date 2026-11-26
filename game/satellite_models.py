@@ -8,12 +8,14 @@ from game.models import utc_now
 
 class SpySatellite(db.Model):
     """Satelita wyniesiony na orbitę. Ruch po mapie to odcinek (from → to) w czasie gry (seg_start → seg_end):
-    dryf w losowym kierunku (100 km/h Entendy) albo przelot nad państwo celu misji (500 km/h Entendy)."""
+    dryf w losowym kierunku (100 km/h Entendy) albo przelot nad państwo celu misji (600–1500 km/h Entendy wg poziomu)."""
     __tablename__ = 'game_spy_satellites'
     id = db.Column(db.Integer, primary_key=True)
     panstwo_id = db.Column(db.Integer, db.ForeignKey('panstwa.PANSTWO_ID'), nullable=False, index=True)
     base_id = db.Column(db.Integer, db.ForeignKey('game_military_bases.id', ondelete='SET NULL'), nullable=True)
     status = db.Column(db.String(16), nullable=False, default='launching', server_default='launching')
+    # 26 Nov 2026: poziom satelity 1–4 — prędkość przelotu w misji (game.satellites.LEVELS)
+    level = db.Column(db.Integer, nullable=False, default=1, server_default=db.text('1'))
     mode = db.Column(db.String(16), nullable=False, default='drift', server_default='drift')
     mission_id = db.Column(db.Integer, nullable=True)
     launched_at = db.Column(db.DateTime, nullable=False)       # czas gry rozpoczęcia wynoszenia
@@ -30,6 +32,7 @@ class SpySatellite(db.Model):
                       db.CheckConstraint("status IN ('launching','orbit','lost')", name='ck_spy_satellite_status'),
                       db.CheckConstraint("mode IN ('drift','mission')", name='ck_spy_satellite_mode'),
                       db.CheckConstraint('seg_end >= seg_start', name='ck_spy_satellite_segment'),
+                      db.CheckConstraint('level BETWEEN 1 AND 4', name='ck_spy_satellite_level'),
                       {'mysql_engine': 'InnoDB'})
 
 

@@ -4,7 +4,7 @@
     venv/bin/python migrations/sql/spy_satellites_20261126.py preprod
     venv/bin/python migrations/sql/spy_satellites_20261126.py uat --seed-ozilandia
 
-Tworzy tabele game_spy_satellites (satelity na orbicie) i game_satellite_missions (misje rozpoznawcze). Satelity
+Tworzy tabele game_spy_satellites (satelity na orbicie, z poziomem 1–4) i game_satellite_missions (misje rozpoznawcze). Satelity
 w magazynie to wiersz game_resource_stocks (resource = 'spy_satellites'), a zamówienia fabryki satelitów korzystają
 z istniejącej tabeli game_nuclear_orders — bez zmian schematu. Bez tych tabel kod działa, ale satelity są wyłączone.
 
@@ -23,6 +23,7 @@ SATELLITES = """CREATE TABLE game_spy_satellites (
   panstwo_id INTEGER NOT NULL,
   base_id INTEGER NULL,
   status VARCHAR(16) NOT NULL DEFAULT 'launching',
+  level INTEGER NOT NULL DEFAULT 1,
   mode VARCHAR(16) NOT NULL DEFAULT 'drift',
   mission_id INTEGER NULL,
   launched_at DATETIME NOT NULL,
@@ -41,6 +42,7 @@ SATELLITES = """CREATE TABLE game_spy_satellites (
   CONSTRAINT ck_spy_satellite_status CHECK (status IN ('launching','orbit','lost')),
   CONSTRAINT ck_spy_satellite_mode CHECK (mode IN ('drift','mission')),
   CONSTRAINT ck_spy_satellite_segment CHECK (seg_end >= seg_start),
+  CONSTRAINT ck_spy_satellite_level CHECK (level BETWEEN 1 AND 4),
   CONSTRAINT fk_spy_satellite_country FOREIGN KEY (panstwo_id) REFERENCES panstwa (PANSTWO_ID),
   CONSTRAINT fk_spy_satellite_base FOREIGN KEY (base_id) REFERENCES game_military_bases (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
@@ -110,6 +112,12 @@ def main(target, seed_ozilandia=False):
                 print(f'{database}: tabela {name} już istnieje.')
             else:
                 connection.execute(text(ddl)); print(f'{database}: utworzono tabelę {name}.')
+        # 26 Nov 2026 (druga wersja): poziomy satelity 1–4 — kolumna level dla tabel utworzonych wcześniej
+        columns = {c['name'] for c in inspect(connection).get_columns('game_spy_satellites')}
+        if 'level' not in columns:
+            connection.execute(text('ALTER TABLE game_spy_satellites ADD COLUMN level INTEGER NOT NULL DEFAULT 1 AFTER status, '
+                                    'ADD CONSTRAINT ck_spy_satellite_level CHECK (level BETWEEN 1 AND 4)'))
+            print(f'{database}: dodano kolumnę game_spy_satellites.level.')
         if seed_ozilandia:
             if target != 'uat':
                 raise SystemExit('Dane Ozilandii ustawia się wyłącznie na UAT.')

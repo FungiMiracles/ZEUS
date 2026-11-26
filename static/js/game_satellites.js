@@ -56,7 +56,7 @@
 
     function chooseCountry(sat, mission, csrf) {
         const d = dialog(`${mission.label} — wybierz państwo`, state.icon);
-        d.body.append(make('p', `${sat.name} poleci nad wybrane państwo z prędkością ${state.speeds.mission} km/h Entendy i rozpozna obiekty („${mission.label.toLowerCase()}”) na całym jego terytorium. Satelita szpieguje skutecznie bez względu na ochronę kontrwywiadowczą państwa.`));
+        d.body.append(make('p', `${sat.name} (poziom ${sat.level || 1}) poleci nad wybrane państwo z prędkością ${sat.speed || state.speeds.mission} km/h Entendy i rozpozna obiekty („${mission.label.toLowerCase()}”) na całym jego terytorium. Satelita szpieguje skutecznie bez względu na ochronę kontrwywiadowczą państwa.`));
         const label = make('label', 'Państwo do rozpoznania'), select = make('select'); select.required = true;
         for (const country of state.countries || []) { const option = make('option', country.name); option.value = country.id; select.append(option); }
         label.append(select); d.body.append(label);
@@ -68,7 +68,7 @@
         const estimate = () => {
             const target = (state.countries || []).find(c => String(c.id) === select.value), here = position(sat, gameTime());
             if (!target?.point || !here) { time.textContent = '—'; return; }
-            const hours = Math.hypot(target.point[0] - here[0], target.point[1] - here[1]) * state.kmPerUnit / state.speeds.mission;
+            const hours = Math.hypot(target.point[0] - here[0], target.point[1] - here[1]) * state.kmPerUnit / (sat.speed || state.speeds.mission);
             time.textContent = hours.toLocaleString('pl-PL', { maximumFractionDigits: 1 }) + ' godz. Entendy';
         };
         select.onchange = estimate; estimate();
@@ -83,6 +83,40 @@
             } catch (error) { d.error.textContent = error.message; confirm.disabled = false; }
         });
         d.box.showModal(); select.focus();
+    }
+
+    // 26 Nov 2026: rozbudowa satelity (szybszy przelot w misji) i anulowanie misji (koszt nie wraca)
+    function upgradeDialog(sat, csrf) {
+        const next = (sat.level || 1) + 1, rule = state.levels[String(next)];
+        const d = dialog(`Rozbudowa: ${sat.name}`, state.upgradeIcon);
+        d.body.append(make('p', `Satelita na poziomie ${next} leci nad państwo celu z prędkością ${rule.speed} km/h Entendy (teraz ${sat.speed} km/h). Rozbudowa jest możliwa tylko wtedy, gdy satelita nie wykonuje misji.`));
+        const quote = make('dl', null, 'satellite-quote');
+        for (const [k, v] of [['Poziom', `${sat.level || 1} → ${next}`], ['Prędkość w misji', `${sat.speed} → ${rule.speed} km/h`], ['Koszt rozbudowy', money(rule.cost) + ' (budżet służb specjalnych)']]) { const item = make('div'); item.append(make('dt', k), make('dd', v)); quote.append(item); }
+        d.body.append(quote);
+        const cancel = make('button', 'Anuluj', 'satellite-secondary'); cancel.type = 'button'; cancel.onclick = () => d.box.close();
+        const confirm = make('button', 'Rozbuduj satelitę', 'satellite-primary'); confirm.type = 'submit';
+        d.actions.append(cancel, confirm);
+        d.form.addEventListener('submit', async event => {
+            event.preventDefault(); confirm.disabled = true; d.error.textContent = '';
+            try { const result = await post(state.upgradeUrl, { request_id: uuid(), satellite_id: sat.id, expected_level: sat.level || 1 }, csrf); d.box.close(); notice(result.message); await load(); }
+            catch (error) { d.error.textContent = error.message; confirm.disabled = false; }
+        });
+        d.box.showModal();
+    }
+    function cancelDialog(sat, csrf) {
+        const d = dialog(`Anulować misję? — ${sat.name}`, state.cancelIcon);
+        d.box.classList.add('is-danger');
+        d.body.append(make('p', sat.mission ? `Misja: ${sat.mission.label} — ${sat.mission.target}.` : 'Satelita leci w misji rozpoznawczej.'),
+            make('p', 'Satelita przerwie przelot i wróci do swobodnego dryfu z bieżącego miejsca. Raport nie powstanie, a środki za misję nie są zwracane.'));
+        const cancel = make('button', 'Wróć', 'satellite-secondary'); cancel.type = 'button'; cancel.onclick = () => d.box.close();
+        const confirm = make('button', 'Anuluj misję', 'satellite-primary satellite-danger'); confirm.type = 'submit';
+        d.actions.append(cancel, confirm);
+        d.form.addEventListener('submit', async event => {
+            event.preventDefault(); confirm.disabled = true; d.error.textContent = '';
+            try { const result = await post(state.cancelUrl, { request_id: uuid(), satellite_id: sat.id }, csrf); d.box.close(); notice(result.message); await load(); }
+            catch (error) { d.error.textContent = error.message; confirm.disabled = false; }
+        });
+        d.box.showModal();
     }
 
     function notice(text) {
@@ -152,8 +186,9 @@
             const head = make('div', null, 'satellite-tip-head'); head.append(img(state.icon)); const title = make('div'); title.append(make('strong', sat.name), make('span', sat.country)); head.append(title); box.append(head);
             const status = sat.status === 'launching' ? 'Wynoszenie na orbitę' : sat.mission ? `Misja: ${sat.mission.label} — ${sat.mission.target}` : sat.mode === 'mission' ? 'Przelot w misji rozpoznawczej' : `Dryf po orbicie (${state.speeds.drift} km/h)`;
             box.append(make('p', status));
+            if (sat.level) box.append(make('p', `Poziom ${sat.level} · przelot w misji ${sat.speed} km/h`));
             if (sat.mission) box.append(make('p', `Dotarcie nad cel: ${when(sat.mission.arrivesAt)} (Entenda)`));
-            if (sat.own && mode === 'intelligence' && sat.status === 'orbit' && sat.mode !== 'mission') box.append(make('p', 'Kliknij satelitę, aby wybrać misję.', 'satellite-tip-hint'));
+            if (sat.own && mode === 'intelligence' && sat.status === 'orbit') box.append(make('p', sat.mode === 'mission' ? 'Kliknij satelitę, aby anulować misję.' : 'Kliknij satelitę, aby wybrać misję lub go rozbudować.', 'satellite-tip-hint'));
             else if (sat.own && mode !== 'intelligence') box.append(make('p', 'Misje zlecasz na ekranie „Wywiad wojskowy”.', 'satellite-tip-hint'));
             return box;
         }
@@ -170,9 +205,12 @@
         }
         function openMenu(sat, point) {
             if (!window.GameRadialMenu) return;
-            if (sat.mode === 'mission') { notice(`${sat.name} wykonuje misję — poczekaj na raport.`); return; }
-            const items = state.missions.map(mission => ({ label: mission.label, icon: mission.icon, run: () => chooseCountry(sat, mission, options.csrf) }));
-            window.GameRadialMenu.open(map, point, items, { key: `satellite:${sat.id}`, label: sat.name });
+            const busy = sat.mode === 'mission', top = (sat.level || 1) >= (state.maxLevel || 4);
+            const upgrade = { label: top ? `Poziom ${sat.level} (maks.)` : `Rozbuduj do poziomu ${(sat.level || 1) + 1}`, icon: state.upgradeIcon, disabled: busy || top,
+                title: top ? 'Satelita ma najwyższy poziom.' : busy ? 'Satelitę można rozbudować tylko wtedy, gdy nie wykonuje misji.' : '', run: () => upgradeDialog(sat, options.csrf) };
+            const items = busy ? [{ label: 'Anuluj misję', icon: state.cancelIcon, run: () => cancelDialog(sat, options.csrf) }, upgrade]
+                : state.missions.map(mission => ({ label: mission.label, icon: mission.icon, run: () => chooseCountry(sat, mission, options.csrf) })).concat([upgrade]);
+            window.GameRadialMenu.open(map, point, items, { key: `satellite:${sat.id}`, label: sat.name, onDisabled: text => notice(text) });
         }
         function render() {
             satLayer.clearLayers(); intelLayer.clearLayers(); markers.clear();
@@ -194,7 +232,7 @@
             options.onRender?.(state);
         }
         function sync() {
-            const showSat = filterOn('satellites'), showIntel = filterOn('intel') && intelEnabled;
+            const showSat = filterOn('satellites'), showIntel = showSat && intelEnabled;   // 26 Nov 2026: jeden filtr — satelity i rozpoznane obiekty
             if (showSat && !map.hasLayer(satLayer)) satLayer.addTo(map); else if (!showSat && map.hasLayer(satLayer)) map.removeLayer(satLayer);
             if (showIntel && !map.hasLayer(intelLayer)) intelLayer.addTo(map); else if (!showIntel && map.hasLayer(intelLayer)) map.removeLayer(intelLayer);
             for (const control of filterControls) control.update();
@@ -209,8 +247,7 @@
         }
         // Filtry: przyciski w pasku filtrów strony (styl strony) albo kontrolka Leaflet w prawym górnym rogu mapy.
         const filterControls = [];
-        const filters = [['satellites', 'Satelity', 'Satelity szpiegowskie na orbicie — własne i (gdy masz satelitę na orbicie) innych państw']]
-            .concat(intelEnabled ? [['intel', 'Rozpoznanie satelitarne', 'Obiekty innych państw rozpoznane przez Twoje satelity']] : []);
+        const filters = [['satellites', 'Rozpoznanie satelitarne', 'Satelity szpiegowskie na orbicie (własne i — gdy masz satelitę na orbicie — innych państw) oraz obiekty rozpoznane przez Twoje satelity']];
         function addFilter(host, [kind, label, title]) {
             if (options.filterStyle === 'checkbox') {
                 const wrap = make('label', null, 'world-layer-toggle satellite-filter'); wrap.title = title; const box = make('input'); box.type = 'checkbox';
@@ -219,7 +256,7 @@
                 filterControls.push({ update: () => { box.checked = filterOn(kind); } });
             } else {
                 const button = make('button', null, options.filterClass || 'satellite-filter-button'); button.type = 'button'; button.title = title;
-                button.append(img(kind === 'satellites' ? state?.icon || '/static/icons/SATELITA%20SZPIEGOWSKI.svg' : '/static/icons/WYWIAD%20WOJSKOWY.svg'), make('span', label));
+                button.append(img('/static/icons/SATELITA%20SZPIEGOWSKI%20LOT.svg'), make('span', label));
                 host.append(button);
                 button.onclick = () => { setFilter(kind, !filterOn(kind)); sync(); };
                 filterControls.push({ update: () => { button.setAttribute('aria-pressed', String(filterOn(kind))); } });
@@ -251,7 +288,7 @@
                 host.append(summary);
                 for (const sat of own) {
                     const card = make('article', null, 'satellite-card'); const head = make('header'); head.append(img(state.icon));
-                    const title = make('div'); title.append(make('strong', sat.name), make('span', sat.status === 'launching' ? 'Wynoszenie na orbitę' : sat.mission ? `Misja: ${sat.mission.label} — ${sat.mission.target}` : 'Na orbicie — gotowy do misji'));
+                    const title = make('div'); title.append(make('strong', `${sat.name} · poziom ${sat.level || 1} (${sat.speed || state.speeds.mission} km/h)`), make('span', sat.status === 'launching' ? 'Wynoszenie na orbitę' : sat.mission ? `Misja: ${sat.mission.label} — ${sat.mission.target}` : 'Na orbicie — gotowy do misji'));
                     head.append(title); card.append(head);
                     if (sat.mission) card.append(make('p', `Dotarcie nad cel i raport: ${when(sat.mission.arrivesAt)} (Entenda).`));
                     host.append(card);
@@ -261,7 +298,7 @@
                     host.append(make('h3', 'Raporty z misji satelitarnych', 'satellite-panel-heading'));
                     for (const report of reports.slice(0, 20)) {
                         const item = make('details', null, 'satellite-report'); const summaryRow = make('summary');
-                        summaryRow.append(make('strong', `${report.label} — ${report.country}`), make('span', report.completed ? `zakończona ${when(report.arrivesAt)}` : `w toku, raport ${when(report.arrivesAt)}`));
+                        summaryRow.append(make('strong', `${report.label} — ${report.country}`), make('span', report.cancelled ? `anulowana ${when(report.endedAt)}` : report.completed ? `zakończona ${when(report.arrivesAt)}` : `w toku, raport ${when(report.arrivesAt)}`));
                         item.append(summaryRow);
                         if (report.completed) { const list = make('dl'); for (const entry of report.entries) { const row = make('div'); row.append(make('dt', entry.label), make('dd', entry.value)); list.append(row); } item.append(list); }
                         else item.append(make('p', 'Satelita leci nad państwo celu.'));

@@ -1,6 +1,6 @@
 {% extends 'game/game_base_layout.html' %}
 {% block title %}Świat — {{ game_country.nazwa }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_satellites.css',v='20261126-sat-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_warehouse_location.css', v='20261123-ui-1') }}">
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static',filename='css/game_satellites.css',v='20261126-sat-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_warehouse_location.css', v='20261123-ui-1') }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_world.css', v='20261120-trains-1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261123-ui-1') }}">
@@ -54,6 +54,6 @@
 <script src="{{ url_for('static', filename='js/game_air_traffic.js', v='20261123-ui-1') }}" defer></script>
 {% if city_config %}<script src="{{ url_for('static', filename='js/game_cities.js', v='20261121-cities-4') }}" defer></script>{% endif %}
 <script src="{{ url_for('static', filename='js/game_warehouse_location.js', v='20261123-ui-1') }}" defer></script>
-<script src="{{ url_for('static',filename='js/game_satellites.js',v='20261126-sat-1') }}" defer></script>
+<script src="{{ url_for('static',filename='js/game_satellites.js',v='20261126-sat-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_world.js', v='20261126-sat-1') }}" defer></script>
 {% endblock %}

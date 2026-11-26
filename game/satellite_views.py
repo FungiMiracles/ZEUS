@@ -50,6 +50,21 @@ def launch_view():
     return _action(handler)
 
 
+@satellites_bp.post('/rozbuduj')
+def upgrade_view():
+    from game.satellites import upgrade, mission_speed
+    def handler(user_id, data):
+        level = upgrade(user_id, data)
+        return {'level': level, 'message': f'Satelita rozbudowany do poziomu {level} — przelot w misji {mission_speed(level)} km/h Entendy.'}
+    return _action(handler)
+
+
+@satellites_bp.post('/anuluj-misje')
+def cancel_view():
+    from game.satellites import cancel_mission
+    return _action(lambda user_id, data: {'id': cancel_mission(user_id, data), 'message': 'Misja anulowana. Satelita wraca do swobodnego dryfu; koszt misji nie jest zwracany.'})
+
+
 @satellites_bp.post('/misja')
 def mission_view():
     from game.satellites import order_mission

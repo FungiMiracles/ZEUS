@@ -6,7 +6,7 @@ Jedno źródło reguł:
 - wyniesienie na orbitę z własnej bazy lotniczej w kraju (ekran „Obrona państwa”): 1 satelita z magazynu, 1 rakieta dalekiego
   zasięgu i 300 ropy naftowej; wynoszenie trwa minutę czasu rzeczywistego;
 - satelita na orbicie dryfuje w losowych kierunkach (100 km/h Entendy); na rozkaz z ekranu „Wywiad wojskowy” leci nad wybrane
-  państwo (500 km/h Entendy) i rozpoznaje obiekty wybranego rodzaju na całym jego terytorium — zawsze skutecznie
+  państwo (600 km/h Entendy; po rozbudowie do poziomów 2–4: 900, 1200, 1500 km/h) i rozpoznaje obiekty wybranego rodzaju na całym jego terytorium — zawsze skutecznie
   (kontrwywiad działa tylko na agentów); każde użycie kosztuje 120 mln ROI z budżetu służb specjalnych i porządkowych;
 - wyniki misji zasilają game.intelligence_service.known_ids (cele w panelu wojennym) i warstwę „Rozpoznanie satelitarne”
   na ekranach „Obrona państwa”, „Świat” i „Wywiad wojskowy”;
@@ -33,7 +33,15 @@ LAUNCH_MISSILE_FIELD = 'rakiety_dalekiego_zasiegu'
 LAUNCH_MISSILES = 1
 LAUNCH_SECONDS = 60                              # czas rzeczywisty wynoszenia (pasek postępu w oknie)
 DRIFT_KMH = 100
-MISSION_KMH = 500
+# 26 Nov 2026: poziomy satelity — prędkość przelotu nad państwo celu (km/h Entendy) i koszt rozbudowy do poziomu (ROI,
+# budżet służb specjalnych i porządkowych). Rozbudowa tylko wtedy, gdy satelita nie wykonuje misji.
+LEVELS = {1: (600, Decimal(0)), 2: (900, Decimal('17500000000')), 3: (1200, Decimal('29000000000')), 4: (1500, Decimal('36200000000'))}
+MAX_LEVEL = max(LEVELS)
+MISSION_KMH = LEVELS[1][0]
+
+
+def mission_speed(level):
+    return LEVELS.get(int(level or 1), LEVELS[1])[0]
 MISSION_COST = Decimal('120000000')              # 120 mln ROI za każde użycie (budżet służb)
 DRIFT_HOURS = (8, 36)                            # długość jednego odcinka dryfu (godziny Entendy)
 LABEL = 'Satelita szpiegowski'
@@ -391,7 +399,7 @@ def order_mission_in_transaction(session, country, data, now=None):
     if session.scalar(select(IntelligenceExpense.id).where(IntelligenceExpense.panstwo_id == country, IntelligenceExpense.request_id == key)) is not None:
         raise FinanceConflict('Identyfikator operacji został już użyty.')
     start = position(sat, now)
-    hours = hypot(point[0] - start[0], point[1] - start[1]) * km_per_unit(session) / MISSION_KMH
+    hours = hypot(point[0] - start[0], point[1] - start[1]) * km_per_unit(session) / mission_speed(sat.level)
     arrives = now + timedelta(hours=max(hours, 1 / 60))
     mission = SatelliteMission(panstwo_id=country, satellite_id=sat.id, kind=kind, target_country_id=target_id, target_name=target.panstwo_nazwa,
                                cost=MISSION_COST, starts_at=now, arrives_at=arrives, request_id=key)
@@ -404,6 +412,79 @@ def order_mission_in_transaction(session, country, data, now=None):
     sat.mode, sat.mission_id = 'mission', mission.id
     session.flush()
     return mission.id
+
+
+def _own_satellite(session, country, data):
+    sat_id = data.get('satellite_id')
+    if type(sat_id) is not int:
+        raise FinanceError('Wybierz satelitę.')
+    sat = session.scalar(select(SpySatellite).where(SpySatellite.id == sat_id, SpySatellite.panstwo_id == country).with_for_update())
+    if sat is None or sat.status != 'orbit':
+        raise FinanceError('Satelita nie należy do Twojego państwa albo nie jest jeszcze na orbicie.')
+    return sat
+
+
+def upgrade(user_id, data):
+    with Session(db.engine) as session, session.begin():
+        country = _country_for_user(session, user_id, lock=True).PANSTWO_ID
+        return upgrade_in_transaction(session, country, data)
+
+
+def upgrade_in_transaction(session, country, data, now=None):
+    """Rozbudowa satelity o jeden poziom (szybszy przelot w misji); koszt z budżetu służb specjalnych i porządkowych."""
+    from game.intelligence_models import IntelligenceExpense
+    from game.intelligence_service import intelligence_budget
+    if not tables_ready(session):
+        raise FinanceError('Satelity nie są jeszcze dostępne na tym serwerze.')
+    key = _request_id(data)
+    payload = {k: v for k, v in data.items() if k != 'request_id'}
+    payload['action'] = 'satellite_upgrade'
+    previous = session.scalar(select(IntelligenceExpense).where(IntelligenceExpense.panstwo_id == country, IntelligenceExpense.request_id == key))
+    if previous is not None:
+        if previous.payload != payload:
+            raise FinanceConflict('Identyfikator operacji został już użyty.')
+        return session.get(SpySatellite, data.get('satellite_id')).level
+    now = now or game_now()
+    settle(session, now, country)
+    sat = _own_satellite(session, country, data)
+    if sat.mode == 'mission':
+        raise FinanceError('Satelitę można rozbudować tylko wtedy, gdy nie wykonuje misji.')
+    if sat.level >= MAX_LEVEL:
+        raise FinanceError(f'Satelita ma już najwyższy poziom ({MAX_LEVEL}).')
+    if data.get('expected_level') != sat.level:
+        raise FinanceConflict('Poziom satelity zmienił się. Odśwież ekran.')
+    cost = LEVELS[sat.level + 1][1]
+    budget, _total, free = intelligence_budget(session, country, now)
+    if budget is None or free < cost:
+        raise FinanceError(f'Za mało środków w budżecie służb specjalnych i porządkowych (potrzeba {cost / Decimal(1000000000):.1f} mld ROI).'.replace('.', ','))
+    session.add(IntelligenceExpense(panstwo_id=country, budget_id=budget.id, amount=cost, request_id=key, payload=payload))
+    sat.level += 1
+    session.flush()
+    return sat.level
+
+
+def cancel_mission(user_id, data):
+    with Session(db.engine) as session, session.begin():
+        country = _country_for_user(session, user_id, lock=True).PANSTWO_ID
+        return cancel_mission_in_transaction(session, country, data)
+
+
+def cancel_mission_in_transaction(session, country, data, now=None):
+    """Anulowanie misji: koszt nie jest zwracany, satelita wraca do swobodnego dryfu z bieżącego miejsca."""
+    if not tables_ready(session):
+        raise FinanceError('Satelity nie są jeszcze dostępne na tym serwerze.')
+    now = now or game_now()
+    settle(session, now, country)
+    sat = _own_satellite(session, country, data)
+    if sat.mode != 'mission':
+        raise FinanceError('Satelita nie wykonuje misji.')
+    mission = session.get(SatelliteMission, sat.mission_id) if sat.mission_id else None
+    if mission is not None and mission.completed_at is None:
+        mission.completed_at = now
+        mission.report = {'cancelled': True, 'entries': [{'label': 'Wynik', 'value': 'Misja anulowana przed dotarciem nad cel. Koszt użycia satelity nie jest zwracany.'}]}
+    _drift(sat, position(sat, now), now, km_per_unit(session))
+    session.flush()
+    return sat.id
 
 
 # ---------------- dane dla map i ekranów ----------------
@@ -434,7 +515,7 @@ def visible(session, viewer, now=None):
         item = {'id': sat.id, 'countryId': sat.panstwo_id, 'country': name, 'own': own, 'status': sat.status, 'mode': sat.mode,
                 'name': f'{LABEL} #{sat.id}', 'flag': url_for('static', filename='flags/' + name.replace(' ', '_') + '.jpg'),
                 'from': [sat.from_x, sat.from_y], 'to': [sat.to_x, sat.to_y], 'segStart': _iso(sat.seg_start), 'segEnd': _iso(sat.seg_end),
-                'orbitAt': _iso(sat.orbit_at), 'position': list(position(sat, now))}
+                'orbitAt': _iso(sat.orbit_at), 'position': list(position(sat, now)), 'level': sat.level, 'speed': mission_speed(sat.level)}
         mission = missions.get(sat.mission_id)
         if own and mission is not None:
             item['mission'] = {'id': mission.id, 'kind': mission.kind, 'label': MISSIONS[mission.kind], 'target': mission.target_name, 'arrivesAt': _iso(mission.arrives_at)}
@@ -465,6 +546,7 @@ def mission_list(session, viewer, limit=50):
     rows = session.scalars(select(SatelliteMission).where(SatelliteMission.panstwo_id == viewer).order_by(SatelliteMission.id.desc()).limit(limit))
     return [{'id': m.id, 'satelliteId': m.satellite_id, 'kind': m.kind, 'label': MISSIONS[m.kind], 'country': m.target_name, 'countryId': m.target_country_id,
              'startsAt': _iso(m.starts_at), 'arrivesAt': _iso(m.arrives_at), 'completed': m.completed_at is not None,
+             'cancelled': bool((m.report or {}).get('cancelled')), 'endedAt': _iso(m.completed_at),
              'entries': (m.report or {}).get('entries', []) if m.completed_at else []} for m in rows]
 
 
@@ -506,5 +588,8 @@ def screen_config(session, viewer, now=None):
             'icon': icon(ICON), 'flightIcon': icon(FLIGHT_ICON), 'launchIcon': icon(LAUNCH_ICON),
             'missions': [{'code': code, 'label': label, 'icon': icon(MISSION_ICONS[code])} for code, label in MISSIONS.items()],
             'missionCost': str(MISSION_COST), 'speeds': {'drift': DRIFT_KMH, 'mission': MISSION_KMH}, 'launchSeconds': LAUNCH_SECONDS,
+            'levels': {str(level): {'speed': speed, 'cost': str(cost)} for level, (speed, cost) in LEVELS.items()}, 'maxLevel': MAX_LEVEL,
+            'upgradeIcon': icon('ROZBUDUJ.svg'), 'cancelIcon': icon('WYCOFAJ.svg'),
+            'upgradeUrl': url_for('game_satellites.upgrade_view'), 'cancelUrl': url_for('game_satellites.cancel_view'),
             'countries': target_countries(session, viewer),
             'stateUrl': url_for('game_satellites.state'), 'launchUrl': url_for('game_satellites.launch_view'), 'missionUrl': url_for('game_satellites.mission_view')}

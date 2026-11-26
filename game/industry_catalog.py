@@ -101,7 +101,8 @@ FACTORIES['nuclear_missiles'].update(on_demand=True,build_days=31,budget_sector=
 # wyłącznie na zamówienie — 1 satelita szpiegowski / 90 dni, na sztukę 300 żelaza, 25 ropy naftowej i 3 chipy cemium I;
 # pobór 600 e/dzień w trakcie realizacji zamówienia. Satelity trafiają do magazynu (game_resource_stocks: spy_satellites).
 factory('satellites','Fabryka satelitów',[recipe(21.5,['spy_satellite'],'spy_satellites',{'zelazo':300,'ropa_naftowa':25,'chip_cemium_i':3},600,1,90)])
-FACTORIES['satellites'].update(on_demand=True,build_days=24,icon='FABRYKA.svg',
+FACTORIES['satellites'].update(on_demand=True,build_days=24,icon='SATELITA SZPIEGOWSKI.svg',   # 26 Nov 2026: ikona satelity na karcie budowy
+   
     units=dict(one='satelita',gen='satelity',many='satelitów',plural='satelity',title='Zamów satelity szpiegowskie'))
 POWER_PLANTS={}
 for code,label,costs,production,fuel,amounts in [('coal','Elektrownia węglowa',[2300000000,4400000000,6800000000],[100,200,300],'wegiel_kamienny',[1,2,3]),('nuclear','Elektrownia atomowa',[25700000000,36300000000,53500000000],[1000,2000,3000],'uran',[1,2,3]),('wind','Elektrownia wiatrowa',[1200000000,1200000000,1600000000],[6,12,18],None,[0,0,0]),('solar','Elektrownia słoneczna',[1500000000,1000000000,1300000000],[8,16,24],None,[0,0,0])]:POWER_PLANTS[code]=dict(label=label,technology='power_'+code,costs=costs,production=production,fuel=fuel,amounts=amounts,icon=label.upper()+'.svg')

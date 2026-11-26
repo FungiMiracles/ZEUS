@@ -89,3 +89,17 @@ html body.game-app.game-navy .satellite-dialog .satellite-dialog-actions .satell
 html body.game-app.game-navy .satellite-dialog .satellite-dialog-actions .satellite-secondary{background:#fff;color:#1E3A5F;border:1px solid #c9d6e6;box-shadow:none}
 html body.game-app.game-navy .satellite-map-filters .satellite-filter-button{background:#1E3A5F;color:#fff;border-color:#1E3A5F;min-height:30px;padding:5px 9px;font-size:11px}
 html body.game-app.game-navy .satellite-map-filters .satellite-filter-button[aria-pressed=false]{background:#eef3fa;color:#4d5f78;border-color:#c9d6e6}
+/* 26 Nov 2026 (poprawki): znacznik satelity bez koła — sama ikona lotu z białą obwódką i bardzo lekkim żółtym blaskiem */
+.satellite-marker{width:38px;height:38px;padding:2px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.satellite-marker.is-own{box-shadow:none}
+.satellite-marker-icon{filter:drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff) drop-shadow(0 0 5px rgb(255 214 80 / 32%))}
+.satellite-marker-flag{right:-6px;bottom:-2px;border:1px solid #fff;box-shadow:0 0 2px #0006}
+/* Koło opcji na ekranie wywiadu: ogólny styl przycisków ekranu (granatowe tło) nie dotyczy pozycji menu */
+html body.game-app.game-navy.game-civic.intelligence-room .game-main .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item,
+html body.game-app.game-navy.game-civic.intelligence-room .game-main .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:hover:not(:disabled),
+html body.game-app.game-navy.game-civic.intelligence-room .game-main .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:disabled{min-height:0;padding:0;background:none;border:0;border-radius:0;box-shadow:none;color:inherit}
+html body.game-app.game-navy.game-civic.intelligence-room .game-main .leaflet-container .radial-menu button.radial-menu-item.radial-menu-item:focus-visible{outline:none}
+/* Przycisk anulowania misji */
+html body.game-app.game-navy .satellite-dialog .satellite-dialog-actions .satellite-primary.satellite-danger{background:#b3261e;border-color:#b3261e}
+html body.game-app.game-navy .satellite-dialog .satellite-dialog-actions .satellite-primary.satellite-danger:hover:not(:disabled){background:#8e1c1c}
+html body.game-app.game-navy .satellite-dialog.is-danger{border-top-color:#b3261e}
