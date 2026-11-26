@@ -97,6 +97,21 @@ class TradeTests(unittest.TestCase):
         ctx=EconomyCtx(screens={'trade':screen});ctx.situation.update(at_war=[4])
         with patch('game.paga2.trade.planned_acquisitions',return_value={'zelazo'}):self.assertEqual([o.payload['offer_id'] for o in trade.buy_options(ctx,screen,{})],[1])
 
+    def test_offers_without_delivery_route_are_not_bought(self):
+        # 26 Nov 2026: Nuveco setki razy próbowało kupić towar bez drogi dostawy (kolej, port, lotnisko) do swojego magazynu.
+        iron=pricing.unit_value('zelazo')
+        offers=[{'id':1,'sellerId':2,'seller':'B','cargo':{'zelazo':200},'price':str(iron*200*.8),'usable':True},
+                {'id':5,'sellerId':3,'seller':'C','cargo':{'zelazo':200},'price':str(iron*200*.9),'usable':True}]
+        screen=trade_screen(offers=offers)
+        ctx=EconomyCtx(screens={'trade':screen},holdings=FakeHoldings(factories=['tanks']))
+        with patch('game.paga2.trade.planned_acquisitions',return_value=set()),patch('game.paga2.trade.deliverable',lambda ctx,offer_id:offer_id!=1):
+            self.assertEqual([o.payload['offer_id'] for o in trade.buy_options(ctx,screen,{})],[5])
+        with patch('game.trade_routes.delivery_options',return_value=[]),patch('game.paga2.trade.db'),patch('game.paga2.trade.Session') as session:
+            session.return_value.__enter__.return_value.get.return_value=object()
+            self.assertFalse(trade.deliverable(ctx,7))
+            self.assertFalse(trade.deliverable(ctx,7))
+        self.assertEqual(session.call_count,1)   # wynik zapamiętany w przebiegu
+
 
 class PortRateTests(unittest.TestCase):
     def test_own_port_is_free_and_foreign_port_uses_its_tariff(self):

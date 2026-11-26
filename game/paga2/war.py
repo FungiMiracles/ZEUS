@@ -46,6 +46,33 @@ def km(ctx,a,b):
     return _world(ctx).distance_km(a,b)
 
 
+OVERLAND_CANDIDATES=5   # ile najbliższych baz sprawdzać pod kątem trasy lądowej do celu
+
+
+def overland_ok(ctx,source,target):
+    """26 Nov 2026: czy armia dojdzie lądem z punktu source do target (ta sama reguła co gra: game.land_war.overland).
+    Wynik zapamiętywany w przebiegu; błąd geometrii = brak wiedzy (decyzję zostawiamy grze)."""
+    cache=getattr(ctx,'_overland',None)
+    if cache is None:cache=ctx._overland={}
+    key=(round(source[0],4),round(source[1],4),round(target[0],4),round(target[1],4))
+    if key not in cache:
+        try:
+            from game.sea_routes import overland
+            from game.paga2.defense import _world
+            scale=_world(ctx).km_per_unit
+            cache[key]=bool(overland(source,target,endpoint_km=4,km_per_unit=scale)) if scale else True
+        except Exception:
+            cache[key]=True
+    return cache[key]
+
+
+def land_base_for(ctx,bases,point):
+    """Najbliższa baza lądowa, z której cel jest osiągalny drogą lądową (spośród OVERLAND_CANDIDATES najbliższych), albo None."""
+    for base in sorted(bases,key=lambda b:km(ctx,[b.map_x,b.map_y],point) or 1e9)[:OVERLAND_CANDIDATES]:
+        if overland_ok(ctx,[base.map_x,base.map_y],point):return base
+    return None
+
+
 def missile_for(distance,stock):
     """Rodzaj rakiety o zasięgu obejmującym cel i dostępnym zapasie."""
     for kind,(low,high) in RANGES.items():
@@ -299,14 +326,18 @@ def land_options(ctx,forces,screen,config,enemies,recapture_targets):
         if ('city',int(id)) in held:continue
         if city.get('countryId') in enemies&neighbors and city.get('point'):targets.append(('city',int(id),city['point'],city['countryId'],None,False))
     targets+=recapture_targets
+    # 26 Nov 2026: cele bez trasy lądowej z żadnej bliskiej bazy (np. za morzem) są pomijane — wcześniej PAGA2 setki razy
+    # ponawiała najazd, który gra odrzucała („trasa przemarszu przecina morze lub ocean”), a plany takich celów są zamykane.
+    reach={(kind,id):land_base_for(ctx,bases,point) for kind,id,point,*_ in targets}
+    targets=[item for item in targets if reach[(item[0],item[1])] is not None]
     live={(kind,id) for kind,id,*_ in targets}
     # Plany, których cel przestał istnieć (odzyskany, poza wojną), są zamykane.
     for key,(plan_id,goal) in plans.items():
-        if key not in live:update_plan(plan_id,[],status='DONE' if goal.startswith('recapture') else 'ABANDONED',reason='Cel nie jest już aktualny (odzyskany lub poza wojną).')
+        if key not in live:update_plan(plan_id,[],status='DONE' if goal.startswith('recapture') else 'ABANDONED',reason='Cel nie jest już aktualny (odzyskany, poza wojną albo nieosiągalny drogą lądową).')
     for kind,id,point,owner,level,recapture in targets:
         if (kind,id) in intel['marching']:continue          # nasza armia już maszeruje na ten cel — czekamy na wynik bitwy
         defeats=(intel['targets'].get((kind,id)) or {}).get('defeats',0)
-        base=min(bases,key=lambda b:km(ctx,[b.map_x,b.map_y],point) or 1e9)
+        base=reach[(kind,id)]
         defense=battle_estimate(ctx,kind,level,id,screen,owner)
         garrison={u:int((base.garrison or {}).get(u,0)) for u in WEIGHTS}
         ours=sum(garrison[u]*WEIGHTS[u] for u in WEIGHTS)*training/100

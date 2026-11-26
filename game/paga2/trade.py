@@ -217,7 +217,30 @@ def buy_options(ctx,screen,factors):
                               effects={'production':1.0,'trade':.5},traits={'trade_propensity':.8,'isolationism':-.5},base=4.0+min(6.0,10*(value*tolerance-total)/max(1,total)),
                               notes=[f'Potrzebne: {", ".join(LABELS.get(c,c) for c in sorted(useful))}; cena z zapasem na dostawę {total/1e9:.2f} MLD, wartość {value/1e9:.2f} MLD.'],
                               payload={'action':'buy','offer_id':offer['id'],'delivery':'auto','group':'trade:buy'}))
-    return sorted(options,key=lambda o:-o.base)[:5]
+    # 26 Nov 2026: tylko oferty z dostępną drogą dostawy (kolej, port, lotnisko) do naszego magazynu — gra odrzuca zakup
+    # bez niej („Brak dostępnej drogi dostawy…”), a PAGA2 ponawiała go w każdym przebiegu (Nuveco: setki odrzuceń).
+    chosen=[]
+    for option in sorted(options,key=lambda o:-o.base):
+        if len(chosen)>=5:break
+        if deliverable(ctx,option.payload['offer_id']):chosen.append(option)
+    return chosen
+
+
+def deliverable(ctx,offer_id):
+    """Czy z magazynu sprzedającego istnieje droga dostawy do magazynu państwa (ta sama reguła co zakup w grze)."""
+    cache=getattr(ctx,'_deliverable',None)
+    if cache is None:cache=ctx._deliverable={}
+    if offer_id not in cache:
+        try:
+            from game.commerce_models import TradeOffer
+            from game.trade_routes import delivery_options
+            with Session(db.engine) as session:
+                offer=session.get(TradeOffer,offer_id)
+                cache[offer_id]=bool(offer is not None and delivery_options(session,offer,ctx.country_id))
+                session.rollback()
+        except Exception:
+            cache[offer_id]=True   # brak wiedzy — decyzję zostawiamy grze
+    return cache[offer_id]
 
 
 def propose(ctx):

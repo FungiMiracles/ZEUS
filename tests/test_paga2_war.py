@@ -65,8 +65,12 @@ class LandTests(unittest.TestCase):
     def setUp(self):
         self.intel={'targets':{},'training':{},'marching':set()};self.plans={};self.updates=[]
         for target in (patch('game.paga2.war.km',lambda ctx,a,b:100.0),patch('game.paga2.war.battle_intel',lambda ctx:self.intel),
-                       patch('game.paga2.war.war_plans',lambda ctx:self.plans),patch('game.paga2.war.update_plan',lambda *a,**k:self.updates.append((a,k)))):
+                       patch('game.paga2.war.war_plans',lambda ctx:self.plans),patch('game.paga2.war.update_plan',lambda *a,**k:self.updates.append((a,k))),
+                       patch('game.paga2.war.overland_ok',lambda ctx,a,b:self.overland(a,b))):
             target.start();self.addCleanup(target.stop)
+        self.overland=lambda a,b:True
+
+    _real=staticmethod(war.overland_ok)   # prawdziwa funkcja (setUp podstawia ją w land_options)
 
     def land_base(self,soldiers=10000,tanks=100):
         b=base(1,kind='land',garrison={'soldiers':soldiers,'tanks':tanks,'armored':0},x=0.0);b.operational=True;return b
@@ -77,6 +81,30 @@ class LandTests(unittest.TestCase):
         self.assertEqual((attack.action,attack.payload['target_kind'],attack.payload['target_id']),('LAND_ATTACK','city',500))
         self.assertLess(attack.payload['soldiers'],10000)                # nie cały garnizon — tyle, ile potrzeba z zapasem
         self.assertEqual(war.land_options(wctx(),forces(bases=[self.land_base(soldiers=100,tanks=0)]),screen(),CONFIG,{7},[]),[])
+
+    def test_target_beyond_sea_is_skipped_and_reachable_base_chosen(self):
+        # 26 Nov 2026: Rannisjaon ponawiał setki najazdów na miasta za morzem („trasa przemarszu przecina morze lub ocean”).
+        f=forces(bases=[self.land_base()],army={'wyszkolenie_ladowe':100})
+        self.overland=lambda a,b:False
+        self.assertEqual(war.land_options(wctx(),f,screen(),CONFIG,{7},[]),[])
+        self.plans={('city',500):(42,'conquer:city:500')}
+        war.land_options(wctx(),f,screen(),CONFIG,{7},[])
+        self.assertTrue(any(a[0]==42 and k.get('status')=='ABANDONED' for a,k in self.updates))   # plan celu nieosiągalnego zamknięty
+        # Najbliższa baza za morzem, dalsza osiągalna lądem — atak z dalszej.
+        near=self.land_base();far=base(2,kind='land',garrison={'soldiers':10000,'tanks':100,'armored':0},x=0.0);far.operational=True;far.map_x=-5.0
+        self.plans={};self.overland=lambda a,b:a[0]==-5.0
+        with patch('game.paga2.war.km',lambda ctx,a,b:abs(a[0]-b[0])*100):
+            [attack]=war.land_options(wctx(),forces(bases=[near,far],army={'wyszkolenie_ladowe':100}),screen(),CONFIG,{7},[])
+        self.assertEqual(attack.payload['source_base_id'],2)
+
+    def test_overland_check_uses_game_rule_and_caches(self):
+        calls=[]
+        def fake(source,target,endpoint_km=0,km_per_unit=1):calls.append((endpoint_km,km_per_unit));return False
+        c=NS(country_id=1)
+        with patch('game.sea_routes.overland',fake),patch('game.paga2.defense._world',lambda ctx:NS(km_per_unit=3.9)):
+            self.assertFalse(self._real(c,[0,0],[1,1]))
+            self.assertFalse(self._real(c,[0,0],[1,1]))   # drugi raz z pamięci przebiegu
+        self.assertEqual(calls,[(4,3.9)])
 
     def test_already_occupied_enemy_city_is_not_attacked_again(self):
         # 14 Nov 2026: gra odrzucała 906 takich ataków („Ten obiekt jest już pod kontrolą naszego państwa.”).

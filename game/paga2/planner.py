@@ -145,6 +145,52 @@ def supply(plan,resource,h):
         return
 
 
+def fuel_balance(h,code):
+    """Dzienne zużycie paliwa przez sprawne elektrownie na to paliwo oraz wydobycie własnych kopalń (gotowe, w budowie)."""
+    need=sum(POWER_PLANTS[p['kind']]['amounts'][p.get('level',1)-1] for p in h.plants
+             if p['kind'] in POWER_PLANTS and POWER_PLANTS[p['kind']]['fuel']==code and p['health']>=3)
+    ready=sum(MINE_RULES[code][3][m.get('level',1)-1] for m in h.mines if m['resource']==code and m['ready'])
+    building=sum(MINE_RULES[code][3][m.get('level',1)-1] for m in h.mines if m['resource']==code and not m['ready'])
+    return need,ready,building
+
+
+def fuel(plan,h,key):
+    """Paliwo dla elektrowni stojących z jego braku: dodatkowa kopalnia (albo jej technologia) i zakup w handlu;
+    bez złóż i z technologią OZE — elektrownia wiatrowa/słoneczna, która paliwa nie potrzebuje."""
+    idle_fuels={POWER_PLANTS[p['kind']]['fuel'] for p in h.plants
+                if p['kind'] in POWER_PLANTS and POWER_PLANTS[p['kind']]['fuel'] and p['health']>=3 and not p.get('running',True)}
+    idle=h.idle_capacity() if hasattr(h,'idle_capacity') else 0
+    renewable=False
+    for code in sorted(idle_fuels):
+        label=RESOURCE_LABELS.get(code,code)
+        need,ready,building=fuel_balance(h,code)
+        gap=need-ready-building
+        if gap>0 and h.deposit_regions(code):
+            rule=MINE_RULES[code]
+            tech_ready=research(plan,rule[1],h,plan.points)
+            if plan.impossible:return
+            per_mine=rule[3][0]
+            plan.add(step(f'fuelmine:{code}:{key}','build_mine',f'{rule[0]} — paliwo dla elektrowni (zużycie {need}/dzień, wydobycie {ready}, w budowie {building}; potrzeba ok. {math.ceil(gap/per_mine)} kopalń)',
+                          'ready' if tech_ready else 'blocked',{'resource':code,'regions':h.deposit_regions(code)},None if tech_ready else 'Wymagana technologia wydobycia.',
+                          cost=MINE_COSTS[code],sector='infrastructure'))
+        elif gap>0:
+            renewable=True
+        elif building>0:
+            plan.add(step(f'fuelmine:{code}:{key}','build_mine',f'{MINE_RULES[code][0]} w budowie — paliwo dla elektrowni','building'))
+        # zakup w handlu do czasu, aż wydobycie pokryje zużycie (etap nieblokujący — realizuje go handel PAGA2)
+        if gap>0 or h.stock.get(code,0)<need:
+            plan.add(step(f'buy:{code}','acquire',f'Zakup surowca „{label}” w handlu — paliwo dla elektrowni','external',{'resource':code}))
+    if renewable:
+        for kind in ('solar','wind'):
+            rule=POWER_PLANTS[kind]
+            if h.developed(rule['technology']):
+                plan.add(step(f'power:{kind}:{key}','build_power',f'{rule["label"]} — energia bez paliwa (brak złóż paliwa dla stojących elektrowni)','ready',
+                              {'kind':kind},cost=rule['costs'][0],sector='infrastructure'))
+                break
+    plan.add(step(f'fuel:{key}','acquire','Paliwo dla nieczynnych elektrowni (zakup w handlu lub wydobycie)','blocked',{'resource':sorted(idle_fuels)[0] if idle_fuels else 'wegiel_kamienny'},
+                  f'{idle:.0f} jedn. mocy stoi bez paliwa.'))
+
+
 def energy(plan,needed,h,key):
     """Wystarczająca moc dla nowego odbiorcy; elektrownia bez paliwa (wiatr/słońce), węglowa przy dużym zapotrzebowaniu i złożu węgla."""
     if h.energy_surplus()>=needed:return True
@@ -152,9 +198,9 @@ def energy(plan,needed,h,key):
     idle=h.idle_capacity() if hasattr(h,'idle_capacity') else 0
     if idle>0:
         # 12 Nov 2026: elektrownie stoją z braku paliwa — kolejne by nie pomogły (pętla budowy). Najpierw paliwo (wydobycie lub zakup).
-        supply(plan,'wegiel_kamienny',h);supply(plan,'uran',h)
-        plan.add(step(f'fuel:{key}','acquire','Paliwo dla nieczynnych elektrowni (zakup w handlu lub wydobycie)','blocked',{'resource':'wegiel_kamienny'},
-                      f'{idle:.0f} jedn. mocy stoi bez paliwa.'))
+        # 26 Nov 2026: bilans paliwa zamiast samego „jest kopalnia” — wcześniej jedna kopalnia (np. 5 szt./dzień) przy zużyciu 15 szt./dzień
+        # kończyła planowanie, a uran był planowany także bez elektrowni atomowych (zbędna kopalnia / zakupy).
+        fuel(plan,h,key)
         return False
     kind='coal' if deficit>24 and (h.deposit_regions('wegiel_kamienny') or h.stock.get('wegiel_kamienny',0)>0) else 'solar' if h.developed('power_solar') else 'wind'
     rule=POWER_PLANTS[kind]

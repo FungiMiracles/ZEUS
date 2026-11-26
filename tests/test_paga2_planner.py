@@ -87,6 +87,48 @@ class DecompositionTests(unittest.TestCase):
         kinds=[s['kind'] for s in plan.steps]
         self.assertNotIn('build_power',kinds);self.assertIn('acquire',kinds)   # najpierw paliwo, nie kolejna elektrownia
 
+    def test_fuel_shortage_with_existing_mine_plans_more_mines_and_purchase(self):
+        # 26 Nov 2026: Sajstan — 5 elektrowni węglowych poz. 3 (15 węgla/dzień) i jedna kopalnia poz. 3 (5/dzień): wcześniej plan stał.
+        h=FakeHoldings(nodes={'method':True,'energy_industry':True,'power_coal':True,'mining_industry':True,'mine_coal':True},deposits={'wegiel_kamienny':[1]},energy=(0,1000))
+        h.mines=[{'resource':'wegiel_kamienny','level':3,'ready':True,'region':1,'x':0,'y':0}]
+        h.plants=[{'kind':'coal','level':3,'health':3,'running':i<2,'region':1,'x':0,'y':0} for i in range(5)]
+        h.stock={'wegiel_kamienny':1};h.idle_capacity=lambda:900.0
+        plan=planner.Plan();plan.points={'left':0}
+        self.assertFalse(planner.energy(plan,10,h,'x'))
+        mine=next(s for s in plan.steps if s['key']=='fuelmine:wegiel_kamienny:x')
+        self.assertEqual((mine['kind'],mine['status']),('build_mine','ready'));self.assertIn('ok. 10 kopalń',mine['label'])
+        self.assertIn(('buy:wegiel_kamienny','external'),statuses(plan))
+        self.assertFalse(any('uran' in s['key'] for s in plan.steps))   # bez elektrowni atomowych — bez uranu
+        self.assertNotIn('build_power',[s['kind'] for s in plan.steps])
+
+    def test_fuel_mines_under_construction_count_and_no_duplicate(self):
+        h=FakeHoldings(nodes={'method':True,'energy_industry':True,'power_coal':True,'mining_industry':True,'mine_coal':True},deposits={'wegiel_kamienny':[1]},energy=(0,1000))
+        h.mines=[{'resource':'wegiel_kamienny','level':1,'ready':False,'region':1,'x':0,'y':0}]
+        h.plants=[{'kind':'coal','level':1,'health':3,'running':False,'region':1,'x':0,'y':0}]
+        h.stock={'wegiel_kamienny':5};h.idle_capacity=lambda:100.0
+        plan=planner.Plan();plan.points={'left':0}
+        planner.energy(plan,10,h,'x')
+        self.assertIn(('fuelmine:wegiel_kamienny:x','building'),statuses(plan))   # kopalnia w budowie pokrywa zużycie
+        self.assertFalse(any(s['status']=='ready' and s['kind']=='build_mine' for s in plan.steps))
+
+    def test_fuel_without_deposits_buys_and_builds_renewables(self):
+        h=FakeHoldings(nodes={'method':True,'energy_industry':True,'power_coal':True,'power_wind':True},energy=(0,1000))
+        h.plants=[{'kind':'coal','level':1,'health':3,'running':False,'region':1,'x':0,'y':0}]
+        h.idle_capacity=lambda:100.0
+        plan=planner.Plan();plan.points={'left':0}
+        planner.energy(plan,10,h,'x')
+        self.assertIn(('buy:wegiel_kamienny','external'),statuses(plan))
+        self.assertIn(('power:wind:x','ready'),statuses(plan))
+
+    def test_uranium_only_for_idle_nuclear_plants(self):
+        h=FakeHoldings(nodes={'method':True,'energy_industry':True,'power_nuclear':True,'mining_industry':True,'mine_uranium':True},deposits={'uran':[2]},energy=(0,1000))
+        h.plants=[{'kind':'nuclear','level':1,'health':3,'running':False,'region':1,'x':0,'y':0}]
+        h.idle_capacity=lambda:1000.0
+        plan=planner.Plan();plan.points={'left':0}
+        planner.energy(plan,10,h,'x')
+        self.assertIn(('fuelmine:uran:x','ready'),statuses(plan))
+        self.assertFalse(any('wegiel' in s['key'] for s in plan.steps))
+
     def test_impossible_goals_are_recognised(self):
         self.assertIn('Brak złóż',planner.decompose('mine:zelazo',FakeHoldings()).impossible)
         self.assertIn('nadmorskiego',planner.decompose('factory:shipyard',FakeHoldings(coastal=())).impossible)
