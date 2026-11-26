@@ -33,9 +33,9 @@ def put(code, quantity, country=1):
 
 
 class SatelliteCatalogTests(CommerceFixture):
-    def test_technology_branches_off_radar_with_cost_and_duration(self):
+    def test_technology_branches_off_chip_cemium_i_with_cost_and_duration(self):
         rule = TECHNOLOGIES['spy_satellite']
-        self.assertEqual((rule['label'], rule['cost'], rule['parent'], rule['requires']), ('Satelita szpiegowski', 900, 'radar', ['radar']))
+        self.assertEqual((rule['label'], rule['cost'], rule['parent'], rule['requires']), ('Satelita szpiegowski', 900, 'chip_cemium_i', ['chip_cemium_i']))
         from game.research_timing import DURATION_DAYS
         self.assertEqual(DURATION_DAYS['spy_satellite'], 60)
         from game.research import technology_layout

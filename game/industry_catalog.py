@@ -14,9 +14,9 @@ for code,label,cost in [('simple','Chip prosty',100),('kerbit','Chip kerbitowy',
     tech('chip_'+code,label,cost,parent,'it','computer');parent='chip_'+code
 # Radar reconnaissance (administrator, 11 Nov 2026): branches off the natsyt chip; unlocks radars on the defence map.
 tech('radar','Rozpoznanie radarowe',600,'chip_natsyt','it','radar')
-# Satelita szpiegowski (administrator, 26 Nov 2026): bąbel odchodzący od rozpoznania radarowego; 900 pkt, 60 dni Entendy.
+# Satelita szpiegowski (administrator, 26 Nov 2026): bąbel odchodzący od chipu cemium I (wcześniej od rozpoznania radarowego); 900 pkt, 60 dni Entendy.
 # Umożliwia budowę fabryki satelitów (Infrastruktura) i wynoszenie satelitów na orbitę z bazy lotniczej (game.satellites).
-tech('spy_satellite','Satelita szpiegowski',900,'radar','it','satellite')
+tech('spy_satellite','Satelita szpiegowski',900,'chip_cemium_i','it','satellite')
 tech('energy_industry','Krajowa produkcja energii',15,'method','energy','energy')
 for code,label,cost in [('coal','Elektrownia węglowa',15),('nuclear','Elektrownia atomowa',350),('wind','Elektrownia wiatrowa',100),('solar','Elektrownia słoneczna',150)]:tech('power_'+code,label,cost,'energy_industry','energy','energy')
 # Environmental protection branch (administrator rules, 10 Nov 2026): pollution filter for coal power plants (previously
