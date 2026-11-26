@@ -155,12 +155,13 @@ def _land(features):
 GRID_CELLS = 220          # komórek siatki wzdłuż dłuższego boku okna wyszukiwania
 
 
-def land_path(features, start, end):
+def land_path(features, start, end, land=None):
+    """26 Nov 2026: `land` — gotowa geometria lądu (np. terytorium stron wojny dla przemarszu armii, game.land_routes)."""
     import heapq
     import numpy as np
     import shapely
     from shapely.geometry import LineString
-    land = _land(features)
+    land = _land(features) if land is None else land
     if land.is_empty:
         raise FinanceError('Brak lądowego połączenia między miastami. Wybierz inne miasta.')
     bx0, by0, bx1, by1 = land.bounds

@@ -49,27 +49,28 @@ def km(ctx,a,b):
 OVERLAND_CANDIDATES=5   # ile najbliższych baz sprawdzać pod kątem trasy lądowej do celu
 
 
-def overland_ok(ctx,source,target):
-    """26 Nov 2026: czy armia dojdzie lądem z punktu source do target (ta sama reguła co gra: game.land_war.overland).
+def overland_ok(ctx,source,target,holder=None):
+    """26 Nov 2026: czy armia dojdzie lądem z punktu source do target — ta sama reguła co gra (game.land_routes: droga
+    okrężna po lądzie, omija akweny, tylko przez terytoria stron wojny z państwem `holder`, które trzyma cel).
     Wynik zapamiętywany w przebiegu; błąd geometrii = brak wiedzy (decyzję zostawiamy grze)."""
     cache=getattr(ctx,'_overland',None)
     if cache is None:cache=ctx._overland={}
-    key=(round(source[0],4),round(source[1],4),round(target[0],4),round(target[1],4))
+    key=(round(source[0],4),round(source[1],4),round(target[0],4),round(target[1],4),holder)
     if key not in cache:
         try:
-            from game.sea_routes import overland
-            from game.paga2.defense import _world
-            scale=_world(ctx).km_per_unit
-            cache[key]=bool(overland(source,target,endpoint_km=4,km_per_unit=scale)) if scale else True
+            from game.land_routes import participants,route
+            with Session(db.engine) as session:
+                sides=participants(session,ctx.country_id,holder) if holder is not None else {ctx.country_id}
+                cache[key]=route(session,source,target,sides) is not None
         except Exception:
             cache[key]=True
     return cache[key]
 
 
-def land_base_for(ctx,bases,point):
+def land_base_for(ctx,bases,point,holder=None):
     """Najbliższa baza lądowa, z której cel jest osiągalny drogą lądową (spośród OVERLAND_CANDIDATES najbliższych), albo None."""
     for base in sorted(bases,key=lambda b:km(ctx,[b.map_x,b.map_y],point) or 1e9)[:OVERLAND_CANDIDATES]:
-        if overland_ok(ctx,[base.map_x,base.map_y],point):return base
+        if overland_ok(ctx,[base.map_x,base.map_y],point,holder):return base
     return None
 
 
@@ -328,7 +329,7 @@ def land_options(ctx,forces,screen,config,enemies,recapture_targets):
     targets+=recapture_targets
     # 26 Nov 2026: cele bez trasy lądowej z żadnej bliskiej bazy (np. za morzem) są pomijane — wcześniej PAGA2 setki razy
     # ponawiała najazd, który gra odrzucała („trasa przemarszu przecina morze lub ocean”), a plany takich celów są zamykane.
-    reach={(kind,id):land_base_for(ctx,bases,point) for kind,id,point,*_ in targets}
+    reach={(kind,id):land_base_for(ctx,bases,point,owner) for kind,id,point,owner,*_ in targets}
     targets=[item for item in targets if reach[(item[0],item[1])] is not None]
     live={(kind,id) for kind,id,*_ in targets}
     # Plany, których cel przestał istnieć (odzyskany, poza wojną), są zamykane.

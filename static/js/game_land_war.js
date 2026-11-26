@@ -25,6 +25,28 @@
         if(!response.ok)throw new Error(result.error||'Nie udało się zapisać zmian.');
         return result;
     }
+    // 26 Nov 2026: droga lądowa armii (omija akweny, tylko przez terytoria stron wojny) — wyznaczana przez serwer.
+    function marchRoute(target,base,reinforce=false){
+        if(!lw().routeUrl)return Promise.resolve(null);
+        return send(lw().routeUrl,{source_base_id:base.id,target_kind:target.kind,target_id:target.id,reinforce}).catch(error=>({error:error.message}));
+    }
+    const km=value=>Number(value).toLocaleString('pl-PL',{maximumFractionDigits:1});
+    // Odległość do opisu wyceny: droga lądowa z serwera albo (do czasu odpowiedzi) odcinek prosty; komunikat o drodze.
+    function routeInfo(route,target,base){
+        const direct=Math.hypot(target.point[0]-base.position[0],target.point[1]-base.position[1])*cfg.kmPerUnit;
+        if(route===undefined)return {distance:direct,note:make('p','Wyznaczanie drogi lądowej…','land-muted')};
+        if(route===null)return {distance:direct,note:null};
+        if(route.error)return {distance:direct,note:make('p',route.error,'land-route-error'),blocked:true};
+        const distance=Number(route.distanceKm);
+        return {distance,note:distance>direct*1.02?make('p',`Droga lądowa omija akweny i terytoria państw spoza wojny (w linii prostej: ${km(direct)} km).`,'land-muted'):null};
+    }
+    // Punkt na drodze [[x, y], …] po pokonaniu części f jej długości.
+    function pathPoint(path,f){
+        const parts=path.slice(1).map((p,i)=>Math.hypot(p[0]-path[i][0],p[1]-path[i][1]));let left=Math.max(0,Math.min(1,f))*parts.reduce((a,b)=>a+b,0);
+        for(let i=0;i<parts.length;i++){if(parts[i]&&left<=parts[i]){const a=path[i],b=path[i+1],t=left/parts[i];return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}left-=parts[i];}
+        return path[path.length-1];
+    }
+    const armyPath=army=>Array.isArray(army.route)&&army.route.length>=2?army.route:[army.source,army.target];
     async function done(result){if(api.dialog.open)api.dialog.close();api.feedback(result.message||'Zapisano.');await api.refresh();}
     const ownLandBases=()=>(cfg.bases||[]).filter(base=>base.kind==='land'&&base.countryId===cfg.countryId&&base.position&&base.operational&&base.health>0&&!occupation('base',base.id));
     const holder=(kind,id,owner)=>occupation(kind,id)?.occupierId??owner;
@@ -166,18 +188,21 @@
             const room=make('p',null,'land-muted');api.fields.append(room);
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,0)]));
             const quote=make('div',null,'land-quote');api.fields.append(quote);
+            const routes={};
             const update=()=>{
                 const base=bases.find(b=>b.id===Number(select.value));if(!base)return;
+                if(!(base.id in routes)){routes[base.id]=undefined;marchRoute(target,base,true).then(route=>{routes[base.id]=route;update();});}
                 for(const unit of UNITS){const limit=base.garrison?.[unit]||0;inputs[unit].max=limit;if(Number(inputs[unit].value)>limit)inputs[unit].value=limit;inputs[unit].disabled=limit===0;}
                 room.textContent=`W bazie: żołnierze ${api.number(base.garrison?.soldiers||0)}, wozy opancerzone ${api.number(base.garrison?.armored||0)}, czołgi ${api.number(base.garrison?.tanks||0)}.`;
                 const units=Object.fromEntries(UNITS.map(unit=>[unit,Math.max(0,Number(inputs[unit].value)||0)]));
                 const extra=Number(settings.gdpPerCapita)*0.01;
                 const cost=UNITS.reduce((total,unit)=>total+units[unit]*(Number(settings.unitCosts[unit])+extra),0);
-                const distance=Math.hypot(target.point[0]-base.position[0],target.point[1]-base.position[1])*cfg.kmPerUnit;
+                const info=routeInfo(routes[base.id],target,base),distance=info.distance;
                 const speed=units.armored>0?settings.speeds.armored:settings.speeds.foot;
                 quote.replaceChildren(make('p',`Koszt przemarszu: ${money(cost)} (z budżetu sił zbrojnych).`),
-                    make('p',`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
-                document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks);
+                    make('p',`Droga lądowa: ${km(distance)} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
+                if(info.note)quote.append(info.note);
+                document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks)||!!info.blocked;
             };
             select.onchange=update;for(const input of Object.values(inputs))input.oninput=update;update();
         },async data=>{
@@ -306,16 +331,18 @@
             api.fields.append(make('p',`Baza: ${api.baseName(base)} · wyszkolenie wojsk lądowych: ${settings.training} / 1000`,'land-muted'));
             const inputs=Object.fromEntries(UNITS.map(unit=>[unit,api.input(UNIT_LABELS[unit],unit,0,base.garrison?.[unit]||0)]));
             const quote=make('div',null,'land-quote');api.fields.append(quote);
+            let route;marchRoute(target,base).then(result=>{route=result;update();});
             const update=()=>{
                 const units=Object.fromEntries(UNITS.map(unit=>[unit,Math.max(0,Number(inputs[unit].value)||0)]));
                 const extra=Number(settings.gdpPerCapita)*0.01;
                 const cost=UNITS.reduce((total,unit)=>total+units[unit]*(Number(settings.unitCosts[unit])+extra),0);
-                const distance=Math.hypot(target.point[0]-base.position[0],target.point[1]-base.position[1])*cfg.kmPerUnit;
+                const info=routeInfo(route,target,base),distance=info.distance;
                 const speed=units.armored>0?settings.speeds.armored:settings.speeds.foot;
                 quote.replaceChildren(make('p',`Koszt ${target.liberate?'wyzwolenia':recapture?'odbicia':'inwazji'}: ${money(cost)} (z budżetu sił zbrojnych).`),
                     make('p',`Na jednostkę: żołnierz ${money(Number(settings.unitCosts.soldiers)+extra)}, wóz opancerzony ${money(Number(settings.unitCosts.armored)+extra)}, czołg ${money(Number(settings.unitCosts.tanks)+extra)} (w tym PKB per capita × 0,01).`),
-                    make('p',`Odległość: ${distance.toLocaleString('pl-PL',{maximumFractionDigits:1})} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
-                document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks);
+                    make('p',`Droga lądowa: ${km(distance)} km · prędkość: ${speed} km/h Entendy${units.armored>0?' (z wozami opancerzonymi)':''} · czas przemarszu: ${(distance/speed).toLocaleString('pl-PL',{maximumFractionDigits:1})} godz. Entendy.`));
+                if(info.note)quote.append(info.note);
+                document.getElementById('military-dialog-confirm').disabled=!(units.soldiers||units.armored||units.tanks)||!!info.blocked;
             };
             for(const input of Object.values(inputs))input.oninput=update;update();
         },async data=>{
@@ -339,9 +366,9 @@
         if(!layer)return;layer.clearLayers();marching.clear();
         for(const army of armies){
             if(!['MARCHING','RETURNING'].includes(army.status)||!army.source||!army.target)continue;
-            const from=L.latLng(army.source[1],army.source[0]),to=L.latLng(army.target[1],army.target[0]);
+            const from=L.latLng(army.source[1],army.source[0]),to=L.latLng(army.target[1],army.target[0]),path=armyPath(army);
             const interceptor=army.role==='intercept',returning=army.status==='RETURNING';
-            L.polyline([from,to],{color:returning?'#6b7a89':interceptor?'#1565c0':'#d32f2f',weight:3,dashArray:'8 8',opacity:.9,interactive:false}).addTo(layer);
+            L.polyline(path.map(p=>L.latLng(p[1],p[0])),{color:returning?'#6b7a89':interceptor?'#1565c0':'#d32f2f',weight:3,dashArray:'8 8',opacity:.9,interactive:false}).addTo(layer);
             const symbol=make('div',null,'land-invasion-symbol'+(interceptor?' land-intercept-symbol':''));symbol.append(api.image(lw().icons.invasion,'Armia lądowa'));api.ownerFlag?.(symbol,army.countryId);
             const tooltip=armyTooltip(army);
             if(returning){symbol.classList.add('land-returning-symbol');tooltip.querySelector('p:nth-of-type(2)')?.replaceWith(make('p',`Powrót do bazy (przemarsz anulowany; cel był: ${army.targetName})`));}
@@ -354,15 +381,15 @@
             // 25 Nov 2026: sposoby ataku na wrogą armię w kole dookoła armii (czerwone ikony); bez menu — dawne okno wyboru.
             if(attackable(army))marker.on('click',event=>{L.DomEvent.stopPropagation(event);marker.closeTooltip();
                 if(!api.menu?.(`army:${army.id}`,marker.getLatLng(),parent=>attackMethods(army,parent),'Atak na armię: '+countryName(army.countryId)))attackArmy(army);});
-            marching.set(army.id,{army,marker,from,to});
+            marching.set(army.id,{army,marker,path});
         }
         for(const id of cityLayers.keys())styleCity(id);
     }
     function tick(now){
-        for(const {army,marker,from,to} of marching.values()){
+        for(const {army,marker,path} of marching.values()){
             const start=Date.parse(army.startsAt),end=Date.parse(army.arrivesAt);
             const f=end>start?Math.min(1,Math.max(0,(now-start)/(end-start))):1;
-            const point=L.latLng(from.lat+(to.lat-from.lat)*f,from.lng+(to.lng-from.lng)*f);marker.setLatLng(point);window.GameRadialMenu?.follow(`army:${army.id}`,point);
+            const [x,y]=pathPoint(path,f),point=L.latLng(y,x);marker.setLatLng(point);window.GameRadialMenu?.follow(`army:${army.id}`,point);
         }
     }
 
@@ -377,7 +404,7 @@
     function armyPoint(army,moment){
         const start=Date.parse(army.startsAt),end=Date.parse(army.arrivesAt);
         const f=end>start?Math.min(1,Math.max(0,(moment-start)/(end-start))):1;
-        return [army.source[0]+(army.target[0]-army.source[0])*f,army.source[1]+(army.target[1]-army.source[1])*f];
+        return pathPoint(armyPath(army),f);
     }
     // Najwcześniejsze spotkanie (godz. Entendy od teraz) jednostki z punktu `from` (km/h) z armią; null — armia dotrze do celu wcześniej.
     function meeting(from,army,kmh){

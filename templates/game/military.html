@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/game_satellites.css',v='20261126-sat-2') }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/game_military.css', v='20261125-radial-2') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261123-ui-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/game_military.css', v='20261126-route-1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/game_airports.css', v='20261123-ui-1') }}">
 {% endblock %}
 {% block game_page_actions %}{% if mode == 'war' %}<a href="/game/obrona-panstwa">Zarządzaj bazami ↗</a>{% else %}<a href="/game/sily-zbrojne">Przegląd sił zbrojnych ↗</a>{% endif %}{% endblock %}
 {% block content %}
@@ -50,7 +50,7 @@ window.addEventListener('load',()=>{if(!window.L)show('nie wczytano biblioteki L
 <script src="{{ url_for('static', filename='js/game_military_flight_math.js', v='20261114-heading-1') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_coast_band.js',v='20261108-ui4') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_radial_menu.js', v='20261125-infra-1') }}" defer></script>
-<script src="{{ url_for('static', filename='js/game_land_war.js', v='20261126-sat-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/game_land_war.js', v='20261126-route-1') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_radar.js', v='20261125-radial-3') }}" defer></script>
 <script src="{{ url_for('static',filename='js/game_satellites.js',v='20261126-sat-2') }}" defer></script>
 <script src="{{ url_for('static', filename='js/game_military.js', v='20261126-sat-1') }}" defer></script>

@@ -32,6 +32,8 @@ class LandArmy(db.Model):
     source_y = db.Column(db.Double)
     target_x = db.Column(db.Double)
     target_y = db.Column(db.Double)
+    # 26 Nov 2026: droga przemarszu po lądzie [[x, y], …] (game.land_routes); NULL — armie sprzed zmiany (odcinek prosty)
+    route = db.Column(db.JSON)
     distance_km = db.Column(db.Double, nullable=False, default=0)
     speed_kmh = db.Column(db.Integer, nullable=False, default=0)
     starts_at = db.Column(db.DateTime, nullable=False)

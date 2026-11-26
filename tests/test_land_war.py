@@ -33,8 +33,10 @@ class LandWarFixture(MilitaryFixture):
             clock=patch(target,side_effect=lambda:self.now);clock.start();self.addCleanup(clock.stop)
         self.player=1
         who=patch('game.finance_service._country_for_user',side_effect=lambda session,user_id,lock=False:SimpleNamespace(PANSTWO_ID=self.player));who.start();self.addCleanup(who.stop)
-        for target,value in [('game.road_projects.neighboring_countries',{2}),('game.land_war.border_fraction',0.5),('game.land_war.overland',True),('game.military_geography.city_point',[60,0])]:
+        for target,value in [('game.road_projects.neighboring_countries',{2}),('game.land_war.border_fraction',0.5),('game.military_geography.city_point',[60,0])]:
             p=patch(target,return_value=value);p.start();self.addCleanup(p.stop)
+        # 26 Nov 2026: droga lądowa (game.land_routes) — w testach odcinek prosty; geometrię sprawdza test_land_routes
+        route=patch('game.land_war.march_route',side_effect=lambda session,own,holder,owner,a,b:[list(a),list(b)]);route.start();self.addCleanup(route.stop)
         from sqlalchemy import update
         db.session.execute(update(Panstwo).where(Panstwo.PANSTWO_ID==1).values(panstwo_PKB=1000000000000,panstwo_populacja=1000000))   # PKB per capita 1 000 000 -> +10 000 / jednostkę
         db.session.add(Wojsko(panstwo_id=2,liczba_baz_ladowych=2,wojska_ladowe_ilosc=50000,czolgi_ilosc=100,wozy_opancerzone_ilosc=100,wyszkolenie_ladowe=700))

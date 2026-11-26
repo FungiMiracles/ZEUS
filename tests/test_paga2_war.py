@@ -66,7 +66,7 @@ class LandTests(unittest.TestCase):
         self.intel={'targets':{},'training':{},'marching':set()};self.plans={};self.updates=[]
         for target in (patch('game.paga2.war.km',lambda ctx,a,b:100.0),patch('game.paga2.war.battle_intel',lambda ctx:self.intel),
                        patch('game.paga2.war.war_plans',lambda ctx:self.plans),patch('game.paga2.war.update_plan',lambda *a,**k:self.updates.append((a,k))),
-                       patch('game.paga2.war.overland_ok',lambda ctx,a,b:self.overland(a,b))):
+                       patch('game.paga2.war.overland_ok',lambda ctx,a,b,holder=None:self.overland(a,b))):
             target.start();self.addCleanup(target.stop)
         self.overland=lambda a,b:True
 
@@ -98,13 +98,15 @@ class LandTests(unittest.TestCase):
         self.assertEqual(attack.payload['source_base_id'],2)
 
     def test_overland_check_uses_game_rule_and_caches(self):
+        # 26 Nov 2026: ta sama reguła co gra — droga lądowa przez terytoria stron wojny z państwem trzymającym cel
         calls=[]
-        def fake(source,target,endpoint_km=0,km_per_unit=1):calls.append((endpoint_km,km_per_unit));return False
+        def fake(session,source,target,sides,km_per_unit=None):calls.append((tuple(source),tuple(target),frozenset(sides)));return None
         c=NS(country_id=1)
-        with patch('game.sea_routes.overland',fake),patch('game.paga2.defense._world',lambda ctx:NS(km_per_unit=3.9)):
-            self.assertFalse(self._real(c,[0,0],[1,1]))
-            self.assertFalse(self._real(c,[0,0],[1,1]))   # drugi raz z pamięci przebiegu
-        self.assertEqual(calls,[(4,3.9)])
+        with patch('game.land_routes.route',fake),patch('game.land_routes.participants',lambda session,own,holder,owner=None:{own,holder}),\
+             patch('game.paga2.war.Session'),patch('game.paga2.war.db'):
+            self.assertFalse(self._real(c,[0,0],[1,1],7))
+            self.assertFalse(self._real(c,[0,0],[1,1],7))   # drugi raz z pamięci przebiegu
+        self.assertEqual(calls,[((0,0),(1,1),frozenset({1,7}))])
 
     def test_already_occupied_enemy_city_is_not_attacked_again(self):
         # 14 Nov 2026: gra odrzucała 906 takich ataków („Ten obiekt jest już pod kontrolą naszego państwa.”).

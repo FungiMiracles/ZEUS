@@ -102,7 +102,7 @@ class MarchAttackTests(LandWarFixture):
 
 class OverlandAndCancelTests(LandWarFixture):
     def test_invasion_across_the_sea_is_rejected(self):
-        with patch('game.land_war.overland',return_value=False):
+        with patch('game.land_war.march_route',return_value=None):
             with self.assertRaises(FinanceError) as error:self.invade(soldiers=10)
         self.assertIn('morze',str(error.exception))
         self.assertEqual(db.session.query(LandArmy).count(),0)

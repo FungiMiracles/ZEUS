@@ -81,7 +81,7 @@ class AllyLiberationTests(LiberationFixture):
         # Bez wspólnej granicy — np. z naszej bazy za granicą; wystarczy trasa lądowa do celu.
         with patch('game.road_projects.neighboring_countries', return_value=set()):
             self.assertTrue(self.invade('city', 20, soldiers=10))
-        with patch('game.land_war.overland', return_value=False), self.assertRaises(FinanceError) as error:
+        with patch('game.land_war.march_route', return_value=None), self.assertRaises(FinanceError) as error:
             self.invade('city', 20, soldiers=10)
         self.assertIn('drogą lądową', str(error.exception))
 

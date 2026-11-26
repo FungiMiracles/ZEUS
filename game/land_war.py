@@ -181,12 +181,14 @@ def region_at(x,y,index=None):
     return None
 
 
-def border_fraction(session,holder_id,source,target,samples=120):
-    """Share of the route at which the army first enters the defender's territory (for the border notification)."""
+def border_fraction(session,holder_id,path,samples=160):
+    """Share of the route at which the army first enters the defender's territory (for the border notification).
+    26 Nov 2026: `path` — droga przemarszu (game.land_routes), nie odcinek prosty."""
     from game.governance import controller_id
+    from game.sea_routes import path_position
     index=_region_index();owners={}
     for step in range(samples+1):
-        f=step/samples;x=source[0]+(target[0]-source[0])*f;y=source[1]+(target[1]-source[1])*f
+        f=step/samples;x,y=path_position(path,f)
         region=region_at(x,y,index)
         if region is None:continue
         if region not in owners:owners[region]=controller_id(session,session.scalar(select(Region.panstwo_id).where(Region.region_id==region)))
@@ -196,16 +198,24 @@ def border_fraction(session,holder_id,source,target,samples=120):
     return 1.0
 
 
-def overland(session,source,target):
-    """22 Nov 2026: armia lądowa porusza się tylko po lądzie — trasa nie może przecinać morza ani oceanu."""
-    from game.sea_routes import overland as covered
+def march_route(session,own,holder,owner,source,target):
+    """26 Nov 2026: droga przemarszu po lądzie (game.land_routes) — omija akweny i nie wchodzi na terytorium państw,
+    które nie biorą udziału w wojnie; None — cel nieosiągalny drogą lądową. (Wcześniej: odcinek prosty bez wody.)"""
+    from game.land_routes import participants,route
+    return route(session,source,target,participants(session,own,holder,owner))
+
+
+def require_march_route(session,own,holder,owner,source,target):
+    from game.land_routes import NO_ROUTE
+    path=march_route(session,own,holder,owner,source,target)
+    if path is None:raise FinanceError(NO_ROUTE)
+    return [[float(p[0]),float(p[1])] for p in path]
+
+
+def route_km(session,path):
+    from game.land_routes import length
     from game.military_flights import calibration
-    return covered(source,target,endpoint_km=4,km_per_unit=calibration(session).km_per_unit)
-
-
-def require_overland(session,source,target):
-    if not overland(session,source,target):
-        raise FinanceError('Armia lądowa nie dotrze do celu: trasa przemarszu przecina morze lub ocean. Wybierz cel osiągalny drogą lądową.')
+    return length(path)*calibration(session).km_per_unit
 
 
 # ---------------- targets ----------------
@@ -339,9 +349,9 @@ def _into_garrison(session,base,units,country_id):
 
 # ---------------- invasion ----------------
 
-def quote(session,country_id,base,units,target_point):
+def quote(session,country_id,base,units,target_point,path=None):
     from game.military_flights import distance_km
-    distance=distance_km(session,(base.map_x,base.map_y),target_point);kmh=speed(units)
+    distance=route_km(session,path) if path else distance_km(session,(base.map_x,base.map_y),target_point);kmh=speed(units)
     return {'cost':invasion_cost(session,country_id,units),'distance_km':distance,'speed_kmh':kmh,'hours':distance/kmh if kmh else 0,
             'gdp_per_capita':gdp_per_capita(session,country_id)}
 
@@ -381,22 +391,38 @@ def launch_invasion(user_id,data):
         lock_countries(session,own,holder,owner)
         base=own_land_base(session,own,data.get('source_base_id'))
         if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
-        require_overland(session,(base.map_x,base.map_y),point)
-        offer=quote(session,own,base,units,point)
+        path=require_march_route(session,own,holder,owner,(base.map_x,base.map_y),point)
+        offer=quote(session,own,base,units,point,path)
         budget,_,available=military_budget(session,own)
         if budget is None:raise FinanceError('Brak zatwierdzonego budżetu na bieżący okres budżetowy.')
         if available<offer['cost']:raise FinanceError('Za mało środków w budżecie sił zbrojnych na koszt inwazji.')
         take_from_garrison(base,units)
         now=game_now();arrives=now+timedelta(hours=offer['hours'])
-        fraction=border_fraction(session,holder,(base.map_x,base.map_y),point)
+        fraction=border_fraction(session,holder,path)
         army=LandArmy(panstwo_id=own,user_id=user_id,request_id=key,role='invasion',status='MARCHING',source_base_id=base.id,**units,target_kind=kind,
                       target_base_id=target.id if kind=='base' else None,target_city_id=target.miasto_id if kind=='city' else None,target_country_id=holder,
-                      target_region_id=region_id,target_name=name[:255],source_x=base.map_x,source_y=base.map_y,target_x=point[0],target_y=point[1],
+                      target_region_id=region_id,target_name=name[:255],source_x=base.map_x,source_y=base.map_y,target_x=point[0],target_y=point[1],route=path,
                       distance_km=offer['distance_km'],speed_kmh=offer['speed_kmh'],starts_at=now,border_at=now+(arrives-now)*fraction,arrives_at=arrives,
                       cost=offer['cost'],budget_id=budget.id)
         session.add(army);session.flush()
         reconcile_maintenance(session,own)
         return army.id
+
+
+def route_preview(user_id,data):
+    """26 Nov 2026: podgląd drogi lądowej z bazy do celu (okno inwazji / posiłków): trasa i jej długość albo FinanceError."""
+    kind=data.get('target_kind')
+    if kind not in ('base','city'):raise FinanceError('Wybierz bazę albo miasto przeciwnika.')
+    with Session(db.engine) as session:
+        own=_player_country(session,user_id).PANSTWO_ID
+        target,holder,owner,_,_,point=target_state(session,kind,natural(data.get('target_id'),'Cel',1))
+        if data.get('reinforce'):
+            occupation=active_occupation(session,kind,target.id if kind=='base' else target.miasto_id)
+            if occupation is not None and occupation.occupier_id==own:holder=occupation.owner_id
+        base=own_land_base(session,own,data.get('source_base_id'),lock=False)
+        if base.map_x is None or base.map_y is None:raise FinanceError('Baza nie ma lokalizacji na mapie.')
+        path=require_march_route(session,own,holder,owner,(base.map_x,base.map_y),point)
+        return {'route':path,'distanceKm':route_km(session,path)}
 
 
 # ---------------- ataki na wrogie armie w marszu (22 Nov 2026) ----------------
@@ -408,10 +434,18 @@ def launch_invasion(user_id,data):
 STRIKE_LOSS=(1.0,3.0)   # % jednostek każdego rodzaju na jedno trafienie
 
 
-def army_position(army,moment):
-    """Position of a marching army at the given moment (linear march from source to target)."""
+def march_progress(army,moment):
     total=(army.arrives_at-army.starts_at).total_seconds()
-    f=1.0 if total<=0 else min(1.0,max(0.0,(moment-army.starts_at).total_seconds()/total))
+    return 1.0 if total<=0 else min(1.0,max(0.0,(moment-army.starts_at).total_seconds()/total))
+
+
+def army_position(army,moment):
+    """Position of a marching army at the given moment — along its land route (26 Nov 2026), or the straight
+    source→target line for armies sent before routes were stored."""
+    f=march_progress(army,moment)
+    if army.route and len(army.route)>=2:
+        from game.sea_routes import path_position
+        x,y=path_position(army.route,f);return (x,y)
     return (army.source_x+(army.target_x-army.source_x)*f,army.source_y+(army.target_y-army.source_y)*f)
 
 
@@ -480,14 +514,24 @@ def launch_interception(user_id,data):
         kmh=speed(units);meeting=catch_up(session,(base.map_x,base.map_y),enemy,kmh,now)
         if meeting is None:raise FinanceError(f'Oddział z tej bazy ({kmh} km/h) nie zdąży dogonić armii przed jej dotarciem do celu ({enemy.target_name}).')
         moment,point=meeting
-        require_overland(session,(base.map_x,base.map_y),point)
-        take_from_garrison(base,units)
+        # 26 Nov 2026: oddział idzie drogą lądową (omija akweny), więc punkt spotkania liczony jest ponownie z prędkością
+        # skorygowaną o długość drogi okrężnej względem odcinka prostego.
         from game.military_flights import distance_km
+        source=(base.map_x,base.map_y)
+        path=require_march_route(session,own,enemy.panstwo_id,None,source,point)
+        for _ in range(3):
+            direct=distance_km(session,source,point);real=route_km(session,path)
+            if direct<=0 or real<=direct*1.02:break
+            meeting=catch_up(session,source,enemy,kmh*direct/real,now)
+            if meeting is None:raise FinanceError(f'Oddział z tej bazy ({kmh} km/h) nie zdąży drogą lądową dogonić armii przed jej dotarciem do celu ({enemy.target_name}).')
+            moment,point=meeting
+            path=require_march_route(session,own,enemy.panstwo_id,None,source,point)
+        take_from_garrison(base,units)
         who=names(session,enemy.panstwo_id).get(enemy.panstwo_id,'przeciwnika')
         army=LandArmy(panstwo_id=own,user_id=user_id,request_id=key,role='intercept',status='MARCHING',source_base_id=base.id,**units,target_kind='army',
                       target_army_id=enemy.id,target_country_id=enemy.panstwo_id,target_region_id=enemy.target_region_id,
                       target_name=f'Armia państwa {who} (cel: {enemy.target_name})'[:255],source_x=base.map_x,source_y=base.map_y,target_x=point[0],target_y=point[1],
-                      distance_km=distance_km(session,(base.map_x,base.map_y),point),speed_kmh=kmh,starts_at=now,arrives_at=moment,cost=0)
+                      route=path,distance_km=route_km(session,path),speed_kmh=kmh,starts_at=now,arrives_at=moment,cost=0)
         session.add(army);session.flush()
         reconcile_maintenance(session,own)
         return army.id
@@ -555,10 +599,16 @@ def cancel_march(user_id,data):
         base=session.get(MilitaryBase,army.source_base_id) if army.source_base_id else None
         home=(base.map_x,base.map_y) if base is not None and base.map_x is not None else (army.source_x,army.source_y)
         elapsed=max(timedelta(seconds=1),now-army.starts_at)
-        army.status='RETURNING';army.source_x,army.source_y=position;army.target_x,army.target_y=home
+        # 26 Nov 2026: powrót tą samą drogą lądową, którą armia przyszła (od bieżącej pozycji do bazy)
+        from game.sea_routes import remaining_path
+        travelled=army.route if army.route and len(army.route)>=2 else [[army.source_x,army.source_y],[army.target_x,army.target_y]]
+        back=remaining_path([list(p) for p in reversed(travelled)],1-march_progress(army,now))
+        back[0]=list(position)
+        if [float(v) for v in back[-1]]!=[float(v) for v in home]:back.append(list(home))
+        if len(back)<2:back=[list(position),list(home)]
+        army.status='RETURNING';army.source_x,army.source_y=position;army.target_x,army.target_y=home;army.route=back
         army.starts_at=now;army.arrives_at=now+elapsed;army.border_at=None
-        from game.military_flights import distance_km
-        army.distance_km=distance_km(session,position,home)
+        army.distance_km=route_km(session,back)
         session.flush()
         return army.id
 
@@ -1005,7 +1055,7 @@ def army_data(army,flags=None):
     return {'id':army.id,'countryId':army.panstwo_id,'role':army.role,'status':army.status,'sourceBaseId':army.source_base_id,'units':army_units(army),
             'targetKind':army.target_kind,'targetBaseId':army.target_base_id,'targetArmyId':army.target_army_id,'targetRegionId':army.target_region_id,'targetCityId':army.target_city_id,'targetCountryId':army.target_country_id,
             'targetName':army.target_name,'source':[army.source_x,army.source_y] if army.source_x is not None else None,'target':[army.target_x,army.target_y] if army.target_x is not None else None,
-            'distanceKm':army.distance_km,'speedKmh':army.speed_kmh,'startsAt':stamp(army.starts_at),'borderAt':stamp(army.border_at),'arrivesAt':stamp(army.arrives_at),
+            'route':army.route,'distanceKm':army.distance_km,'speedKmh':army.speed_kmh,'startsAt':stamp(army.starts_at),'borderAt':stamp(army.border_at),'arrivesAt':stamp(army.arrives_at),
             'resolvedAt':stamp(army.resolved_at),'cost':str(army.cost),'battle':army.battle}
 
 

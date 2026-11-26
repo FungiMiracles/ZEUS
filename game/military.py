@@ -395,7 +395,7 @@ def land_war_config(country_id,mode):
             'neighbors':sorted(neighboring_countries(db.session,country_id)) if mode=='war' else [],
             'armies':visible_armies(db.session,country_id),'occupations':visible_occupations(db.session,country_id),
             'icons':{'city':icon('MIASTO.svg'),'invasion':icon('INWAZJA.svg'),'soldiers':icon('CZŁOWIEK.svg'),'armored':icon('WÓZ OPANCERZONY.svg'),'tanks':icon('CZOŁG.svg')},
-            'invasionUrl':url_for('game_military.land_invasion'),'interceptUrl':url_for('game_military.land_intercept'),'cancelMarchUrl':url_for('game_military.land_cancel'),'strikeLoss':[1,3],'cityDefenseUrl':url_for('game_military.city_defense'),'occupationUrl':url_for('game_military.occupation_decision'),
+            'invasionUrl':url_for('game_military.land_invasion'),'interceptUrl':url_for('game_military.land_intercept'),'cancelMarchUrl':url_for('game_military.land_cancel'),'routeUrl':url_for('game_military.land_route'),'strikeLoss':[1,3],'cityDefenseUrl':url_for('game_military.city_defense'),'occupationUrl':url_for('game_military.occupation_decision'),
             'capacities':{kind:[{unit:row.get(unit,0) for unit in ('soldiers','armored','tanks')} for row in rows] for kind,rows in CAPACITIES.items() if kind!='nuclear'}}
 
 
@@ -414,6 +414,13 @@ def _land_action(handler):
 def land_invasion():
     from game.land_war import launch_invasion
     return _land_action(lambda user_id,data:{'id':launch_invasion(user_id,data),'message':'Posiłki wyruszyły. Po dotarciu dołączą do wojsk okupacyjnych.' if data.get('reinforce') else 'Armia wyruszyła. Bitwa odbędzie się po dotarciu do celu.'})
+
+
+@military_bp.post('/panel-wojenny/armia-ladowa/trasa')
+def land_route():
+    # 26 Nov 2026: podgląd drogi lądowej armii (omija akweny i terytoria państw spoza wojny)
+    from game.land_war import route_preview
+    return _land_action(route_preview)
 
 
 @military_bp.post('/obrona-panstwa/przechwycenie-armii')

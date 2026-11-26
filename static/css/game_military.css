@@ -100,6 +100,7 @@
 .land-occupied-symbol{position:relative;outline:2px solid #c62828;outline-offset:1px;border-radius:5px}
 .land-occupied-flag{position:absolute;top:-6px;right:-8px;width:18px;height:12px;object-fit:cover;border:1px solid #fff;box-shadow:0 0 0 1px #c62828}
 .land-quote p{margin:4px 0;font-size:12px}
+.land-quote p.land-route-error{color:#b3261e;font-weight:600}
 .land-war-occupations{margin-top:14px;padding:10px;border:1px solid #c6282866;border-radius:7px}
 .land-war-occupations h3{margin:0 0 8px;font-size:14px}
 .land-occupation-item{padding:6px 0;border-top:1px solid #0001;font-size:12px}
