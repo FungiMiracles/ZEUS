@@ -312,8 +312,9 @@ class RetiredMechanismTests(unittest.TestCase):
     def test_llm_task_scope(self):
         from game.paga_ai_tasks import enqueue,LLM_KINDS,llm_allowed
         # 19 Nov 2026: decyzje o pożyczkach podejmuje wyłącznie PAGA2 — loan_event poza zakresem modeli AI.
-        self.assertEqual(LLM_KINDS,{'private_message','forum_reply','forum_mention','forum_announcement','private_initiative'})
-        for kind in ('loan_event','budget','strategic_review','war_declared','under_attack','diplomatic_proposal','intent','conditional_plan','research_available'):
+        # 26 Nov 2026: państwa PAGA nie piszą wiadomości prywatnych — bez private_message i private_initiative.
+        self.assertEqual(LLM_KINDS,{'forum_reply','forum_mention','forum_announcement'})
+        for kind in ('private_message','private_initiative','loan_event','budget','strategic_review','war_declared','under_attack','diplomatic_proposal','intent','conditional_plan','research_available'):
             with self.subTest(kind=kind):self.assertIsNone(enqueue(db.session,1,kind,'k-'+kind,0));self.assertFalse(llm_allowed(kind))
         for kind in LLM_KINDS:
             with self.subTest(kind=kind):self.assertIsNotNone(enqueue(db.session,1,kind,'k-'+kind,0))
@@ -323,16 +324,19 @@ class RetiredMechanismTests(unittest.TestCase):
         from game.paga_ai_tasks import pick
         PagaAiIdentity.__table__.create(db.engine)
         db.session.add_all([PagaAiJob(country_id=1,trigger='old',revision=0,status='PENDING',kind='budget',priority=10,journal=[],context={}),
-                            PagaAiJob(country_id=1,trigger='pm',revision=0,status='PENDING',kind='private_message',priority=20,journal=[],context={})])
+                            PagaAiJob(country_id=1,trigger='pm',revision=0,status='PENDING',kind='private_message',priority=20,journal=[],context={}),
+                            PagaAiJob(country_id=1,trigger='forum',revision=0,status='PENDING',kind='forum_reply',priority=30,journal=[],context={})])
         db.session.commit()
         class Control:review_interval_minutes=180
         task=pick(db.session,Control,datetime.utcnow(),[1])
-        self.assertEqual(task.kind,'private_message')
-        self.assertEqual(db.session.scalar(select(PagaAiJob).where(PagaAiJob.trigger=='old')).status,'CANCELLED')
+        self.assertEqual(task.kind,'forum_reply')
+        for trigger in ('old','pm'):   # 26 Nov 2026: zaległe zadania wiadomości prywatnych też są anulowane
+            self.assertEqual(db.session.scalar(select(PagaAiJob).where(PagaAiJob.trigger==trigger)).status,'CANCELLED')
 
     def test_communication_tasks_cannot_change_diplomacy_or_strategy(self):
         from game.paga_ai_context import DOMAINS
-        self.assertEqual(DOMAINS['communication']['writes'],['game_messages.send:POST','game_forum.page:POST'])
+        self.assertEqual(DOMAINS['communication']['writes'],['game_forum.page:POST'])
+        self.assertFalse(any('game_messages.send:POST' in domain['writes'] for domain in DOMAINS.values()))   # 26 Nov 2026
         self.assertEqual(DOMAINS['loans']['writes'],['game_loans.change:POST'])
 
     def test_rule_engine_never_decides(self):

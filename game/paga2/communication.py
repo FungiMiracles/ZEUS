@@ -1,4 +1,4 @@
-"""PAGA2 — inicjowanie wpisów na forum międzynarodowym i wiadomości prywatnych.
+"""PAGA2 — inicjowanie wpisów na forum międzynarodowym (26 Nov 2026: bez wiadomości prywatnych — PAGA ich nie pisze).
 
 Algorytm decyduje, CZY i KIEDY państwo zabiera głos oraz do kogo (okazje: atak na nasze państwo, atak na sojusznika,
 wojna w innym regionie, nasza oferta handlowa, zmiana stosunków, wydarzenie z generatora zdarzeń, a przy skrytości
@@ -154,7 +154,8 @@ def propose(ctx):
     with Session(db.engine) as session:
         if llm_control(session) is None or used_today(session,ctx.country_id)>=DAILY_LIMIT:return []
         names=dict(session.execute(select(Panstwo.PANSTWO_ID,Panstwo.panstwo_nazwa)).all())
-        items=[item for item in occasions(ctx,names) if not already(session,ctx.country_id,item[0])]
+        # 26 Nov 2026: bez wiadomości prywatnych — państwa PAGA nie piszą ich (tylko wpisy na forum)
+        items=[item for item in occasions(ctx,names) if item[1]!='private_initiative' and not already(session,ctx.country_id,item[0])]
         # 16 Nov 2026: globalny dobowy limit wpisów PAGA na forum — po wyczerpaniu bez nowych zapowiedzi (wiadomości prywatne bez zmian).
         from game.paga_forum_quota import exhausted
         if any(item[1]=='forum_announcement' for item in items) and exhausted(session):items=[item for item in items if item[1]!='forum_announcement']
@@ -173,6 +174,7 @@ def execute(ctx,option):
     from game.paga_ai_actor import country_user_id
     from models import Panstwo
     p=option.payload
+    if p.get('kind')=='private_initiative':return {'status':409,'error':'Państwa PAGA nie piszą wiadomości prywatnych.'}
     with Session(db.engine) as session,session.begin():
         control=llm_control(session)
         if control is None:return {'status':409,'error':'Modele AI są wyłączone.'}

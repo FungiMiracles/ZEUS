@@ -9,6 +9,13 @@ def run_infrastructure_tick(app):
     with app.app_context():
         with Session(db.engine) as session, session.begin():
             complete_due(session, game_now())
+        # 26 Nov 2026: wnioski do/od państw bez niepodległości (także złożone po jej utracie) są anulowane
+        try:
+            from game.lost_independence import cancel_requests
+            with Session(db.engine) as session, session.begin():
+                cancel_requests(session)
+        except Exception as exc:
+            app.logger.warning('Anulowanie wniosków państw bez niepodległości pominięte: %s', f'{type(exc).__name__}: {exc}'[:300])
 
 
 def run_military_tick(app):

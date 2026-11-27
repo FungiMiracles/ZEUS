@@ -173,12 +173,8 @@ def detect(session,control,eligible,identities):
     from game.communication_models import PrivateMessage
     for message in session.scalars(select(PrivateMessage).where(PrivateMessage.id>control.private_cursor).order_by(PrivateMessage.id).limit(100)):
         control.private_cursor=message.id
-        if message.recipient_user_id not in by_user:continue
-        if message.sender_user_id in by_user and message.reply_to_id:
-            # AI-to-AI correspondence stays bounded: a reply to a reply between AI countries does not trigger another.
-            parent=session.get(PrivateMessage,message.reply_to_id)
-            if parent is not None and parent.reply_to_id is not None:continue
-        raise_task(session,by_user[message.recipient_user_id],'private_message',f'private:{message.id}',revision,source='message',object_ref=message.id)
+        # 26 Nov 2026: państwa PAGA nie piszą wiadomości prywatnych — wiadomość nie tworzy zadania odpowiedzi
+        # (kursor tylko przesuwa się dalej; PAGA2 nadal widzi wiadomość jako wyzwalacz w game.paga2.triggers).
 
     # 5. Cheap periodic probes and the guaranteed strategic review cadence.
     for country_id,identity in identities.items():

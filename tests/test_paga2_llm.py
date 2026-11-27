@@ -194,22 +194,31 @@ class InitiativeTaskTests(unittest.TestCase):
         db.session.add_all([PagaAiControl(id=1,enabled=True,revision=4,model_id='m'),Panstwo(PANSTWO_ID=2,panstwo_nazwa='B')]);db.session.commit()
     def tearDown(self):db.session.remove();db.engine.dispose();self.ctx.pop()
 
-    def test_execute_enqueues_llm_task_with_recipient_and_dedupes(self):
+    def test_execute_enqueues_forum_task_and_dedupes(self):
+        from game.paga2.scoring import Option
+        from game.paga_ai_models import PagaAiJob
+        c=NS(country_id=1)
+        option=Option('comm:k','communication','FORUM_POST','x',payload={'kind':'forum_announcement','key':'paga2:ally:40','text':'Wsparcie','target':None,'group':'communication'})
+        self.assertEqual(communication.execute(c,option)['status'],200)
+        self.assertEqual(communication.execute(c,option)['status'],409)
+        job=db.session.scalar(select(PagaAiJob))
+        self.assertEqual((job.kind,job.revision,job.source),('forum_announcement',4,'paga2'))
+        from game.paga_ai_context import goal_text
+        self.assertIn('Wsparcie',goal_text(job))
+
+    def test_no_private_message_initiatives(self):
+        # 26 Nov 2026: państwa PAGA nie piszą wiadomości prywatnych — zadanie nie powstaje, a propose ich nie proponuje.
         from game.paga2.scoring import Option
         from game.paga_ai_models import PagaAiJob
         c=NS(country_id=1)
         option=Option('comm:k','communication','PM_INITIATE','x',payload={'kind':'private_initiative','key':'paga2:ally-pm:40','text':'Wsparcie','target':2,'group':'communication'})
         with patch('game.paga_ai_actor.country_user_id',return_value=77):
-            result=communication.execute(c,option)
-            self.assertEqual(result['status'],200)
             self.assertEqual(communication.execute(c,option)['status'],409)
-        job=db.session.scalar(select(PagaAiJob))
-        self.assertEqual((job.kind,job.revision,job.source),('private_initiative',4,'paga2'))
-        self.assertEqual((job.context['recipient_user_id'],job.context['target_country_name']),(77,'B'))
-        from game.paga_ai_context import reply_reference,goal_text
-        answer,_=reply_reference(db.session,job,None)
-        self.assertEqual(answer['data'],{'recipient_id':77})
-        self.assertIn('Wsparcie',goal_text(job))
-
+        self.assertIsNone(db.session.scalar(select(PagaAiJob)))
+        items=[('paga2:ally-pm:1','private_initiative',2,'x',{},{},1.0),('paga2:ally:1','forum_announcement',None,'y',{},{},1.0)]
+        with patch.object(communication,'occasions',return_value=items),patch.object(communication,'used_today',return_value=0),\
+             patch.object(communication,'already',return_value=False),patch('game.paga_forum_quota.exhausted',return_value=False):
+            options=communication.propose(NS(country_id=1))
+        self.assertEqual([o.action for o in options],['FORUM_POST'])
 
 if __name__=='__main__':unittest.main()

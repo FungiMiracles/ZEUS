@@ -197,6 +197,9 @@ def lose_sovereignty(session, defeated, annexer, capital_region_id, occupation_i
     session.add(SovereigntyLoss(panstwo_id=defeated, annexed_by=annexer, capital_region_id=capital_region_id,
                                 occupation_id=occupation_id, transferred=transferred, lost_at=moment))
     session.flush()
+    # 26 Nov 2026: wiszące wnioski z udziałem pokonanego państwa (dyplomacja, drogi, kolej, pożyczki) są anulowane
+    from game.lost_independence import cancel_requests
+    transferred['cancelled_requests'] = cancel_requests(session, {defeated})
     who = land_war.names(session, defeated, annexer)
     land_war.notify(session, defeated, LOST_TEXT)
     land_war.notify(session, annexer, f'Anektowaliśmy region stołeczny państwa {who.get(defeated, "przeciwnika")}. Państwo utraciło suwerenność — '

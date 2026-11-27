@@ -25,7 +25,9 @@ RESOURCE_LABELS={'wegiel_kamienny':'węgiel kamienny','ropa_naftowa':'ropa nafto
 
 # Cele służące priorytetom strategicznym (kolejność = preferencja w obrębie priorytetu).
 PRIORITY_GOALS={
-    'offensive_army':['factory:tanks','factory:missiles','factory:armored','factory:drones','factory:fighters','factory:nuclear_missiles'],
+    'offensive_army':['factory:tanks','factory:missiles','factory:armored','factory:drones','factory:fighters','factory:nuclear_missiles','factory:satellites'],
+    # 26 Nov 2026: satelity szpiegowskie (technologia → fabryka satelitów; zamówienia, start i misje — game.paga2.satellites)
+    'intelligence':['factory:satellites','tech:radar'],
     'conquest':['factory:tanks','factory:armored','factory:missiles'],
     'defensive_army':['factory:interceptor_ammo','tech:radar','factory:missiles'],
     'production':['factory:chips','mine:zelazo','mine:ropa_naftowa','factory:interceptor_ammo'],
@@ -58,6 +60,7 @@ PLANNER_KINDS=('tech','factory','mine','power')   # plany wojskowe (recapture/co
 
 def goal_traits(goal):
     kind,_,code=goal.partition(':')
+    if kind=='factory' and code=='satellites':return {'espionage':.8,'secrecy':.3,'ambition':.3,'militarism':.2}
     if kind=='factory':return {'industrialism':.7,'militarism':.6 if code in MILITARY_FACTORIES else 0,'ecology':-.3}
     if kind=='mine':return {'industrialism':.6,'ecology':-.4,'trade_propensity':.3 if code in ('zloto','srebro','kerbit','natsyt') else 0}
     if kind=='power':return {'industrialism':.4,'ecology':.6 if code in ('wind','solar') else -.6}

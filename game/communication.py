@@ -114,12 +114,24 @@ def read(message_id):
     return jsonify(ok=True)
 
 
+def paga_sender(user_id):
+    """Konto tożsamości PAGA (państwo zarządzane przez AI) — 26 Nov 2026: bez wiadomości prywatnych."""
+    from sqlalchemy import inspect
+    from game.paga_ai_models import PagaAiIdentity
+    if not inspect(db.engine).has_table(PagaAiIdentity.__tablename__):
+        return False
+    return db.session.scalar(select(PagaAiIdentity.country_id).where(PagaAiIdentity.user_id == user_id)) is not None
+
+
 @messages_bp.post("")
 def send():
     user, country = player()
     if user is None:
         return jsonify(error="Zaloguj się ponownie."), 401
     validate_csrf()
+    # 26 Nov 2026: państwa zarządzane przez PAGA nie piszą wiadomości prywatnych (ani nowych, ani odpowiedzi).
+    if paga_sender(user.id):
+        return jsonify(error="Państwa zarządzane przez PAGA nie wysyłają wiadomości prywatnych."), 403
     content = request.form.get("content", "").replace("\r\n", "\n").replace("\r", "\n")
     if not content.strip() or len(content) > 3000:
         return jsonify(error="Wiadomość musi zawierać od 1 do 3000 znaków razem ze spacjami."), 400

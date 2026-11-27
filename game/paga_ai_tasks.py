@@ -60,7 +60,8 @@ def now():return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # Decyzja administratora (11 Nov 2026, PAGA2): modele językowe odpowiadają wyłącznie za forum i wiadomości prywatne.
 # Pozostałe decyzje państwa podejmuje algorytm PAGA2 (game/paga2) — od 19 Nov 2026 także decyzje o udzieleniu pożyczki.
-LLM_KINDS=frozenset({'private_message','forum_reply','forum_mention','forum_announcement','private_initiative'})
+# 26 Nov 2026: bez 'private_message' i 'private_initiative' — państwa PAGA nie piszą wiadomości prywatnych (game.communication.send)
+LLM_KINDS=frozenset({'forum_reply','forum_mention','forum_announcement'})
 
 
 def legacy_engines():

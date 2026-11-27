@@ -94,9 +94,10 @@ class AiTests(unittest.TestCase):
         self.assertEqual(reply.addressees[0].user_id,self.actor.user_id)
         self.assertEqual(db.session.scalar(select(GameNotification.user_id).where(GameNotification.message_id==reply.id)),self.actor.user_id)
     def test_private_messages_are_scoped_to_the_actor(self):
+        # 26 Nov 2026: państwo PAGA nie wysyła wiadomości prywatnych (odmowa 403), a cudzych nie czyta.
         first=self.call('game_messages.send:POST',{'content':'Proponujemy rozmowy dyplomatyczne.','recipient_id':2})
-        self.assertEqual(first['status'],201,first)
-        message=db.session.scalar(select(PrivateMessage));self.assertEqual(message.sender_country_id,1)
+        self.assertEqual(first['status'],403,first)
+        self.assertIsNone(db.session.scalar(select(PrivateMessage)))
         other=PrivateMessage(sender_user_id=2,recipient_user_id=3,sender_country_id=2,recipient_country_id=3,sender_name='Dwa',recipient_name='Trzy',sender_country_name='Dwa',recipient_country_name='Trzy',sender_flag_path='f',recipient_flag_path='f',content='TAJNE_INNE_PAŃSTWA')
         db.session.add(other);db.session.commit()
         result=self.call('game_messages.detail:GET',path={'message_id':other.id})
