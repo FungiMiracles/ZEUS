@@ -1,7 +1,7 @@
 {% extends 'game/game_base_layout.html' %}
 {% block title %}Entenda News — Wydarzenia{% endblock %}
 {% block body_class %}newspaper-page{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_newspaper.css', v='20261128-news-1') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_newspaper.css', v='20261128-news-2') }}">{% endblock %}
 {% block content %}
 {# 28 Nov 2026: ekran „Wydarzenia” — miesięczna gazeta „Entenda News” (game.newspaper) #}
 <article class="newspaper" aria-labelledby="newspaper-title">
@@ -67,13 +67,13 @@
       <div><dt>Dostawy handlowe</dt><dd>{{ stats.trade.shipments if stats and stats.trade else 0 }}</dd></div>
       <div><dt>Pary partnerów handlowych</dt><dd>{{ stats.trade.pairs if stats and stats.trade else 0 }}</dd></div>
       <div><dt>Pożyczki z MFW</dt><dd>{{ stats.imf.loans if stats and stats.imf else 0 }}</dd></div>
-      <div><dt>Kwota pożyczek MFW</dt><dd>{{ ('%.1f' % stats.imf.total_bln).replace('.', ',') if stats and stats.imf else '0,0' }} mld ROI</dd></div>
+      <div><dt>Kwota pożyczek MFW</dt><dd data-money-fixed>{{ ('%.1f' % stats.imf.total_bln).replace('.', ',') if stats and stats.imf else '0,0' }} MLD ROI</dd></div>
     </dl>
     <p>{{ content.stats.body }}</p>
     {% if stats and stats.mining and stats.mining['items'] %}
     <table class="newspaper-table">
       <caption>Wydobycie surowców{% if stats.mining.source != 'zmiana złóż' %} (szacunek wg czynnych kopalń){% endif %}</caption>
-      <thead><tr><th scope="col">Surowiec</th><th scope="col">Ilość</th><th scope="col">Czynne kopalnie</th></tr></thead>
+      <thead><tr><th scope="col">Surowiec</th><th scope="col" class="is-number">Ilość</th><th scope="col" class="is-number">Czynne kopalnie</th></tr></thead>
       <tbody>{% for row in stats.mining['items'] %}<tr><th scope="row">{{ row.resource }}</th><td>{{ '{:,}'.format(row.amount|int).replace(',', ' ') }}</td><td>{{ row.mines }}</td></tr>{% endfor %}</tbody>
     </table>
     {% endif %}

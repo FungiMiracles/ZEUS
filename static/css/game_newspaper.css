@@ -53,3 +53,10 @@ html body.game-app .newspaper{--paper:#f7f3e8;--ink:#1d1a16;--muted:#5b5348;--ru
 
 @media (max-width:1100px){.newspaper .newspaper-columns{column-count:2}.newspaper .newspaper-figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.newspaper .newspaper-columns{column-count:1}.newspaper .newspaper-topline{justify-content:center}html body.game-app .newspaper{padding:16px 12px 20px}}
+
+/* Motyw gry (game_civic) nadpisuje kolory nagłówków i tabel — gazeta zachowuje czerń druku */
+html body.game-app.game-navy.game-civic .newspaper :is(h1,h2,h3,p,dd,th,td){color:var(--ink)}
+html body.game-app.game-navy.game-civic .newspaper :is(.newspaper-kicker){color:var(--accent)}
+html body.game-app.game-navy.game-civic .newspaper :is(.newspaper-dateline,.newspaper-footer,.newspaper-none,dt,caption){color:var(--muted)}
+html body.game-app.game-navy.game-civic .newspaper .newspaper-table :is(th,td){background:none}
+html body.game-app.game-navy.game-civic .newspaper .newspaper-table .is-number{text-align:right}
