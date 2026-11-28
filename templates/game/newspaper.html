@@ -1,7 +1,7 @@
 {% extends 'game/game_base_layout.html' %}
 {% block title %}Entenda News — Wydarzenia{% endblock %}
 {% block body_class %}newspaper-page{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_newspaper.css', v='20261128-news-2') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_newspaper.css', v='20261128-news-5') }}">{% endblock %}
 {% block content %}
 {# 28 Nov 2026: ekran „Wydarzenia” — miesięczna gazeta „Entenda News” (game.newspaper) #}
 <article class="newspaper" aria-labelledby="newspaper-title">
@@ -18,7 +18,14 @@
       </form>
       {% endif %}
     </div>
-    <h1 id="newspaper-title" class="newspaper-title">Entenda News</h1>
+    <div class="newspaper-masthead-main">
+      <figure class="newspaper-map">
+        <img src="{{ url_for('static', filename='maps/entenda_news_mapa.svg', v='20261128-2') }}" alt="Mapa polityczna świata Entendy" width="900" height="361" decoding="async">
+        <figcaption>Świat Entendy</figcaption>
+      </figure>
+      <h1 id="newspaper-title" class="newspaper-title">Entenda News</h1>
+      <span class="newspaper-ear" aria-hidden="true"></span>
+    </div>
     <p class="newspaper-dateline">
       {% if issue %}<span>Wydanie za {{ label }}</span><span>Ukazało się {{ edition_date }} CE</span><span>Nr {{ issue.id }}</span>
       {% else %}<span>Redakcja przygotowuje pierwsze wydanie</span>{% endif %}
@@ -59,6 +66,23 @@
     {% endif %}
   </section>
 
+  {% if content.events %}
+  {% set event_facts = {} %}{% for item in (issue.facts.events if issue.facts and issue.facts.events else []) %}{% set _ = event_facts.update({item.id: item}) %}{% endfor %}
+  <section class="newspaper-section newspaper-chronicle" aria-labelledby="newspaper-chronicle-title">
+    <h2 id="newspaper-chronicle-title" class="newspaper-section-title">Kronika zdarzeń</h2>
+    <ol class="newspaper-chronicle-list">
+      {% for item in content.events %}{% set fact = event_facts.get(item.id) or {} %}
+      <li class="newspaper-chronicle-item">
+        {% if fact.scale %}<span class="newspaper-scale" title="Skala zdarzenia">Skala {{ fact.scale }}</span>{% endif %}
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.body }}</p>
+        {% if fact.victims %}<p class="newspaper-chronicle-meta">Ofiary: {{ '{:,}'.format(fact.victims|int).replace(',', ' ') }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
   {% if content.stats %}
   <section class="newspaper-stats" aria-labelledby="newspaper-stats-title">
     <h2 id="newspaper-stats-title" class="newspaper-section-title">{{ content.stats.title }}</h2>
@@ -70,6 +94,14 @@
       <div><dt>Kwota pożyczek MFW</dt><dd data-money-fixed>{{ ('%.1f' % stats.imf.total_bln).replace('.', ',') if stats and stats.imf else '0,0' }} MLD ROI</dd></div>
     </dl>
     <p>{{ content.stats.body }}</p>
+    {% set budget = stats.budgets if stats else None %}
+    {% if budget and budget.expected %}
+    <div class="newspaper-budget {{ 'is-complete' if budget.all else 'is-missing' }}">
+      <h3>Budżety państw — {{ budget.period }}</h3>
+      {% if budget.all %}<p><strong>Wszystkie państwa w grze ({{ budget.expected }}) ustaliły swoje budżety.</strong></p>
+      {% else %}<p><strong>Nie wszystkie państwa ustaliły budżet:</strong> {{ budget.set }} z {{ budget.expected }}. Brak budżetu: {{ budget.missing|join(', ') }}.</p>{% endif %}
+    </div>
+    {% endif %}
     {% if stats and stats.mining and stats.mining['items'] %}
     <table class="newspaper-table">
       <caption>Wydobycie surowców{% if stats.mining.source != 'zmiana złóż' %} (szacunek wg czynnych kopalń){% endif %}</caption>

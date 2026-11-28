@@ -116,5 +116,53 @@ class NewspaperTests(FeatureTestCase):
         self.assertEqual(self.client.post('/game/wydarzenia').status_code,405)
 
 
+    def budget(self,country,year=3002,period=3):
+        from game.finance_models import StateBudget
+        at=datetime(year,7,1)
+        self.budget_id=getattr(self,'budget_id',0)+1
+        db.session.add(StateBudget(id=self.budget_id,financial_period_id=1,panstwo_id=country,game_year=year,period=period,opening_reserve=0,tax_total=0,budget_total=0,
+                                   expenditure_total=0,closing_reserve=0,approval_mode='MANUAL',approved_at=at,approved_game_date=at))
+
+    def test_budgets_report_playing_countries_without_budget(self):
+        from game.paga2.models import Paga2Profile
+        Paga2Profile.__table__.create(db.engine,checkfirst=True)
+        self.budget(1);self.budget(2);self.budget(4,period=2);db.session.commit()   # gracze 1–3; 4 nie gra — pomijane
+        result=newspaper.budgets(db.session,START,str)
+        self.assertEqual(result['period'],'III kwartał 3002')
+        self.assertEqual((result['expected'],result['set'],result['all'],result['missing']),(3,2,False,['3']))
+        self.assertIn('nie ustaliły go jeszcze: 3',newspaper.budgets_text(result))
+        self.budget(3);db.session.commit()
+        result=newspaper.budgets(db.session,START,str)
+        self.assertTrue(result['all']);self.assertIn('wszystkie państwa w grze (3)',newspaper.budgets_text(result))
+
+    def test_generator_events_top_five_by_scale(self):
+        from models import Zdarzenie
+        for id,scale,victims,day in [(1,2,0,3),(2,5,10,9),(3,5,40,20),(4,1,0,2),(5,3,0,4),(6,4,0,5),(7,5,0,1),(8,2,0,8)]:
+            db.session.add(Zdarzenie(zdarzenie_id=id,zdarzenie_typ='test',region_id=1,skala=scale,ilosc_ofiar=victims,
+                                     opis_wygenerowany=f'Państwo 1 : Opis {id}.',data_entenda=datetime(3002,7,day)))
+        db.session.add(Zdarzenie(zdarzenie_id=9,zdarzenie_typ='test',region_id=1,skala=5,opis_wygenerowany='Inny miesiąc',data_entenda=datetime(3002,8,2)))
+        db.session.add(Zdarzenie(zdarzenie_id=10,zdarzenie_typ='test',region_id=1,skala=5,opis_wygenerowany='Usunięte',data_entenda=datetime(3002,7,2),data_usuniecia=datetime(3002,7,3)))
+        db.session.commit()
+        items=newspaper.generator_events(db.session,START,END,lambda id:f'Państwo {id}')
+        self.assertEqual([item['event_id'] for item in items],[3,2,7,6,5])
+        self.assertEqual(items[0]['fact'],'Opis 3.');self.assertEqual(items[0]['country'],'Państwo 1');self.assertEqual(items[0]['region'],'Pierwszy region')
+        facts=newspaper.collect_facts(db.session,START,END,None,{})
+        content=newspaper.fallback_content(facts)
+        self.assertEqual(len(content['events']),5);self.assertEqual(content['events'][0]['title'],'Pierwszy region, Państwo 1')
+        answer={'lead':None,'news':[],'events':[{'id':facts['events'][0]['id'],'title':'Katastrofa','body':'Opis AI.'}],'stats':{'title':'T','body':'B'}}
+        merged=newspaper.merge_ai(facts,answer)
+        self.assertEqual(merged['events'][0]['title'],'Katastrofa');self.assertEqual(merged['events'][1]['title'],content['events'][1]['title'])
+        brief=newspaper.prompt(facts)[1]['content'];self.assertIn('kronika_zdarzeń',brief);self.assertIn('budgets',brief)
+
+    def test_screen_shows_map_chronicle_and_budgets(self):
+        from models import Zdarzenie
+        db.session.add(Zdarzenie(zdarzenie_id=1,zdarzenie_typ='test',region_id=1,skala=5,ilosc_ofiar=1200,opis_wygenerowany='Wielka powódź.',data_entenda=datetime(3002,7,4)))
+        self.budget(1);db.session.commit()
+        issue=newspaper.ensure_issue(db.session,NOW);db.session.commit();newspaper.process(issue.id);db.session.expire_all()
+        html=self.client.get('/game/wydarzenia').get_data(as_text=True)
+        self.assertIn('entenda_news_mapa.svg',html);self.assertIn('Kronika zdarzeń',html);self.assertIn('Wielka powódź.',html)
+        self.assertIn('Ofiary: 1 200',html);self.assertIn('Nie wszystkie państwa ustaliły budżet',html);self.assertIn('Brak budżetu: Państwo 2, Państwo 3',html)
+
+
 if __name__=='__main__':
     import unittest;unittest.main()

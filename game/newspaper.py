@@ -5,7 +5,9 @@ Raz na miesiąc Entendy ZEUS zbiera fakty z minionego miesiąca (wyłącznie dan
 - najważniejsze wydarzenie: wypowiedzenie lub zakończenie wojny, zawieszenie broni, wyniesienie satelity na orbitę,
   pozyskanie broni atomowej, utrata niepodległości (kolejne wydarzenia tej rangi trafiają na początek mniejszych newsów),
 - mniejsze newsy: opracowane technologie, nowe linie kolejowe, nowe lotniska, pozwolenia na bazy w obcym państwie,
-- statystyki miesiąca: kontakty handlowe, wydobycie surowców, pożyczki z MFW.
+- statystyki miesiąca: kontakty handlowe, wydobycie surowców, pożyczki z MFW,
+- (28 Nov 2026) kronika: 5 najważniejszych zdarzeń z generatora zdarzeń (od najwyższej skali w dół) oraz informacja,
+  czy wszystkie państwa w grze (gracze i autonomiczne państwa PAGA2) ustaliły budżet na okres obejmujący ten miesiąc.
 
 Teksty pisze model AI odpowiedzialny za wpisy na forum (Groq, zastępczo Gemini — PAGA MULTI-AI). Model dostaje tylko
 zebrane fakty i nie może dodawać nowych. Gdy modele są wyłączone albo trzykrotnie zawiodą, wydanie ukazuje się z tekstem
@@ -30,6 +32,8 @@ MINOR_ORDER=('TECHNOLOGY','RAIL','AIRPORT','BASE_PERMIT')
 MAX_MINOR=12
 MAX_PER_KIND=4   # mniejsze newsy jednego rodzaju (np. kolej) nie wypierają pozostałych
 TEXT_LIMITS={'title':160,'body':1800}
+MAX_EVENTS=5
+MAX_MISSING_LISTED=12
 
 
 class NewspaperIssue(db.Model):
@@ -133,9 +137,58 @@ def collect_facts(session,start,end,previous,current):
     minor=limited
     lead=main[0] if main else None
     others=(main[1:]+minor)[:MAX_MINOR]
-    for index,item in enumerate(([lead] if lead else [])+others,start=1):item['id']=index
+    chronicle=generator_events(session,start,end,name)
+    for index,item in enumerate(([lead] if lead else [])+others+chronicle,start=1):item['id']=index
+    stats=statistics(session,start,end,previous,current,name)
+    stats['budgets']=budgets(session,start,name)
     return {'month':month_label(start.year,start.month),'period':[start.isoformat(),end.isoformat()],'lead':lead,'news':others,
-            'stats':statistics(session,start,end,previous,current,name),'baseline':bool(previous)}
+            'events':chronicle,'stats':stats,'baseline':bool(previous)}
+
+
+def generator_events(session,start,end,name):
+    """Najważniejsze zdarzenia z generatora zdarzeń w miesiącu: od najwyższej skali, przy równej skali — więcej ofiar, wcześniej."""
+    from models import Zdarzenie,Region
+    rows=session.execute(select(Zdarzenie,Region.region_nazwa,func.coalesce(Zdarzenie.panstwo_id,Region.panstwo_id))
+                         .outerjoin(Region,Zdarzenie.region_id==Region.region_id)
+                         .where(Zdarzenie.data_entenda>=start,Zdarzenie.data_entenda<end,Zdarzenie.data_usuniecia.is_(None),
+                                Zdarzenie.opis_wygenerowany.is_not(None),Zdarzenie.opis_wygenerowany!='')
+                         .order_by(func.coalesce(Zdarzenie.skala,0).desc(),func.coalesce(Zdarzenie.ilosc_ofiar,0).desc(),Zdarzenie.data_entenda,Zdarzenie.zdarzenie_id)
+                         .limit(MAX_EVENTS))
+    result=[]
+    for event,region,country in rows:
+        text=' '.join(event.opis_wygenerowany.split())
+        head,sep,rest=text.partition(' : ')
+        if sep and len(head)<=60 and rest:text=rest   # opis generatora zaczyna się czasem od „Państwo : …”
+        result.append({'kind':'GENERATOR','event_id':event.zdarzenie_id,'scale':event.skala,'victims':int(event.ilosc_ofiar or 0),
+                       'country':name(country) if country is not None else None,'region':region,'at':event.data_entenda.isoformat() if event.data_entenda else None,
+                       'countries':[name(country)] if country is not None else [],'fact':text[:TEXT_LIMITS['body']]})
+    return result
+
+
+def period_label(year,period):
+    from game.finance_service import is_quarterly
+    roman=('I','II','III','IV')[period-1]
+    return f'{roman} {"kwartał" if is_quarterly(year,period) else "półrocze"} {year}'
+
+
+def budgets(session,moment,name):
+    """Czy wszystkie państwa w grze ustaliły budżet na okres obejmujący `moment`. W grze: suwerenne, aktywne państwa
+    graczy i państwa PAGA2 z włączoną autonomią (pozostałe państwa nie prowadzą budżetu)."""
+    from models import Panstwo
+    from game.models import GamePlayerCountry
+    from game.finance_models import StateBudget
+    from game.finance_service import period_key
+    year,period=period_key(moment)
+    playing=set(session.scalars(select(GamePlayerCountry.panstwo_id)))
+    try:
+        from game.paga2.models import Paga2Profile
+        playing|=set(session.scalars(select(Paga2Profile.panstwo_id).where(Paga2Profile.autonomy_enabled.is_(True))))
+    except Exception:pass
+    sovereign=set(session.scalars(select(Panstwo.PANSTWO_ID).where(Panstwo.status=='aktywne',Panstwo.czy_suwerenny=='TAK')))
+    expected=playing&sovereign
+    done=set(session.scalars(select(StateBudget.panstwo_id).where(StateBudget.game_year==year,StateBudget.period==period)))&expected
+    missing=sorted((name(id) for id in expected-done),key=str.lower)
+    return {'period':period_label(year,period),'expected':len(expected),'set':len(done),'all':bool(expected) and not missing,'missing':missing}
 
 
 def _diplomacy(session,start,end,name):
@@ -298,6 +351,7 @@ def fallback_content(facts):
     if lead:
         content['lead']={'id':lead['id'],'title':_title(lead),'body':lead['fact']+' Redakcja „Entenda News” będzie śledzić dalszy rozwój wydarzeń.'}
     for item in facts.get('news',[]):content['news'].append({'id':item['id'],'title':_title(item),'body':item['fact']})
+    content['events']=[{'id':item['id'],'title':_event_title(item),'body':item['fact']} for item in facts.get('events') or []]
     content['stats']={'title':f'Miesiąc w liczbach — {facts.get("month")}','body':stats_text(facts.get('stats') or {})}
     return content
 
@@ -310,6 +364,19 @@ TITLES={'WAR_STARTED':'Wybuch wojny','WAR_ENDED':'Koniec wojny','CEASEFIRE':'Zaw
 def _title(item):
     countries=item.get('countries') or []
     return TITLES.get(item['kind'],'Wydarzenie')+(': '+' – '.join(countries) if countries else '')
+
+
+def _event_title(item):
+    place=', '.join(part for part in (item.get('region'),item.get('country')) if part)
+    return place or 'Entenda'
+
+
+def budgets_text(budget):
+    if not budget or not budget.get('expected'):return ''
+    if budget.get('all'):return f'Budżety: wszystkie państwa w grze ({budget["expected"]}) ustaliły budżet na {budget["period"]}.'
+    missing=budget.get('missing') or []
+    listed=', '.join(missing[:MAX_MISSING_LISTED])+(f' i {len(missing)-MAX_MISSING_LISTED} innych' if len(missing)>MAX_MISSING_LISTED else '')
+    return f'Budżety: budżet na {budget["period"]} ustaliło {budget["set"]} z {budget["expected"]} państw w grze; nie ustaliły go jeszcze: {listed}.'
 
 
 def _number(value):return f'{value:,}'.replace(',',' ')
@@ -328,7 +395,8 @@ def stats_text(stats):
     else:parts.append('Wydobycie: brak czynnych kopalń.')
     if imf.get('loans'):parts.append(f'MFW udzielił {imf["loans"]} pożyczek na łącznie {str(imf["total_bln"]).replace(".",",")} mld ROI'+(' (' + ', '.join(imf['borrowers'])+')' if imf.get('borrowers') else '')+'.')
     else:parts.append('MFW nie udzielił w minionym miesiącu żadnej pożyczki.')
-    return ' '.join(parts)
+    if stats.get('budgets'):parts.append(budgets_text(stats['budgets']))
+    return ' '.join(part for part in parts if part)
 
 
 SYSTEM_PROMPT=('Jesteś redakcją gazety „Entenda News” — jedynego międzynarodowego dziennika fikcyjnego świata Entenda (gra strategiczna). '
@@ -336,9 +404,11 @@ SYSTEM_PROMPT=('Jesteś redakcją gazety „Entenda News” — jedynego między
                'nie dodajesz państw, liczb, dat, przyczyn ani skutków, których nie ma w faktach; możesz je jedynie opisać i zestawić. '
                'Nie oceniasz politycznie żadnego państwa. Odpowiadasz wyłącznie obiektem JSON zgodnym ze schematem.')
 
-SCHEMA={'type':'object','additionalProperties':False,'required':['lead','news','stats'],'properties':{
+SCHEMA={'type':'object','additionalProperties':False,'required':['lead','news','events','stats'],'properties':{
     'lead':{'type':['object','null'],'additionalProperties':False,'required':['title','body'],'properties':{'title':{'type':'string'},'body':{'type':'string'}}},
     'news':{'type':'array','items':{'type':'object','additionalProperties':False,'required':['id','title','body'],
+            'properties':{'id':{'type':'integer'},'title':{'type':'string'},'body':{'type':'string'}}}},
+    'events':{'type':'array','items':{'type':'object','additionalProperties':False,'required':['id','title','body'],
             'properties':{'id':{'type':'integer'},'title':{'type':'string'},'body':{'type':'string'}}}},
     'stats':{'type':'object','additionalProperties':False,'required':['title','body'],'properties':{'title':{'type':'string'},'body':{'type':'string'}}}}}
 
@@ -348,10 +418,14 @@ def prompt(facts):
     brief={'miesiąc':facts.get('month'),
            'najważniejsze_wydarzenie':{'id':facts['lead']['id'],'fakt':facts['lead']['fact']} if facts.get('lead') else None,
            'mniejsze_newsy':[{'id':item['id'],'fakt':item['fact']} for item in facts.get('news',[])],
+           'kronika_zdarzeń':[{'id':item['id'],'państwo':item.get('country'),'region':item.get('region'),'skala':item.get('scale'),
+                               'ofiary':item.get('victims'),'fakt':item['fact']} for item in facts.get('events') or []],
            'statystyki':facts.get('stats')}
     task=('Przygotuj wydanie gazety za miniony miesiąc. "lead": nagłówek (do 12 słów) i artykuł (3–5 zdań) o najważniejszym wydarzeniu '
           '(null, gdy go brak). "news": dla KAŻDEGO mniejszego newsa — to samo id, krótki tytuł i 1–3 zdania. '
-          '"stats": tytuł i 3–5 zdań o statystykach (handel, wydobycie, pożyczki MFW) — tylko liczby z faktów.')
+          '"events": dla KAŻDEGO zdarzenia z kroniki — to samo id, krótki tytuł i 1–2 zdania (skala 5 to zdarzenie najpoważniejsze). '
+          '"stats": tytuł i 3–5 zdań o statystykach (handel, wydobycie, pożyczki MFW, budżety państw: czy wszystkie '
+          'państwa ustaliły budżet, a jeśli nie — które) — tylko liczby i państwa z faktów.')
     return [{'role':'system','content':SYSTEM_PROMPT},{'role':'user','content':task+'\n\nFakty:\n'+json.dumps(brief,ensure_ascii=False,default=str)}]
 
 
@@ -367,8 +441,8 @@ def merge_ai(facts,answer):
     lead=answer.get('lead')
     if base['lead'] and isinstance(lead,dict) and lead.get('title') and lead.get('body'):
         base['lead'].update(title=_clean(lead['title'],TEXT_LIMITS['title']),body=_clean(lead['body'],TEXT_LIMITS['body']))
-    written={item.get('id'):item for item in answer.get('news') or [] if isinstance(item,dict)}
-    for item in base['news']:
+    written={item.get('id'):item for key in ('news','events') for item in answer.get(key) or [] if isinstance(item,dict)}
+    for item in base['news']+base['events']:
         text=written.get(item['id'])
         if text and text.get('title') and text.get('body'):item.update(title=_clean(text['title'],TEXT_LIMITS['title']),body=_clean(text['body'],TEXT_LIMITS['body']))
     stats=answer.get('stats')
@@ -389,7 +463,7 @@ def write_with_ai(facts):
     with Session(db.engine) as session:provider,_,reason=route(session,'forum_reply')
     if provider not in ('groq','gemini'):raise RuntimeError(reason or 'Brak dostępnego modelu AI.')
     stats={}
-    answer=generator(provider)(prompt(facts),schema=SCHEMA,stats=stats,max_tokens=1600)
+    answer=generator(provider)(prompt(facts),schema=SCHEMA,stats=stats,max_tokens=2200)
     return merge_ai(facts,answer),provider,stats.get('model') or model_name(provider)
 
 

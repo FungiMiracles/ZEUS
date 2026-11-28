@@ -14,6 +14,12 @@ html body.game-app .newspaper{--paper:#f7f3e8;--ink:#1d1a16;--muted:#5b5348;--ru
 .newspaper .newspaper-archive label{color:var(--muted);background:none;font:inherit}
 .newspaper .newspaper-archive select{min-height:32px;padding:3px 8px;background:#fffdf7;color:var(--ink);-webkit-text-fill-color:var(--ink);border:1px solid var(--soft-rule);border-radius:4px;
   font-family:system-ui,sans-serif;font-size:13px;letter-spacing:normal;text-transform:none}
+.newspaper .newspaper-masthead-main{display:grid;grid-template-columns:minmax(170px,270px) minmax(0,1fr);align-items:center;gap:18px;margin-top:12px}
+.newspaper .newspaper-map{margin:0;padding:6px;background:#fff;border:1px solid var(--rule);justify-self:start;width:100%;box-sizing:border-box}
+.newspaper .newspaper-map img{display:block;width:100%;height:auto;filter:grayscale(1)}
+.newspaper .newspaper-map figcaption{margin-top:4px;color:var(--muted);font-family:system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-align:center;text-transform:uppercase}
+.newspaper .newspaper-ear{display:none}
+.newspaper .newspaper-masthead-main .newspaper-title{white-space:nowrap;font-size:clamp(38px,5.4vw,92px)}
 .newspaper .newspaper-title{margin:14px 0 6px;padding:0;background:none;border:0;color:var(--ink);font-family:"Old English Text MT","UnifrakturMaguntia","Times New Roman",Georgia,serif;
   font-size:clamp(44px,7vw,92px);font-weight:700;line-height:1;letter-spacing:.01em;text-transform:none}
 .newspaper .newspaper-dateline{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 22px;margin:8px 0 0;padding-top:7px;border-top:1px solid var(--rule);
@@ -37,7 +43,7 @@ html body.game-app .newspaper{--paper:#f7f3e8;--ink:#1d1a16;--muted:#5b5348;--ru
 
 .newspaper .newspaper-stats{padding:16px 18px 18px;background:#efe8d7;border:1px solid var(--soft-rule);border-top:4px double var(--rule)}
 .newspaper .newspaper-stats .newspaper-section-title{border-top:0}
-.newspaper .newspaper-figures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.newspaper .newspaper-figures{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
 .newspaper .newspaper-figures div{padding:8px 10px;background:var(--paper);border:1px solid var(--soft-rule);text-align:center}
 .newspaper .newspaper-figures dt{color:var(--muted);font-family:system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .newspaper .newspaper-figures dd{margin:2px 0 0;color:var(--ink);font-size:26px;font-weight:700}
@@ -47,16 +53,29 @@ html body.game-app .newspaper{--paper:#f7f3e8;--ink:#1d1a16;--muted:#5b5348;--ru
 .newspaper .newspaper-table thead th{border-bottom:1px solid var(--rule);font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .newspaper .newspaper-table td{text-align:right;font-variant-numeric:tabular-nums}
 
+.newspaper .newspaper-chronicle-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:0;padding:0;list-style:none}
+.newspaper .newspaper-chronicle-item{padding:0 16px 4px;border-left:1px solid var(--soft-rule)}
+.newspaper .newspaper-chronicle-item:first-child{padding-left:0;border-left:0}
+.newspaper .newspaper-chronicle-item h3{margin:4px 0;text-align:left;padding:0;background:none;border:0;color:var(--ink);font-family:inherit;font-size:17px;font-weight:700;line-height:1.25;text-transform:none;letter-spacing:0}
+.newspaper .newspaper-chronicle-item p{margin:0;color:var(--ink);font-size:14.5px}
+.newspaper .newspaper-chronicle-item .newspaper-chronicle-meta{margin-top:4px;color:var(--muted);font-size:13px;font-style:italic}
+.newspaper .newspaper-scale{display:inline-block;padding:1px 7px;border:1px solid var(--rule);color:var(--ink);font-family:system-ui,sans-serif;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.newspaper .newspaper-budget{margin-top:14px;padding:10px 14px;background:var(--paper);border:1px solid var(--soft-rule);border-left:4px solid var(--rule)}
+.newspaper .newspaper-budget.is-missing{border-left-color:#8a1c1c}
+.newspaper .newspaper-budget h3{margin:0 0 4px;padding:0;background:none;border:0;color:var(--ink);font-family:system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.newspaper .newspaper-budget p{margin:0;color:var(--ink);font-size:15px}
 .newspaper .newspaper-empty{padding:40px 0;text-align:center}
 .newspaper .newspaper-empty h2{margin:0 0 8px;background:none;border:0;color:var(--ink);font-family:inherit;font-size:32px;text-transform:none}
 .newspaper .newspaper-footer{margin-top:22px;padding-top:8px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;font-style:italic;text-align:center}
 
-@media (max-width:1100px){.newspaper .newspaper-columns{column-count:2}.newspaper .newspaper-figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1100px){.newspaper .newspaper-chronicle-list{grid-template-columns:repeat(2,minmax(0,1fr))}.newspaper .newspaper-chronicle-item:nth-child(odd){padding-left:0;border-left:0}.newspaper .newspaper-columns{column-count:2}.newspaper .newspaper-figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.newspaper .newspaper-masthead-main{grid-template-columns:1fr}.newspaper .newspaper-ear{display:none}.newspaper .newspaper-map{justify-self:center;max-width:260px}
+  .newspaper .newspaper-chronicle-list{grid-template-columns:1fr}.newspaper .newspaper-chronicle-item{padding:10px 0;border-left:0;border-top:1px solid var(--soft-rule)}.newspaper .newspaper-chronicle-item:first-child{border-top:0}}
 @media (max-width:640px){.newspaper .newspaper-columns{column-count:1}.newspaper .newspaper-topline{justify-content:center}html body.game-app .newspaper{padding:16px 12px 20px}}
 
 /* Motyw gry (game_civic) nadpisuje kolory nagłówków i tabel — gazeta zachowuje czerń druku */
 html body.game-app.game-navy.game-civic .newspaper :is(h1,h2,h3,p,dd,th,td){color:var(--ink)}
 html body.game-app.game-navy.game-civic .newspaper :is(.newspaper-kicker){color:var(--accent)}
-html body.game-app.game-navy.game-civic .newspaper :is(.newspaper-dateline,.newspaper-footer,.newspaper-none,dt,caption){color:var(--muted)}
+html body.game-app.game-navy.game-civic .newspaper :is(.newspaper-dateline,.newspaper-footer,.newspaper-none,dt,caption,figcaption,.newspaper-chronicle-meta){color:var(--muted)}
 html body.game-app.game-navy.game-civic .newspaper .newspaper-table :is(th,td){background:none}
 html body.game-app.game-navy.game-civic .newspaper .newspaper-table .is-number{text-align:right}
