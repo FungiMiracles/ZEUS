@@ -140,18 +140,7 @@ class PublicPanelTests(MilitaryFixture):
         self.assertEqual(html.count('class="indicator-help"'),18)
         self.assertNotIn('value="42" name=',html)
 
-    def test_event_own_country_name_filters_effects_and_no_delete(self):
-        response=self.client.get('/game/wydarzenia?my_country=1');self.assertEqual(response.status_code,200)
-        html=response.get_data(as_text=True);self.assertIn('Energia: -3',html);self.assertIn('ID 1',html);self.assertNotIn('ID 2 ·',html)
-        self.assertNotIn('Usuń',html)
-        self.assertEqual(self.client.post('/game/wydarzenia',data={'delete':1}).status_code,405)
-        html=self.client.get('/game/wydarzenia?country=Państwo+2&region=Drugi').get_data(as_text=True)
-        self.assertIn('ID 2 ·',html);self.assertNotIn('ID 1 ·',html)
-
-    def test_invalid_filters_and_date_casualty_range(self):
-        for query in ('data_od=no','ofiary_od=-1','data_od=2990-02-01&data_do=2990-01-01','skala=bad'):
-            self.assertEqual(self.client.get('/game/wydarzenia?'+query).status_code,400)
-        response=self.client.get('/game/wydarzenia?data_od=2990-01-02&ofiary_od=20&ofiary_do=25')
-        self.assertEqual(response.status_code,200);self.assertIn('ID 2 ·',response.get_data(as_text=True))
+    def test_society_requires_login(self):
+        # 28 Nov 2026: lista generatora zdarzeń usunięta z ekranu „Wydarzenia” (gazeta „Entenda News” — test_newspaper.py)
         with self.client.session_transaction() as browser:browser.clear()
         self.assertEqual(self.client.get('/game/spoleczenstwo').status_code,302)

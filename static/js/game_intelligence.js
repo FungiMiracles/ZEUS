@@ -51,6 +51,11 @@
     function render(){
         {const funds=document.getElementById('module-funds-available');if(funds){const full=funds.querySelector('.module-funds-full'),mld=funds.querySelector('.module-funds-mld');const text=window.GameMoney?window.GameMoney.format(state.budgetAvailable):number(state.budgetAvailable)+' ROI';if(full&&mld&&window.GameMoney){full.textContent=text;mld.firstChild.nodeValue=window.GameMoney.billions(state.budgetAvailable)+' ';}else funds.textContent=text;}}
         document.getElementById('intel-counter').textContent=`Poziom ${state.counterLevel}/7. Zmniejszenie szans obcych agentów o ${state.protection}% proporcjonalnie.`;
+        {const box=document.getElementById('intel-sabotage');if(box){box.replaceChildren();const items=state.sabotageAgainstUs||[];
+            for(const item of items){const card=make('div');card.className='intel-card '+(item.success?'is-failed':'is-success');
+                card.append(make('h3',`${item.kind} — ${item.region}`),make('p',`${item.date} · ${item.success?'sabotaż udany':'próba nieudana'}${item.captured?' · schwytano agenta':''}`),make('p',item.culprit?`Sprawca: ${item.culprit}`:'Sprawca nieustalony'));box.append(card);}
+            if(!items.length)box.append(make('p','Brak wykrytych prób sabotażu.'));
+            collapse(box,[...box.querySelectorAll(':scope>.intel-card')],4,'sabotage','wykrytych prób');}}
         const upgrade=document.getElementById('intel-counter-upgrade');upgrade.disabled=state.counterLevel>=7;upgrade.textContent=state.counterLevel>=7?'Maksymalny poziom':`Wzmocnij ochronę — ${number(state.counterCost)} ROI`;
         const selected=agent.value;agent.replaceChildren();const agentList=document.getElementById('intel-agents');agentList.replaceChildren();
         for(const item of state.agents){const card=make('div');card.className='intel-card'+(item.captured?' is-captured':item.busy?' is-busy':'');card.append(agentName('h3',item.name),make('p',`Poziom ${item.level} · szansa ${item.chance}% · ${item.captured?'schwytany — niedostępny':item.busy?'na misji':'dostępny'}`));
@@ -92,7 +97,7 @@
         return box;
     }
     // 13 Nov 2026: długie listy agentów i misji zwinięte do najważniejszych pozycji (wygodne przewijanie, także na telefonie)
-    const expanded={agents:false,missions:false,resources:false};
+    const expanded={agents:false,missions:false,resources:false,sabotage:false};
     function collapse(container,cards,limit,key,noun){
         container.classList.toggle('intel-collapsed',!expanded[key]);
         if(cards.length<=limit)return;

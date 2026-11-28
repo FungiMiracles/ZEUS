@@ -70,8 +70,33 @@ def options_for(ctx,data):
         options.append(Option(key=f'intel:recruit:plan:{level}',domain='intelligence',action='RECRUIT_AGENT',label=f'Rekrutacja agenta poziomu {level} do rozpoznania przed planowaną wojną',
                               cost=float(AGENT_COSTS[level-1]),sector='security_services',effects={'intelligence':1.0,'offensive_army':.4},traits={'espionage':.6},base=8.0,
                               payload={'action':'recruit','level':level,'count':1}))
+    # 28 Nov 2026: odwet za wykryty sabotaż (wysoki rewanżyzm) — bez wolnego agenta najpierw rekrutacja.
+    from game.paga2 import sabotage
+    revenge=sabotage.retaliation_targets(ctx)
+    if revenge and not free and not any(o.action=='RECRUIT_AGENT' for o in options):
+        level=max(1,min(7,1+int(t.get('espionage',50)//17)))
+        while level>1 and AGENT_COSTS[level-1]>available*ctx.limits['per_action']:level-=1
+        options.append(Option(key=f'intel:recruit:revenge:{level}',domain='intelligence',action='RECRUIT_AGENT',label=f'Rekrutacja agenta poziomu {level} do odwetu za sabotaż',
+                              cost=float(AGENT_COSTS[level-1]),sector='security_services',effects={'intelligence':1.0,'defensive_army':.3},traits={'revenge':.8,'espionage':.4},base=6.0,
+                              payload={'action':'recruit','level':level,'count':1}))
     if not free:return options
     agent=max(free,key=lambda a:a['level'])
+    from game.intelligence_service import HYBRID as HYBRID_KINDS
+    for other,item in revenge:
+        terms=sabotage.retaliation_terms(ctx,other,agent['level'])
+        if terms is None:continue
+        base,notes=terms
+        # Podobny akt: ten sam rodzaj co ostatnia próba sprawcy, gdy wykonalny (cyberatak portowy wymaga regionu nadmorskiego).
+        kinds=[k for k in dict.fromkeys([item.get('last_kind'),*reversed(item.get('kinds',[])),*HYBRID_KINDS]) if k in HYBRID_KINDS]
+        for kind in kinds:
+            regions=target_regions(ctx,other,coastal=kind=='cyber_port')
+            if not regions:continue
+            options.append(Option(key=f'intel:revenge:{kind}:{other}:{item["count"]}',domain='intelligence',action='HYBRID_'+kind,
+                                  label=f'Odwet: działanie hybrydowe ({kind}) w państwie {other}, region {regions[0]}',target=other,stance='hostile',
+                                  cost=float(MISSION_COSTS[agent['level']-1]),sector='security_services',effects={'intelligence':.5,'defensive_army':.4,'conquest':.2},
+                                  traits={'revenge':1.0,'subversion':.5,'agreeableness':-.5,'strategic_patience':-.3},categories={'terrorist':.5},base=base,notes=notes,
+                                  payload={'action':'mission','kind':kind,'agent_id':agent['id'],'region_id':regions[0],'group':'intel:mission'}))
+            break
     for plan_id,other,region in requests:
         regions=[region] if region is not None else target_regions(ctx,other)
         if not regions:continue

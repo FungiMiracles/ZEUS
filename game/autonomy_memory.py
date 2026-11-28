@@ -50,7 +50,12 @@ def ingest_sources(session,control,now):
     for mission in session.scalars(select(IntelligenceMission).where(IntelligenceMission.completed_at.is_not(None),IntelligenceMission.completed_at>=control.started_at,unconsumed(IntelligenceMission,'mission')).order_by(IntelligenceMission.id).limit(200)):
         meta=context('mission',mission.id)
         record_event(session,f'mission:{mission.id}:report','INTELLIGENCE_REPORT',mission.panstwo_id,mission.target_country_id,mission.completed_at,public=False,audience=[mission.panstwo_id],payload={'kind':mission.kind,'success':bool(mission.success),'report':mission.report or {},'region_id':mission.region_id},depth=meta.get('depth',0),root_id=meta.get('root_id'))
-        if (mission.report or {}).get('captured'):
+        report=mission.report or {}
+        if mission.kind in HYBRID and (report.get('captured') or report.get('attributed')):
+            # 28 Nov 2026: sprawca znany ofierze (schwytany agent albo kontrwywiad poziomu 6–7) — także przy nieudanej próbie.
+            record_event(session,f'mission:{mission.id}:detected','HYBRID_DETECTED',mission.panstwo_id,mission.target_country_id,mission.completed_at,public=False,audience=[mission.target_country_id],
+                         payload={'kind':mission.kind,'success':bool(mission.success),'captured':bool(report.get('captured')),**({'damage':report['damage']} if report.get('damage') else {})},depth=meta.get('depth',0),root_id=meta.get('root_id'))
+        elif report.get('captured'):
             record_event(session,f'mission:{mission.id}:detected','HYBRID_DETECTED',mission.panstwo_id,mission.target_country_id,mission.completed_at,public=False,audience=[mission.target_country_id],payload={'kind':mission.kind},depth=meta.get('depth',0),root_id=meta.get('root_id'))
         elif mission.kind in HYBRID and (mission.report or {}).get('damage'):
             record_event(session,f'mission:{mission.id}:effect','UNATTRIBUTED_DAMAGE',None,mission.target_country_id,mission.completed_at,public=False,audience=[mission.target_country_id],payload={'damage':mission.report['damage']},depth=meta.get('depth',0),root_id=meta.get('root_id'))

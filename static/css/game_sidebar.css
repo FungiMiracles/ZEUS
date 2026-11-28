@@ -230,3 +230,24 @@ html body.game-app.game-navy.game-civic .game-society-strip .trend-mixed{color:#
   html body.game-app.game-navy.game-civic .game-society-strip ul{padding:6px 10px}
   html body.game-app.game-navy.game-civic .game-society-strip .society-chip{flex:0 0 auto;font-size:11.5px}
 }
+
+/* 28 Nov 2026: okno logowania do panelu administratora w nowej identyfikacji gry (jak okno wiadomości prywatnych) */
+html body.game-app.game-navy dialog#sidebar-admin-dialog{--admin-navy:#1E3A5F;--admin-navy-light:#2b4f7c;--admin-line:#d3dce9;--admin-text:#24324a;--admin-muted:#4d5f78;
+  width:min(440px,calc(100vw - 24px));padding:0;background:#F0F4FA;color:var(--admin-text);border:1px solid var(--admin-line);border-radius:12px;box-shadow:0 24px 70px #0b1d3366;overflow:hidden;color-scheme:light}
+html body.game-app.game-navy dialog#sidebar-admin-dialog::backdrop{background:#0b1d33a6;backdrop-filter:blur(2px)}
+html body.game-app.game-navy dialog#sidebar-admin-dialog form{display:block;gap:0}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-heading{padding:14px 18px;background:linear-gradient(180deg,var(--admin-navy-light),var(--admin-navy));border-bottom:1px solid #0f2238}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-heading h2{margin:0;color:#fff;font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:left;background:none}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-body{display:grid;gap:8px;padding:18px 18px 6px}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-body p{margin:0 0 6px;color:var(--admin-muted);background:none;font-size:14px}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-body label{color:var(--admin-muted);background:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+html body.game-app.game-navy dialog#sidebar-admin-dialog input[type=password]{box-sizing:border-box;width:100%;min-height:42px;padding:9px 12px;background:#fff;color:var(--admin-text);-webkit-text-fill-color:var(--admin-text);border:1px solid #b9c7da;border-radius:6px;box-shadow:none;font:inherit}
+html body.game-app.game-navy dialog#sidebar-admin-dialog input[type=password]:focus-visible{outline:2px solid var(--admin-navy);outline-offset:1px;border-color:var(--admin-navy)}
+html body.game-app.game-navy dialog#sidebar-admin-dialog #sidebar-admin-error{margin:0;color:#b3261e;font-weight:700}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:12px 18px 18px}
+html body.game-app.game-navy dialog#sidebar-admin-dialog .sidebar-admin-actions button{min-height:40px;padding:9px 16px;font:inherit;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:6px;cursor:pointer;box-shadow:none}
+html body.game-app.game-navy dialog#sidebar-admin-dialog #sidebar-admin-cancel{background:#fff;color:var(--admin-navy);border:1px solid #b9c7da}
+html body.game-app.game-navy dialog#sidebar-admin-dialog #sidebar-admin-cancel:hover{background:#eef3fa;border-color:var(--admin-navy)}
+html body.game-app.game-navy dialog#sidebar-admin-dialog #sidebar-admin-submit{background:linear-gradient(180deg,var(--admin-navy-light),var(--admin-navy));color:#fff;border:1px solid #0f2238}
+html body.game-app.game-navy dialog#sidebar-admin-dialog #sidebar-admin-submit:hover{background:#2b6597;border-color:#2b6597}
+html body.game-app.game-navy dialog#sidebar-admin-dialog :is(#sidebar-admin-cancel,#sidebar-admin-submit):focus-visible{outline:2px solid var(--admin-navy);outline-offset:2px}

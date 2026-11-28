@@ -32,7 +32,25 @@ def state_data(country_id):
                      'startsAt':mission.starts_at.isoformat()+'Z','endsAt':mission.ends_at.isoformat()+'Z',
                      'captured':bool((mission.report or {}).get('captured')),'completed':mission.completed_at is not None,'success':mission.success} for mission in ([m for m in missions if m.completed_at is None]+[m for m in missions if m.completed_at is not None][:100])],
         'resourceReports':resource_reports(country_id,countries),
+        'sabotageAgainstUs':sabotage_against(country_id,countries),
         'gameNow':game_now().isoformat()+'Z','timeMultiplier':get_time_multiplier()}
+
+
+def sabotage_against(country_id,countries,limit=30):
+    """28 Nov 2026: działania hybrydowe wymierzone w państwo. Sprawca jest jawny tylko wtedy, gdy kontrwywiad go ustalił
+    (poziom ochrony 6–7 w chwili zakończenia misji) albo schwytano agenta."""
+    from game.intelligence_service import HYBRID
+    rows=db.session.scalars(select(IntelligenceMission).where(IntelligenceMission.target_country_id==country_id,IntelligenceMission.kind.in_(HYBRID),
+                            IntelligenceMission.completed_at.is_not(None)).order_by(IntelligenceMission.completed_at.desc(),IntelligenceMission.id.desc()).limit(limit))
+    result=[]
+    for mission in rows:
+        report=mission.report or {}
+        if report.get('invalid_target'):continue
+        known=bool(report.get('attributed') or report.get('captured'))
+        if not known and not report.get('damage'):continue   # nieudana próba bez ustalenia sprawcy pozostaje niewykryta
+        result.append({'kind':MISSIONS[mission.kind],'region':mission.region_name,'date':mission.ends_at.strftime('%d.%m.%Y'),'success':bool(mission.success),
+                       'captured':bool(report.get('captured')),'culprit':countries.get(mission.panstwo_id,f'Państwo #{mission.panstwo_id}') if known else None})
+    return result
 
 
 def resource_reports(country_id,countries):

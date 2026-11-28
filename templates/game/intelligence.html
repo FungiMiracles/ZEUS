@@ -1,6 +1,6 @@
 {% extends 'game/game_base_layout.html' %}
 {% block body_class %}intelligence-room{% endblock %}
-{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261116-screens-3') }}">{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_screens_navy.css', v='20261128-screens-5') }}">{% endblock %}
 {% block title %}Wywiad wojskowy — {{ game_country.nazwa }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -11,7 +11,7 @@
 {% endblock %}
 {% block content %}
 <div class="military-summary">
-<section class="game-panel"><h2>Ochrona kontrwywiadowcza</h2><p id="intel-counter"></p><button id="intel-counter-upgrade" type="button">Wzmocnij ochronę</button></section>
+<section class="game-panel"><h2>Ochrona kontrwywiadowcza</h2><p id="intel-counter"></p><button id="intel-counter-upgrade" type="button">Wzmocnij ochronę</button><div class="intel-sabotage-block"><h3>Wykryte próby sabotażu</h3><p class="intel-hint">Kontrwywiad na poziomie 6 lub 7 ustala państwo, które dokonało udanej lub nieudanej próby sabotażu.</p><div id="intel-sabotage"></div></div></section>
 </div>
 <p id="intel-error" role="alert"></p>
 <section class="game-panel intel-panel"><h2>Rekrutacja agentów</h2>
@@ -33,4 +33,4 @@
 <dialog id="intel-confirm" class="game-actions-dialog"><h2 class="intel-heading"><img class="intel-heading-icon" id="intel-confirm-icon" hidden src="{{ url_for('static',filename='icons/WYWIAD WOJSKOWY.svg') }}" alt=""><span id="intel-confirm-title"></span></h2><p id="intel-confirm-text"></p><label id="intel-agent-name-label" hidden>Imię i nazwisko<input id="intel-agent-name" maxlength="100" autocomplete="off"></label><p id="intel-confirm-error" role="alert"></p><div class="military-dialog-actions"><button id="intel-confirm-cancel" type="button">Anuluj</button><button id="intel-confirm-submit" type="button">Zatwierdź</button></div></dialog>
 <script id="intelligence-config" type="application/json">{{ intelligence_config|tojson }}</script>
 {% endblock %}
-{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static', filename='js/game_radial_menu.js', v='20261125-infra-1') }}" defer></script><script src="{{ url_for('static',filename='js/game_satellites.js',v='20261126-sat-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261126-sat-1') }}" defer></script>{% endblock %}
+{% block extra_js %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static', filename='js/game_radial_menu.js', v='20261125-infra-1') }}" defer></script><script src="{{ url_for('static',filename='js/game_satellites.js',v='20261126-sat-2') }}" defer></script><script src="{{ url_for('static',filename='js/game_intelligence.js',v='20261128-sabotage-1') }}" defer></script>{% endblock %}

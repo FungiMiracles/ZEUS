@@ -102,6 +102,11 @@ class Context:
             self._perception[other]=known or {'trust':50,'threat':20,'confidence':20}
         return self._perception[other]
 
+    def _sabotage_summary(self):
+        from game.paga2.sabotage import summary
+        try:return summary(self)
+        except Exception:return []
+
     def history(self,other):
         if other not in self._history:
             from game.paga2.memory import history_with
@@ -133,7 +138,7 @@ class Context:
                 'geografia':{'sąsiedzi':world.get('neighbor_countries',[]),'regiony_nadmorskie':world.get('coastal_regions',[]),
                              'regiony_przygraniczne':world.get('border_regions',[]),'okupowane_przez_innych':world.get('occupied_by_others',{})},
                 'pamięć':{'ostatnie_decyzje':self.memory.get('own_decisions',[])[:10],'działania_wobec_nas':self.memory.get('actions_against_us',[])[:10],
-                          'zmiany_relacji':self.memory.get('relation_changes',[])[:10]},
+                          'zmiany_relacji':self.memory.get('relation_changes',[])[:10],'wykryty_sabotaż':self._sabotage_summary()},
                 'powiązania_historyczne':list(self.relationships.values()),'błędy_adapterów':self.errors}
 
 

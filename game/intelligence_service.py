@@ -20,6 +20,8 @@ AGENT_COSTS=(17050000,27800000,34200000,45000000,65500000,72300000,105900000)
 AGENT_CHANCES=(15,25,35,45,60,75,90)
 COUNTER_COSTS=(0,50000000,500000000,2000000000,5000000000,7000000000,10000000000)
 COUNTER_PROTECTION=(5,10,20,35,50,65,75)
+# 28 Nov 2026: kontrwywiad na poziomie 6 lub 7 ustala państwo, które dokonało (udanej lub nieudanej) próby sabotażu.
+ATTRIBUTION_LEVEL=6
 MISSION_COSTS=(50000000,200000000,400000000,600000000,800000000,1000000000,1200000000)
 MISSIONS={'power':'Położenie elektrowni','bases':'Położenie baz wojskowych','defenses':'Obrona przeciwrakietowa',
           'nuclear':'Liczba głowic jądrowych','resources':'Zasoby naturalne regionu',
@@ -231,7 +233,8 @@ def complete_missions(session,now,country_id=None):
             report=hybrid_report(session,mission,mission.success,now)
             captured=not mission.success and not report.get('invalid_target') and randbelow(100)<COUNTER_PROTECTION[counter_level(session,mission.target_country_id)-1]
             if captured:agent.captured_at=now
-            mission.report={**report,'captured':bool(captured),'entries':[*report['entries'],{'label':'Agent','value':'Schwytany przez obce służby — nie wraca do kraju.' if captured else 'Agent wrócił do kraju.'}]}
+            attributed=bool(captured) or (not report.get('invalid_target') and counter_level(session,mission.target_country_id)>=ATTRIBUTION_LEVEL)
+            mission.report={**report,'captured':bool(captured),'attributed':attributed,'entries':[*report['entries'],{'label':'Agent','value':'Schwytany przez obce służby — nie wraca do kraju.' if captured else 'Agent wrócił do kraju.'}]}
         else:
             mission.report=collect_report(session,mission) if mission.success else {'entries':[{'label':'Wynik','value':'Nie zdobyto informacji. Agent wrócił i może podjąć kolejną misję.'}]}
         if mission.report.get('invalid_target'):mission.success=False
@@ -247,7 +250,11 @@ def complete_missions(session,now,country_id=None):
             damage=mission.report.get('damage')
             effect=f' Infrastruktura: {damage["before"]} → {damage["after"]}.' if damage else ''
             if owner is not None:notice.system_text+=capture+effect
-            if victim is not None:session.add(GameNotification(user_id=victim,notification_type='SYSTEM',system_text=f'Działania hybrydowe: {MISSIONS[mission.kind]} — {'państwo' if mission.kind=='warehouses' else 'region'} {mission.region_name}. '+outcome+effect+(' Schwytano obcego agenta.' if mission.report.get('captured') else ''),created_at=utc_now()))
+            culprit=''
+            if mission.report.get('attributed'):
+                name=session.scalar(select(Panstwo.panstwo_nazwa).where(Panstwo.PANSTWO_ID==mission.panstwo_id)) or f'państwo {mission.panstwo_id}'
+                culprit=f' Kontrwywiad ustalił sprawcę: {name}.'
+            if victim is not None:session.add(GameNotification(user_id=victim,notification_type='SYSTEM',system_text=f'Działania hybrydowe: {MISSIONS[mission.kind]} — {'państwo' if mission.kind=='warehouses' else 'region'} {mission.region_name}. '+outcome+effect+(' Schwytano obcego agenta.' if mission.report.get('captured') else '')+culprit,created_at=utc_now()))
     session.flush()
 
 

@@ -1,0 +1,89 @@
+{% extends 'game/game_base_layout.html' %}
+{% block title %}Entenda News — Wydarzenia{% endblock %}
+{% block body_class %}newspaper-page{% endblock %}
+{% block late_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/game_newspaper.css', v='20261128-news-1') }}">{% endblock %}
+{% block content %}
+{# 28 Nov 2026: ekran „Wydarzenia” — miesięczna gazeta „Entenda News” (game.newspaper) #}
+<article class="newspaper" aria-labelledby="newspaper-title">
+  <header class="newspaper-masthead">
+    <div class="newspaper-topline">
+      <span>Międzynarodowy dziennik świata Entendy</span>
+      {% if issues %}
+      <form method="get" class="newspaper-archive">
+        <label for="newspaper-issue">Wydanie</label>
+        <select id="newspaper-issue" name="wydanie" onchange="this.form.submit()">
+          {% for item in issues %}<option value="{{ item.id }}" {% if issue and item.id == issue.id %}selected{% endif %}>{{ item.label }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit">Pokaż</button></noscript>
+      </form>
+      {% endif %}
+    </div>
+    <h1 id="newspaper-title" class="newspaper-title">Entenda News</h1>
+    <p class="newspaper-dateline">
+      {% if issue %}<span>Wydanie za {{ label }}</span><span>Ukazało się {{ edition_date }} CE</span><span>Nr {{ issue.id }}</span>
+      {% else %}<span>Redakcja przygotowuje pierwsze wydanie</span>{% endif %}
+    </p>
+  </header>
+
+  {% if not issue %}
+  <section class="newspaper-empty">
+    <h2>Pierwsze wydanie już wkrótce</h2>
+    <p>„Entenda News” ukazuje się raz w miesiącu Entendy i podsumowuje miniony miesiąc. Najbliższe wydanie: {{ next_label }} CE.</p>
+  </section>
+  {% else %}
+  {% set content = issue.content or {} %}
+  {% if content.lead %}
+  <section class="newspaper-lead" aria-labelledby="newspaper-lead-title">
+    <p class="newspaper-kicker">Najważniejsze wydarzenie miesiąca</p>
+    <h2 id="newspaper-lead-title">{{ content.lead.title }}</h2>
+    <p class="newspaper-lead-body">{{ content.lead.body }}</p>
+  </section>
+  {% else %}
+  <section class="newspaper-lead is-quiet">
+    <p class="newspaper-kicker">Najważniejsze wydarzenie miesiąca</p>
+    <h2>Spokojny miesiąc w Entendzie</h2>
+    <p class="newspaper-lead-body">W minionym miesiącu nie wypowiedziano ani nie zakończono żadnej wojny, nie zawarto zawieszenia broni, żadne państwo nie wyniosło satelity, nie pozyskało broni atomowej ani nie utraciło niepodległości.</p>
+  </section>
+  {% endif %}
+
+  <section class="newspaper-section" aria-labelledby="newspaper-news-title">
+    <h2 id="newspaper-news-title" class="newspaper-section-title">Z kraju i ze świata</h2>
+    {% if content.news %}
+    <div class="newspaper-columns">
+      {% for item in content.news %}
+      <section class="newspaper-item"><h3>{{ item.title }}</h3><p>{{ item.body }}</p></section>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="newspaper-none">{% if issue.facts and not issue.facts.baseline %}To pierwsze wydanie gazety — zmiany technologiczne i nowe pozwolenia na bazy redakcja odnotuje od następnego wydania. {% endif %}Brak innych doniesień z minionego miesiąca.</p>
+    {% endif %}
+  </section>
+
+  {% if content.stats %}
+  <section class="newspaper-stats" aria-labelledby="newspaper-stats-title">
+    <h2 id="newspaper-stats-title" class="newspaper-section-title">{{ content.stats.title }}</h2>
+    {% set stats = issue.facts.stats if issue.facts else {} %}
+    <dl class="newspaper-figures">
+      <div><dt>Dostawy handlowe</dt><dd>{{ stats.trade.shipments if stats and stats.trade else 0 }}</dd></div>
+      <div><dt>Pary partnerów handlowych</dt><dd>{{ stats.trade.pairs if stats and stats.trade else 0 }}</dd></div>
+      <div><dt>Pożyczki z MFW</dt><dd>{{ stats.imf.loans if stats and stats.imf else 0 }}</dd></div>
+      <div><dt>Kwota pożyczek MFW</dt><dd>{{ ('%.1f' % stats.imf.total_bln).replace('.', ',') if stats and stats.imf else '0,0' }} mld ROI</dd></div>
+    </dl>
+    <p>{{ content.stats.body }}</p>
+    {% if stats and stats.mining and stats.mining['items'] %}
+    <table class="newspaper-table">
+      <caption>Wydobycie surowców{% if stats.mining.source != 'zmiana złóż' %} (szacunek wg czynnych kopalń){% endif %}</caption>
+      <thead><tr><th scope="col">Surowiec</th><th scope="col">Ilość</th><th scope="col">Czynne kopalnie</th></tr></thead>
+      <tbody>{% for row in stats.mining['items'] %}<tr><th scope="row">{{ row.resource }}</th><td>{{ '{:,}'.format(row.amount|int).replace(',', ' ') }}</td><td>{{ row.mines }}</td></tr>{% endfor %}</tbody>
+    </table>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <footer class="newspaper-footer">
+    {% if issue.author == 'AI' %}Teksty: redakcja AI „Entenda News” na podstawie jawnych danych ZEUS.{% else %}Teksty: redakcja ZEUS na podstawie jawnych danych gry.{% endif %}
+    Kolejne wydanie: {{ next_label }} CE.
+  </footer>
+  {% endif %}
+</article>
+{% endblock %}

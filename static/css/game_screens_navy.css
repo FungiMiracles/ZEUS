@@ -114,3 +114,10 @@ html body.game-app.game-navy.game-civic.intelligence-room .game-main label :is(s
   html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-training{flex-direction:row;flex-wrap:wrap;align-items:center}
   html body.game-app.game-navy.game-civic.army-room .game-army-panel .game-army-train-button{flex:1 1 100%}
 }
+
+/* 28 Nov 2026: wykryte próby sabotażu (sekcja kontrwywiadu) — siatka kart jak lista agentów */
+html body.game-app.game-navy.game-civic.intelligence-room #intel-sabotage{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding-top:6px}
+html body.game-app.game-navy.game-civic.intelligence-room #intel-sabotage>:is(p,.intel-more){grid-column:1/-1}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-sabotage-block{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid #d3dce9;text-align:left}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-sabotage-block h3{margin:0 0 4px;text-align:left}
+html body.game-app.game-navy.game-civic.intelligence-room .intel-sabotage-block .intel-hint{margin:0 0 6px}

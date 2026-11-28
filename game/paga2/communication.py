@@ -75,7 +75,8 @@ def occasions(ctx,names):
     label=lambda id:names.get(id,f'państwo {id}')
     for item in ctx.triggers:
         kind=item.get('kind')
-        if kind in ('war_declared','land_invasion','under_attack','occupation','annexation','hybrid_detected'):
+        # 28 Nov 2026: działania hybrydowe ze znanym sprawcą — osobna okazja z pamięci (sabotage_occasions)
+        if kind in ('war_declared','land_invasion','under_attack','occupation','annexation') or kind=='hybrid_detected' and 'sprawcę' not in (item.get('text') or '') and 'Schwytano' not in (item.get('text') or ''):
             result.append((f'paga2:attack:{item.get("source")}:{item.get("id")}','forum_announcement',None,
                            f'Nasze państwo padło ofiarą: {item.get("label")}. Szczegóły: {item.get("text","")[:200]}',
                            {'defensive_army':.6,'alliances':.5},{'provocation':.4,'secrecy':-.6,'agreeableness':-.2},6.0))
@@ -83,6 +84,7 @@ def occasions(ctx,names):
             result.append((f'paga2:event:{item.get("id")}','forum_announcement',None,f'Wydarzenie w świecie: {item.get("text","")[:220]}',
                            {'alliances':.2},{'ambition':.4,'secrecy':-.6,'solidarity':.3},-4.0))
     t=ctx.traits
+    result.extend(sabotage_occasions(ctx,label,limit))
     # Próba odbicia terytorium z rąk naszego państwa (jesteśmy okupantem).
     for event in ctx.memory.get('actions_against_us',[]):
         if event.get('kind')!='RECAPTURE_ATTACK' or (event.get('at') or '')<limit:continue
@@ -132,6 +134,26 @@ def occasions(ctx,names):
                            f'Nasze państwo rozpoczęło prace nad technologią „{title}”. Poinformuj społeczność międzynarodową o rozpoczęciu tych prac '
                            '(bez zmyślania szczegółów, terminów i wyników, których nie znamy).',
                            {'research':.6},{'secrecy':-.8,'ambition':.3},1.0))
+    return result
+
+
+def sabotage_occasions(ctx,label,limit):
+    """28 Nov 2026: wpis o wykrytej próbie sabotażu na naszym terytorium (sprawca ustalony przez kontrwywiad lub schwytany agent).
+    Państwa skryte i ugodowe zabierają głos rzadziej; prowokacyjne i mściwe — częściej, zwłaszcza po kolejnych próbach."""
+    from game.paga2.sabotage import record
+    from game.intelligence_service import MISSIONS
+    t=ctx.traits;saboteurs=record(ctx);result=[]
+    for event in ctx.memory.get('actions_against_us',[]):
+        if event.get('kind')!='HYBRID_DETECTED' or not event.get('actor') or (event.get('at') or '')<limit:continue
+        other=event['actor'];count=(saboteurs.get(other) or {}).get('count',1)
+        what=MISSIONS.get(event.get('operation'),'działania hybrydowe')
+        outcome='zakończyła się powodzeniem' if event.get('success') else 'została udaremniona'
+        tone=('stanowczo potępij sprawcę i zapowiedz odpowiedź' if t.get('revenge',50)>=60 or t.get('provocation',50)>=60
+              else 'wezwij sprawcę do zaprzestania wrogich działań i do wyjaśnień' if t.get('agreeableness',50)>=60 else 'potępij sprawcę w wyważonym tonie')
+        text=(f'Kontrwywiad ustalił, że państwo {label(other)} przeprowadziło na naszym terytorium próbę sabotażu ({what}), która {outcome}. '
+              f'To {count}. wykryta próba tego państwa w ostatnim roku. Stanowisko PAGA2: {tone}. Nie ujawniaj szczegółów działania naszych służb.')
+        result.append((f'paga2:sabotage:{event.get("id")}','forum_announcement',None,text,{'defensive_army':.5,'alliances':.4},
+                       {'provocation':.5,'revenge':.5,'secrecy':-.7,'agreeableness':-.2},2.0+1.5*min(3,count-1)))
     return result
 
 

@@ -112,6 +112,8 @@ def start_infrastructure_scheduler(app):
     scheduler.add_job(run_commerce_tick,'interval',seconds=5,args=[app],id='commerce',max_instances=1,coalesce=True)
     from game.cities import run_tick as run_cities_tick   # 21 Nov 2026: ukończone budowy obiektów miejskich i ich efekty
     scheduler.add_job(run_cities_tick,'interval',seconds=30,args=[app],id='city_buildings',max_instances=1,coalesce=True)
+    from game.newspaper import run_tick as run_newspaper_tick   # 28 Nov 2026: „Entenda News” — wydanie raz na miesiąc Entendy
+    scheduler.add_job(run_newspaper_tick,'interval',minutes=2,args=[app],id='entenda_news',max_instances=1,coalesce=True)
     from game.diplomacy_news import run_news_tick
     scheduler.add_job(run_news_tick,'interval',seconds=30,args=[app],id='diplomacy_news',max_instances=1,coalesce=True)
     app.extensions['game_infrastructure_scheduler'] = scheduler

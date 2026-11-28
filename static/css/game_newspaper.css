@@ -1,0 +1,55 @@
+/* 28 Nov 2026: „Entenda News” — ekran „Wydarzenia” jako gazeta na całą szerokość obszaru treści. */
+html body.game-app.newspaper-page .game-main>.game-section-header{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html body.game-app.newspaper-page .game-main{padding-top:18px}
+
+html body.game-app .newspaper{--paper:#f7f3e8;--ink:#1d1a16;--muted:#5b5348;--rule:#2a251f;--soft-rule:#cfc5b2;--accent:#1E3A5F;
+  box-sizing:border-box;width:100%;min-height:calc(100dvh - 210px);margin:0 auto;padding:22px clamp(16px,3vw,44px) 28px;
+  background:var(--paper);color:var(--ink);border:1px solid #d9cfbb;border-radius:4px;box-shadow:0 10px 40px #1e3a5f26;
+  font-family:Georgia,"Times New Roman",Times,serif;line-height:1.55}
+
+.newspaper .newspaper-masthead{text-align:center;border-bottom:4px double var(--rule);padding-bottom:10px;margin-bottom:22px}
+.newspaper .newspaper-topline{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding-bottom:8px;border-bottom:1px solid var(--rule);
+  font-family:system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.newspaper .newspaper-archive{display:flex;align-items:center;gap:8px}
+.newspaper .newspaper-archive label{color:var(--muted);background:none;font:inherit}
+.newspaper .newspaper-archive select{min-height:32px;padding:3px 8px;background:#fffdf7;color:var(--ink);-webkit-text-fill-color:var(--ink);border:1px solid var(--soft-rule);border-radius:4px;
+  font-family:system-ui,sans-serif;font-size:13px;letter-spacing:normal;text-transform:none}
+.newspaper .newspaper-title{margin:14px 0 6px;padding:0;background:none;border:0;color:var(--ink);font-family:"Old English Text MT","UnifrakturMaguntia","Times New Roman",Georgia,serif;
+  font-size:clamp(44px,7vw,92px);font-weight:700;line-height:1;letter-spacing:.01em;text-transform:none}
+.newspaper .newspaper-dateline{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 22px;margin:8px 0 0;padding-top:7px;border-top:1px solid var(--rule);
+  color:var(--muted);font-size:13px;font-style:italic}
+
+.newspaper .newspaper-lead{padding:0 0 22px;margin-bottom:22px;border-bottom:2px solid var(--rule)}
+.newspaper .newspaper-kicker{margin:0 0 6px;color:var(--accent);font-family:system-ui,sans-serif;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.newspaper .newspaper-lead h2{margin:0 0 14px;padding:0;background:none;border:0;color:var(--ink);font-family:inherit;font-size:clamp(30px,4.2vw,54px);font-weight:700;line-height:1.08;letter-spacing:-.01em;text-transform:none}
+.newspaper .newspaper-lead-body{max-width:78ch;margin:0;font-size:clamp(17px,1.35vw,20px);color:var(--ink)}
+.newspaper .newspaper-lead-body::first-letter{float:left;margin:4px 8px 0 0;font-size:3.4em;line-height:.8;font-weight:700;color:var(--accent)}
+.newspaper .newspaper-lead.is-quiet h2{font-size:clamp(26px,3vw,38px)}
+
+.newspaper .newspaper-section-title{margin:0 0 14px;padding:4px 0;background:none;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  color:var(--ink);font-family:system-ui,sans-serif;font-size:13px;font-weight:800;letter-spacing:.16em;text-align:center;text-transform:uppercase}
+.newspaper .newspaper-section{margin-bottom:26px}
+.newspaper .newspaper-columns{column-count:3;column-gap:30px;column-rule:1px solid var(--soft-rule)}
+.newspaper .newspaper-item{break-inside:avoid;margin:0 0 18px;padding:0}
+.newspaper .newspaper-item h3{margin:0 0 4px;padding:0;background:none;border:0;color:var(--ink);font-family:inherit;font-size:19px;font-weight:700;line-height:1.2;text-transform:none;letter-spacing:0}
+.newspaper .newspaper-item p,.newspaper .newspaper-none,.newspaper .newspaper-empty p,.newspaper .newspaper-stats>p{margin:0;color:var(--ink);font-size:15.5px}
+.newspaper .newspaper-none{color:var(--muted);font-style:italic;text-align:center}
+
+.newspaper .newspaper-stats{padding:16px 18px 18px;background:#efe8d7;border:1px solid var(--soft-rule);border-top:4px double var(--rule)}
+.newspaper .newspaper-stats .newspaper-section-title{border-top:0}
+.newspaper .newspaper-figures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.newspaper .newspaper-figures div{padding:8px 10px;background:var(--paper);border:1px solid var(--soft-rule);text-align:center}
+.newspaper .newspaper-figures dt{color:var(--muted);font-family:system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.newspaper .newspaper-figures dd{margin:2px 0 0;color:var(--ink);font-size:26px;font-weight:700}
+.newspaper .newspaper-table{width:100%;margin-top:14px;border-collapse:collapse;background:none;font-size:14.5px}
+.newspaper .newspaper-table caption{padding-bottom:6px;color:var(--muted);font-style:italic;text-align:left}
+.newspaper .newspaper-table :is(th,td){padding:5px 8px;background:none;color:var(--ink);border-bottom:1px solid var(--soft-rule);text-align:left}
+.newspaper .newspaper-table thead th{border-bottom:1px solid var(--rule);font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.newspaper .newspaper-table td{text-align:right;font-variant-numeric:tabular-nums}
+
+.newspaper .newspaper-empty{padding:40px 0;text-align:center}
+.newspaper .newspaper-empty h2{margin:0 0 8px;background:none;border:0;color:var(--ink);font-family:inherit;font-size:32px;text-transform:none}
+.newspaper .newspaper-footer{margin-top:22px;padding-top:8px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;font-style:italic;text-align:center}
+
+@media (max-width:1100px){.newspaper .newspaper-columns{column-count:2}.newspaper .newspaper-figures{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.newspaper .newspaper-columns{column-count:1}.newspaper .newspaper-topline{justify-content:center}html body.game-app .newspaper{padding:16px 12px 20px}}

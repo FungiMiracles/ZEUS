@@ -442,9 +442,6 @@ main.container {
     position: relative;
     display:flex;align-items:center;gap:8px;
 }
-.paga-entry-button,.paga-entry-button:visited{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 12px;box-sizing:border-box;border-radius:6px;background:#c32929;color:#fff!important;font-weight:700;text-decoration:none}
-.paga-entry-button:hover{background:#a41e1e;color:#fff!important}
-@media(max-width:600px){.entenda-clock-wrapper:has(.paga-entry-button){padding-inline-start:115px}}
 
 .admin-hamburger-btn {
     font-size: 22px;
@@ -879,7 +876,6 @@ main.container {
                 ☰
             </button>
 
-            {% if ENV_NAME == 'UAT' and session.get('rola') == 'wszechmocny' %}<a class="paga-entry-button" href="{{ url_for('paga.entry') }}">PAGA</a>{% endif %}
             <div id="adminDropdown" class="admin-dropdown">
 
                 <a href="{{ url_for('zdarzenia_list') }}">
@@ -895,6 +891,9 @@ main.container {
                 </a>
 
                 {% if session.rola == "wszechmocny" %}
+
+                {# 28 Nov 2026: PAGA w rozwijanym menu (wcześniej osobny przycisk obok menu) #}
+                {% if ENV_NAME == 'UAT' %}<a class="paga-entry-link" href="{{ url_for('paga.entry') }}">PAGA</a>{% endif %}
 
                 <a href="{{ url_for('admin_natural_resources') }}">
                     Surowce naturalne

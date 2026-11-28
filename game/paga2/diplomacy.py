@@ -36,11 +36,13 @@ def dictionaries():
 def candidates(ctx):
     """Państwa istotne dla dyplomacji: sąsiedzi, państwa z relacją lub powiązaniem, zagrożenia i sojusznicy (ograniczona liczba)."""
     world=ctx.world_summary();s=ctx.situation
-    pool=set(world.get('neighbor_countries',[]))|set(s.get('relations',{}))|set(ctx.relationships)|set(s.get('threats',[]))|set(s.get('allies',[]))
+    from game.paga2.sabotage import record
+    saboteurs=record(ctx)   # 28 Nov 2026: państwa, których próby sabotażu wykrył kontrwywiad
+    pool=set(world.get('neighbor_countries',[]))|set(s.get('relations',{}))|set(ctx.relationships)|set(s.get('threats',[]))|set(s.get('allies',[]))|set(saboteurs)
     pool.discard(ctx.country_id)
     def weight(other):
         p=ctx.perception(other)
-        return (other in s.get('at_war',[]))*100+(other in world.get('neighbor_countries',[]))*30+(other in ctx.relationships)*25+abs(p.get('trust',50)-50)+p.get('threat',20)
+        return (other in s.get('at_war',[]))*100+(other in saboteurs)*40+(other in world.get('neighbor_countries',[]))*30+(other in ctx.relationships)*25+abs(p.get('trust',50)-50)+p.get('threat',20)
     return sorted(pool,key=weight,reverse=True)[:MAX_TARGETS]
 
 
@@ -96,6 +98,8 @@ def relation_options(ctx,ids):
         rank=ORDER.index(current);war=row.get('state')=='wojnakinetyczna'
         history=ctx.history(other);p=ctx.perception(other)
         attacked=history['hostile_from']
+        from game.paga2.sabotage import relation_pressure,relation_steps,record as sabotage_record
+        sabotage=relation_pressure(ctx,other)   # 28 Nov 2026: wykryte próby sabotażu ze strony tego państwa
         pending={kind for target,kind in pending_pairs(ctx) if target==other}
         if war and other in proposals_possible:
             terms=peace_terms(ctx,other)
@@ -116,24 +120,27 @@ def relation_options(ctx,ids):
                                       target=other,stance='friendly',effects={'alliances':1.0 if pact else .6,'trade':.4,'welfare':.2},
                                       traits={'agreeableness':.8,'solidarity':.4,'isolationism':-.7,'alliance_loyalty':.4 if pact else 0,'provocation':-.4},
                                       categories={'hegemonic':.8 if pact else .4,'economic':.3,'isolationist':-.6},
-                                      base=-2.0-3*min(3,attacked)-occupation_stance(ctx,other)-war_plans.consistency_penalty(ctx,other,1)-(8.0 if other in planned else 0),
+                                      base=-2.0-3*min(3,attacked)-sabotage-occupation_stance(ctx,other)-war_plans.consistency_penalty(ctx,other,1)-(8.0 if other in planned else 0),
                                       payload={'kind':'RELATION','target_id':other,'relation_id':ids[better],'group':f'diplomacy:{other}',**lock_payload}))
         # Bezpośrednia propozycja sojuszu przy wysokim zaufaniu (budowa sojuszy — państwo hegemonistyczne i priorytet „sojusze”).
         if other in proposals_possible and 'RELATION' not in pending and 'sojusznicze' in ids and current in ('dobre','przyjazne','partnerskie','partnerskiestrategiczne') and p.get('trust',50)>=65 and not recently(ctx,'ALLIANCE',other):
             options.append(Option(key=f'diplomacy:alliance:{other}',domain='diplomacy',action='ALLIANCE',label=f'Propozycja sojuszu z państwem {other}',target=other,stance='friendly',
                                   effects={'alliances':1.0,'defensive_army':.4},traits={'alliance_loyalty':.8,'agreeableness':.4,'isolationism':-.9},
-                                  categories={'hegemonic':1.0,'isolationist':-.8},base=-1.0+(3.0 if hegemonic else 0)-war_plans.consistency_penalty(ctx,other,1),
+                                  categories={'hegemonic':1.0,'isolationist':-.8},base=-1.0+(3.0 if hegemonic else 0)-1.5*sabotage-war_plans.consistency_penalty(ctx,other,1),
                                   payload={'kind':'RELATION','target_id':other,'relation_id':ids['sojusznicze'],'group':f'diplomacy:{other}',**lock_payload}))
         if rank>0 and not recently(ctx,'RELATION_WORSEN',other):
-            worse=ORDER[rank-1]
+            worse=ORDER[max(0,rank-(relation_steps(ctx,other) if sabotage else 1))]
+            if worse not in ids:worse=ORDER[rank-1]
             if worse in ids:
+                attempts=sabotage_record(ctx).get(other,{}).get('count',0)
+                sabotage_notes=[f'Kontrwywiad wykrył {attempts} próbę(y) sabotażu ze strony państwa {other} w ostatnim roku.'] if sabotage else []
                 options.append(Option(key=f'diplomacy:worsen:{other}',domain='diplomacy',action='RELATION_WORSEN',label=f'Jednostronne pogorszenie relacji z państwem {other}: {current} → {worse}',
                                       target=other,stance='hostile',effects={'conquest':.4,'alliances':-.6 if current in PACTS else -.2,'trade':-.3},
                                       traits={'provocation':.9,'revenge':.5,'agreeableness':-.8,'isolationism':.3,'predictability':-.2},
                                       categories={'imperialist':.5,'terrorist':.4},
-                                      base=-8.0+4*min(3,attacked)+(p.get('threat',20)-50)/10+occupation_stance(ctx,other)-min(6.0,deterrence(ctx,other)/2)
+                                      base=-8.0+4*min(3,attacked)+sabotage+(p.get('threat',20)-50)/10+occupation_stance(ctx,other)-min(6.0,deterrence(ctx,other)/2)
                                            -war_plans.consistency_penalty(ctx,other,-1)+(6.0 if other in planned and current not in ('zle','napiete','wrogie','egzystencjalniewrogie') else 0),
-                                      notes=[f'Plan wojenny wobec państwa {other} wymaga złych stosunków przed wypowiedzeniem wojny.'] if other in planned else [],
+                                      notes=sabotage_notes+([f'Plan wojenny wobec państwa {other} wymaga złych stosunków przed wypowiedzeniem wojny.'] if other in planned else []),
                                       payload={'kind':'RELATION','target_id':other,'relation_id':ids[worse],'group':f'diplomacy:{other}',**lock_payload}))
     return options
 

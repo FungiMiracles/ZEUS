@@ -75,7 +75,7 @@ def action_help(names):
 
 # Administrator decision (10 Nov 2026): PAGA AI does not build or decide about roads and does not consider
 # Event Generator news. Enforced here and again in the runner (never offered, never executed).
-EXCLUDED_OPERATIONS={'game_infrastructure.roads_change:POST','game_infrastructure.roads_state:GET','game_public.events:GET'}
+EXCLUDED_OPERATIONS={'game_infrastructure.roads_change:POST','game_infrastructure.roads_state:GET','game_newspaper.page:GET'}
 assert not any(name in EXCLUDED_OPERATIONS for spec in DOMAINS.values() for name in (*spec['reads'],*spec['more'],*spec['writes']))
 
 # Strategic self-management is available in every task: the model can always record goals and intentions.

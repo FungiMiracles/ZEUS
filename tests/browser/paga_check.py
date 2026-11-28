@@ -38,9 +38,9 @@ try:
   context.route('http://test.local/**',route)
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto('http://test.local/wiki-test',wait_until='domcontentloaded')
-  expect(page.get_by_role('link',name='PAGA',exact=True)).to_be_visible()
-  color=page.locator('.paga-entry-button').evaluate('e=>[getComputedStyle(e).color,getComputedStyle(e).backgroundColor]')
-  assert color==['rgb(255, 255, 255)','rgb(195, 41, 41)'],color
+  # 28 Nov 2026: PAGA jest pozycją rozwijanego menu ZEUS WIKI (bez osobnego przycisku)
+  page.locator('.admin-hamburger-btn').click()
+  expect(page.locator('#adminDropdown').get_by_role('link',name='PAGA',exact=True)).to_be_visible()
   page.get_by_role('link',name='PAGA',exact=True).click()
   page.wait_for_load_state('networkidle')
   assert not errors,errors
@@ -89,7 +89,7 @@ try:
   page.screenshot(path='/tmp/paga-mobile.png',full_page=True)
   page.goto('http://test.local/admin/paga');expect(page.locator('#paga-password')).to_have_count(0);expect(page.locator('#paga-config')).to_have_count(1)
   with case.client.session_transaction() as session:session['rola']='obserwator'
-  page.goto('http://test.local/wiki-test');expect(page.locator('.paga-entry-button')).to_have_count(0)
+  page.goto('http://test.local/wiki-test');expect(page.locator('.paga-entry-link')).to_have_count(0)
   assert not errors,errors
   browser.close()
  print('PAGA browser OK: red/white role-only button, no extra password (WIKI role only), continent/country, blanks and zero, slider sync, ranking buttons/drag, activation, draft/approval isolation and 390px layout.')

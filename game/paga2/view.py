@@ -28,7 +28,7 @@ SOURCES={
     'demography':('/game/demografia','GET',('history','metrics','age_structure','demographic_map','game_country')),
     'society':('/game/spoleczenstwo','GET',('indicators','benefit_expectations','benefit_year','benefit_half')),
     'events':('/game/stan/zdarzenia','GET',None),
-    'generated_events':('/game/wydarzenia','GET',('rows','effects','count')),
+    'generated_events':('/game/wydarzenia','GET',('issue','issues','label')),   # 28 Nov 2026: gazeta „Entenda News”
     'world_news':('/game/dyplomacja/wiadomosci-swiatowe','GET',None),
     'notifications':('/game/forum/powiadomienia','GET',None),
 }

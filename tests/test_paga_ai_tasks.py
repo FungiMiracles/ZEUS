@@ -400,7 +400,7 @@ class AiScenarioTests(Scenario,unittest.TestCase):
         captured=self.tick([{'ocena':'Budujemy drogę.','actions':[roads],'task_done':True},DONE])
         context=captured[0]['context']
         names={choice['properties']['operation_id']['enum'][0] for choice in captured[0]['schema']['properties']['actions']['items']['anyOf']}
-        for blocked in ('game_infrastructure.roads_change:POST','game_infrastructure.roads_state:GET','game_public.events:GET'):
+        for blocked in ('game_infrastructure.roads_change:POST','game_infrastructure.roads_state:GET','game_newspaper.page:GET'):
             self.assertNotIn(blocked,names);self.assertNotIn(blocked,json.dumps(context,ensure_ascii=False))
         self.assertEqual(db.session.query(Road).count(),0)
         review=self.tasks(kind='strategic_review')[0]

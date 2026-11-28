@@ -35,6 +35,7 @@ from game.commerce import trade_bp
 from game.loans import loans_bp
 from game.imf import imf_bp   # 18 Nov 2026: Międzynarodowy Fundusz Walutowy
 from game.public_panels import public_panels_bp
+from game.newspaper import newspaper_bp   # 28 Nov 2026: „Entenda News” (ekran Wydarzenia)
 from game.diplomacy import diplomacy_bp
 from game.forum import forum_bp
 from game.communication import messages_bp
@@ -204,6 +205,7 @@ def create_app():
     from game.research import research_bp
     app.register_blueprint(research_bp)
     app.register_blueprint(public_panels_bp)
+    app.register_blueprint(newspaper_bp)
     app.register_blueprint(diplomacy_bp)
     app.config['PAGA_AI_CONFIGURED']=ENV_NAME=='UAT' and os.environ.get('PAGA_AI_CONFIGURED','1')=='1'
     from game.module_funds import register as register_module_funds
@@ -333,7 +335,7 @@ def create_app():
         if request.endpoint is None:
             return
         
-        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_trade", "game_rail", "game_airports", "game_cities", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial", "game_imf", "game_warehouse", "game_satellites"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF; 18 Nov 2026: game_imf (MFW) też
+        if request.blueprint in {"game_player", "game_account", "game_research", "game_loans", "game_public", "game_newspaper", "game_trade", "game_rail", "game_airports", "game_cities", "game_intelligence", "game_military", "game_infrastructure", "game_army", "game_resources", "game_demography", "game_forum", "game_environment", "game_diplomacy", "game_messages", "game_world", "game_tutorial", "game_imf", "game_warehouse", "game_satellites"}:   # 15 Nov 2026: game_tutorial sam sprawdza sesję gracza i CSRF; 18 Nov 2026: game_imf (MFW) też
             return
 
         # Blueprint sam sprawdza sesję gracza i token CSRF.

@@ -21,7 +21,9 @@ def visible_events(session,country_id,*,since=None,limit=200):
 def _event(event):
     return {'id':event.id,'kind':event.kind,'actor':event.actor_id,'target':event.target_id,'at':event.occurred_at.isoformat() if event.occurred_at else None,
             'parties':event.payload.get('parties'),'relation':event.payload.get('relation'),'state':event.payload.get('state'),
-            'object':event.payload.get('target'),'won':event.payload.get('won')}
+            'object':event.payload.get('target'),'won':event.payload.get('won'),
+            # 28 Nov 2026: rodzaj i wynik wykrytego sabotażu (game.paga2.sabotage)
+            **({'operation':event.payload.get('kind'),'success':bool(event.payload.get('success'))} if event.kind=='HYBRID_DETECTED' else {})}
 
 
 def recall(session,country_id,now,*,days=365,decisions=50):
